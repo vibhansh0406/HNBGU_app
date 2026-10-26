@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
-import `in`.campusone.app.worker.CampusReminderWorker
+import `in`.campusone.app.worker.CampusSyncAndReminderWorker
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -20,6 +20,6 @@ class CampusOneApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
-        CampusReminderWorker.schedule(this)
+        CampusSyncAndReminderWorker.schedule(this)
     }
 }

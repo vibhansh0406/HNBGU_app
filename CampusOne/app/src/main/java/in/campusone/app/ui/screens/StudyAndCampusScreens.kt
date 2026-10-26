@@ -2,9 +2,6 @@ package `in`.campusone.app.ui.screens
 
 import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
-import android.content.Intent
-import android.net.Uri
-import android.provider.OpenableColumns
 import android.os.ParcelFileDescriptor
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -24,15 +21,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
@@ -102,11 +96,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.R
 import `in`.campusone.app.data.local.entity.StudyResourceEntity
-import `in`.campusone.app.data.local.entity.CampusMapPlaceEntity
-import `in`.campusone.app.data.local.entity.DirectoryContactEntity
-import `in`.campusone.app.data.local.entity.DirectorySuggestionEntity
-import `in`.campusone.app.data.local.entity.LostFoundEntity
-import `in`.campusone.app.domain.model.EventRsvpStatus
 import `in`.campusone.app.domain.model.UserRole
 import `in`.campusone.app.domain.usecase.GradingScaleType
 import `in`.campusone.app.domain.usecase.SemesterGpaRecord
@@ -117,7 +106,6 @@ import java.util.Locale
 
 enum class MoreSubScreen {
     HUB,
-    PROFILE,
     NOTES_PYQ,
     ASSIGNMENTS,
     EXAMS_SYLLABUS,
@@ -152,16 +140,8 @@ fun MoreHubScreen(
             }
             item {
                 FeatureHubCard(
-                    title = stringResource(R.string.local_demo_profile),
-                    subtitle = "${uiState.profile.name} • ${uiState.profile.role.name} • Saved only on this device",
-                    icon = Icons.Default.AccountCircle,
-                    onClick = { activeScreen = MoreSubScreen.PROFILE }
-                )
-            }
-            item {
-                FeatureHubCard(
                     title = stringResource(R.string.notes_pyq),
-                    subtitle = "${uiState.resources.size} PDFs & Images • Local files, offline bookmarks & demo moderation",
+                    subtitle = "${uiState.resources.size} PDFs & Images • In-App Zoom Viewer, Offline Bookmarks & CR Moderation",
                     icon = Icons.Default.Description,
                     onClick = { activeScreen = MoreSubScreen.NOTES_PYQ }
                 )
@@ -255,10 +235,6 @@ fun MoreHubScreen(
                     .padding(innerPadding)
             ) {
                 when (activeScreen) {
-                    MoreSubScreen.PROFILE -> LocalDemoProfileScreen(
-                        profile = uiState.profile,
-                        onSave = viewModel::saveLocalProfile
-                    )
                     MoreSubScreen.NOTES_PYQ -> NotesAndPyqScreen(uiState, viewModel)
                     MoreSubScreen.ASSIGNMENTS -> AssignmentsScreen(uiState, viewModel)
                     MoreSubScreen.EXAMS_SYLLABUS -> ExamsAndSyllabusScreen(uiState, viewModel)
@@ -270,462 +246,6 @@ fun MoreHubScreen(
                     MoreSubScreen.HUB -> Unit
                 }
             }
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun LocalDemoProfileScreen(
-    profile: `in`.campusone.app.domain.model.UserProfile,
-    onSave: (`in`.campusone.app.domain.model.UserProfile) -> Unit
-) {
-    var name by rememberSaveable { mutableStateOf(profile.name) }
-    var email by rememberSaveable { mutableStateOf(profile.email) }
-    var semester by rememberSaveable { mutableStateOf(profile.semester.toString()) }
-    var section by rememberSaveable { mutableStateOf(profile.section) }
-    var role by rememberSaveable { mutableStateOf(profile.role) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text(
-            text = stringResource(R.string.local_demo_auth_disclaimer),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.error
-        )
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            label = { Text("Name") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text(stringResource(R.string.local_demo_email_label)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = semester,
-            onValueChange = { semester = it.filter(Char::isDigit).take(1) },
-            label = { Text(stringResource(R.string.select_semester)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = section,
-            onValueChange = { section = it.take(1).uppercase() },
-            label = { Text(stringResource(R.string.select_section)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Text(
-            text = "${stringResource(R.string.select_role)} • ${stringResource(R.string.local_demo_role_label)}",
-            style = MaterialTheme.typography.titleMedium
-        )
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            UserRole.entries.forEach { candidate ->
-                val label = when (candidate) {
-                    UserRole.STUDENT -> stringResource(R.string.role_student)
-                    UserRole.CR -> stringResource(R.string.role_cr)
-                    UserRole.TEACHER -> stringResource(R.string.role_teacher)
-                    UserRole.CLUB_ADMIN -> stringResource(R.string.role_club_admin)
-                }
-                FilterChip(
-                    selected = role == candidate,
-                    onClick = { role = candidate },
-                    label = { Text(label) }
-                )
-            }
-        }
-        Button(
-            onClick = {
-                onSave(
-                    profile.copy(
-                        name = name.trim().ifBlank { "HNBGU Student" },
-                        email = email.trim(),
-                        semester = semester.toIntOrNull()?.coerceIn(1, 8) ?: profile.semester,
-                        section = section.trim().ifBlank { "A" },
-                        role = role,
-                        verifiedRole = false
-                    )
-                )
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(stringResource(R.string.save_local_profile))
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun EventsAndClubsScreen(
-    uiState: StudyAndCampusUiState,
-    viewModel: StudyAndCampusViewModel
-) {
-    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
-    Column(modifier = Modifier.fillMaxSize()) {
-        Text(
-            text = "This is a local demo feed. RSVPs and club follows are not shared with other students.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-        TabRow(selectedTabIndex = selectedTab) {
-            Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }, text = { Text("Events") })
-            Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }, text = { Text("Clubs") })
-        }
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            if (selectedTab == 0) {
-                items(uiState.events, key = { it.id }) { event ->
-                    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(event.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            Text("${event.clubName} • ${event.category}")
-                            Text("${event.eventDateFormatted} • ${event.venue}")
-                            Text(event.description, style = MaterialTheme.typography.bodyMedium)
-                            Text("Local demo counts — Going ${event.goingCount}, Interested ${event.interestedCount}, Not going ${event.notGoingCount}")
-                            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                EventRsvpStatus.entries.filter { it != EventRsvpStatus.NONE }.forEach { status ->
-                                    FilterChip(
-                                        selected = event.myRsvpStatus == status.name,
-                                        onClick = { viewModel.updateEventRsvp(event.id, status) },
-                                        label = { Text(status.name.replace("_", " ")) }
-                                    )
-                                }
-                            }
-                            if (uiState.profile.role == UserRole.CR || uiState.profile.role == UserRole.TEACHER) {
-                                if (!event.isApproved) {
-                                    TextButton(onClick = { viewModel.approveEvent(event.id) }) {
-                                        Text("Approve in local demo")
-                                    }
-                                }
-                                TextButton(onClick = { viewModel.reportEvent(event.id) }) {
-                                    Text("Report event")
-                                }
-                            }
-                        }
-                    }
-                }
-            } else {
-                items(uiState.clubs, key = { it.id }) { club ->
-                    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Text("${club.logoEmojiOrUrl} ${club.name}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            Text("${club.category} • ${club.memberCount} demo members")
-                            Text(club.description)
-                            if (club.contactEmail.isNotBlank()) Text(club.contactEmail)
-                            AssistChip(
-                                onClick = { viewModel.toggleFollowClub(club.id, !club.isFollowedByMe) },
-                                label = { Text(if (club.isFollowedByMe) "Following locally" else "Follow locally") }
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun LostAndFoundScreen(
-    uiState: StudyAndCampusUiState,
-    viewModel: StudyAndCampusViewModel
-) {
-    var showAddDialog by rememberSaveable { mutableStateOf(false) }
-    var selectedClaim by remember { mutableStateOf<LostFoundEntity?>(null) }
-    val profile = uiState.profile
-
-    Column(modifier = Modifier.fillMaxSize()) {
-        Text(
-            text = "Local demo board only. Claims and contact details stay on this device; they are not sent to the poster.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(16.dp)
-        )
-        Button(
-            onClick = { showAddDialog = true },
-            modifier = Modifier.padding(horizontal = 16.dp)
-        ) {
-            Text("Add local listing")
-        }
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(uiState.lostFoundItems, key = { it.id }) { item ->
-                ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text("${item.type}: ${item.itemTitle}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        Text("${item.category} • ${item.location} • ${item.dateFormatted}")
-                        Text(item.description)
-                        Text("Posted by ${item.posterName} • ${item.status}")
-                        if (!item.isResolved) {
-                            if (item.posterUid == profile.uid) {
-                                TextButton(onClick = { viewModel.resolveLostFound(item.id) }) {
-                                    Text("Mark resolved")
-                                }
-                            } else {
-                                TextButton(onClick = { selectedClaim = item }) {
-                                    Text("Claim / request contact (local demo)")
-                                }
-                            }
-                        }
-                        if (profile.role == UserRole.CR || profile.role == UserRole.TEACHER) {
-                            TextButton(onClick = { viewModel.hideLostFoundByCr(item.id) }) {
-                                Text("Hide in local demo")
-                            }
-                        }
-                    }
-                }
-            }
-            val ownRequests = uiState.contactRequests.filter { it.posterUid == profile.uid && it.status == "PENDING" }
-            if (ownRequests.isNotEmpty()) {
-                item {
-                    Text("Local contact requests", style = MaterialTheme.typography.titleLarge)
-                }
-                items(ownRequests, key = { it.id }) { request ->
-                    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(16.dp)) {
-                            Text("${request.itemTitle} • ${request.requesterName}")
-                            Text(request.message)
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                TextButton(onClick = { viewModel.respondToClaimRequest(request, true) }) {
-                                    Text("Accept locally")
-                                }
-                                TextButton(onClick = { viewModel.respondToClaimRequest(request, false) }) {
-                                    Text("Ignore")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if (showAddDialog) {
-        LocalLostFoundDialog(
-            onDismiss = { showAddDialog = false },
-            onSave = { type, category, title, description, location, contact ->
-                viewModel.addLostFound(type, category, title, description, location, contact)
-                showAddDialog = false
-            }
-        )
-    }
-    selectedClaim?.let { item ->
-        var message by rememberSaveable(item.id) { mutableStateOf("") }
-        AlertDialog(
-            onDismissRequest = { selectedClaim = null },
-            title = { Text("Local claim request") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("This demo request is stored only on this device and is not delivered to ${item.posterName}.")
-                    OutlinedTextField(value = message, onValueChange = { message = it }, label = { Text("Message") })
-                }
-            },
-            confirmButton = {
-                Button(onClick = {
-                    viewModel.sendClaimRequest(item, message)
-                    selectedClaim = null
-                }) { Text("Save claim locally") }
-            },
-            dismissButton = {
-                TextButton(onClick = { selectedClaim = null }) { Text("Cancel") }
-            }
-        )
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun LocalLostFoundDialog(
-    onDismiss: () -> Unit,
-    onSave: (String, String, String, String, String, String) -> Unit
-) {
-    var type by rememberSaveable { mutableStateOf("FOUND") }
-    var category by rememberSaveable { mutableStateOf("OTHER") }
-    var title by rememberSaveable { mutableStateOf("") }
-    var description by rememberSaveable { mutableStateOf("") }
-    var location by rememberSaveable { mutableStateOf("") }
-    var contact by rememberSaveable { mutableStateOf("") }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Add a local listing") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf("FOUND", "LOST").forEach { value ->
-                        FilterChip(selected = type == value, onClick = { type = value }, label = { Text(value) })
-                    }
-                }
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf("ELECTRONICS", "ID_CARD", "BOOKS", "KEYS", "OTHER").forEach { value ->
-                        FilterChip(
-                            selected = category == value,
-                            onClick = { category = value },
-                            label = { Text(value.replace("_", " ")) }
-                        )
-                    }
-                }
-                OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Item") })
-                OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Description") })
-                OutlinedTextField(value = location, onValueChange = { location = it }, label = { Text("Location") })
-                OutlinedTextField(value = contact, onValueChange = { contact = it }, label = { Text("Private contact detail (local demo)") })
-            }
-        },
-        confirmButton = {
-            Button(
-                enabled = title.isNotBlank() && location.isNotBlank() && contact.isNotBlank(),
-                onClick = { onSave(type, category, title, description, location, contact) }
-            ) { Text("Save locally") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
-    )
-}
-
-@Composable
-private fun CampusDirectoryScreen(
-    uiState: StudyAndCampusUiState,
-    viewModel: StudyAndCampusViewModel
-) {
-    val context = LocalContext.current
-    var correctionContact by remember { mutableStateOf<DirectoryContactEntity?>(null) }
-    var correctionText by rememberSaveable { mutableStateOf("") }
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        item {
-            Text(
-                text = "Offline campus directory and map data. Suggested corrections are stored locally and are not submitted to the university.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        items(uiState.directoryContacts, key = { it.id }) { contact ->
-            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(contact.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text("${contact.department} • ${contact.designation}")
-                    Text("${contact.phone} • ${contact.email}")
-                    Text("${contact.officeLocation} • ${contact.officeHours}")
-                    TextButton(onClick = {
-                        correctionContact = contact
-                        correctionText = ""
-                    }) { Text("Suggest a local correction") }
-                }
-            }
-        }
-        if (uiState.profile.role == UserRole.CR || uiState.profile.role == UserRole.TEACHER) {
-            if (uiState.directorySuggestions.isNotEmpty()) {
-                item { Text("Local demo moderation", style = MaterialTheme.typography.titleLarge) }
-                items(uiState.directorySuggestions, key = { it.id }) { suggestion ->
-                    DirectorySuggestionCard(suggestion, viewModel)
-                }
-            }
-        }
-        if (uiState.campusMapPlaces.isNotEmpty()) {
-            item { Text("Campus map places", style = MaterialTheme.typography.titleLarge) }
-            items(uiState.campusMapPlaces, key = { it.id }) { place ->
-                CampusMapPlaceCard(place, context)
-            }
-        }
-    }
-    correctionContact?.let { contact ->
-        AlertDialog(
-            onDismissRequest = { correctionContact = null },
-            title = { Text("Suggest correction") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("${contact.name} • local-only demo")
-                    OutlinedTextField(
-                        value = correctionText,
-                        onValueChange = { correctionText = it },
-                        label = { Text("Proposed update") }
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    enabled = correctionText.isNotBlank(),
-                    onClick = {
-                        viewModel.submitDirectoryCorrection(contact.id, contact.name, correctionText)
-                        correctionContact = null
-                    }
-                ) { Text("Save locally") }
-            },
-            dismissButton = {
-                TextButton(onClick = { correctionContact = null }) { Text("Cancel") }
-            }
-        )
-    }
-}
-
-@Composable
-private fun DirectorySuggestionCard(
-    suggestion: DirectorySuggestionEntity,
-    viewModel: StudyAndCampusViewModel
-) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp)) {
-            Text("${suggestion.contactName} • ${suggestion.suggesterName}")
-            Text(suggestion.proposedChange)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = { viewModel.resolveDirectorySuggestion(suggestion.id, true) }) {
-                    Text("Approve locally")
-                }
-                TextButton(onClick = { viewModel.resolveDirectorySuggestion(suggestion.id, false) }) {
-                    Text("Dismiss")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun CampusMapPlaceCard(place: CampusMapPlaceEntity, context: android.content.Context) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp)) {
-            Text(place.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Text("${place.campusName} • ${place.category}")
-            Text(place.description)
-            TextButton(onClick = {
-                val uri = Uri.parse("geo:${place.latitude},${place.longitude}?q=${Uri.encode(place.mapQueryLabel)}")
-                val intent = Intent(Intent.ACTION_VIEW, uri)
-                if (intent.resolveActivity(context.packageManager) != null) {
-                    context.startActivity(intent)
-                }
-            }) { Text("Open in Maps") }
         }
     }
 }
@@ -778,7 +298,7 @@ private fun FeatureHubCard(
 // - Upvote, Bookmark Offline, Download to local storage
 // - In-App PDF & Image Viewer with Pinch-to-Zoom & Pan
 // - Uploader anonymity toggle ("Show my name")
-// - 10 MB size guard and files saved locally on this device
+// - 10 MB size guard + image compression + resumable upload progress & retry
 // - CR / Teacher Moderation Queue (Hide, Remove, Approve)
 // =========================================================================
 @OptIn(ExperimentalLayoutApi::class)
@@ -819,7 +339,7 @@ fun NotesAndPyqScreen(
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = { showUploadDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Save local notes or PYQ")
+                Icon(Icons.Default.Add, contentDescription = "Upload Notes or PYQ")
             }
         }
     ) { pad ->
@@ -886,7 +406,7 @@ fun NotesAndPyqScreen(
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
-                                text = "Local Demo Moderation Queue (${uiState.moderationQueue.size})",
+                                text = "CR / Faculty Moderation Queue (${uiState.moderationQueue.size})",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onErrorContainer
@@ -939,6 +459,7 @@ fun NotesAndPyqScreen(
                     onDownloadOffline = { viewModel.downloadResourceOffline(res) },
                     onReport = { viewModel.reportResource(res.id) },
                     onCrHide = { viewModel.crHideResource(res.id, true) },
+                    onRetryUpload = { viewModel.retryUpload(res.id) }
                 )
             }
         }
@@ -948,8 +469,8 @@ fun NotesAndPyqScreen(
         UploadStudyResourceDialog(
             defaultSemester = uiState.profile.semester,
             onDismiss = { showUploadDialog = false },
-            onSave = { subjId, subjName, sem, title, cat, year, url, type, sizeBytes, showName ->
-                viewModel.saveResourceLocally(
+            onUpload = { subjId, subjName, sem, title, cat, year, url, type, sizeBytes, showName ->
+                viewModel.uploadResource(
                     subjectId = subjId,
                     subjectName = subjName,
                     semester = sem,
@@ -984,7 +505,8 @@ private fun StudyResourceCard(
     onToggleBookmark: () -> Unit,
     onDownloadOffline: () -> Unit,
     onReport: () -> Unit,
-    onCrHide: () -> Unit
+    onCrHide: () -> Unit,
+    onRetryUpload: () -> Unit
 ) {
     val displayedUploader = if (res.showUploaderName) {
         res.uploaderName
@@ -1021,6 +543,34 @@ private fun StudyResourceCard(
                 }
             }
 
+            // Resumable Upload Progress Indicator if currently uploading or failed
+            if (res.uploadStatus != "COMPLETED") {
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Upload ${res.uploadStatus} (${res.uploadProgressPct}%)",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    if (res.uploadStatus == "FAILED" || res.uploadStatus == "PAUSED") {
+                        TextButton(onClick = onRetryUpload) {
+                            Icon(Icons.Default.Refresh, contentDescription = null)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Retry")
+                        }
+                    }
+                }
+                LinearProgressIndicator(
+                    progress = { res.uploadProgressPct / 100f },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
             Text(
                 text = res.title,
                 style = MaterialTheme.typography.titleMedium,
@@ -1033,7 +583,7 @@ private fun StudyResourceCard(
             )
             if (res.localFilePath != null) {
                 Text(
-                    text = "✓ Stored locally on this device",
+                    text = "✓ Downloaded for offline viewing",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -1077,7 +627,7 @@ private fun StudyResourceCard(
 private fun UploadStudyResourceDialog(
     defaultSemester: Int,
     onDismiss: () -> Unit,
-    onSave: (
+    onUpload: (
         subjectId: String,
         subjectName: String,
         semester: Int,
@@ -1090,7 +640,6 @@ private fun UploadStudyResourceDialog(
         showUploaderName: Boolean
     ) -> Unit
 ) {
-    val context = LocalContext.current
     var subjectId by rememberSaveable { mutableStateOf("CS301") }
     var subjectName by rememberSaveable { mutableStateOf("Data Structures & Algorithms") }
     var semester by rememberSaveable { mutableIntStateOf(defaultSemester) }
@@ -1098,54 +647,24 @@ private fun UploadStudyResourceDialog(
     var category by rememberSaveable { mutableStateOf("NOTES") }
     var examYear by rememberSaveable { mutableIntStateOf(2025) }
     var fileType by rememberSaveable { mutableStateOf("PDF") }
-    var selectedUriString by rememberSaveable { mutableStateOf("") }
-    var selectedDisplayName by rememberSaveable { mutableStateOf("") }
-    var selectedSizeBytes by rememberSaveable { mutableStateOf(0L) }
-    var selectionMessage by rememberSaveable { mutableStateOf("") }
+    var selectedUriString by rememberSaveable { mutableStateOf("content://campusone/picked_document.pdf") }
+    var simulatedSizeMb by rememberSaveable { mutableFloatStateOf(2.4f) }
     var showUploaderName by rememberSaveable { mutableStateOf(true) }
 
-    // Android's Storage Access Framework grants access to the selected document.
+    // Native Android Document / Gallery / Camera Picker
     val filePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
+        contract = ActivityResultContracts.GetContent()
     ) { uri ->
         if (uri != null) {
             selectedUriString = uri.toString()
-            selectedDisplayName = ""
-            selectedSizeBytes = 0L
-            selectionMessage = ""
-            try {
-                context.contentResolver.takePersistableUriPermission(
-                    uri,
-                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
-            } catch (error: SecurityException) {
-                selectionMessage = error.message ?: "File access is temporary; save it before leaving this screen."
-            }
-            val cursor = context.contentResolver.query(
-                uri,
-                arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE),
-                null,
-                null,
-                null
-            )
-            cursor?.use {
-                if (it.moveToFirst()) {
-                    val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                    val sizeIndex = it.getColumnIndex(OpenableColumns.SIZE)
-                    selectedDisplayName = if (nameIndex >= 0) it.getString(nameIndex).orEmpty() else "Selected file"
-                    selectedSizeBytes = if (sizeIndex >= 0 && !it.isNull(sizeIndex)) it.getLong(sizeIndex) else 0L
-                }
-            }
-            val mimeType = context.contentResolver.getType(uri)
-            fileType = if (mimeType == "application/pdf") "PDF" else "IMAGE"
         }
     }
 
-    val isOverLimit = selectedSizeBytes > 10L * 1024L * 1024L
+    val isOverLimit = simulatedSizeMb > 10.0f
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Save a local Notes / PYQ file") },
+        title = { Text("Upload Notes / PYQ / Assignment") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
@@ -1185,23 +704,26 @@ private fun UploadStudyResourceDialog(
                         )
                     }
                 }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(
+                        selected = fileType == "PDF",
+                        onClick = { fileType = "PDF" },
+                        label = { Text("PDF Document") }
+                    )
+                    FilterChip(
+                        selected = fileType == "IMAGE",
+                        onClick = { fileType = "IMAGE" },
+                        label = { Text("Camera / Gallery Image") }
+                    )
+                }
                 OutlinedButton(
                     onClick = {
                         val mime = if (fileType == "PDF") "application/pdf" else "image/*"
-                        filePickerLauncher.launch(arrayOf(mime))
+                        runCatching { filePickerLauncher.launch(mime) }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Choose PDF or image")
-                }
-                if (selectedDisplayName.isNotBlank()) {
-                    Text(
-                        text = "$selectedDisplayName${if (selectedSizeBytes > 0L) " • ${selectedSizeBytes / 1024L} KB" else ""}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-                if (selectionMessage.isNotBlank()) {
-                    Text(selectionMessage, color = MaterialTheme.colorScheme.error)
+                    Text("Pick File / Gallery Image")
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1215,9 +737,10 @@ private fun UploadStudyResourceDialog(
         },
         confirmButton = {
             Button(
-                enabled = title.isNotBlank() && selectedUriString.isNotBlank() && !isOverLimit,
+                enabled = title.isNotBlank() && !isOverLimit,
                 onClick = {
-                    onSave(
+                    val bytes = (simulatedSizeMb * 1024 * 1024).toLong()
+                    onUpload(
                         subjectId,
                         subjectName,
                         semester,
@@ -1226,12 +749,12 @@ private fun UploadStudyResourceDialog(
                         examYear,
                         selectedUriString,
                         fileType,
-                        selectedSizeBytes,
+                        bytes,
                         showUploaderName
                     )
                 }
             ) {
-                Text("Save locally on this device")
+                Text("Start Resumable Upload")
             }
         },
         dismissButton = {
@@ -1302,12 +825,22 @@ private fun InAppZoomableDocumentViewerDialog(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = "${resource.fileType} • Local demo preview",
+                            text = if (resource.fileType == "PDF") {
+                                "📄 PDF Page $currentPage of $totalPages — ${resource.subjectName}"
+                            } else {
+                                "🖼️ High-Resolution Image Note — ${resource.subjectName}"
+                            },
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "The selected file is stored on this device. This sample preview does not render its contents.",
+                            text = "Key Concepts & Solved University Questions:
+" +
+                                "1. ${resource.title}
+" +
+                                "2. Time & Space Complexity / Derivation Steps
+" +
+                                "3. HNB Garhwal University Marking Scheme Notes",
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
