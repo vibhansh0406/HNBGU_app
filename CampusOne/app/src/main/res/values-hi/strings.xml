@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CampusOne (कैम्पस-वन)</string>
+    <string name="tagline">आपका ऑफ़लाइन-फ़र्स्ट कॉलेज साथी</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">होम</string>
+    <string name="nav_attendance">उपस्थिति</string>
+    <string name="nav_timetable">समय-सारणी</string>
+    <string name="nav_notices">सूचनाएं</string>
+    <string name="nav_study">अध्ययन</string>
+    <string name="nav_more">अध्ययन व कैम्पस</string>
+
+    <!-- Onboarding & Auth -->
+    <string name="welcome_title">CampusOne में आपका स्वागत है</string>
+    <string name="welcome_subtitle">एचएनबी गढ़वाल विश्वविद्यालय और भारतीय कॉलेजों के लिए निर्मित। बिना इंटरनेट के भी तेज़ चले।</string>
+    <string name="sign_in_google">Google के साथ जारी रखें</string>
+    <string name="select_college">विश्वविद्यालय / कॉलेज चुनें</string>
+    <string name="select_course">कोर्स / पाठ्यक्रम चुनें</string>
+    <string name="select_semester">सेमेस्टर</string>
+    <string name="select_section">सेक्शन</string>
+    <string name="select_role">आपकी भूमिका</string>
+    <string name="role_student">छात्र (Student)</string>
+    <string name="role_cr">क्लास रिप्रेजेंटेटिव (CR)</string>
+    <string name="role_teacher">शिक्षक / प्राध्यापक (Teacher)</string>
+    <string name="role_club_admin">क्लब एडमिन (Club Admin)</string>
+    <string name="complete_setup">सेटअप पूरा करें</string>
+
+    <!-- Attendance -->
+    <string name="attendance_disclaimer">यह केवल व्यक्तिगत उपस्थिति ट्रैकर है। इसे आधिकारिक विश्वविद्यालय रिकॉर्ड न मानें।</string>
+    <string name="attendance_overall">कुल उपस्थिति</string>
+    <string name="attendance_target">लक्ष्य: %1$d%%</string>
+    <string name="mark_present">उपस्थित</string>
+    <string name="mark_absent">अनुपस्थित</string>
+    <string name="mark_cancelled">रद्द</string>
+    <string name="bunk_safe">आप %2$d%% से ऊपर रहते हुए %1$d और कक्षाएं छोड़ सकते हैं</string>
+    <string name="bunk_on_edge">सावधान! %1$d%% बनाए रखने के लिए अगली कक्षा न छोड़ें</string>
+    <string name="bunk_recover">%2$d%% तक पहुँचने के लिए अगली %1$d कक्षाओं में लगातार उपस्थित रहें</string>
+    <string name="no_classes_recorded">अभी तक कोई कक्षा दर्ज नहीं की गई है। नीचे अपनी पहली उपस्थिति दर्ज करें।</string>
+
+    <!-- Timetable & Widget -->
+    <string name="timetable_today">आज की समय-सारणी</string>
+    <string name="timetable_weekly">साप्ताहिक समय-सारणी</string>
+    <string name="next_class_badge">अगली कक्षा</string>
+    <string name="ongoing_class_badge">अभी चल रही है</string>
+    <string name="publish_timetable">सेक्शन समय-सारणी प्रकाशित करें</string>
+    <string name="reminder_lead_time">कक्षा से %1$d मिनट पहले रिमाइंडर</string>
+    <string name="widget_next_class_title">CampusOne अगली कक्षा</string>
+    <string name="widget_next_class_desc">अपनी आगामी कक्षा, कमरा नंबर और समय सीधे होम स्क्रीन पर देखें।</string>
+    <string name="no_more_classes_today">आज के लिए कोई और कक्षा शेष नहीं है! 🎉</string>
+
+    <!-- Notices -->
+    <string name="notices_title">सूचना पट्ट (Notice Board)</string>
+    <string name="notices_pinned">पिन की गई सूचनाएं</string>
+    <string name="notices_unread_only">केवल अपठित</string>
+    <string name="post_notice">नई सूचना प्रकाशित करें</string>
+    <string name="empty_notices">कोई नई सूचना नहीं है!</string>
+
+    <!-- Phase 2: Study Hub -->
+    <string name="study_hub">अध्ययन केंद्र (Study Hub)</string>
+    <string name="notes_pyq">नोट्स और पिछले प्रश्नपत्र (PYQs)</string>
+    <string name="sort_newest">नवीनतम पहले</string>
+    <string name="sort_upvoted">सर्वाधिक अपवोट किए गए</string>
+    <string name="bookmark_offline">ऑफ़लाइन बुकमार्क</string>
+    <string name="download_offline">फ़ोन में डाउनलोड करें</string>
+    <string name="view_document">इन-ऐप व्यूअर में खोलें</string>
+    <string name="anonymous_student">अनाम छात्र (Anonymous)</string>
+    <string name="show_my_name">अपलोड पर मेरा नाम दिखाएं</string>
+    <string name="file_limit_note">अधिकतम 10 MB • फ़्री-टियर स्टोरेज के लिए इमेज स्वतः कंप्रेस होती हैं</string>
+    <string name="assignments_title">असाइनमेंट और समय-सीमा</string>
+    <string name="tab_today">आज (Today)</string>
+    <string name="tab_upcoming">आगामी (Upcoming)</string>
+    <string name="tab_overdue">समय-सीमा समाप्त (Overdue)</string>
+    <string name="tab_completed">पूर्ण (Completed)</string>
+    <string name="group_by_subject">विषय के अनुसार समूहित करें</string>
+    <string name="add_to_my_list">मेरी सूची में जोड़ें</string>
+    <string name="shared_by_section">साझा सेक्शन असाइनमेंट</string>
+    <string name="home_upcoming_deadlines">अगली 3 समय-सीमाएं (Deadlines)</string>
+    <string name="exams_syllabus">परीक्षा कैलेंडर और सिलेबस ट्रैकर</string>
+    <string name="home_exam_countdown">आगामी परीक्षा उलटी गिनती</string>
+    <string name="overall_syllabus_progress">कुल सिलेबस प्रगति</string>
+    <string name="publish_exam">सेक्शन परीक्षा जोड़ें</string>
+    <string name="publish_syllabus_topic">सिलेबस टॉपिक जोड़ें</string>
+    <string name="gpa_calculator">SGPA / CGPA और लक्ष्य कैलकुलेटर</string>
+    <string name="what_do_i_need">मुझे कितने SGPA की आवश्यकता है? (Target CGPA)</string>
+    <string name="semester_trend_chart">सेमेस्टर SGPA ग्राफ़</string>
+    <string name="export_gpa_pdf">ग्रेड रिपोर्ट PDF के रूप में सेव करें</string>
+
+    <!-- Phase 3: Campus Life -->
+    <string name="events_clubs">इवेंट्स और क्लब (Events &amp; Clubs)</string>
+    <string name="tab_events_feed">इवेंट्स फ़ीड</string>
+    <string name="tab_clubs_directory">कैम्पस क्लब</string>
+    <string name="filter_this_week">इस सप्ताह</string>
+    <string name="filter_my_clubs">मेरे क्लब</string>
+    <string name="rsvp_going">जा रहे हैं (Going)</string>
+    <string name="rsvp_interested">रुचि है (Interested)</string>
+    <string name="rsvp_not_going">नहीं जा रहे</string>
+    <string name="add_to_calendar">कैलेंडर में जोड़ें</string>
+    <string name="share_event">इवेंट शेयर करें</string>
+    <string name="follow_club">फ़ॉलो करें</string>
+    <string name="following_club">फ़ॉलो किया गया ✓</string>
+
+    <string name="lost_found">खोया और पाया (Lost &amp; Found)</string>
+    <string name="privacy_hidden_contact">गोपनीयता हेतु फ़ोन नंबर छुपाया गया है • संपर्क अनुरोध भेजें</string>
+    <string name="send_claim_request">दावा / संपर्क अनुरोध भेजें</string>
+    <string name="auto_archive_note">30 दिनों से पुरानी पोस्ट स्वतः आर्काइव हो जाती हैं।</string>
+
+    <string name="campus_directory">कैम्पस निर्देशिका और मैप</string>
+    <string name="tab_directory_list">निर्देशिका और फ़ोन नंबर</string>
+    <string name="tab_campus_map">कैम्पस मैप (Google Maps)</string>
+    <string name="open_in_google_maps">Google Maps में खोलें</string>
+    <string name="suggest_correction">सुधार सुझाएं</string>
+
+    <string name="privacy_policy">गोपनीयता नीति और ओपन सोर्स (MIT)</string>
+    <string name="language_toggle">भाषा बदलें: हिन्दी / English</string>
+</resources>
