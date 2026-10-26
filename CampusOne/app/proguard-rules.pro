@@ -1,0 +1,5 @@
+-keepattributes *Annotation*,InnerClasses,Signature
+-keepclassmembers class * {
+    @kotlinx.serialization.Serializable *;
+}
+-keepnames class com.google.firebase.** { *; }

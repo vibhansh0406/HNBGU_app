@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CampusOne</string>
+    <string name="tagline">Your Offline-First Campus Companion</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_attendance">Attendance</string>
+    <string name="nav_timetable">Timetable</string>
+    <string name="nav_notices">Notices</string>
+    <string name="nav_study">Study</string>
+    <string name="nav_more">Hub &amp; Campus</string>
+
+    <!-- Onboarding & Auth -->
+    <string name="welcome_title">Welcome to CampusOne</string>
+    <string name="welcome_subtitle">Built for HNB Garhwal University &amp; Indian colleges. Works seamlessly offline.</string>
+    <string name="sign_in_google">Continue with Google</string>
+    <string name="select_college">Select University / College</string>
+    <string name="select_course">Select Course / Programme</string>
+    <string name="select_semester">Semester</string>
+    <string name="select_section">Section</string>
+    <string name="select_role">Your Role</string>
+    <string name="role_student">Student</string>
+    <string name="role_cr">Class Representative (CR)</string>
+    <string name="role_teacher">Teacher / Faculty</string>
+    <string name="role_club_admin">Club Admin</string>
+    <string name="complete_setup">Complete Setup</string>
+
+    <!-- Attendance -->
+    <string name="attendance_disclaimer">Personal attendance tracker only. Not an official university record.</string>
+    <string name="attendance_overall">Overall Attendance</string>
+    <string name="attendance_target">Target: %1$d%%</string>
+    <string name="mark_present">Present</string>
+    <string name="mark_absent">Absent</string>
+    <string name="mark_cancelled">Cancelled</string>
+    <string name="bunk_safe">Safe to miss %1$d more classes and stay ≥ %2$d%%</string>
+    <string name="bunk_on_edge">On the edge! Don't miss the next class to stay at %1$d%%</string>
+    <string name="bunk_recover">Attend next %1$d classes consecutively to reach %2$d%%</string>
+    <string name="no_classes_recorded">No classes recorded yet. Mark your first class below.</string>
+
+    <!-- Timetable & Widget -->
+    <string name="timetable_today">Today's Schedule</string>
+    <string name="timetable_weekly">Weekly Grid</string>
+    <string name="next_class_badge">UP NEXT</string>
+    <string name="ongoing_class_badge">ONGOING NOW</string>
+    <string name="publish_timetable">Publish Section Timetable</string>
+    <string name="reminder_lead_time">Reminder %1$d mins before class</string>
+    <string name="widget_next_class_title">CampusOne Next Class</string>
+    <string name="widget_next_class_desc">View your upcoming lecture, room number, and time right on your home screen.</string>
+    <string name="no_more_classes_today">No more classes scheduled for today! 🎉</string>
+
+    <!-- Notices -->
+    <string name="notices_title">Notice Board</string>
+    <string name="notices_pinned">Pinned Announcements</string>
+    <string name="notices_unread_only">Unread Only</string>
+    <string name="post_notice">Post Announcement</string>
+    <string name="empty_notices">All caught up! No announcements yet.</string>
+
+    <!-- Phase 2: Study Hub -->
+    <string name="study_hub">Study Hub</string>
+    <string name="notes_pyq">Notes &amp; PYQ Vault</string>
+    <string name="sort_newest">Newest First</string>
+    <string name="sort_upvoted">Most Upvoted</string>
+    <string name="bookmark_offline">Bookmark Offline</string>
+    <string name="download_offline">Download to Device</string>
+    <string name="view_document">Open In-App Viewer</string>
+    <string name="anonymous_student">Anonymous Student</string>
+    <string name="show_my_name">Show my name on upload</string>
+    <string name="file_limit_note">Max 10 MB • Images auto-compressed for free-tier storage</string>
+    <string name="assignments_title">Assignments &amp; Deadlines</string>
+    <string name="tab_today">Today</string>
+    <string name="tab_upcoming">Upcoming</string>
+    <string name="tab_overdue">Overdue</string>
+    <string name="tab_completed">Completed</string>
+    <string name="group_by_subject">Group by Subject</string>
+    <string name="add_to_my_list">Add to My List</string>
+    <string name="shared_by_section">Shared Section Task</string>
+    <string name="home_upcoming_deadlines">Next 3 Deadlines</string>
+    <string name="exams_syllabus">Exam Calendar &amp; Syllabus Tracker</string>
+    <string name="home_exam_countdown">Upcoming Exam Countdown</string>
+    <string name="overall_syllabus_progress">Overall Syllabus Completion</string>
+    <string name="publish_exam">Publish Section Exam</string>
+    <string name="publish_syllabus_topic">Add Syllabus Topic</string>
+    <string name="gpa_calculator">SGPA / CGPA &amp; Target Calculator</string>
+    <string name="what_do_i_need">What Do I Need? (Target CGPA)</string>
+    <string name="semester_trend_chart">Semester SGPA Trend</string>
+    <string name="export_gpa_pdf">Export Grade Sheet as PDF</string>
+
+    <!-- Phase 3: Campus Life -->
+    <string name="events_clubs">Events &amp; Clubs</string>
+    <string name="tab_events_feed">Events Feed</string>
+    <string name="tab_clubs_directory">Clubs</string>
+    <string name="filter_this_week">This Week</string>
+    <string name="filter_my_clubs">My Clubs</string>
+    <string name="rsvp_going">Going</string>
+    <string name="rsvp_interested">Interested</string>
+    <string name="rsvp_not_going">Not Going</string>
+    <string name="add_to_calendar">Add to Calendar</string>
+    <string name="share_event">Share Event</string>
+    <string name="follow_club">Follow Club</string>
+    <string name="following_club">Following ✓</string>
+
+    <string name="lost_found">Lost &amp; Found Board</string>
+    <string name="privacy_hidden_contact">Contact hidden for privacy • Send a Claim/Contact Request</string>
+    <string name="send_claim_request">Claim / Request Contact</string>
+    <string name="auto_archive_note">Posts older than 30 days are auto-archived automatically.</string>
+
+    <string name="campus_directory">Campus Directory &amp; Map</string>
+    <string name="tab_directory_list">Directory &amp; Numbers</string>
+    <string name="tab_campus_map">Campus Map (Google Maps)</string>
+    <string name="open_in_google_maps">Open in Google Maps</string>
+    <string name="suggest_correction">Suggest Correction</string>
+
+    <string name="privacy_policy">Privacy &amp; Open Source (MIT)</string>
+    <string name="language_toggle">Language: English / हिन्दी</string>
+</resources>
