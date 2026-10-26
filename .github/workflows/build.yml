@@ -18,18 +18,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.9
-      - name: Add google-services.json
-        env:
-          GSJ: ${{ secrets.GOOGLE_SERVICES_JSON }}
-        run: |
-          if [ -n "$GSJ" ]; then echo "$GSJ" | base64 -d > app/google-services.json; fi
       - name: Build debug APK
-        run: |
-          if [ -f gradlew ] && [ -f gradle/wrapper/gradle-wrapper.jar ]; then
-            chmod +x gradlew && ./gradlew assembleDebug
-          else
-            gradle assembleDebug
-          fi
+        run: ./gradlew -Pandroid.useAndroidX=true assembleDebug
       - uses: actions/upload-artifact@v4
         with:
           name: campusone-debug-apk

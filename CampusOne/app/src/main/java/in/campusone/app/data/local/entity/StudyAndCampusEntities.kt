@@ -180,7 +180,7 @@ data class LostFoundEntity(
     val category: String = "ELECTRONICS", // "ELECTRONICS", "ID_CARD", "BOOKS", "KEYS", "OTHER"
     val itemTitle: String,
     val description: String,
-    val photoUri: String? = null, // Compressed before upload (<= 600 KB)
+    val photoUri: String? = null,
     val location: String,
     val dateFormatted: String = "Today",
     val posterUid: String = "uid_poster",

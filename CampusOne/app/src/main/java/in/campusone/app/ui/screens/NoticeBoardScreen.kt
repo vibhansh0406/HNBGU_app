@@ -88,6 +88,14 @@ fun NoticeBoardScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
+                Text(
+                    text = stringResource(R.string.local_demo_notices_disclaimer),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+            item {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -274,7 +282,7 @@ private fun PostNoticeDialog(
                     onSubmit(title, body, attachmentUrl.ifBlank { null }, attType, isPinned)
                 }
             ) {
-                Text("Publish")
+                Text("Save locally")
             }
         },
         dismissButton = {

@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.Button
@@ -59,7 +57,6 @@ fun OnboardingScreen(
     val haptics = LocalHapticFeedback.current
     var name by rememberSaveable { mutableStateOf("Aarav Rawat") }
     var email by rememberSaveable { mutableStateOf("aarav.rawat@hnbgu.ac.in") }
-    var isGoogleSignedIn by rememberSaveable { mutableStateOf(false) }
 
     val colleges = listOf(
         "HNB Garhwal University (Chauras / Birla Campus)",
@@ -120,12 +117,22 @@ fun OnboardingScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            // 1. Google Sign-In Card
+            // This profile is stored only on this device; it is not verified authentication.
             ElevatedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    Text(
+                        text = stringResource(R.string.local_demo_auth_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = stringResource(R.string.local_demo_auth_disclaimer),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
@@ -136,26 +143,10 @@ fun OnboardingScreen(
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
-                        label = { Text("Google / University Email") },
+                        label = { Text(stringResource(R.string.local_demo_email_label)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Button(
-                        onClick = {
-                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            isGoogleSignedIn = true
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(
-                            imageVector = if (isGoogleSignedIn) Icons.Default.Check else Icons.Default.AccountCircle,
-                            contentDescription = null
-                        )
-                        Text(
-                            text = if (isGoogleSignedIn) "Signed in as $email" else stringResource(R.string.sign_in_google),
-                            modifier = Modifier.padding(start = 8.dp)
-                        )
-                    }
                 }
             }
 
@@ -219,9 +210,9 @@ fun OnboardingScreen(
                 }
             }
 
-            // 5. Role Selection (Student, CR, Teacher, Club Admin)
+            // Roles only change local demo content; they do not grant a verified account.
             Text(
-                text = stringResource(R.string.select_role),
+                text = stringResource(R.string.select_role) + " • " + stringResource(R.string.local_demo_role_label),
                 style = MaterialTheme.typography.titleMedium
             )
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

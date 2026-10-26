@@ -5,10 +5,8 @@ import android.app.NotificationManager
 import android.content.Context
 import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
-import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
@@ -18,7 +16,6 @@ import `in`.campusone.app.data.local.dao.CampusLifeDao
 import `in`.campusone.app.data.local.dao.StudyDao
 import `in`.campusone.app.data.local.dao.TimetableDao
 import `in`.campusone.app.data.preferences.UserPreferencesRepository
-import `in`.campusone.app.data.repository.CoreCampusRepository
 import `in`.campusone.app.domain.model.TimetableSlot
 import `in`.campusone.app.domain.usecase.CampusLifeEngine
 import `in`.campusone.app.domain.usecase.ReminderSchedulerLogic
@@ -28,10 +25,9 @@ import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
 @HiltWorker
-class CampusSyncAndReminderWorker @AssistedInject constructor(
+class CampusReminderWorker @AssistedInject constructor(
     @Assisted private val appContext: Context,
     @Assisted workerParams: WorkerParameters,
-    private val repository: CoreCampusRepository,
     private val timetableDao: TimetableDao,
     private val studyDao: StudyDao,
     private val campusLifeDao: CampusLifeDao,
@@ -157,11 +153,6 @@ class CampusSyncAndReminderWorker @AssistedInject constructor(
         val archiveCutoff = nowMillis - CampusLifeEngine.AUTO_ARCHIVE_WINDOW_MILLIS
         campusLifeDao.autoArchiveOldLostFound(archiveCutoff)
 
-        // 5. Perform Firestore Delta Sync if network is available
-        runCatching {
-            repository.performDeltaSync()
-        }
-
         return Result.success()
     }
 
@@ -192,15 +183,11 @@ class CampusSyncAndReminderWorker @AssistedInject constructor(
     }
 
     companion object {
-        private const val WORK_NAME = "campusone_periodic_sync_and_reminders"
+        private const val WORK_NAME = "campusone_periodic_reminders"
 
         fun schedule(context: Context) {
-            val request = PeriodicWorkRequestBuilder<CampusSyncAndReminderWorker>(
+            val request = PeriodicWorkRequestBuilder<CampusReminderWorker>(
                 15, TimeUnit.MINUTES
-            ).setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
-                    .build()
             ).build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(

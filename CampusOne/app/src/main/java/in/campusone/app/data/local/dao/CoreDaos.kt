@@ -40,11 +40,6 @@ interface AttendanceDao {
     @Query("DELETE FROM attendance_logs WHERE id = :logId")
     suspend fun deleteAttendanceLog(logId: String)
 
-    @Query("SELECT * FROM attendance_logs WHERE isSynced = 0")
-    suspend fun getUnsyncedLogs(): List<AttendanceLogEntity>
-
-    @Query("UPDATE attendance_logs SET isSynced = 1 WHERE id IN (:ids)")
-    suspend fun markLogsSynced(ids: List<String>)
 }
 
 @Dao
