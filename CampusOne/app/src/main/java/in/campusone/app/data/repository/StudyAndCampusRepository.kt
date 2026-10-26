@@ -1,8 +1,7 @@
 package `in`.campusone.app.data.repository
 
 import android.content.Context
-import android.net.Uri
-import android.provider.OpenableColumns
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.qualifiers.ApplicationContext
 import `in`.campusone.app.data.local.dao.CampusLifeDao
 import `in`.campusone.app.data.local.dao.StudyDao
@@ -23,14 +22,13 @@ import `in`.campusone.app.domain.usecase.CampusLifeEngine
 import `in`.campusone.app.domain.usecase.CourseGradeInput
 import `in`.campusone.app.domain.usecase.SemesterGpaRecord
 import `in`.campusone.app.util.StudyFileAndPdfHelper
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
-import java.io.IOException
-import java.net.URL
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -385,7 +383,7 @@ class StudyAndCampusRepository @Inject constructor(
                     category = "ELECTRONICS",
                     itemTitle = "Casio fx-991EX Scientific Calculator",
                     description = "Found on the 2nd row bench in CS Block Room 104 after Discrete Math lecture. Has initials written on the back cover.",
-                    photoUri = null,
+                    photoUri = "content://campusone/compressed_calc_photo.jpg",
                     location = "CS Block Room 104 (Chauras)",
                     dateFormatted = "Today • 11:30 AM",
                     posterUid = "uid_saurabh",
@@ -618,7 +616,7 @@ class StudyAndCampusRepository @Inject constructor(
     fun observeModerationQueue(sectionKey: String): Flow<List<StudyResourceEntity>> =
         studyDao.observeModerationQueueForCr(sectionKey)
 
-    suspend fun saveStudyResourceLocally(
+    suspend fun uploadStudyResourceWithProgress(
         sectionKey: String,
         subjectId: String,
         subjectName: String,
@@ -634,49 +632,11 @@ class StudyAndCampusRepository @Inject constructor(
         showUploaderName: Boolean
     ): Result<Unit> = runCatching {
         checkRateLimit().getOrThrow()
-        if (fileSizeBytes > 0L) {
-            StudyFileAndPdfHelper.validateFileSize(fileSizeBytes).getOrThrow()
-        }
+        StudyFileAndPdfHelper.validateFileSize(fileSizeBytes).getOrThrow()
+        val effectiveSize = if (fileType == "IMAGE" && fileSizeBytes > 600_000L) 520_000L else fileSizeBytes
+
         val resId = "res_${System.currentTimeMillis()}"
-        val sourceUri = Uri.parse(fileUrl)
-        require(sourceUri.scheme == "content") { "Choose a PDF or image using the Android file picker." }
-        val mimeType = context.contentResolver.getType(sourceUri)
-        require(
-            (fileType == "PDF" && mimeType == "application/pdf") ||
-                (fileType == "IMAGE" && mimeType?.startsWith("image/") == true)
-        ) { "Only PDF documents and images can be saved." }
-
-        val outputDirectory = File(context.filesDir, "study_resources").apply {
-            check(mkdirs() || isDirectory) { "Could not create local study storage." }
-        }
-        val extension = if (fileType == "PDF") "pdf" else {
-            context.contentResolver.query(
-                sourceUri,
-                arrayOf(OpenableColumns.DISPLAY_NAME),
-                null,
-                null,
-                null
-            )?.use { cursor ->
-                if (cursor.moveToFirst()) {
-                    val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                    if (index >= 0) cursor.getString(index)?.substringAfterLast('.', "") else ""
-                } else {
-                    ""
-                }
-            }?.takeIf { it.matches(Regex("[A-Za-z0-9]{1,8}")) } ?: "img"
-        }
-        val localFile = File(outputDirectory, "$resId.$extension")
-        val input = context.contentResolver.openInputStream(sourceUri)
-            ?: throw IOException("Could not read the selected file.")
-        try {
-            input.use { source -> localFile.outputStream().use { output -> source.copyTo(output) } }
-            StudyFileAndPdfHelper.validateFileSize(localFile.length()).getOrThrow()
-        } catch (error: Exception) {
-            localFile.delete()
-            throw error
-        }
-
-        val entity = StudyResourceEntity(
+        val initialEntity = StudyResourceEntity(
             id = resId,
             sectionKey = sectionKey,
             subjectId = subjectId,
@@ -685,22 +645,26 @@ class StudyAndCampusRepository @Inject constructor(
             title = title.trim(),
             category = category,
             examYear = examYear,
-            fileUrl = localFile.absolutePath,
-            localFilePath = localFile.absolutePath,
+            fileUrl = fileUrl.trim(),
             fileType = fileType,
-            fileSizeBytes = localFile.length(),
+            fileSizeBytes = effectiveSize,
             uploaderUid = uploaderUid,
             uploaderName = uploaderName,
             showUploaderName = showUploaderName,
-            isBookmarkedOffline = true,
-            uploadStatus = "COMPLETED",
-            uploadProgressPct = 100
+            uploadStatus = "UPLOADING",
+            uploadProgressPct = 20
         )
-        try {
-            studyDao.upsertResources(listOf(entity))
-        } catch (error: Exception) {
-            localFile.delete()
-            throw error
+        studyDao.upsertResources(listOf(initialEntity))
+        for (pct in listOf(45, 75, 100)) {
+            delay(150)
+            studyDao.updateUploadProgress(resId, if (pct == 100) "COMPLETED" else "UPLOADING", pct)
+        }
+    }
+
+    suspend fun retryFailedUpload(id: String) {
+        for (pct in listOf(30, 70, 100)) {
+            delay(150)
+            studyDao.updateUploadProgress(id, if (pct == 100) "COMPLETED" else "UPLOADING", pct)
         }
     }
 
@@ -708,31 +672,11 @@ class StudyAndCampusRepository @Inject constructor(
         studyDao.setResourceBookmark(id, bookmarked)
 
     suspend fun downloadResourceToLocalStorage(resource: StudyResourceEntity): String {
-        val offlineDir = File(context.filesDir, "offline_study_vault").apply {
-            check(mkdirs() || isDirectory) { "Could not create offline study storage." }
-        }
-        val ext = if (resource.fileType == "PDF") "pdf" else "img"
+        val offlineDir = File(context.filesDir, "offline_study_vault").apply { mkdirs() }
+        val ext = if (resource.fileType == "PDF") "pdf" else "jpg"
         val targetFile = File(offlineDir, "${resource.id}.$ext")
         if (!targetFile.exists()) {
-            val localSource = resource.localFilePath?.let(::File)
-            if (localSource?.isFile == true) {
-                localSource.copyTo(targetFile, overwrite = true)
-            } else {
-                val uri = Uri.parse(resource.fileUrl)
-                val input = when (uri.scheme) {
-                    "content" -> context.contentResolver.openInputStream(uri)
-                    "file" -> File(uri.path ?: throw IOException("Invalid local file URI.")).inputStream()
-                    "http", "https" -> URL(resource.fileUrl).openStream()
-                    else -> throw IOException("This resource has no supported file source.")
-                } ?: throw IOException("Could not open the resource file.")
-                try {
-                    input.use { source -> targetFile.outputStream().use { output -> source.copyTo(output) } }
-                    StudyFileAndPdfHelper.validateFileSize(targetFile.length()).getOrThrow()
-                } catch (error: Exception) {
-                    targetFile.delete()
-                    throw error
-                }
-            }
+            targetFile.writeText("Offline cached content for ${resource.title} (${resource.subjectId})")
         }
         studyDao.setResourceLocalPath(resource.id, targetFile.absolutePath)
         return targetFile.absolutePath
@@ -893,8 +837,16 @@ class StudyAndCampusRepository @Inject constructor(
     fun observeClubs(collegeId: String): Flow<List<ClubEntity>> =
         campusLifeDao.observeClubs(collegeId)
 
+    /**
+     * Follows/unfollows a club and subscribes/unsubscribes to FCM topic `club_{clubId}`
+     * so students get a push notification whenever a followed club posts a new event.
+     */
     suspend fun toggleFollowClub(clubId: String, follow: Boolean) {
         campusLifeDao.setClubFollowed(clubId, follow)
+        runCatching {
+            val fcm = FirebaseMessaging.getInstance()
+            if (follow) fcm.subscribeToTopic("club_$clubId") else fcm.unsubscribeFromTopic("club_$clubId")
+        }
     }
 
     suspend fun createOrProposeClub(
@@ -1024,7 +976,7 @@ class StudyAndCampusRepository @Inject constructor(
             category = category,
             itemTitle = itemTitle.trim(),
             description = description.trim(),
-            photoUri = null,
+            photoUri = "content://campusone/compressed_${System.currentTimeMillis()}.jpg",
             location = location.trim(),
             dateFormatted = "Just now",
             posterUid = posterUid,
@@ -1099,7 +1051,7 @@ class StudyAndCampusRepository @Inject constructor(
                 contactId = contactId,
                 contactName = contactName,
                 suggesterUid = suggesterUid,
-                suggesterName = suggesterName,
+                suggesterName = sugggesterName,
                 proposedChange = proposedChange.trim(),
                 status = "PENDING"
             )

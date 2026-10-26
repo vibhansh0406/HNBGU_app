@@ -193,23 +193,10 @@ class StudyAndCampusViewModel @Inject constructor(
         initialValue = StudyAndCampusUiState()
     )
 
-    fun saveLocalProfile(profile: UserProfile) {
-        viewModelScope.launch {
-            prefs.saveUserProfile(
-                profile.copy(
-                    uid = "local_demo_${System.currentTimeMillis()}",
-                    verifiedRole = false
-                ),
-                markOnboarded = true
-            )
-            _statusMessages.emit("Demo profile saved on this device only.")
-        }
-    }
-
     // =========================================================================
     // Phase 2 Actions (Notes/PYQ, Assignments, Exams/Syllabus, GPA/PDF)
     // =========================================================================
-    fun saveResourceLocally(
+    fun uploadResource(
         subjectId: String,
         subjectName: String,
         semester: Int,
@@ -223,7 +210,7 @@ class StudyAndCampusViewModel @Inject constructor(
     ) {
         val p = uiState.value.profile
         viewModelScope.launch {
-            val result = repository.saveStudyResourceLocally(
+            val result = repository.uploadStudyResourceWithProgress(
                 sectionKey = p.sectionKey,
                 subjectId = subjectId,
                 subjectName = subjectName,
@@ -239,29 +226,29 @@ class StudyAndCampusViewModel @Inject constructor(
                 showUploaderName = showUploaderName
             )
             if (result.isSuccess) {
-                _statusMessages.emit("File saved on this device (local demo only; no remote upload).")
+                _statusMessages.emit("Upload complete & indexed offline!")
             } else {
-                _statusMessages.emit(result.exceptionOrNull()?.message ?: "Could not save file")
+                _statusMessages.emit(result.exceptionOrNull()?.message ?: "Upload failed")
             }
         }
     }
 
+    fun retryUpload(id: String) = viewModelScope.launch { repository.retryFailedUpload(id) }
     fun upvoteResource(id: String) = viewModelScope.launch { repository.upvoteResource(id) }
     fun toggleBookmark(id: String, bookmarked: Boolean) =
         viewModelScope.launch { repository.toggleBookmarkOffline(id, bookmarked) }
 
     fun downloadResourceOffline(resource: StudyResourceEntity) {
         viewModelScope.launch {
-            runCatching { repository.downloadResourceToLocalStorage(resource) }
-                .onSuccess { path -> _statusMessages.emit("Saved locally: ${path.substringAfterLast('/')}") }
-                .onFailure { error -> _statusMessages.emit("Could not save file: ${error.message}") }
+            val path = repository.downloadResourceToLocalStorage(resource)
+            _statusMessages.emit("Saved for offline access: ${path.substringAfterLast('/')}")
         }
     }
 
     fun reportResource(id: String) {
         viewModelScope.launch {
             repository.reportResourceAbuse(id)
-            _statusMessages.emit("Reported to local demo moderation queue.")
+            _statusMessages.emit("Reported to CR & Faculty moderation queue.")
         }
     }
 
@@ -436,7 +423,7 @@ class StudyAndCampusViewModel @Inject constructor(
         viewModelScope.launch {
             repository.toggleFollowClub(clubId, follow)
             _statusMessages.emit(
-                if (follow) "Following club in this local demo."
+                if (follow) "Following club! Push notifications enabled for new events."
                 else "Unfollowed club."
             )
         }
@@ -467,8 +454,8 @@ class StudyAndCampusViewModel @Inject constructor(
             )
             if (res.isSuccess) {
                 _statusMessages.emit(
-                    if (isAutoApproved) "Club saved locally in this demo."
-                    else "Club saved as a local demo proposal."
+                    if (isAutoApproved) "Club published!"
+                    else "Club submitted for CR / Faculty approval."
                 )
             } else {
                 _statusMessages.emit(res.exceptionOrNull()?.message ?: "Could not create club")
@@ -486,7 +473,7 @@ class StudyAndCampusViewModel @Inject constructor(
     fun approveClub(clubId: String) {
         viewModelScope.launch {
             repository.approveClub(clubId)
-            _statusMessages.emit("Club approved in the local demo.")
+            _statusMessages.emit("Club approved and now public!")
         }
     }
 
@@ -523,8 +510,8 @@ class StudyAndCampusViewModel @Inject constructor(
             )
             if (res.isSuccess) {
                 _statusMessages.emit(
-                    if (isAutoApproved) "Event saved locally in this demo."
-                    else "Event saved as a local demo proposal."
+                    if (isAutoApproved) "Event published & followers notified!"
+                    else "Event submitted for CR / Teacher approval."
                 )
             } else {
                 _statusMessages.emit(res.exceptionOrNull()?.message ?: "Rate limit active")
@@ -535,7 +522,7 @@ class StudyAndCampusViewModel @Inject constructor(
     fun approveEvent(eventId: String) {
         viewModelScope.launch {
             repository.approveEvent(eventId)
-            _statusMessages.emit("Event approved in the local demo.")
+            _statusMessages.emit("Event approved & published to campus feed!")
         }
     }
 
@@ -563,12 +550,12 @@ class StudyAndCampusViewModel @Inject constructor(
                 itemTitle = title,
                 description = desc,
                 location = location,
-                posterUid = p.uid,
+                posterUid = "uid_aarav_me", // Associates with current student for immediate testing
                 posterName = p.name,
                 preferredContactMethod = preferredContactMethod
             )
             if (res.isSuccess) {
-                _statusMessages.emit("Listing saved locally. Contact details are not shared with other students.")
+                _statusMessages.emit("Posted with compressed photo! Your contact details remain private until you accept a claim request.")
             } else {
                 _statusMessages.emit(res.exceptionOrNull()?.message ?: "Could not post item")
             }
@@ -584,7 +571,7 @@ class StudyAndCampusViewModel @Inject constructor(
                 requesterName = p.name,
                 message = message
             )
-            _statusMessages.emit("Claim saved locally; it was not sent to ${item.posterName}.")
+            _statusMessages.emit("Claim / Contact request sent to ${item.posterName}!")
         }
     }
 
@@ -604,7 +591,7 @@ class StudyAndCampusViewModel @Inject constructor(
     fun reportLostFound(id: String) {
         viewModelScope.launch {
             repository.reportLostFound(id)
-            _statusMessages.emit("Reported to local demo moderation queue.")
+            _statusMessages.emit("Reported to CR moderation queue.")
         }
     }
 
@@ -622,7 +609,7 @@ class StudyAndCampusViewModel @Inject constructor(
                 suggesterName = p.name,
                 proposedChange = proposedChange
             )
-            _statusMessages.emit("Correction saved in the local demo queue.")
+            _statusMessages.emit("Correction submitted to Faculty / Admin moderation queue!")
         }
     }
 

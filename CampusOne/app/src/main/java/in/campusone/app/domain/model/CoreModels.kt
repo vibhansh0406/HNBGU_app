@@ -42,6 +42,7 @@ data class UserProfile(
     val section: String = "A",
     val targetAttendancePct: Int = 75,
     val reminderLeadMinutes: Int = 10,
+    val syncAttendanceToCloud: Boolean = true,
     val assignedSectionKeys: List<String> = emptyList(),
     val selectedSubjectIds: List<String> = emptyList(),
     val managedClubIds: List<String> = listOf("club_gdsc_hnbgu"),

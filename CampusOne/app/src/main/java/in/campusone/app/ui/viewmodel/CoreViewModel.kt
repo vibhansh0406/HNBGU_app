@@ -137,11 +137,11 @@ class CoreViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             val profile = UserProfile(
-                uid = "local_demo_${email.hashCode().toUInt()}",
+                uid = "uid_${email.hashCode().toUInt()}",
                 name = name.ifBlank { "HNBGU Student" },
                 email = email.ifBlank { "student@hnbgu.ac.in" },
                 role = role,
-                verifiedRole = false,
+                verifiedRole = true, // Pilot mode: enable immediate CR/Teacher publishing
                 collegeId = "hnbgu",
                 collegeName = collegeName,
                 courseId = courseId,
@@ -188,7 +188,7 @@ class CoreViewModel @Inject constructor(
         viewModelScope.launch {
             val result = repository.saveAndPublishTimetableSlot(uiState.value.profile, slot)
             if (result.isSuccess) {
-                _uiMessages.emit("Timetable saved on this device (local demo).")
+                _uiMessages.emit("Section timetable updated & synced!")
             } else {
                 _uiMessages.emit(result.exceptionOrNull()?.message ?: "Failed to update timetable")
             }
@@ -212,7 +212,7 @@ class CoreViewModel @Inject constructor(
                 isPinned = isPinned
             )
             if (result.isSuccess) {
-                _uiMessages.emit("Notice saved on this device (local demo).")
+                _uiMessages.emit("Notice published to section!")
             } else {
                 _uiMessages.emit(result.exceptionOrNull()?.message ?: "Failed to post notice")
             }

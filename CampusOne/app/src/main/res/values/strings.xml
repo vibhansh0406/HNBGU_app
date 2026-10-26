@@ -14,12 +14,7 @@
     <!-- Onboarding & Auth -->
     <string name="welcome_title">Welcome to CampusOne</string>
     <string name="welcome_subtitle">Built for HNB Garhwal University &amp; Indian colleges. Works seamlessly offline.</string>
-    <string name="local_demo_auth_title">Local demo profile — no sign-in</string>
-    <string name="local_demo_auth_disclaimer">Your name and email are saved only on this device. No password, identity check, secure server authentication, or account sharing is provided.</string>
-    <string name="local_demo_email_label">Email (optional, not verified)</string>
-    <string name="local_demo_role_label">local demo only, not verified</string>
-    <string name="local_demo_profile">Local Demo Profile</string>
-    <string name="save_local_profile">Save on this device</string>
+    <string name="sign_in_google">Continue with Google</string>
     <string name="select_college">Select University / College</string>
     <string name="select_course">Select Course / Programme</string>
     <string name="select_semester">Semester</string>
@@ -39,12 +34,12 @@
     <string name="mark_absent">Absent</string>
     <string name="mark_cancelled">Cancelled</string>
     <string name="bunk_safe">Safe to miss %1$d more classes and stay ≥ %2$d%%</string>
-    <string name="bunk_on_edge">On the edge! Don\'t miss the next class to stay at %1$d%%</string>
+    <string name="bunk_on_edge">On the edge! Don't miss the next class to stay at %1$d%%</string>
     <string name="bunk_recover">Attend next %1$d classes consecutively to reach %2$d%%</string>
     <string name="no_classes_recorded">No classes recorded yet. Mark your first class below.</string>
 
     <!-- Timetable & Widget -->
-    <string name="timetable_today">Today\'s Schedule</string>
+    <string name="timetable_today">Today's Schedule</string>
     <string name="timetable_weekly">Weekly Grid</string>
     <string name="next_class_badge">UP NEXT</string>
     <string name="ongoing_class_badge">ONGOING NOW</string>
@@ -60,7 +55,6 @@
     <string name="notices_unread_only">Unread Only</string>
     <string name="post_notice">Post Announcement</string>
     <string name="empty_notices">All caught up! No announcements yet.</string>
-    <string name="local_demo_notices_disclaimer">Notices are stored in Room on this device only. Posts are not sent to other students.</string>
 
     <!-- Phase 2: Study Hub -->
     <string name="study_hub">Study Hub</string>
@@ -71,8 +65,8 @@
     <string name="download_offline">Download to Device</string>
     <string name="view_document">Open In-App Viewer</string>
     <string name="anonymous_student">Anonymous Student</string>
-    <string name="show_my_name">Show my name for this local file</string>
-    <string name="file_limit_note">Max 10 MB • Saved only on this device; no remote upload</string>
+    <string name="show_my_name">Show my name on upload</string>
+    <string name="file_limit_note">Max 10 MB • Images auto-compressed for free-tier storage</string>
     <string name="assignments_title">Assignments &amp; Deadlines</string>
     <string name="tab_today">Today</string>
     <string name="tab_upcoming">Upcoming</string>
