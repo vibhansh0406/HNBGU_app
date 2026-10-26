@@ -3,9 +3,6 @@ on:
   workflow_dispatch:
   push:
     branches: [main, phase-3]
-defaults:
-  run:
-    working-directory: CampusOne
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,11 +12,19 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: 8.9
+      - name: Install Gradle 8.9
+        run: |
+          wget -q https://services.gradle.org/distributions/gradle-8.9-bin.zip
+          unzip -q gradle-8.9-bin.zip -d $HOME
+          echo "$HOME/gradle-8.9/bin" >> $GITHUB_PATH
+      - name: Add google-services.json
+        env:
+          GSJ: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GSJ" ]; then echo "$GSJ" | base64 -d > CampusOne/app/google-services.json; fi
       - name: Build debug APK
-        run: ./gradlew -Pandroid.useAndroidX=true assembleDebug
+        working-directory: CampusOne
+        run: gradle assembleDebug --stacktrace
       - uses: actions/upload-artifact@v4
         with:
           name: campusone-debug-apk
