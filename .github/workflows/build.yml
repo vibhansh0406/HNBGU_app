@@ -24,7 +24,15 @@ jobs:
           if [ -n "$GSJ" ]; then echo "$GSJ" | base64 -d > CampusOne/app/google-services.json; fi
       - name: Build debug APK
         working-directory: CampusOne
-        run: gradle assembleDebug --stacktrace
+        run: |
+          set +e
+          gradle assembleDebug --console=plain > build.log 2>&1
+          code=$?
+          if [ $code -ne 0 ]; then
+            echo "=============== KEY ERRORS ==============="
+            grep -n -E "^e: |What went wrong|Execution failed|error:|FAILURE|Could not" -A 8 build.log | head -120
+          fi
+          exit $code
       - uses: actions/upload-artifact@v4
         with:
           name: campusone-debug-apk
