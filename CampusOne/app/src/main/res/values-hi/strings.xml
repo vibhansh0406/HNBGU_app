@@ -14,7 +14,12 @@
     <!-- Onboarding & Auth -->
     <string name="welcome_title">CampusOne में आपका स्वागत है</string>
     <string name="welcome_subtitle">एचएनबी गढ़वाल विश्वविद्यालय और भारतीय कॉलेजों के लिए निर्मित। बिना इंटरनेट के भी तेज़ चले।</string>
-    <string name="sign_in_google">Google के साथ जारी रखें</string>
+    <string name="local_demo_auth_title">स्थानीय डेमो प्रोफ़ाइल — साइन-इन नहीं</string>
+    <string name="local_demo_auth_disclaimer">आपका नाम और ईमेल केवल इस डिवाइस पर सहेजे जाते हैं। पासवर्ड, पहचान सत्यापन, सुरक्षित सर्वर प्रमाणीकरण या खाता साझा करने की सुविधा नहीं है।</string>
+    <string name="local_demo_email_label">ईमेल (वैकल्पिक, सत्यापित नहीं)</string>
+    <string name="local_demo_role_label">केवल स्थानीय डेमो, सत्यापित नहीं</string>
+    <string name="local_demo_profile">स्थानीय डेमो प्रोफ़ाइल</string>
+    <string name="save_local_profile">इस डिवाइस पर सहेजें</string>
     <string name="select_college">विश्वविद्यालय / कॉलेज चुनें</string>
     <string name="select_course">कोर्स / पाठ्यक्रम चुनें</string>
     <string name="select_semester">सेमेस्टर</string>
@@ -55,6 +60,7 @@
     <string name="notices_unread_only">केवल अपठित</string>
     <string name="post_notice">नई सूचना प्रकाशित करें</string>
     <string name="empty_notices">कोई नई सूचना नहीं है!</string>
+    <string name="local_demo_notices_disclaimer">सूचनाएँ केवल इस डिवाइस के Room में सहेजी जाती हैं। पोस्ट अन्य छात्रों को नहीं भेजी जातीं।</string>
 
     <!-- Phase 2: Study Hub -->
     <string name="study_hub">अध्ययन केंद्र (Study Hub)</string>
@@ -65,8 +71,8 @@
     <string name="download_offline">फ़ोन में डाउनलोड करें</string>
     <string name="view_document">इन-ऐप व्यूअर में खोलें</string>
     <string name="anonymous_student">अनाम छात्र (Anonymous)</string>
-    <string name="show_my_name">अपलोड पर मेरा नाम दिखाएं</string>
-    <string name="file_limit_note">अधिकतम 10 MB • फ़्री-टियर स्टोरेज के लिए इमेज स्वतः कंप्रेस होती हैं</string>
+    <string name="show_my_name">इस स्थानीय फ़ाइल के लिए मेरा नाम दिखाएं</string>
+    <string name="file_limit_note">अधिकतम 10 MB • केवल इस डिवाइस पर सहेजा जाएगा; रिमोट अपलोड नहीं</string>
     <string name="assignments_title">असाइनमेंट और समय-सीमा</string>
     <string name="tab_today">आज (Today)</string>
     <string name="tab_upcoming">आगामी (Upcoming)</string>

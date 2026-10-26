@@ -14,7 +14,7 @@ enum class SlotLiveState {
     UPCOMING_LATER
 }
 
-data classEvaluatedSlot(
+data class classEvaluatedSlot(
     val slot: TimetableSlot,
     val state: SlotLiveState,
     val minutesUntilStart: Long? = null,

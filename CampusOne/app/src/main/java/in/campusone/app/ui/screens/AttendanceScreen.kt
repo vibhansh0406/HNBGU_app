@@ -215,7 +215,7 @@ fun AttendanceScreen(
                                 style = MaterialTheme.typography.titleMedium
                             )
                             Text(
-                                text = if (log.isSynced) "Synced to Cloud" else "Saved Offline (Room DB)",
+                                text = "Saved locally (Room)",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

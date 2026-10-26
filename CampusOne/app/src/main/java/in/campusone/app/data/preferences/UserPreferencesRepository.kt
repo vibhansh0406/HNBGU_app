@@ -6,7 +6,6 @@ import androidx.core.os.LocaleListCompat
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -32,8 +31,6 @@ class UserPreferencesRepository @Inject constructor(
         val USER_PROFILE_JSON = stringPreferencesKey("user_profile_json")
         val LANGUAGE_TAG = stringPreferencesKey("language_tag") // "en" or "hi"
         val DARK_MODE_OVERRIDE = stringPreferencesKey("dark_mode_override") // "SYSTEM", "LIGHT", "DARK"
-        val LAST_TIMETABLE_SYNC = longPreferencesKey("last_timetable_sync")
-        val LAST_NOTICE_SYNC = longPreferencesKey("last_notice_sync")
         val TARGET_ATTENDANCE_PCT = intPreferencesKey("target_attendance_pct")
         val REMINDER_LEAD_MINS = intPreferencesKey("reminder_lead_mins")
     }
@@ -92,20 +89,4 @@ class UserPreferencesRepository @Inject constructor(
         AppCompatDelegate.setApplicationLocales(appLocale)
     }
 
-    suspend fun getLastSyncTimestamps(): Pair<Long, Long> {
-        var ttSync = 0L
-        var noticeSync = 0L
-        context.dataStore.edit { prefs ->
-            ttSync = prefs[Keys.LAST_TIMETABLE_SYNC] ?: 0L
-            noticeSync = prefs[Keys.LAST_NOTICE_SYNC] ?: 0L
-        }
-        return ttSync to noticeSync
-    }
-
-    suspend fun updateSyncTimestamps(timetableSync: Long? = null, noticeSync: Long? = null) {
-        context.dataStore.edit { prefs ->
-            timetableSync?.let { prefs[Keys.LAST_TIMETABLE_SYNC] = it }
-            noticeSync?.let { prefs[Keys.LAST_NOTICE_SYNC] = it }
-        }
-    }
 }
