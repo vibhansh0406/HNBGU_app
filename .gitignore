@@ -7,3 +7,4 @@ build/
 *.zip
 .kotlin/
 local.properties
+_backup_in_tree/
