@@ -4,87 +4,75 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Transaction
-import `in`.campusone.app.data.local.entity.AttendanceLogEntity
-import `in`.campusone.app.data.local.entity.NoticeEntity
+import `in`.campusone.app.data.local.entity.AttendanceRecordEntity
+import `in`.campusone.app.data.local.entity.PersonalNoticeEntity
 import `in`.campusone.app.data.local.entity.SubjectEntity
 import `in`.campusone.app.data.local.entity.TimetableSlotEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface AttendanceDao {
-    @Query("SELECT * FROM subjects WHERE sectionKey = :sectionKey AND isEnrolled = 1 ORDER BY subjectName ASC")
-    fun observeEnrolledSubjects(sectionKey: String): Flow<List<SubjectEntity>>
+interface CoreDao {
 
-    @Query("SELECT * FROM subjects WHERE sectionKey = :sectionKey ORDER BY subjectName ASC")
-    fun observeAllSectionSubjects(sectionKey: String): Flow<List<SubjectEntity>>
+    @Query("SELECT * FROM subjects ORDER BY name ASC")
+    fun observeSubjects(): Flow<List<SubjectEntity>>
+
+    @Query("SELECT * FROM subjects ORDER BY name ASC")
+    suspend fun getAllSubjectsOnce(): List<SubjectEntity>
+
+    @Query("SELECT * FROM subjects WHERE id = :id LIMIT 1")
+    suspend fun getSubjectById(id: String): SubjectEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertSubject(subject: SubjectEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertSubjects(subjects: List<SubjectEntity>)
 
-    @Query("UPDATE subjects SET isEnrolled = :enrolled WHERE subjectId = :subjectId")
-    suspend fun setSubjectEnrollment(subjectId: String, enrolled: Boolean)
+    @Query("DELETE FROM subjects WHERE id = :id")
+    suspend fun deleteSubject(id: String)
 
-    @Query("SELECT * FROM attendance_logs ORDER BY dateEpochDay DESC, updatedAtMillis DESC")
-    fun observeAllLogs(): Flow<List<AttendanceLogEntity>>
+    @Query("SELECT * FROM attendance_records ORDER BY timestampMillis DESC LIMIT 100")
+    fun observeRecentAttendanceRecords(): Flow<List<AttendanceRecordEntity>>
 
-    @Query("SELECT * FROM attendance_logs WHERE subjectId = :subjectId ORDER BY dateEpochDay DESC")
-    fun observeLogsForSubject(subjectId: String): Flow<List<AttendanceLogEntity>>
-
-    @Query("SELECT * FROM attendance_logs WHERE dateEpochDay BETWEEN :startEpochDay AND :endEpochDay ORDER BY dateEpochDay DESC")
-    fun observeLogsInDateRange(startEpochDay: Long, endEpochDay: Long): Flow<List<AttendanceLogEntity>>
+    @Query("SELECT * FROM attendance_records ORDER BY timestampMillis DESC")
+    suspend fun getAllAttendanceRecordsOnce(): List<AttendanceRecordEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsertAttendanceLog(log: AttendanceLogEntity)
-
-    @Query("DELETE FROM attendance_logs WHERE id = :logId")
-    suspend fun deleteAttendanceLog(logId: String)
-
-    @Query("SELECT * FROM attendance_logs WHERE isSynced = 0")
-    suspend fun getUnsyncedLogs(): List<AttendanceLogEntity>
-
-    @Query("UPDATE attendance_logs SET isSynced = 1 WHERE id IN (:ids)")
-    suspend fun markLogsSynced(ids: List<String>)
-}
-
-@Dao
-interface TimetableDao {
-    @Query("SELECT * FROM timetable_slots WHERE sectionKey = :sectionKey ORDER BY dayOfWeek ASC, startTime ASC")
-    fun observeTimetable(sectionKey: String): Flow<List<TimetableSlotEntity>>
-
-    @Query("SELECT * FROM timetable_slots WHERE sectionKey = :sectionKey ORDER BY dayOfWeek ASC, startTime ASC")
-    suspend fun getTimetableSnapshot(sectionKey: String): List<TimetableSlotEntity>
+    suspend fun insertAttendanceRecord(record: AttendanceRecordEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsertSlots(slots: List<TimetableSlotEntity>)
+    suspend fun insertAttendanceRecords(records: List<AttendanceRecordEntity>)
 
-    @Query("DELETE FROM timetable_slots WHERE sectionKey = :sectionKey")
-    suspend fun clearSectionTimetable(sectionKey: String)
+    @Query("SELECT * FROM timetable_slots ORDER BY dayOfWeek ASC, startTime ASC")
+    fun observeTimetableSlots(): Flow<List<TimetableSlotEntity>>
 
-    @Transaction
-    suspend fun replaceSectionTimetable(sectionKey: String, newSlots: List<TimetableSlotEntity>) {
-        clearSectionTimetable(sectionKey)
-        upsertSlots(newSlots)
-    }
-}
-
-@Dao
-interface NoticeDao {
-    @Query("SELECT * FROM notices WHERE sectionKey = :sectionKey ORDER BY isPinned DESC, createdAtMillis DESC")
-    fun observeNotices(sectionKey: String): Flow<List<NoticeEntity>>
-
-    @Query("SELECT COUNT(*) FROM notices WHERE sectionKey = :sectionKey AND isRead = 0")
-    fun observeUnreadCount(sectionKey: String): Flow<Int>
-
-    @Query("SELECT id FROM notices WHERE sectionKey = :sectionKey AND isRead = 1")
-    suspend fun getReadNoticeIds(sectionKey: String): List<String>
+    @Query("SELECT * FROM timetable_slots ORDER BY dayOfWeek ASC, startTime ASC")
+    suspend fun getAllTimetableSlotsOnce(): List<TimetableSlotEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsertNotices(notices: List<NoticeEntity>)
+    suspend fun upsertTimetableSlot(slot: TimetableSlotEntity)
 
-    @Query("UPDATE notices SET isRead = 1 WHERE id = :noticeId")
-    suspend fun markNoticeAsRead(noticeId: String)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertTimetableSlots(slots: List<TimetableSlotEntity>)
 
-    @Query("UPDATE notices SET isRead = 1 WHERE sectionKey = :sectionKey")
-    suspend fun markAllAsRead(sectionKey: String)
+    @Query("DELETE FROM timetable_slots WHERE id = :id")
+    suspend fun deleteTimetableSlot(id: String)
+
+    @Query("SELECT * FROM personal_notices ORDER BY isPinned DESC, createdAtMillis DESC")
+    fun observePersonalNotices(): Flow<List<PersonalNoticeEntity>>
+
+    @Query("SELECT * FROM personal_notices ORDER BY isPinned DESC, createdAtMillis DESC")
+    suspend fun getAllPersonalNoticesOnce(): List<PersonalNoticeEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertPersonalNotice(notice: PersonalNoticeEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertPersonalNotices(notices: List<PersonalNoticeEntity>)
+
+    @Query("UPDATE personal_notices SET isRead = 1 WHERE id = :id")
+    suspend fun markNoticeRead(id: String)
+
+    @Query("DELETE FROM personal_notices WHERE id = :id")
+    suspend fun deletePersonalNotice(id: String)
 }

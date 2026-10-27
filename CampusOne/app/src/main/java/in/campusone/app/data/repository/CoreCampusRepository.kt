@@ -1,393 +1,267 @@
 package `in`.campusone.app.data.repository
 
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
-import com.google.firebase.messaging.FirebaseMessaging
-import `in`.campusone.app.data.local.HnbguSeedData
-import `in`.campusone.app.data.local.dao.AttendanceDao
-import `in`.campusone.app.data.local.dao.NoticeDao
-import `in`.campusone.app.data.local.dao.TimetableDao
-import `in`.campusone.app.data.local.entity.AttendanceLogEntity
-import `in`.campusone.app.data.local.entity.NoticeEntity
+import `in`.campusone.app.data.local.dao.CoreDao
+import `in`.campusone.app.data.local.entity.AttendanceRecordEntity
+import `in`.campusone.app.data.local.entity.PersonalNoticeEntity
 import `in`.campusone.app.data.local.entity.SubjectEntity
 import `in`.campusone.app.data.local.entity.TimetableSlotEntity
 import `in`.campusone.app.data.preferences.UserPreferencesRepository
-import `in`.campusone.app.domain.model.AttachmentType
+import `in`.campusone.app.domain.model.AttendanceRecordItem
 import `in`.campusone.app.domain.model.AttendanceStatus
-import `in`.campusone.app.domain.model.NoticeItem
-import `in`.campusone.app.domain.model.SubjectAttendanceSummary
+import `in`.campusone.app.domain.model.PersonalNotice
+import `in`.campusone.app.domain.model.SubjectSummary
 import `in`.campusone.app.domain.model.TimetableSlot
-import `in`.campusone.app.domain.model.UserProfile
-import `in`.campusone.app.domain.model.UserRole
+import `in`.campusone.app.domain.usecase.AttendanceCalculator
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.flow.map
 import java.time.LocalDate
-import javax.inject.Inject
-import javax.inject.Singleton
+import java.time.format.DateTimeFormatter
+import java.util.UUID
 
-@Singleton
-class CoreCampusRepository @Inject constructor(
-    private val attendanceDao: AttendanceDao,
-    private val timetableDao: TimetableDao,
-    private val noticeDao: NoticeDao,
-    private val prefs: UserPreferencesRepository,
-    private val firestore: FirebaseFirestore?
-) {
+interface CoreCampusRepository {
+    fun observeSubjectsWithAdvice(): Flow<List<SubjectSummary>>
+    fun observeRecentAttendanceHistory(): Flow<List<AttendanceRecordItem>>
+    fun observeTimetableSlots(): Flow<List<TimetableSlot>>
+    fun observePersonalNotices(): Flow<List<PersonalNotice>>
 
-    /**
-     * Ensures that if the database is empty (first install or offline pilot),
-     * HNB Garhwal University default section timetable, subjects, and notices are seeded.
-     */
-    suspend fun ensureSeededForSection(sectionKey: String) {
-        val currentSlots = timetableDao.getTimetableSnapshot(sectionKey)
-        if (currentSlots.isEmpty()) {
-            attendanceDao.upsertSubjects(HnbguSeedData.defaultSubjects(sectionKey))
-            timetableDao.upsertSlots(HnbguSeedData.defaultTimetable(sectionKey))
-            noticeDao.upsertNotices(HnbguSeedData.defaultNotices(sectionKey))
-        }
-        // Subscribe to section FCM topic for zero-cost push notifications
-        runCatching {
-            FirebaseMessaging.getInstance().subscribeToTopic("sec_$sectionKey")
-        }
-    }
+    suspend fun ensurePilotSeedData()
+    suspend fun addSubject(code: String, name: String, professor: String, semester: Int)
+    suspend fun markAttendance(subjectId: String, status: AttendanceStatus)
+    suspend fun addTimetableSlot(
+        subjectName: String,
+        subjectCode: String,
+        dayOfWeek: Int,
+        startTime: String,
+        endTime: String,
+        room: String,
+        teacherName: String,
+        semester: Int,
+        section: String
+    )
+    suspend fun deleteTimetableSlot(slotId: String)
+    suspend fun addPersonalNotice(title: String, body: String, isPinned: Boolean)
+    suspend fun markNoticeRead(noticeId: String)
+    suspend fun deletePersonalNotice(noticeId: String)
+}
 
-    /**
-     * Reactive stream of per-subject attendance summaries computed from local Room DB logs.
-     */
-    fun observeSubjectAttendanceSummaries(sectionKey: String): Flow<List<SubjectAttendanceSummary>> {
+class OfflineCoreCampusRepository(
+    private val coreDao: CoreDao,
+    private val userPrefs: UserPreferencesRepository
+) : CoreCampusRepository {
+
+    private val dateFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
+
+    override fun observeSubjectsWithAdvice(): Flow<List<SubjectSummary>> {
         return combine(
-            attendanceDao.observeEnrolledSubjects(sectionKey),
-            attendanceDao.observeAllLogs()
-        ) { subjects, logs ->
-            val logsBySubject = logs.groupBy { it.subjectId }
-            subjects.map { subj ->
-                val subjLogs = logsBySubject[subj.subjectId].orEmpty()
-                val attended = subjLogs.count { it.status == AttendanceStatus.PRESENT }
-                val absent = subjLogs.count { it.status == AttendanceStatus.ABSENT }
-                val cancelled = subjLogs.count { it.status == AttendanceStatus.CANCELLED }
-                SubjectAttendanceSummary(
-                    subjectId = subj.subjectId,
-                    subjectName = subj.subjectName,
-                    subjectCode = subj.subjectCode,
-                    isElective = subj.isElective,
-                    attendedCount = attended,
-                    totalClasses = attended + absent, // Cancelled classes never inflate total conducted
-                    cancelledCount = cancelled
-                )
-            }
-        }
-    }
-
-    fun observeAttendanceLogsForSubject(subjectId: String): Flow<List<AttendanceLogEntity>> =
-        attendanceDao.observeLogsForSubject(subjectId)
-
-    fun observeAllAttendanceLogs(): Flow<List<AttendanceLogEntity>> =
-        attendanceDao.observeAllLogs()
-
-    /**
-     * Marks attendance for a subject slot on a given date.
-     * Uses deterministic primary key `${subjectId}_${dateIso}_${slotId}` to prevent duplicate entries.
-     */
-    suspend fun markAttendance(
-        subjectId: String,
-        date: LocalDate = LocalDate.now(),
-        slotId: String = "manual_${System.currentTimeMillis() / 3600000}",
-        status: AttendanceStatus,
-        note: String = ""
-    ) {
-        val dateIso = date.toString()
-        val deterministicId = "${subjectId}_${dateIso}_${slotId}"
-        val entity = AttendanceLogEntity(
-            id = deterministicId,
-            subjectId = subjectId,
-            dateEpochDay = date.toEpochDay(),
-            dateIso = dateIso,
-            slotId = slotId,
-            status = status,
-            note = note,
-            isSynced = false,
-            updatedAtMillis = System.currentTimeMillis()
-        )
-        attendanceDao.upsertAttendanceLog(entity)
-    }
-
-    fun observeTimetable(sectionKey: String): Flow<List<TimetableSlot>> {
-        return timetableDao.observeTimetable(sectionKey).combine(
-            attendanceDao.observeEnrolledSubjects(sectionKey)
-        ) { slots, enrolledSubjects ->
-            val enrolledIds = enrolledSubjects.map { it.subjectId }.toSet()
-            slots.filter { !it.isElective || it.subjectId in enrolledIds }.map { entity ->
-                TimetableSlot(
+            coreDao.observeSubjects(),
+            userPrefs.userProfileFlow
+        ) { entities, profile ->
+            entities.map { entity ->
+                SubjectSummary(
                     id = entity.id,
-                    subjectId = entity.subjectId,
-                    subjectName = entity.subjectName,
-                    subjectCode = entity.subjectCode,
-                    teacherName = entity.teacherName,
-                    roomNumber = entity.roomNumber,
-                    dayOfWeek = entity.dayOfWeek,
-                    startTime = entity.startTime,
-                    endTime = entity.endTime,
-                    isElective = entity.isElective
-                )
-            }
-        }
-    }
-
-    /**
-     * CR / Teacher action: Publish or update a timetable slot for the section.
-     * Updates Room immediately (offline-first) and pushes single-document timetable array to Firestore.
-     */
-    suspend fun saveAndPublishTimetableSlot(
-        profile: UserProfile,
-        slot: TimetableSlot
-    ): Result<Unit> = runCatching {
-        require(profile.role == UserRole.CR || profile.role == UserRole.TEACHER) {
-            "Only Class Representatives (CR) or Teachers can publish section timetables."
-        }
-        val entity = TimetableSlotEntity(
-            id = slot.id,
-            sectionKey = profile.sectionKey,
-            subjectId = slot.subjectId,
-            subjectName = slot.subjectName,
-            subjectCode = slot.subjectCode,
-            teacherName = slot.teacherName,
-            roomNumber = slot.roomNumber,
-            dayOfWeek = slot.dayOfWeek,
-            startTime = slot.startTime,
-            endTime = slot.endTime,
-            isElective = slot.isElective,
-            updatedAtMillis = System.currentTimeMillis()
-        )
-        timetableDao.upsertSlots(listOf(entity))
-
-        // Sync whole-section timetable as a single Firestore document (1 read/write optimization)
-        val allSectionSlots = timetableDao.getTimetableSnapshot(profile.sectionKey)
-        firestore?.collection("sections")
-            ?.document(profile.sectionKey)
-            ?.collection("meta")
-            ?.document("timetable")
-            ?.set(
-                mapOf(
-                    "sectionKey" to profile.sectionKey,
-                    "updatedBy" to profile.name,
-                    "updatedAt" to System.currentTimeMillis(),
-                    "slots" to allSectionSlots.map {
-                        mapOf(
-                            "id" to it.id,
-                            "subjectId" to it.subjectId,
-                            "subjectName" to it.subjectName,
-                            "subjectCode" to it.subjectCode,
-                            "teacherName" to it.teacherName,
-                            "roomNumber" to it.roomNumber,
-                            "dayOfWeek" to it.dayOfWeek,
-                            "startTime" to it.startTime,
-                            "endTime" to it.endTime,
-                            "isElective" to it.isElective
-                        )
-                    }
-                ),
-                SetOptions.merge()
-            )?.await()
-    }
-
-    fun observeNotices(sectionKey: String): Flow<List<NoticeItem>> {
-        return noticeDao.observeNotices(sectionKey).combine(prefs.userProfile) { list, _ ->
-            list.map { entity ->
-                NoticeItem(
-                    id = entity.id,
-                    sectionKey = entity.sectionKey,
-                    title = entity.title,
-                    body = entity.body,
-                    attachmentUrl = entity.attachmentUrl,
-                    attachmentType = entity.attachmentType,
-                    isPinned = entity.isPinned,
-                    authorUid = entity.authorUid,
-                    authorName = entity.authorName,
-                    authorRole = entity.authorRole,
-                    createdAtMillis = entity.createdAtMillis,
-                    isRead = entity.isRead
-                )
-            }
-        }
-    }
-
-    fun observeUnreadNoticeCount(sectionKey: String): Flow<Int> =
-        noticeDao.observeUnreadCount(sectionKey)
-
-    suspend fun markNoticeRead(noticeId: String) {
-        noticeDao.markNoticeAsRead(noticeId)
-    }
-
-    suspend fun markAllNoticesRead(sectionKey: String) {
-        noticeDao.markAllAsRead(sectionKey)
-    }
-
-    /**
-     * CR / Teacher action: Post a new announcement to the section Notice Board.
-     */
-    suspend fun postNotice(
-        profile: UserProfile,
-        title: String,
-        body: String,
-        attachmentUrl: String?,
-        attachmentType: AttachmentType,
-        isPinned: Boolean
-    ): Result<Unit> = runCatching {
-        require(profile.role == UserRole.CR || profile.role == UserRole.TEACHER) {
-            "Only Class Representatives (CR) or Teachers can post announcements."
-        }
-        val now = System.currentTimeMillis()
-        val noticeId = "notice_${now}_${profile.uid.take(6)}"
-        val entity = NoticeEntity(
-            id = noticeId,
-            sectionKey = profile.sectionKey,
-            title = title.trim(),
-            body = body.trim(),
-            attachmentUrl = attachmentUrl?.takeIf { it.isNotBlank() },
-            attachmentType = attachmentType,
-            isPinned = isPinned,
-            authorUid = profile.uid.ifBlank { "local_author" },
-            authorName = profile.name.ifBlank { "CR / Faculty" },
-            authorRole = profile.role,
-            createdAtMillis = now,
-            isRead = true
-        )
-        noticeDao.upsertNotices(listOf(entity))
-
-        firestore?.collection("sections")
-            ?.document(profile.sectionKey)
-            ?.collection("notices")
-            ?.document(noticeId)
-            ?.set(
-                mapOf(
-                    "id" to entity.id,
-                    "sectionKey" to entity.sectionKey,
-                    "title" to entity.title,
-                    "body" to entity.body,
-                    "attachmentUrl" to entity.attachmentUrl,
-                    "attachmentType" to entity.attachmentType.name,
-                    "isPinned" to entity.isPinned,
-                    "authorUid" to entity.authorUid,
-                    "authorName" to entity.authorName,
-                    "authorRole" to entity.authorRole.name,
-                    "createdAt" to now,
-                    "updatedAt" to now
-                )
-            )?.await()
-    }
-
-    /**
-     * Background delta sync invoked by WorkManager when network is connected.
-     * Minimizes Firestore reads using `updatedAt > lastSyncTimestamp`.
-     */
-    suspend fun performDeltaSync() {
-        val db = firestore ?: return
-        val profile = prefs.userProfile.first()
-        val sectionKey = profile.sectionKey
-        val (lastTtSync, lastNoticeSync) = prefs.getLastSyncTimestamps()
-
-        // 1. Push unsynced personal attendance logs (aggregated per subject to save writes)
-        if (profile.syncAttendanceToCloud && profile.uid.isNotBlank()) {
-            val unsynced = attendanceDao.getUnsyncedLogs()
-            if (unsynced.isNotEmpty()) {
-                val bySubj = unsynced.groupBy { it.subjectId }
-                for ((subjectId, logs) in bySubj) {
-                    val historyPatch = logs.associate { "${it.dateIso}_${it.slotId}" to it.status.name }
-                    runCatching {
-                        db.collection("users")
-                            .document(profile.uid)
-                            .collection("attendance")
-                            .document(subjectId)
-                            .set(
-                                mapOf(
-                                    "subjectId" to subjectId,
-                                    "history" to historyPatch,
-                                    "updatedAt" to System.currentTimeMillis()
-                                ),
-                                SetOptions.merge()
-                            ).await()
-                    }
-                }
-                attendanceDao.markLogsSynced(unsynced.map { it.id })
-            }
-        }
-
-        // 2. Pull section timetable only if remote `updatedAt > lastTtSync` (1 document read max)
-        runCatching {
-            val ttDoc = db.collection("sections")
-                .document(sectionKey)
-                .collection("meta")
-                .document("timetable")
-                .get()
-                .await()
-            val remoteUpdated = ttDoc.getLong("updatedAt") ?: 0L
-            if (ttDoc.exists() && remoteUpdated > lastTtSync) {
-                @Suppress("UNCHECKED_CAST")
-                val rawSlots = ttDoc.get("slots") as? List<Map<String, Any?>> ?: emptyList()
-                val mapped = rawSlots.mapNotNull { m ->
-                    val id = m["id"] as? String ?: return@mapNotNull null
-                    TimetableSlotEntity(
-                        id = id,
-                        sectionKey = sectionKey,
-                        subjectId = m["subjectId"] as? String ?: "",
-                        subjectName = m["subjectName"] as? String ?: "",
-                        subjectCode = m["subjectCode"] as? String ?: "",
-                        teacherName = m["teacherName"] as? String ?: "",
-                        roomNumber = m["roomNumber"] as? String ?: "",
-                        dayOfWeek = (m["dayOfWeek"] as? Number)?.toInt() ?: 1,
-                        startTime = m["startTime"] as? String ?: "09:00",
-                        endTime = m["endTime"] as? String ?: "10:00",
-                        isElective = m["isElective"] as? Boolean ?: false,
-                        updatedAtMillis = remoteUpdated
+                    code = entity.code,
+                    name = entity.name,
+                    professor = entity.professor,
+                    semester = entity.semester,
+                    attendedCount = entity.attendedCount,
+                    totalClassesCount = entity.totalClassesCount,
+                    cancelledCount = entity.cancelledCount,
+                    advice = AttendanceCalculator.evaluate(
+                        attended = entity.attendedCount,
+                        totalConducted = entity.totalClassesCount,
+                        targetPercentage = profile.targetAttendancePercent
                     )
-                }
-                if (mapped.isNotEmpty()) {
-                    timetableDao.replaceSectionTimetable(sectionKey, mapped)
-                    prefs.updateSyncTimestamps(timetableSync = remoteUpdated)
-                }
-            }
-        }
-
-        // 3. Pull only new/updated notices since `lastNoticeSync`
-        runCatching {
-            val readIds = noticeDao.getReadNoticeIds(sectionKey).toSet()
-            val snapshot = db.collection("sections")
-                .document(sectionKey)
-                .collection("notices")
-                .whereGreaterThan("updatedAt", lastNoticeSync)
-                .limit(25)
-                .get()
-                .await()
-
-            var maxUpdated = lastNoticeSync
-            val entities = snapshot.documents.mapNotNull { doc ->
-                val updated = doc.getLong("updatedAt") ?: 0L
-                if (updated > maxUpdated) maxUpdated = updated
-                NoticeEntity(
-                    id = doc.id,
-                    sectionKey = sectionKey,
-                    title = doc.getString("title") ?: return@mapNotNull null,
-                    body = doc.getString("body") ?: "",
-                    attachmentUrl = doc.getString("attachmentUrl"),
-                    attachmentType = runCatching {
-                        AttachmentType.valueOf(doc.getString("attachmentType") ?: "NONE")
-                    }.getOrDefault(AttachmentType.NONE),
-                    isPinned = doc.getBoolean("isPinned") ?: false,
-                    authorUid = doc.getString("authorUid") ?: "",
-                    authorName = doc.getString("authorName") ?: "Faculty / CR",
-                    authorRole = runCatching {
-                        UserRole.valueOf(doc.getString("authorRole") ?: "CR")
-                    }.getOrDefault(UserRole.CR),
-                    createdAtMillis = doc.getLong("createdAt") ?: updated,
-                    isRead = doc.id in readIds
                 )
             }
-            if (entities.isNotEmpty()) {
-                noticeDao.upsertNotices(entities)
-                prefs.updateSyncTimestamps(noticeSync = maxUpdated)
+        }
+    }
+
+    override fun observeRecentAttendanceHistory(): Flow<List<AttendanceRecordItem>> {
+        return coreDao.observeRecentAttendanceRecords().map { list ->
+            list.map { rec ->
+                AttendanceRecordItem(
+                    id = rec.id,
+                    subjectId = rec.subjectId,
+                    subjectName = rec.subjectName,
+                    epochDay = rec.epochDay,
+                    dateLabel = rec.dateLabel,
+                    status = runCatching { AttendanceStatus.valueOf(rec.status) }
+                        .getOrDefault(AttendanceStatus.PRESENT),
+                    timestampMillis = rec.timestampMillis
+                )
             }
         }
+    }
+
+    override fun observeTimetableSlots(): Flow<List<TimetableSlot>> {
+        return coreDao.observeTimetableSlots().map { list ->
+            list.map { s ->
+                TimetableSlot(
+                    id = s.id,
+                    subjectId = s.subjectId,
+                    subjectName = s.subjectName,
+                    subjectCode = s.subjectCode,
+                    dayOfWeek = s.dayOfWeek,
+                    startTime = s.startTime,
+                    endTime = s.endTime,
+                    room = s.room,
+                    teacherName = s.teacherName,
+                    semester = s.semester,
+                    section = s.section
+                )
+            }
+        }
+    }
+
+    override fun observePersonalNotices(): Flow<List<PersonalNotice>> {
+        return coreDao.observePersonalNotices().map { list ->
+            list.map { n ->
+                PersonalNotice(
+                    id = n.id,
+                    title = n.title,
+                    body = n.body,
+                    category = n.category,
+                    isPinned = n.isPinned,
+                    isRead = n.isRead,
+                    createdAtMillis = n.createdAtMillis
+                )
+            }
+        }
+    }
+
+    override suspend fun ensurePilotSeedData() {
+        if (coreDao.getAllSubjectsOnce().isEmpty()) {
+            val seedSubjects = listOf(
+                SubjectEntity("sub_dsa", "CSE-401", "Design & Analysis of Algorithms", "Prof. M. M. S. Rauthan", 4, 18, 22, 1),
+                SubjectEntity("sub_dbms", "CSE-402", "Database Management Systems", "Dr. K. S. Bhatia", 4, 14, 20, 0),
+                SubjectEntity("sub_os", "CSE-403", "Operating Systems", "Dr. Neeraj Panwar", 4, 19, 21, 1),
+                SubjectEntity("sub_math", "MAT-404", "Discrete Mathematics & Graph Theory", "Dr. R. Nautiyal", 4, 12, 18, 0)
+            )
+            coreDao.upsertSubjects(seedSubjects)
+
+            val seedSlots = listOf(
+                TimetableSlotEntity("slot_1", "sub_dsa", "Design & Analysis of Algorithms", "CSE-401", 1, "09:30", "10:30", "CSE Block 102", "Prof. M. M. S. Rauthan", 4, "A"),
+                TimetableSlotEntity("slot_2", "sub_dbms", "Database Management Systems", "CSE-402", 1, "11:00", "12:00", "Lab-2 Chauras", "Dr. K. S. Bhatia", 4, "A"),
+                TimetableSlotEntity("slot_3", "sub_os", "Operating Systems", "CSE-403", 2, "10:00", "11:00", "CSE Block 104", "Dr. Neeraj Panwar", 4, "A"),
+                TimetableSlotEntity("slot_4", "sub_math", "Discrete Mathematics & Graph Theory", "MAT-404", 3, "11:30", "12:30", "Lecture Hall 3", "Dr. R. Nautiyal", 4, "A"),
+                TimetableSlotEntity("slot_5", "sub_dsa", "Design & Analysis of Algorithms", "CSE-401", 4, "09:30", "10:30", "CSE Block 102", "Prof. M. M. S. Rauthan", 4, "A"),
+                TimetableSlotEntity("slot_6", "sub_os", "Operating Systems", "CSE-403", 5, "14:00", "15:00", "Systems Lab 1", "Dr. Neeraj Panwar", 4, "A")
+            )
+            coreDao.upsertTimetableSlots(seedSlots)
+
+            coreDao.upsertPersonalNotice(
+                PersonalNoticeEntity(
+                    id = "notice_welcome",
+                    title = "Welcome to CampusOne (100% On-Device Edition)",
+                    body = "All attendance logs, timetable slots, assignments, exams, GPA calculations, and PDF notes are stored locally in Room DB. Export a JSON backup anytime from Campus -> Backup & Settings.",
+                    category = "SYSTEM",
+                    isPinned = true,
+                    isRead = false
+                )
+            )
+        }
+    }
+
+    override suspend fun addSubject(code: String, name: String, professor: String, semester: Int) {
+        val cleanName = name.trim()
+        if (cleanName.isEmpty()) return
+        val entity = SubjectEntity(
+            id = "sub_${UUID.randomUUID()}",
+            code = code.trim().ifEmpty { "SUB-101" },
+            name = cleanName,
+            professor = professor.trim().ifEmpty { "Faculty" },
+            semester = semester.coerceIn(1, 10)
+        )
+        coreDao.upsertSubject(entity)
+    }
+
+    override suspend fun markAttendance(subjectId: String, status: AttendanceStatus) {
+        val existing = coreDao.getSubjectById(subjectId) ?: return
+        val updated = when (status) {
+            AttendanceStatus.PRESENT -> existing.copy(
+                attendedCount = existing.attendedCount + 1,
+                totalClassesCount = existing.totalClassesCount + 1,
+                updatedAtMillis = System.currentTimeMillis()
+            )
+            AttendanceStatus.ABSENT -> existing.copy(
+                totalClassesCount = existing.totalClassesCount + 1,
+                updatedAtMillis = System.currentTimeMillis()
+            )
+            AttendanceStatus.CANCELLED -> existing.copy(
+                cancelledCount = existing.cancelledCount + 1,
+                updatedAtMillis = System.currentTimeMillis()
+            )
+        }
+        coreDao.upsertSubject(updated)
+
+        val today = LocalDate.now()
+        coreDao.insertAttendanceRecord(
+            AttendanceRecordEntity(
+                id = "att_${UUID.randomUUID()}",
+                subjectId = existing.id,
+                subjectName = existing.name,
+                epochDay = today.toEpochDay(),
+                dateLabel = today.format(dateFormatter),
+                status = status.name,
+                timestampMillis = System.currentTimeMillis()
+            )
+        )
+    }
+
+    override suspend fun addTimetableSlot(
+        subjectName: String,
+        subjectCode: String,
+        dayOfWeek: Int,
+        startTime: String,
+        endTime: String,
+        room: String,
+        teacherName: String,
+        semester: Int,
+        section: String
+    ) {
+        if (subjectName.isBlank()) return
+        coreDao.upsertTimetableSlot(
+            TimetableSlotEntity(
+                id = "slot_${UUID.randomUUID()}",
+                subjectId = "custom_${subjectCode.lowercase()}",
+                subjectName = subjectName.trim(),
+                subjectCode = subjectCode.trim().ifEmpty { "CLS" },
+                dayOfWeek = dayOfWeek.coerceIn(1, 7),
+                startTime = startTime.trim().ifEmpty { "09:00" },
+                endTime = endTime.trim().ifEmpty { "10:00" },
+                room = room.trim().ifEmpty { "Room 101" },
+                teacherName = teacherName.trim().ifEmpty { "Faculty" },
+                semester = semester,
+                section = section
+            )
+        )
+    }
+
+    override suspend fun deleteTimetableSlot(slotId: String) {
+        coreDao.deleteTimetableSlot(slotId)
+    }
+
+    override suspend fun addPersonalNotice(title: String, body: String, isPinned: Boolean) {
+        if (title.isBlank()) return
+        coreDao.upsertPersonalNotice(
+            PersonalNoticeEntity(
+                id = "pnotice_${UUID.randomUUID()}",
+                title = title.trim(),
+                body = body.trim(),
+                category = "PERSONAL",
+                isPinned = isPinned,
+                isRead = false,
+                createdAtMillis = System.currentTimeMillis()
+            )
+        )
+    }
+
+    override suspend fun markNoticeRead(noticeId: String) {
+        coreDao.markNoticeRead(noticeId)
+    }
+
+    override suspend fun deletePersonalNotice(noticeId: String) {
+        coreDao.deletePersonalNotice(noticeId)
     }
 }

@@ -1,5 +1,5 @@
 -keepattributes *Annotation*,InnerClasses,Signature
--keepclassmembers class * {
-    @kotlinx.serialization.Serializable *;
-}
--keepnames class com.google.firebase.** { *; }
+-keep class com.campusone.app.data.local.** { *; }
+-keep class com.campusone.app.domain.model.** { *; }
+-keep class com.campusone.app.util.CampusBackupPayload { *; }
+-dontwarn kotlinx.serialization.**

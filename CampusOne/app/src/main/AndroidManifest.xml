@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -13,16 +10,16 @@
         android:name=".CampusOneApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
+        android:label="@string/app_name"
         android:localeConfig="@xml/locales_config"
-        android:theme="@style/Theme.CampusOne"
-        tools:targetApi="35">
+        android:supportsRtl="true"
+        android:theme="@style/Theme.CampusOne">
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.CampusOne">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,11 +27,30 @@
             </intent-filter>
         </activity>
 
-        <!-- Glance Next-Class Home Screen Widget -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <receiver
+            android:name=".worker.CampusBootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
         <receiver
             android:name=".widget.NextClassWidgetReceiver"
             android:exported="true"
-            android:label="@string/widget_next_class_title">
+            android:label="@string/widget_title">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -42,37 +58,5 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/next_class_widget_info" />
         </receiver>
-
-        <!-- Reboot Receiver so Assignment, Exam, and Class Reminders survive device reboot -->
-        <receiver
-            android:name=".receiver.CampusBootReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-            </intent-filter>
-        </receiver>
-
-        <!-- FCM Push Notifications Service for Notices & Section Updates -->
-        <service
-            android:name=".service.CampusMessagingService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
-
-        <!-- Disable default WorkManager initializer for HiltWorkerFactory -->
-        <provider
-            android:name="androidx.startup.InitializationProvider"
-            android:authorities="${applicationId}.androidx-startup"
-            android:exported="false"
-            tools:node="merge">
-            <meta-data
-                android:name="androidx.work.WorkManagerInitializer"
-                android:value="androidx.startup"
-                tools:node="remove" />
-        </provider>
     </application>
 </manifest>

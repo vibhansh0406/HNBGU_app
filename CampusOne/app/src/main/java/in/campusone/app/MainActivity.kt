@@ -4,169 +4,200 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dagger.hilt.android.AndroidEntryPoint
-import `in`.campusone.app.ui.screens.AttendanceScreen
-import `in`.campusone.app.ui.screens.HomeScreen
-import `in`.campusone.app.ui.screens.MoreHubScreen
-import `in`.campusone.app.ui.screens.NoticeBoardScreen
-import `in`.campusone.app.ui.screens.OnboardingScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import `in`.campusone.app.R
+import `in`.campusone.app.ui.screens.AttendanceTrackerScreen
+import `in`.campusone.app.ui.screens.CampusHubScreen
+import `in`.campusone.app.ui.screens.FirstLaunchSetupScreen
+import `in`.campusone.app.ui.screens.HomeDashboardScreen
+import `in`.campusone.app.ui.screens.StudyHubScreen
 import `in`.campusone.app.ui.screens.TimetableScreen
 import `in`.campusone.app.ui.theme.CampusOneTheme
 import `in`.campusone.app.ui.viewmodel.CoreViewModel
 import `in`.campusone.app.ui.viewmodel.StudyAndCampusViewModel
 
-enum class BottomNavTab {
-    HOME, ATTENDANCE, TIMETABLE, NOTICES, MORE
-}
+private data class TopLevelDestination(
+    val route: String,
+    val labelRes: Int,
+    val icon: ImageVector
+)
 
-@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val appContainer = (application as CampusOneApp).container
+
         setContent {
+            val windowSizeClass = calculateWindowSizeClass(this)
+            val useNavRail = windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
+
+            val coreViewModel: CoreViewModel = viewModel(
+                factory = CoreViewModel.provideFactory(appContainer)
+            )
+            val studyViewModel: StudyAndCampusViewModel = viewModel(
+                factory = StudyAndCampusViewModel.provideFactory(appContainer)
+            )
+
+            val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
+            val studyState by studyViewModel.uiState.collectAsStateWithLifecycle()
+
             CampusOneTheme {
-                CampusOneRoot()
+                if (!coreState.isLoading && !coreState.profile.setupCompleted) {
+                    FirstLaunchSetupScreen(
+                        onCompleteSetup = { name, college, course, sem, section, target ->
+                            coreViewModel.completeSetup(name, college, course, sem, section, target)
+                        }
+                    )
+                } else {
+                    CampusOneAdaptiveShell(
+                        useNavRail = useNavRail,
+                        coreViewModel = coreViewModel,
+                        studyViewModel = studyViewModel
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun CampusOneRoot(
-    coreViewModel: CoreViewModel = hiltViewModel(),
-    studyCampusViewModel: StudyAndCampusViewModel = hiltViewModel()
+private fun CampusOneAdaptiveShell(
+    useNavRail: Boolean,
+    coreViewModel: CoreViewModel,
+    studyViewModel: StudyAndCampusViewModel
 ) {
+    val navController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route ?: "home"
+
     val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
-    val studyCampusState by studyCampusViewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
-    var currentTab by rememberSaveable { mutableStateOf(BottomNavTab.HOME) }
+    val studyState by studyViewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        coreViewModel.uiMessages.collect { msg ->
-            snackbarHostState.showSnackbar(msg)
-        }
-    }
-    LaunchedEffect(Unit) {
-        studyCampusViewModel.statusMessages.collect { msg ->
-            snackbarHostState.showSnackbar(msg)
-        }
-    }
+    val destinations = listOf(
+        TopLevelDestination("home", R.string.nav_home, Icons.Default.Home),
+        TopLevelDestination("attendance", R.string.nav_attendance, Icons.Default.CheckCircle),
+        TopLevelDestination("timetable", R.string.nav_timetable, Icons.Default.Schedule),
+        TopLevelDestination("study", R.string.nav_study, Icons.Default.MenuBook),
+        TopLevelDestination("campus", R.string.nav_campus, Icons.Default.AccountBalance)
+    )
 
-    if (!coreState.isOnboarded) {
-        OnboardingScreen(
-            onToggleLanguage = coreViewModel::toggleLanguage,
-            onCompleteSetup = coreViewModel::completeOnboarding
-        )
-        return
+    val navigateTo: (String) -> Unit = { route ->
+        navController.navigate(route) {
+            popUpTo(navController.graph.findStartDestination().id) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            NavigationBar {
-                NavigationBarItem(
-                    selected = currentTab == BottomNavTab.HOME,
-                    onClick = { currentTab = BottomNavTab.HOME },
-                    icon = { Icon(Icons.Default.Home, contentDescription = null) },
-                    label = { Text(stringResource(R.string.nav_home)) }
-                )
-                NavigationBarItem(
-                    selected = currentTab == BottomNavTab.ATTENDANCE,
-                    onClick = { currentTab = BottomNavTab.ATTENDANCE },
-                    icon = { Icon(Icons.Default.CheckCircle, contentDescription = null) },
-                    label = { Text(stringResource(R.string.nav_attendance)) }
-                )
-                NavigationBarItem(
-                    selected = currentTab == BottomNavTab.TIMETABLE,
-                    onClick = { currentTab = BottomNavTab.TIMETABLE },
-                    icon = { Icon(Icons.Default.Schedule, contentDescription = null) },
-                    label = { Text(stringResource(R.string.nav_timetable)) }
-                )
-                NavigationBarItem(
-                    selected = currentTab == BottomNavTab.NOTICES,
-                    onClick = { currentTab = BottomNavTab.NOTICES },
-                    icon = {
-                        BadgedBox(
-                            badge = {
-                                if (coreState.unreadNoticeCount > 0) {
-                                    Badge { Text(coreState.unreadNoticeCount.toString()) }
-                                }
-                            }
-                        ) {
-                            Icon(Icons.Default.Campaign, contentDescription = null)
-                        }
-                    },
-                    label = { Text(stringResource(R.string.nav_notices)) }
-                )
-                NavigationBarItem(
-                    selected = currentTab == BottomNavTab.MORE,
-                    onClick = { currentTab = BottomNavTab.MORE },
-                    icon = { Icon(Icons.Default.MenuBook, contentDescription = null) },
-                    label = { Text(stringResource(R.string.nav_more)) }
-                )
+            if (!useNavRail) {
+                NavigationBar {
+                    destinations.forEach { dest ->
+                        NavigationBarItem(
+                            selected = currentRoute == dest.route,
+                            onClick = { navigateTo(dest.route) },
+                            icon = { Icon(dest.icon, contentDescription = stringResource(dest.labelRes)) },
+                            label = { Text(stringResource(dest.labelRes)) }
+                        )
+                    }
+                }
             }
         }
     ) { innerPadding ->
-        androidx.compose.foundation.layout.Box(modifier = Modifier.padding(innerPadding)) {
-            when (currentTab) {
-                BottomNavTab.HOME -> HomeScreen(
-                    uiState = coreState,
-                    nextThreeDeadlines = studyCampusState.nextThreeDeadlines,
-                    nextUpcomingExam = studyCampusState.nextUpcomingExam,
-                    onToggleLanguage = coreViewModel::toggleLanguage,
-                    onOpenAttendance = { currentTab = BottomNavTab.ATTENDANCE },
-                    onOpenTimetable = { currentTab = BottomNavTab.TIMETABLE },
-                    onOpenNotices = { currentTab = BottomNavTab.NOTICES },
-                    onOpenStudyHub = { currentTab = BottomNavTab.MORE }
-                )
-                BottomNavTab.ATTENDANCE -> AttendanceScreen(
-                    uiState = coreState,
-                    onMarkAttendance = coreViewModel::markAttendance,
-                    onTargetPctChange = coreViewModel::updateTargetPercentage
-                )
-                BottomNavTab.TIMETABLE -> TimetableScreen(
-                    uiState = coreState,
-                    onUpdateReminderMinutes = coreViewModel::updateReminderLeadMinutes,
-                    onPublishSlot = coreViewModel::publishTimetableSlot
-                )
-                BottomNavTab.NOTICES -> NoticeBoardScreen(
-                    uiState = coreState,
-                    onMarkNoticeRead = coreViewModel::markNoticeRead,
-                    onMarkAllRead = coreViewModel::markAllNoticesRead,
-                    onPostNotice = coreViewModel::postNotice
-                )
-                BottomNavTab.MORE -> MoreHubScreen(
-                    uiState = studyCampusState,
-                    viewModel = studyCampusViewModel
-                )
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            if (useNavRail) {
+                NavigationRail {
+                    destinations.forEach { dest ->
+                        NavigationRailItem(
+                            selected = currentRoute == dest.route,
+                            onClick = { navigateTo(dest.route) },
+                            icon = { Icon(dest.icon, contentDescription = stringResource(dest.labelRes)) },
+                            label = { Text(stringResource(dest.labelRes)) }
+                        )
+                    }
+                }
+            }
+
+            NavHost(
+                navController = navController,
+                startDestination = "home",
+                modifier = Modifier.fillMaxSize()
+            ) {
+                composable("home") {
+                    HomeDashboardScreen(
+                        coreState = coreState,
+                        upcomingAssignments = studyState.assignments,
+                        upcomingExams = studyState.exams,
+                        onNavigateToTab = navigateTo
+                    )
+                }
+                composable("attendance") {
+                    AttendanceTrackerScreen(
+                        coreState = coreState,
+                        viewModel = coreViewModel
+                    )
+                }
+                composable("timetable") {
+                    TimetableScreen(
+                        coreState = coreState,
+                        viewModel = coreViewModel
+                    )
+                }
+                composable("study") {
+                    StudyHubScreen(
+                        state = studyState,
+                        viewModel = studyViewModel
+                    )
+                }
+                composable("campus") {
+                    CampusHubScreen(
+                        coreState = coreState,
+                        studyState = studyState,
+                        coreViewModel = coreViewModel,
+                        studyViewModel = studyViewModel
+                    )
+                }
             }
         }
     }

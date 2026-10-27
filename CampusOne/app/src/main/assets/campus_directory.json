@@ -1,0 +1,96 @@
+{
+  "university": "Hemvati Nandan Bahuguna Garhwal University (A Central University), Srinagar Garhwal",
+  "contacts": [
+    {
+      "id": "dir_1",
+      "name": "Prof. M. M. S. Rauthan",
+      "designation": "Head & Professor",
+      "department": "Computer Science & Engineering (Chauras Campus)",
+      "category": "FACULTY",
+      "phone": "+911346253291",
+      "email": "hod.cse@hnbgu.ac.in",
+      "officeLocation": "CSE Block, Room 102, Chauras Campus",
+      "officeHours": "Mon-Fri, 10:30 AM - 1:30 PM",
+      "latitude": 30.2286,
+      "longitude": 78.8051
+    },
+    {
+      "id": "dir_2",
+      "name": "Central Library (Birla Campus)",
+      "designation": "University Librarian Helpdesk",
+      "department": "Central Library & E-Resources",
+      "category": "ADMIN",
+      "phone": "+911346252143",
+      "email": "librarian@hnbgu.ac.in",
+      "officeLocation": "Central Library Building, Birla Campus, Srinagar",
+      "officeHours": "Mon-Sat, 9:00 AM - 8:00 PM",
+      "latitude": 30.2224,
+      "longitude": 78.7834
+    },
+    {
+      "id": "dir_3",
+      "name": "HNBGU Medical Health Centre & Ambulance",
+      "designation": "24x7 Campus Emergency Medical Officer",
+      "department": "Health & Emergency Services",
+      "category": "EMERGENCY",
+      "phone": "+911346252160",
+      "email": "healthcentre@hnbgu.ac.in",
+      "officeLocation": "Health Centre, Near Main Gate, Birla Campus",
+      "officeHours": "24x7 Emergency & OPD 9:00 AM - 5:00 PM",
+      "latitude": 30.2231,
+      "longitude": 78.784
+    },
+    {
+      "id": "dir_4",
+      "name": "Chief Proctor & Campus Security Control Room",
+      "designation": "Anti-Ragging & Student Safety Helpline",
+      "department": "Proctorial Board",
+      "category": "EMERGENCY",
+      "phone": "+911346252135",
+      "email": "proctor@hnbgu.ac.in",
+      "officeLocation": "Proctor Office, Administrative Block",
+      "officeHours": "24x7 Helpline",
+      "latitude": 30.2229,
+      "longitude": 78.7829
+    },
+    {
+      "id": "dir_5",
+      "name": "Dean of Students Welfare (DSW) & Hostels",
+      "designation": "Hostel Allotment & Scholarships",
+      "department": "Student Welfare",
+      "category": "HOSTEL",
+      "phone": "+911346252210",
+      "email": "dsw@hnbgu.ac.in",
+      "officeLocation": "DSW Building, Birla Campus",
+      "officeHours": "Mon-Fri, 10:00 AM - 4:30 PM",
+      "latitude": 30.2235,
+      "longitude": 78.7848
+    },
+    {
+      "id": "dir_6",
+      "name": "Controller of Examinations (COE) Helpdesk",
+      "designation": "Exam Form, Admit Card & Marksheet Section",
+      "department": "Examination Cell",
+      "category": "ADMIN",
+      "phone": "+911346252179",
+      "email": "coe@hnbgu.ac.in",
+      "officeLocation": "Administrative Block, Ground Floor, Srinagar",
+      "officeHours": "Mon-Fri, 10:00 AM - 4:00 PM",
+      "latitude": 30.222,
+      "longitude": 78.7825
+    },
+    {
+      "id": "dir_7",
+      "name": "Chauras Campus Academic Canteen & Student Plaza",
+      "designation": "Campus Dining & Student Commons",
+      "department": "Campus Amenities",
+      "category": "CANTEEN",
+      "phone": "+911346253300",
+      "email": "amenities@hnbgu.ac.in",
+      "officeLocation": "Near Activity Center, Chauras Campus",
+      "officeHours": "Mon-Sat, 8:30 AM - 7:30 PM",
+      "latitude": 30.2292,
+      "longitude": 78.806
+    }
+  ]
+}

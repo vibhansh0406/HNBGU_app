@@ -1,116 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">CampusOne</string>
-    <string name="tagline">Your Offline-First Campus Companion</string>
-
-    <!-- Navigation -->
+    <string name="setup_welcome_title">Welcome to CampusOne</string>
+    <string name="setup_welcome_subtitle">Offline-first companion for Indian college students (Pilot: HNB Garhwal University). No login or internet required.</string>
+    <string name="setup_name_label">Your Name</string>
+    <string name="setup_college_label">College / University</string>
+    <string name="setup_course_label">Course / Branch (e.g. B.Tech CSE)</string>
+    <string name="setup_semester_label">Semester</string>
+    <string name="setup_section_label">Section</string>
+    <string name="setup_target_attendance">Target Attendance %</string>
+    <string name="setup_start_btn">Save &amp; Open CampusOne</string>
+    <string name="setup_validation_error">Please enter your name and course to continue.</string>
     <string name="nav_home">Home</string>
     <string name="nav_attendance">Attendance</string>
     <string name="nav_timetable">Timetable</string>
     <string name="nav_notices">Notices</string>
+    <string name="nav_more">More</string>
     <string name="nav_study">Study</string>
-    <string name="nav_more">Hub &amp; Campus</string>
-
-    <!-- Onboarding & Auth -->
-    <string name="welcome_title">Welcome to CampusOne</string>
-    <string name="welcome_subtitle">Built for HNB Garhwal University &amp; Indian colleges. Works seamlessly offline.</string>
-    <string name="sign_in_google">Continue with Google</string>
-    <string name="select_college">Select University / College</string>
-    <string name="select_course">Select Course / Programme</string>
-    <string name="select_semester">Semester</string>
-    <string name="select_section">Section</string>
-    <string name="select_role">Your Role</string>
-    <string name="role_student">Student</string>
-    <string name="role_cr">Class Representative (CR)</string>
-    <string name="role_teacher">Teacher / Faculty</string>
-    <string name="role_club_admin">Club Admin</string>
-    <string name="complete_setup">Complete Setup</string>
-
-    <!-- Attendance -->
-    <string name="attendance_disclaimer">Personal attendance tracker only. Not an official university record.</string>
-    <string name="attendance_overall">Overall Attendance</string>
-    <string name="attendance_target">Target: %1$d%%</string>
-    <string name="mark_present">Present</string>
-    <string name="mark_absent">Absent</string>
-    <string name="mark_cancelled">Cancelled</string>
-    <string name="bunk_safe">Safe to miss %1$d more classes and stay ≥ %2$d%%</string>
-    <string name="bunk_on_edge">On the edge! Don\'t miss the next class to stay at %1$d%%</string>
-    <string name="bunk_recover">Attend next %1$d classes consecutively to reach %2$d%%</string>
-    <string name="no_classes_recorded">No classes recorded yet. Mark your first class below.</string>
-
-    <!-- Timetable & Widget -->
-    <string name="timetable_today">Today\'s Schedule</string>
-    <string name="timetable_weekly">Weekly Grid</string>
-    <string name="next_class_badge">UP NEXT</string>
-    <string name="ongoing_class_badge">ONGOING NOW</string>
-    <string name="publish_timetable">Publish Section Timetable</string>
-    <string name="reminder_lead_time">Reminder %1$d mins before class</string>
-    <string name="widget_next_class_title">CampusOne Next Class</string>
-    <string name="widget_next_class_desc">View your upcoming lecture, room number, and time right on your home screen.</string>
-    <string name="no_more_classes_today">No more classes scheduled for today! 🎉</string>
-
-    <!-- Notices -->
-    <string name="notices_title">Notice Board</string>
-    <string name="notices_pinned">Pinned Announcements</string>
-    <string name="notices_unread_only">Unread Only</string>
-    <string name="post_notice">Post Announcement</string>
-    <string name="empty_notices">All caught up! No announcements yet.</string>
-
-    <!-- Phase 2: Study Hub -->
-    <string name="study_hub">Study Hub</string>
-    <string name="notes_pyq">Notes &amp; PYQ Vault</string>
-    <string name="sort_newest">Newest First</string>
-    <string name="sort_upvoted">Most Upvoted</string>
-    <string name="bookmark_offline">Bookmark Offline</string>
-    <string name="download_offline">Download to Device</string>
-    <string name="view_document">Open In-App Viewer</string>
-    <string name="anonymous_student">Anonymous Student</string>
-    <string name="show_my_name">Show my name on upload</string>
-    <string name="file_limit_note">Max 10 MB • Images auto-compressed for free-tier storage</string>
-    <string name="assignments_title">Assignments &amp; Deadlines</string>
-    <string name="tab_today">Today</string>
-    <string name="tab_upcoming">Upcoming</string>
-    <string name="tab_overdue">Overdue</string>
-    <string name="tab_completed">Completed</string>
-    <string name="group_by_subject">Group by Subject</string>
-    <string name="add_to_my_list">Add to My List</string>
-    <string name="shared_by_section">Shared Section Task</string>
+    <string name="nav_campus">Campus</string>
+    <string name="home_greeting">Namaste, %1$s</string>
+    <string name="home_Next_class_card">Next Up Today</string>
+    <string name="no_classes_today">No more classes scheduled for today</string>
+    <string name="home_attendance_summary">Overall Attendance</string>
     <string name="home_upcoming_deadlines">Next 3 Deadlines</string>
-    <string name="exams_syllabus">Exam Calendar &amp; Syllabus Tracker</string>
-    <string name="home_exam_countdown">Upcoming Exam Countdown</string>
-    <string name="overall_syllabus_progress">Overall Syllabus Completion</string>
-    <string name="publish_exam">Publish Section Exam</string>
-    <string name="publish_syllabus_topic">Add Syllabus Topic</string>
-    <string name="gpa_calculator">SGPA / CGPA &amp; Target Calculator</string>
-    <string name="what_do_i_need">What Do I Need? (Target CGPA)</string>
-    <string name="semester_trend_chart">Semester SGPA Trend</string>
-    <string name="export_gpa_pdf">Export Grade Sheet as PDF</string>
-
-    <!-- Phase 3: Campus Life -->
-    <string name="events_clubs">Events &amp; Clubs</string>
-    <string name="tab_events_feed">Events Feed</string>
-    <string name="tab_clubs_directory">Clubs</string>
-    <string name="filter_this_week">This Week</string>
-    <string name="filter_my_clubs">My Clubs</string>
-    <string name="rsvp_going">Going</string>
-    <string name="rsvp_interested">Interested</string>
-    <string name="rsvp_not_going">Not Going</string>
-    <string name="add_to_calendar">Add to Calendar</string>
-    <string name="share_event">Share Event</string>
-    <string name="follow_club">Follow Club</string>
-    <string name="following_club">Following ✓</string>
-
-    <string name="lost_found">Lost &amp; Found Board</string>
-    <string name="privacy_hidden_contact">Contact hidden for privacy • Send a Claim/Contact Request</string>
-    <string name="send_claim_request">Claim / Request Contact</string>
-    <string name="auto_archive_note">Posts older than 30 days are auto-archived automatically.</string>
-
-    <string name="campus_directory">Campus Directory &amp; Map</string>
-    <string name="tab_directory_list">Directory &amp; Numbers</string>
-    <string name="tab_campus_map">Campus Map (Google Maps)</string>
-    <string name="open_in_google_maps">Open in Google Maps</string>
-    <string name="suggest_correction">Suggest Correction</string>
-
-    <string name="privacy_policy">Privacy &amp; Open Source (MIT)</string>
-    <string name="language_toggle">Language: English / हिन्दी</string>
+    <string name="home_upcoming_exams">Exam Countdowns</string>
+    <string name="home_quick_actions">Quick Actions</string>
+    <string name="attendance_disclaimer">Personal tracker for self-monitoring — not official university attendance.</string>
+    <string name="attendance_target_chip">Target: %1$d%%</string>
+    <string name="attendance_safe_bunks">Safe to miss %1$d more classes and stay above %2$d%%</string>
+    <string name="attendance_must_attend">Attend next %1$d classes to reach %2$d%%</string>
+    <string name="attendance_no_classes_logged">No classes recorded yet. Mark Present or Absent below.</string>
+    <string name="attendance_mark_present">Present</string>
+    <string name="attendance_mark_absent">Absent</string>
+    <string name="attendance_mark_cancelled">Cancelled</string>
+    <string name="attendance_add_subject">Add Subject</string>
+    <string name="attendance_subject_name">Subject Name</string>
+    <string name="attendance_subject_code">Subject Code</string>
+    <string name="attendance_professor">Faculty Name</string>
+    <string name="attendance_history">Recent History</string>
+    <string name="timetable_today_tab">Today</string>
+    <string name="timetable_weekly_tab">Weekly Grid</string>
+    <string name="timetable_add_slot">Add Class Slot</string>
+    <string name="timetable_room_label">Room / Lab</string>
+    <string name="timetable_time_label">Start - End (HH:mm)</string>
+    <string name="timetable_day_mon">Mon</string>
+    <string name="timetable_day_tue">Tue</string>
+    <string name="timetable_day_wed">Wed</string>
+    <string name="timetable_day_thu">Thu</string>
+    <string name="timetable_day_fri">Fri</string>
+    <string name="timetable_day_sat">Sat</string>
+    <string name="timetable_status_ongoing">Now in Session • %1$dm left</string>
+    <string name="timetable_status_upcoming">Next Up • Starts in %1$dm</string>
+    <string name="timetable_status_completed">Completed for Today</string>
+    <string name="widget_title">CampusOne • Next Class</string>
+    <string name="study_tab_assignments">Assignments</string>
+    <string name="study_tab_exams">Exams &amp; Syllabus</string>
+    <string name="study_tab_gpa">GPA &amp; CGPA</string>
+    <string name="study_tab_notes">Notes &amp; PYQ Vault</string>
+    <string name="assignments_filter_today">Today</string>
+    <string name="assignments_filter_upcoming">Upcoming</string>
+    <string name="assignments_filter_overdue">Overdue</string>
+    <string name="assignments_filter_completed">Completed</string>
+    <string name="assignments_add_btn">Add Assignment</string>
+    <string name="assignments_empty">No assignments in this view. Add a deadline to stay ahead!</string>
+    <string name="exams_countdown_days">In %1$d days</string>
+    <string name="exams_today_badge">Today!</string>
+    <string name="exams_syllabus_progress">Syllabus Completion: %1$d%% (%2$d/%3$d topics)</string>
+    <string name="exams_add_exam">Add Exam</string>
+    <string name="exams_add_topic">Add Syllabus Unit</string>
+    <string name="gpa_scale_10">10-Point UGC/CBCS</string>
+    <string name="gpa_scale_4">4-Point Scale</string>
+    <string name="gpa_scale_pct">Percentage Scale</string>
+    <string name="gpa_sgpa_result">Current SGPA: %1$.2f</string>
+    <string name="gpa_cgpa_result">Cumulative CGPA: %1$.2f</string>
+    <string name="gpa_what_if_title">What Do I Need? (Target CGPA Calculator)</string>
+    <string name="gpa_export_pdf">Export Grade Report (PDF)</string>
+    <string name="notes_import_btn">Import PDF or Image from Phone</string>
+    <string name="notes_bookmark_filter">Bookmarked Only</string>
+    <string name="notes_open_viewer">View in Built-in Reader</string>
+    <string name="notes_empty">Import your PDFs, lecture notes, or PYQ papers from device storage for instant offline viewing.</string>
+    <string name="campus_tab_directory">Directory &amp; Map</string>
+    <string name="campus_tab_events">Events &amp; Clubs</string>
+    <string name="campus_tab_lost_found">Lost &amp; Found</string>
+    <string name="campus_tab_notices">My Notices</string>
+    <string name="campus_tab_settings">Backup &amp; Settings</string>
+    <string name="directory_search_hint">Search faculty, department, emergency, or place</string>
+    <string name="directory_call">Call</string>
+    <string name="directory_email">Email</string>
+    <string name="directory_copy">Copy</string>
+    <string name="directory_open_maps">Open in Google Maps</string>
+    <string name="notices_personal_title">Notice Board &amp; Personal Study Memos</string>
+    <string name="notices_add_btn">Add Notice</string>
+    <string name="notices_filter_all">All</string>
+    <string name="notices_filter_unread">Unread</string>
+    <string name="notices_filter_pinned">Pinned</string>
+    <string name="notices_empty">No notices match this filter. Tap Add Notice to create a pinned study memo.</string>
+    <string name="notices_mark_read">Mark Read</string>
+    <string name="notices_unread_badge">NEW</string>
+    <string name="form_validation_required">Please fill in the required title/name field before saving.</string>
+    <string name="cloud_coming_soon_title">Coming Soon — Cloud Sync Disabled</string>
+    <string name="cloud_coming_soon_body">Live section Notice Board, Shared Notes Moderation, Clubs &amp; Events RSVP sync, and Lost &amp; Found cloud moderation are gated behind CLOUD_FEATURES_ENABLED = false. You can test local previews below.</string>
+    <string name="settings_language_toggle">Switch Language (English / हिन्दी)</string>
+    <string name="settings_notifications_btn">Enable Class &amp; Deadline Notifications</string>
+    <string name="settings_backup_title">Local Data Backup &amp; Restore (JSON)</string>
+    <string name="settings_export_json">Export Full Backup (.json)</string>
+    <string name="settings_import_json">Restore from Backup (.json)</string>
+    <string name="settings_crash_log_title">On-Device Crash Log Inspector</string>
+    <string name="settings_no_crashes">Zero crashes recorded. App health is 100% clean.</string>
+    <string name="settings_copy_crash">Copy Crash Log</string>
+    <string name="settings_clear_crash">Clear Crash Log</string>
+    <string name="common_save">Save</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_close">Close</string>
+    <string name="common_search">Search</string>
 </resources>

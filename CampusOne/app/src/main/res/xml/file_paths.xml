@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <files-path name="study_vault" path="study_vault/" />
+    <files-path name="gpa_reports" path="gpa_reports/" />
+    <files-path name="crash_logs" path="crash_logs/" />
+    <files-path name="backups" path="backups/" />
+    <cache-path name="shared_cards" path="shared_cards/" />
+</paths>

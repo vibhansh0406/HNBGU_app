@@ -19,95 +19,76 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// Semantic Attendance Health Colors
-val SafeGreen = Color(0xFF1B8755)
-val SafeGreenContainer = Color(0xFFD3F9E3)
-val EdgeAmber = Color(0xFFD97706)
-val EdgeAmberContainer = Color(0xFFFEF3C7)
-val DangerRed = Color(0xFFDC2626)
-val DangerRedContainer = Color(0xFFFEE2E2)
-
-private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF0F6B50), // Himalayan Pine Emerald
+private val LightColors = lightColorScheme(
+    primary = Color(0xFF0F4C81),
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFA6F2D4),
-    onPrimaryContainer = Color(0xFF002116),
-    secondary = Color(0xFF3E5F90),
+    primaryContainer = Color(0xFFD4E4FF),
+    onPrimaryContainer = Color(0xFF001C38),
+    secondary = Color(0xFF006B5E),
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFD6E3FF),
-    onSecondaryContainer = Color(0xFF001B3E),
-    tertiary = Color(0xFF7D5260),
-    background = Color(0xFFF7FBF8),
-    surface = Color(0xFFF7FBF8),
-    surfaceVariant = Color(0xFFDBE5DE),
-    onSurfaceVariant = Color(0xFF404944)
+    secondaryContainer = Color(0xFF75F8E2),
+    onSecondaryContainer = Color(0xFF00201B),
+    tertiary = Color(0xFF8B5000),
+    onTertiary = Color.White,
+    tertiaryContainer = Color(0xFFFFDCBE),
+    onTertiaryContainer = Color(0xFF2C1600),
+    background = Color(0xFFF8FAFC),
+    surface = Color(0xFFFFFFFF),
+    surfaceVariant = Color(0xFFEFF4F9)
 )
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF8AD6B9),
-    onPrimary = Color(0xFF003828),
-    primaryContainer = Color(0xFF00513B),
-    onPrimaryContainer = Color(0xFFA6F2D4),
-    secondary = Color(0xFFA8C8FF),
-    onSecondary = Color(0xFF04305F),
-    secondaryContainer = Color(0xFF244777),
-    onSecondaryContainer = Color(0xFFD6E3FF),
-    tertiary = Color(0xFFEFB8C8),
-    background = Color(0xFF0F1512),
-    surface = Color(0xFF0F1512),
-    surfaceVariant = Color(0xFF404944),
-    onSurfaceVariant = Color(0xFFBFC9C2)
+private val DarkColors = darkColorScheme(
+    primary = Color(0xFFA5C8FF),
+    onPrimary = Color(0xFF00315B),
+    primaryContainer = Color(0xFF004881),
+    onPrimaryContainer = Color(0xFFD4E4FF),
+    secondary = Color(0xFF55DBC6),
+    onSecondary = Color(0xFF003730),
+    secondaryContainer = Color(0xFF005046),
+    onSecondaryContainer = Color(0xFF75F8E2),
+    tertiary = Color(0xFFFFB870),
+    onTertiary = Color(0xFF4A2800),
+    tertiaryContainer = Color(0xFF693C00),
+    onTertiaryContainer = Color(0xFFFFDCBE),
+    background = Color(0xFF0F172A),
+    surface = Color(0xFF1E293B),
+    surfaceVariant = Color(0xFF334155)
 )
 
-// Material 3 Expressive Shapes (generous, friendly corner radii)
-val ExpressiveShapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),
-    small = RoundedCornerShape(14.dp),
+val CampusShapes = Shapes(
+    small = RoundedCornerShape(12.dp),
     medium = RoundedCornerShape(20.dp),
-    large = RoundedCornerShape(28.dp),
-    extraLarge = RoundedCornerShape(32.dp)
+    large = RoundedCornerShape(28.dp)
 )
 
-val ExpressiveTypography = Typography(
-    headlineLarge = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.ExtraBold,
-        fontSize = 30.sp,
-        lineHeight = 38.sp
-    ),
+val CampusTypography = Typography(
     headlineMedium = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Bold,
-        fontSize = 24.sp,
+        fontSize = 26.sp,
         lineHeight = 32.sp
     ),
     titleLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Bold,
         fontSize = 20.sp,
-        lineHeight = 28.sp
+        lineHeight = 26.sp
     ),
     titleMedium = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.SemiBold,
         fontSize = 16.sp,
-        lineHeight = 24.sp
+        lineHeight = 22.sp
     ),
     bodyLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 24.sp
+        fontSize = 15.sp,
+        lineHeight = 22.sp
     ),
     bodyMedium = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Normal,
-        fontSize = 14.sp,
-        lineHeight = 20.sp
-    ),
-    labelLarge = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.SemiBold,
         fontSize = 14.sp,
         lineHeight = 20.sp
     )
@@ -119,19 +100,19 @@ fun CampusOneTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
+    val context = LocalContext.current
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        darkTheme -> DarkColors
+        else -> LightColors
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = ExpressiveTypography,
-        shapes = ExpressiveShapes,
+        shapes = CampusShapes,
+        typography = CampusTypography,
         content = content
     )
 }

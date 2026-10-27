@@ -3,3 +3,7 @@ local.properties
 *.keystore
 .gradle/
 build/
+*.apk
+*.zip
+.kotlin/
+local.properties

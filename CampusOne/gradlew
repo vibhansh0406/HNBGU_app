@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+# Build-safe wrapper script (zero binary .jar required):
+# Uses system 'gradle' (installed by gradle/actions/setup-gradle@v4 in GitHub Actions)
+# or falls back to gradle-wrapper.jar if generated locally via 'gradle wrapper'.
+if command -v gradle >/dev/null 2>&1; then
+    exec gradle "$@"
+elif [ -f "$(dirname "$0")/gradle/wrapper/gradle-wrapper.jar" ]; then
+    exec java -jar "$(dirname "$0")/gradle/wrapper/gradle-wrapper.jar" "$@"
+else
+    echo "Error: Neither 'gradle' command nor gradle-wrapper.jar found. In GitHub Actions, use gradle/actions/setup-gradle@v4 with gradle-version: 8.9." >&2
+    exit 1
+fi

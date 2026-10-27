@@ -1,25 +1,17 @@
 package `in`.campusone.app
 
 import android.app.Application
-import androidx.hilt.work.HiltWorkerFactory
-import androidx.work.Configuration
-import dagger.hilt.android.HiltAndroidApp
-import `in`.campusone.app.worker.CampusSyncAndReminderWorker
-import javax.inject.Inject
+import `in`.campusone.app.di.AppContainer
+import `in`.campusone.app.util.CrashLogManager
 
-@HiltAndroidApp
-class CampusOneApp : Application(), Configuration.Provider {
+class CampusOneApp : Application() {
 
-    @Inject
-    lateinit var workerFactory: HiltWorkerFactory
-
-    override val workManagerConfiguration: Configuration
-        get() = Configuration.Builder()
-            .setWorkerFactory(workerFactory)
-            .build()
+    lateinit var container: AppContainer
+        private set
 
     override fun onCreate() {
         super.onCreate()
-        CampusSyncAndReminderWorker.schedule(this)
+        CrashLogManager.install(this)
+        container = AppContainer(this)
     }
 }

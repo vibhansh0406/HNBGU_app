@@ -1,116 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">CampusOne (कैम्पस-वन)</string>
-    <string name="tagline">आपका ऑफ़लाइन-फ़र्स्ट कॉलेज साथी</string>
-
-    <!-- Navigation -->
+    <string name="app_name">कैम्पस-वन (CampusOne)</string>
+    <string name="setup_welcome_title">कैम्पस-वन में आपका स्वागत है</string>
+    <string name="setup_welcome_subtitle">भारतीय कॉलेज छात्रों के लिए ऑफलाइन-फर्स्ट ऐप (पायलट: एचएनबी गढ़वाल विश्वविद्यालय)। बिना इंटरनेट और बिना लॉगिन के काम करता है।</string>
+    <string name="setup_name_label">आपका नाम</string>
+    <string name="setup_college_label">कॉलेज / विश्वविद्यालय</string>
+    <string name="setup_course_label">कोर्स / ब्रांच (जैसे B.Tech CSE)</string>
+    <string name="setup_semester_label">सेमेस्टर</string>
+    <string name="setup_section_label">सेक्शन</string>
+    <string name="setup_target_attendance">लक्षित उपस्थिति %</string>
+    <string name="setup_start_btn">सहेजें और आगे बढ़ें</string>
+    <string name="setup_validation_error">आगे बढ़ने के लिए कृपया अपना नाम और कोर्स दर्ज करें।</string>
     <string name="nav_home">होम</string>
     <string name="nav_attendance">उपस्थिति</string>
     <string name="nav_timetable">समय-सारणी</string>
     <string name="nav_notices">सूचनाएं</string>
+    <string name="nav_more">अधिक</string>
     <string name="nav_study">अध्ययन</string>
-    <string name="nav_more">अध्ययन व कैम्पस</string>
-
-    <!-- Onboarding & Auth -->
-    <string name="welcome_title">CampusOne में आपका स्वागत है</string>
-    <string name="welcome_subtitle">एचएनबी गढ़वाल विश्वविद्यालय और भारतीय कॉलेजों के लिए निर्मित। बिना इंटरनेट के भी तेज़ चले।</string>
-    <string name="sign_in_google">Google के साथ जारी रखें</string>
-    <string name="select_college">विश्वविद्यालय / कॉलेज चुनें</string>
-    <string name="select_course">कोर्स / पाठ्यक्रम चुनें</string>
-    <string name="select_semester">सेमेस्टर</string>
-    <string name="select_section">सेक्शन</string>
-    <string name="select_role">आपकी भूमिका</string>
-    <string name="role_student">छात्र (Student)</string>
-    <string name="role_cr">क्लास रिप्रेजेंटेटिव (CR)</string>
-    <string name="role_teacher">शिक्षक / प्राध्यापक (Teacher)</string>
-    <string name="role_club_admin">क्लब एडमिन (Club Admin)</string>
-    <string name="complete_setup">सेटअप पूरा करें</string>
-
-    <!-- Attendance -->
-    <string name="attendance_disclaimer">यह केवल व्यक्तिगत उपस्थिति ट्रैकर है। इसे आधिकारिक विश्वविद्यालय रिकॉर्ड न मानें।</string>
-    <string name="attendance_overall">कुल उपस्थिति</string>
-    <string name="attendance_target">लक्ष्य: %1$d%%</string>
-    <string name="mark_present">उपस्थित</string>
-    <string name="mark_absent">अनुपस्थित</string>
-    <string name="mark_cancelled">रद्द</string>
-    <string name="bunk_safe">आप %2$d%% से ऊपर रहते हुए %1$d और कक्षाएं छोड़ सकते हैं</string>
-    <string name="bunk_on_edge">सावधान! %1$d%% बनाए रखने के लिए अगली कक्षा न छोड़ें</string>
-    <string name="bunk_recover">%2$d%% तक पहुँचने के लिए अगली %1$d कक्षाओं में लगातार उपस्थित रहें</string>
-    <string name="no_classes_recorded">अभी तक कोई कक्षा दर्ज नहीं की गई है। नीचे अपनी पहली उपस्थिति दर्ज करें।</string>
-
-    <!-- Timetable & Widget -->
-    <string name="timetable_today">आज की समय-सारणी</string>
-    <string name="timetable_weekly">साप्ताहिक समय-सारणी</string>
-    <string name="next_class_badge">अगली कक्षा</string>
-    <string name="ongoing_class_badge">अभी चल रही है</string>
-    <string name="publish_timetable">सेक्शन समय-सारणी प्रकाशित करें</string>
-    <string name="reminder_lead_time">कक्षा से %1$d मिनट पहले रिमाइंडर</string>
-    <string name="widget_next_class_title">CampusOne अगली कक्षा</string>
-    <string name="widget_next_class_desc">अपनी आगामी कक्षा, कमरा नंबर और समय सीधे होम स्क्रीन पर देखें।</string>
-    <string name="no_more_classes_today">आज के लिए कोई और कक्षा शेष नहीं है! 🎉</string>
-
-    <!-- Notices -->
-    <string name="notices_title">सूचना पट्ट (Notice Board)</string>
-    <string name="notices_pinned">पिन की गई सूचनाएं</string>
-    <string name="notices_unread_only">केवल अपठित</string>
-    <string name="post_notice">नई सूचना प्रकाशित करें</string>
-    <string name="empty_notices">कोई नई सूचना नहीं है!</string>
-
-    <!-- Phase 2: Study Hub -->
-    <string name="study_hub">अध्ययन केंद्र (Study Hub)</string>
-    <string name="notes_pyq">नोट्स और पिछले प्रश्नपत्र (PYQs)</string>
-    <string name="sort_newest">नवीनतम पहले</string>
-    <string name="sort_upvoted">सर्वाधिक अपवोट किए गए</string>
-    <string name="bookmark_offline">ऑफ़लाइन बुकमार्क</string>
-    <string name="download_offline">फ़ोन में डाउनलोड करें</string>
-    <string name="view_document">इन-ऐप व्यूअर में खोलें</string>
-    <string name="anonymous_student">अनाम छात्र (Anonymous)</string>
-    <string name="show_my_name">अपलोड पर मेरा नाम दिखाएं</string>
-    <string name="file_limit_note">अधिकतम 10 MB • फ़्री-टियर स्टोरेज के लिए इमेज स्वतः कंप्रेस होती हैं</string>
-    <string name="assignments_title">असाइनमेंट और समय-सीमा</string>
-    <string name="tab_today">आज (Today)</string>
-    <string name="tab_upcoming">आगामी (Upcoming)</string>
-    <string name="tab_overdue">समय-सीमा समाप्त (Overdue)</string>
-    <string name="tab_completed">पूर्ण (Completed)</string>
-    <string name="group_by_subject">विषय के अनुसार समूहित करें</string>
-    <string name="add_to_my_list">मेरी सूची में जोड़ें</string>
-    <string name="shared_by_section">साझा सेक्शन असाइनमेंट</string>
-    <string name="home_upcoming_deadlines">अगली 3 समय-सीमाएं (Deadlines)</string>
-    <string name="exams_syllabus">परीक्षा कैलेंडर और सिलेबस ट्रैकर</string>
-    <string name="home_exam_countdown">आगामी परीक्षा उलटी गिनती</string>
-    <string name="overall_syllabus_progress">कुल सिलेबस प्रगति</string>
-    <string name="publish_exam">सेक्शन परीक्षा जोड़ें</string>
-    <string name="publish_syllabus_topic">सिलेबस टॉपिक जोड़ें</string>
-    <string name="gpa_calculator">SGPA / CGPA और लक्ष्य कैलकुलेटर</string>
-    <string name="what_do_i_need">मुझे कितने SGPA की आवश्यकता है? (Target CGPA)</string>
-    <string name="semester_trend_chart">सेमेस्टर SGPA ग्राफ़</string>
-    <string name="export_gpa_pdf">ग्रेड रिपोर्ट PDF के रूप में सेव करें</string>
-
-    <!-- Phase 3: Campus Life -->
-    <string name="events_clubs">इवेंट्स और क्लब (Events &amp; Clubs)</string>
-    <string name="tab_events_feed">इवेंट्स फ़ीड</string>
-    <string name="tab_clubs_directory">कैम्पस क्लब</string>
-    <string name="filter_this_week">इस सप्ताह</string>
-    <string name="filter_my_clubs">मेरे क्लब</string>
-    <string name="rsvp_going">जा रहे हैं (Going)</string>
-    <string name="rsvp_interested">रुचि है (Interested)</string>
-    <string name="rsvp_not_going">नहीं जा रहे</string>
-    <string name="add_to_calendar">कैलेंडर में जोड़ें</string>
-    <string name="share_event">इवेंट शेयर करें</string>
-    <string name="follow_club">फ़ॉलो करें</string>
-    <string name="following_club">फ़ॉलो किया गया ✓</string>
-
-    <string name="lost_found">खोया और पाया (Lost &amp; Found)</string>
-    <string name="privacy_hidden_contact">गोपनीयता हेतु फ़ोन नंबर छुपाया गया है • संपर्क अनुरोध भेजें</string>
-    <string name="send_claim_request">दावा / संपर्क अनुरोध भेजें</string>
-    <string name="auto_archive_note">30 दिनों से पुरानी पोस्ट स्वतः आर्काइव हो जाती हैं।</string>
-
-    <string name="campus_directory">कैम्पस निर्देशिका और मैप</string>
-    <string name="tab_directory_list">निर्देशिका और फ़ोन नंबर</string>
-    <string name="tab_campus_map">कैम्पस मैप (Google Maps)</string>
-    <string name="open_in_google_maps">Google Maps में खोलें</string>
-    <string name="suggest_correction">सुधार सुझाएं</string>
-
-    <string name="privacy_policy">गोपनीयता नीति और ओपन सोर्स (MIT)</string>
-    <string name="language_toggle">भाषा बदलें: हिन्दी / English</string>
+    <string name="nav_campus">कैम्पस</string>
+    <string name="home_greeting">नमस्ते, %1$s</string>
+    <string name="home_Next_class_card">आज की अगली कक्षा</string>
+    <string name="no_classes_today">आज के लिए कोई और कक्षा निर्धारित नहीं है</string>
+    <string name="home_attendance_summary">कुल उपस्थिति</string>
+    <string name="home_upcoming_deadlines">अगली 3 समय-सीमाएं</string>
+    <string name="home_upcoming_exams">परीक्षा उलटी गिनती</string>
+    <string name="home_quick_actions">त्वरित कार्य</string>
+    <string name="attendance_disclaimer">यह व्यक्तिगत ट्रैकर है — इसे आधिकारिक विश्वविद्यालय उपस्थिति न मानें।</string>
+    <string name="attendance_target_chip">लक्ष्य: %1$d%%</string>
+    <string name="attendance_safe_bunks">%2$d%% से ऊपर रहने के लिए आप %1$d कक्षाएं छोड़ सकते हैं</string>
+    <string name="attendance_must_attend">%2$d%% तक पहुँचने के लिए अगली %1$d कक्षाओं में उपस्थित रहें</string>
+    <string name="attendance_no_classes_logged">अभी तक कोई कक्षा दर्ज नहीं की गई है। नीचे उपस्थित या अनुपस्थित चुनें।</string>
+    <string name="attendance_mark_present">उपस्थित</string>
+    <string name="attendance_mark_absent">अनुपस्थित</string>
+    <string name="attendance_mark_cancelled">रद्द</string>
+    <string name="attendance_add_subject">विषय जोड़ें</string>
+    <string name="attendance_subject_name">विषय का नाम</string>
+    <string name="attendance_subject_code">विषय कोड</string>
+    <string name="attendance_professor">प्राध्यापक का नाम</string>
+    <string name="attendance_history">हाल का इतिहास</string>
+    <string name="timetable_today_tab">आज</string>
+    <string name="timetable_weekly_tab">साप्ताहिक तालिका</string>
+    <string name="timetable_add_slot">कक्षा समय जोड़ें</string>
+    <string name="timetable_room_label">कक्ष / लैब</string>
+    <string name="timetable_time_label">समय (HH:mm)</string>
+    <string name="timetable_day_mon">सोम</string>
+    <string name="timetable_day_tue">मंगल</string>
+    <string name="timetable_day_wed">बुध</string>
+    <string name="timetable_day_thu">गुरु</string>
+    <string name="timetable_day_fri">शुक्र</string>
+    <string name="timetable_day_sat">शनि</string>
+    <string name="timetable_status_ongoing">अभी चल रही है • %1$d मि. शेष</string>
+    <string name="timetable_status_upcoming">अगली कक्षा • %1$d मि. में शुरू</string>
+    <string name="timetable_status_completed">आज के लिए पूर्ण</string>
+    <string name="widget_title">कैम्पस-वन • अगली कक्षा</string>
+    <string name="study_tab_assignments">असाइनमेंट</string>
+    <string name="study_tab_exams">परीक्षा और सिलेबस</string>
+    <string name="study_tab_gpa">जीपीए / सीजीपीए</string>
+    <string name="study_tab_notes">नोट्स और PYQ वॉल्ट</string>
+    <string name="assignments_filter_today">आज</string>
+    <string name="assignments_filter_upcoming">आगामी</string>
+    <string name="assignments_filter_overdue">समय-सीमा समाप्त</string>
+    <string name="assignments_filter_completed">पूर्ण</string>
+    <string name="assignments_add_btn">असाइनमेंट जोड़ें</string>
+    <string name="assignments_empty">इस सूची में कोई असाइनमेंट नहीं है। नया कार्य जोड़ें!</string>
+    <string name="exams_countdown_days">%1$d दिनों में</string>
+    <string name="exams_today_badge">आज है!</string>
+    <string name="exams_syllabus_progress">सिलेबस प्रगति: %1$d%% (%2$d/%3$d विषय)</string>
+    <string name="exams_add_exam">परीक्षा जोड़ें</string>
+    <string name="exams_add_topic">सिलेबस इकाई जोड़ें</string>
+    <string name="gpa_scale_10">10-अंक UGC/CBCS प्रणाली</string>
+    <string name="gpa_scale_4">4-अंक प्रणाली</string>
+    <string name="gpa_scale_pct">प्रतिशत प्रणाली</string>
+    <string name="gpa_sgpa_result">वर्तमान SGPA: %1$.2f</string>
+    <string name="gpa_cgpa_result">कुल CGPA: %1$.2f</string>
+    <string name="gpa_what_if_title">लक्ष्य CGPA के लिए आवश्यक SGPA</string>
+    <string name="gpa_export_pdf">ग्रेड रिपोर्ट (PDF) निर्यात करें</string>
+    <string name="notes_import_btn">फ़ोन से PDF या चित्र जोड़ें</string>
+    <string name="notes_bookmark_filter">केवल बुकमार्क किए गए</string>
+    <string name="notes_open_viewer">इन-ऐप रीडर में खोलें</string>
+    <string name="notes_empty">ऑफ़लाइन पढ़ने के लिए अपने फ़ोन से PDF नोट्स या पुराने प्रश्नपत्र (PYQ) जोड़ें।</string>
+    <string name="campus_tab_directory">निर्देशिका और मानचित्र</string>
+    <string name="campus_tab_events">इवेंट और क्लब</string>
+    <string name="campus_tab_lost_found">खोया और पाया</string>
+    <string name="campus_tab_notices">मेरे रिमाइंडर</string>
+    <string name="campus_tab_settings">बैकअप और सेटिंग्स</string>
+    <string name="directory_search_hint">विभाग, प्रोफेसर, आपातकालीन नंबर खोजें</string>
+    <string name="directory_call">कॉल करें</string>
+    <string name="directory_email">ईमेल</string>
+    <string name="directory_copy">कॉपी</string>
+    <string name="directory_open_maps">गूगल मैप्स में खोलें</string>
+    <string name="notices_personal_title">सूचना पट्ट और व्यक्तिगत अध्ययन नोट्स</string>
+    <string name="notices_add_btn">नोट जोड़ें</string>
+    <string name="notices_filter_all">सभी</string>
+    <string name="notices_filter_unread">अपठित</string>
+    <string name="notices_filter_pinned">पिन किए गए</string>
+    <string name="notices_empty">इस फ़िल्टर में कोई सूचना नहीं है। नया नोट जोड़ने के लिए नीचे टैप करें।</string>
+    <string name="notices_mark_read">पढ़ा हुआ चिह्नित करें</string>
+    <string name="notices_unread_badge">नया</string>
+    <string name="form_validation_required">सहेजने से पहले कृपया आवश्यक शीर्षक या नाम भरें।</string>
+    <string name="cloud_coming_soon_title">जल्द आ रहा है — क्लाउड सिंक बंद है</string>
+    <string name="cloud_coming_soon_body">लाइव नोटिस बोर्ड, साझा नोट्स, क्लब और इवेंट RSVP तथा खोया-पाया CLOUD_FEATURES_ENABLED = false फ़्लैग के पीछे सुरक्षित हैं।</string>
+    <string name="settings_language_toggle">भाषा बदलें (English / हिन्दी)</string>
+    <string name="settings_notifications_btn">कक्षा और असाइनमेंट अलर्ट सक्षम करें</string>
+    <string name="settings_backup_title">लोकल डेटा बैकअप और रीस्टोर (JSON)</string>
+    <string name="settings_export_json">बैकअप फ़ाइल (.json) निर्यात करें</string>
+    <string name="settings_import_json">बैकअप फ़ाइल (.json) रीस्टोर करें</string>
+    <string name="settings_crash_log_title">क्रैश लॉग निरीक्षक</string>
+    <string name="settings_no_crashes">कोई क्रैश दर्ज नहीं हुआ। ऐप पूरी तरह सुरक्षित है।</string>
+    <string name="settings_copy_crash">क्रैश लॉग कॉपी करें</string>
+    <string name="settings_clear_crash">क्रैश लॉग साफ़ करें</string>
+    <string name="common_save">सहेजें</string>
+    <string name="common_cancel">रद्द करें</string>
+    <string name="common_delete">हटाएं</string>
+    <string name="common_close">बंद करें</string>
+    <string name="common_search">खोजें</string>
 </resources>
