@@ -17,6 +17,8 @@ data class SubjectEntity(
     val attendedCount: Int = 0,
     val totalClassesCount: Int = 0,
     val cancelledCount: Int = 0,
+    val targetPercentage: Int = 75,
+    val colorHex: String = "#0F4C81",
     val updatedAtMillis: Long = System.currentTimeMillis()
 )
 
@@ -49,7 +51,8 @@ data class TimetableSlotEntity(
     val room: String,
     val teacherName: String,
     val semester: Int,
-    val section: String
+    val section: String,
+    val colorHex: String = "#0F4C81"
 )
 
 @Entity(tableName = "personal_notices")

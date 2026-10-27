@@ -22,9 +22,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
@@ -71,7 +71,7 @@ fun NoticesScreen(
 ) {
     val view = LocalView.current
     val reducedMotion = rememberReducedMotionEnabled()
-    var selectedFilter by rememberSaveable { mutableIntStateOf(0) } // 0=All, 1=Unread, 2=Pinned
+    var selectedFilter by rememberSaveable { mutableIntStateOf(0) }
     var expandedNoticeId by rememberSaveable { mutableStateOf<String?>(null) }
     var showAddDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -154,7 +154,7 @@ fun NoticesScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Default.CloudOff,
+                            imageVector = Icons.Default.Info,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSecondaryContainer
                         )
@@ -229,7 +229,7 @@ fun NoticesScreen(
                                             Spacer(modifier = Modifier.width(8.dp))
                                             if (notice.isPinned) {
                                                 Icon(
-                                                    imageVector = Icons.Default.PushPin,
+                                                    imageVector = Icons.Default.Star,
                                                     contentDescription = null,
                                                     tint = MaterialTheme.colorScheme.primary,
                                                     modifier = Modifier.size(18.dp)

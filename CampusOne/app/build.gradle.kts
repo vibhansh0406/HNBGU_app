@@ -14,8 +14,8 @@ android {
         applicationId = "com.campusone.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = 4
-        versionName = "4.0.0-ondevice"
+        versionCode = 5
+        versionName = "5.0.0-partb"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -81,7 +81,6 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material3.window.size)
-    implementation(libs.androidx.compose.material.icons.extended)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     implementation(libs.androidx.navigation.compose)

@@ -13,20 +13,23 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout. padding
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.NotificationsActive
-import androidx.compose.material.icons.filled.Restore
-import androidx.compose.material.icons.filled.SaveAlt
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -42,6 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.campusone.app.R
 import com.campusone.app.ui.components.InteractiveGlassCard
@@ -53,12 +57,9 @@ import com.campusone.app.ui.viewmodel.StudyAndCampusUiState
 import com.campusone.app.ui.viewmodel.StudyAndCampusViewModel
 import com.campusone.app.util.CampusIntentHelper
 
-/**
- * Unified "More" Hub (Study + Campus Life + Backup/Settings) with smooth directional transitions.
- */
 @Composable
 fun MoreHubScreen(
-    initialSection: Int = 0, // 0 = Study Hub, 1 = Campus Life Hub
+    initialSection: Int = 0,
     coreState: CoreUiState,
     studyState: StudyAndCampusUiState,
     coreViewModel: CoreViewModel,
@@ -192,7 +193,7 @@ fun CampusHubScreen(
                 0 -> CampusDirectoryScreen(contacts = studyState.directoryContacts)
                 1 -> EventsAndClubsScreen()
                 2 -> LostAndFoundScreen()
-                else -> BackupAndSettingsSubScreen(studyState, coreViewModel, studyViewModel)
+                else -> BackupAndSettingsSubScreen(coreState, studyState, coreViewModel, studyViewModel)
             }
         }
     }
@@ -200,6 +201,7 @@ fun CampusHubScreen(
 
 @Composable
 private fun BackupAndSettingsSubScreen(
+    coreState: CoreUiState,
     studyState: StudyAndCampusUiState,
     coreViewModel: CoreViewModel,
     studyViewModel: StudyAndCampusViewModel
@@ -222,7 +224,23 @@ private fun BackupAndSettingsSubScreen(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
         if (uri != null) {
-            studyViewModel.importBackupFromUri(uri)
+            studyViewModel.importBackupFromUri(context, uri)
+        }
+    }
+
+    val exportDeptPackLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        if (uri != null) {
+            studyViewModel.exportDepartmentPackToUri(uri)
+        }
+    }
+
+    val importDeptPackLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            studyViewModel.importDepartmentPackFromUri(context, uri)
         }
     }
 
@@ -243,9 +261,11 @@ private fun BackupAndSettingsSubScreen(
                 ) {
                     Button(
                         onClick = { coreViewModel.toggleLanguage() },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
                     ) {
-                        Icon(Icons.Default.Language, contentDescription = null)
+                        Icon(Icons.Default.Settings, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(stringResource(R.string.settings_language_toggle))
                     }
@@ -255,11 +275,123 @@ private fun BackupAndSettingsSubScreen(
                             onClick = {
                                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                             },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
                         ) {
-                            Icon(Icons.Default.NotificationsActive, contentDescription = null)
+                            Icon(Icons.Default.Notifications, contentDescription = null)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(stringResource(R.string.settings_notifications_btn))
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
+            InteractiveGlassCard(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.low_attendance_alerts_title),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = coreState.profile.lowAttendanceAlertEnabled,
+                            onCheckedChange = { enabled ->
+                                coreViewModel.updateLowAttendanceAlerts(
+                                    context = context,
+                                    enabled = enabled,
+                                    thresholdPct = coreState.profile.lowAttendanceAlertThreshold
+                                )
+                            }
+                        )
+                        Text(
+                            text = stringResource(
+                                R.string.low_attendance_threshold_label,
+                                coreState.profile.lowAttendanceAlertThreshold
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                    Slider(
+                        value = coreState.profile.lowAttendanceAlertThreshold.toFloat(),
+                        onValueChange = { newVal ->
+                            coreViewModel.updateLowAttendanceAlerts(
+                                context = context,
+                                enabled = coreState.profile.lowAttendanceAlertEnabled,
+                                thresholdPct = newVal.toInt()
+                            )
+                        },
+                        valueRange = 50f..95f,
+                        steps = 8
+                    )
+                    Text(
+                        text = "Class Reminder Lead Time: ${coreState.profile.reminderLeadMinutes} min before class",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf(10, 15, 30).forEach { mins ->
+                            FilterChip(
+                                selected = coreState.profile.reminderLeadMinutes == mins,
+                                onClick = { coreViewModel.updateReminderLeadMinutes(mins) },
+                                label = { Text("${mins}m") }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
+            InteractiveGlassCard(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.dept_pack_title),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = stringResource(R.string.dept_pack_subtitle),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                exportDeptPackLauncher.launch("CampusOne_DepartmentPack_v1.json")
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                        ) {
+                            Icon(Icons.Default.Share, contentDescription = null)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(stringResource(R.string.dept_pack_export_btn))
+                        }
+                        OutlinedButton(
+                            onClick = {
+                                importDeptPackLauncher.launch(arrayOf("application/json", "*/*"))
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = null)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(stringResource(R.string.dept_pack_import_btn))
                         }
                     }
                 }
@@ -284,9 +416,11 @@ private fun BackupAndSettingsSubScreen(
                             onClick = {
                                 createBackupLauncher.launch("CampusOne_Backup_${System.currentTimeMillis()}.json")
                             },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
                         ) {
-                            Icon(Icons.Default.SaveAlt, contentDescription = null)
+                            Icon(Icons.Default.Share, contentDescription = null)
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(stringResource(R.string.settings_export_json))
                         }
@@ -294,9 +428,11 @@ private fun BackupAndSettingsSubScreen(
                             onClick = {
                                 openBackupLauncher.launch(arrayOf("application/json", "*/*"))
                             },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
                         ) {
-                            Icon(Icons.Default.Restore, contentDescription = null)
+                            Icon(Icons.Default.Refresh, contentDescription = null)
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(stringResource(R.string.settings_import_json))
                         }

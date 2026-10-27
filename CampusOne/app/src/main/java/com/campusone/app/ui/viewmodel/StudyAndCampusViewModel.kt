@@ -23,7 +23,9 @@ import com.campusone.app.domain.usecase.GpaCalculator
 import com.campusone.app.util.BackupRestoreManager
 import com.campusone.app.util.CampusIntentHelper
 import com.campusone.app.util.CrashLogManager
+import com.campusone.app.util.DepartmentPackManager
 import com.campusone.app.util.StudyFileAndPdfHelper
+import com.campusone.app.widget.CampusWidgetUpdater
 import com.campusone.app.worker.ClassReminderWorker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -49,7 +51,8 @@ data class StudyAndCampusUiState(
 class StudyAndCampusViewModel(
     private val studyRepository: StudyAndCampusRepository,
     private val userPreferences: UserPreferencesRepository,
-    private val backupRestoreManager: BackupRestoreManager
+    private val backupRestoreManager: BackupRestoreManager,
+    private val departmentPackManager: DepartmentPackManager
 ) : ViewModel() {
 
     private val statusBanner = MutableStateFlow<String?>(null)
@@ -189,6 +192,12 @@ class StudyAndCampusViewModel(
         }
     }
 
+    fun deleteSyllabusTopic(id: String) {
+        viewModelScope.launch {
+            studyRepository.deleteSyllabusTopic(id)
+        }
+    }
+
     fun setGradingScale(scale: GradingScale) {
         viewModelScope.launch {
             userPreferences.updateGradingScale(scale)
@@ -277,14 +286,40 @@ class StudyAndCampusViewModel(
         }
     }
 
-    fun importBackupFromUri(sourceUri: Uri) {
+    fun importBackupFromUri(context: Context, sourceUri: Uri) {
         viewModelScope.launch {
             backupRestoreManager.importFromUri(sourceUri)
                 .onSuccess { count ->
                     statusBanner.value = "Backup restored ($count records imported)."
+                    CampusWidgetUpdater.refreshAllWidgets(context)
                 }
                 .onFailure { err ->
                     statusBanner.value = "Restore failed: ${err.message}"
+                }
+        }
+    }
+
+    fun exportDepartmentPackToUri(targetUri: Uri) {
+        viewModelScope.launch {
+            departmentPackManager.exportPackToUri(targetUri)
+                .onSuccess { summary ->
+                    statusBanner.value = "Department Pack exported ($summary)."
+                }
+                .onFailure { err ->
+                    statusBanner.value = "Department Pack export error: ${err.message}"
+                }
+        }
+    }
+
+    fun importDepartmentPackFromUri(context: Context, sourceUri: Uri) {
+        viewModelScope.launch {
+            departmentPackManager.importPackFromUri(sourceUri)
+                .onSuccess { summary ->
+                    statusBanner.value = "Department Pack imported ($summary)."
+                    CampusWidgetUpdater.refreshAllWidgets(context)
+                }
+                .onFailure { err ->
+                    statusBanner.value = "Department Pack error: ${err.message}"
                 }
         }
     }
@@ -305,7 +340,8 @@ class StudyAndCampusViewModel(
                     return StudyAndCampusViewModel(
                         studyRepository = container.studyAndCampusRepository,
                         userPreferences = container.userPreferencesRepository,
-                        backupRestoreManager = container.backupRestoreManager
+                        backupRestoreManager = container.backupRestoreManager,
+                        departmentPackManager = container.departmentPackManager
                     ) as T
                 }
             }

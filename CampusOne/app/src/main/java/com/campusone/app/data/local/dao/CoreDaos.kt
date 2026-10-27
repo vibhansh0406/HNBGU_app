@@ -31,11 +31,17 @@ interface CoreDao {
     @Query("DELETE FROM subjects WHERE id = :id")
     suspend fun deleteSubject(id: String)
 
-    @Query("SELECT * FROM attendance_records ORDER BY timestampMillis DESC LIMIT 100")
+    @Query("DELETE FROM attendance_records WHERE subjectId = :subjectId")
+    suspend fun deleteAttendanceRecordsForSubject(subjectId: String)
+
+    @Query("SELECT * FROM attendance_records ORDER BY epochDay DESC, timestampMillis DESC LIMIT 400")
     fun observeRecentAttendanceRecords(): Flow<List<AttendanceRecordEntity>>
 
-    @Query("SELECT * FROM attendance_records ORDER BY timestampMillis DESC")
+    @Query("SELECT * FROM attendance_records ORDER BY epochDay DESC, timestampMillis DESC")
     suspend fun getAllAttendanceRecordsOnce(): List<AttendanceRecordEntity>
+
+    @Query("SELECT * FROM attendance_records WHERE id = :id LIMIT 1")
+    suspend fun getAttendanceRecordById(id: String): AttendanceRecordEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAttendanceRecord(record: AttendanceRecordEntity)
@@ -43,17 +49,26 @@ interface CoreDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAttendanceRecords(records: List<AttendanceRecordEntity>)
 
+    @Query("DELETE FROM attendance_records WHERE id = :id")
+    suspend fun deleteAttendanceRecordById(id: String)
+
     @Query("SELECT * FROM timetable_slots ORDER BY dayOfWeek ASC, startTime ASC")
     fun observeTimetableSlots(): Flow<List<TimetableSlotEntity>>
 
     @Query("SELECT * FROM timetable_slots ORDER BY dayOfWeek ASC, startTime ASC")
     suspend fun getAllTimetableSlotsOnce(): List<TimetableSlotEntity>
 
+    @Query("SELECT * FROM timetable_slots WHERE id = :id LIMIT 1")
+    suspend fun getTimetableSlotById(id: String): TimetableSlotEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertTimetableSlot(slot: TimetableSlotEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertTimetableSlots(slots: List<TimetableSlotEntity>)
+
+    @Query("UPDATE timetable_slots SET colorHex = :colorHex WHERE subjectId = :subjectId OR subjectCode = :subjectCode")
+    suspend fun updateSlotsColorForSubject(subjectId: String, subjectCode: String, colorHex: String)
 
     @Query("DELETE FROM timetable_slots WHERE id = :id")
     suspend fun deleteTimetableSlot(id: String)

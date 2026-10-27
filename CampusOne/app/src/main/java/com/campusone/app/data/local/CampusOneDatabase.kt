@@ -32,7 +32,7 @@ import com.campusone.app.data.local.entity.TimetableSlotEntity
         StudyMaterialEntity::class,
         DirectoryContactEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 abstract class CampusOneDatabase : RoomDatabase() {
@@ -67,6 +67,20 @@ abstract class CampusOneDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE subjects ADD COLUMN targetPercentage INTEGER NOT NULL DEFAULT 75"
+                )
+                db.execSQL(
+                    "ALTER TABLE subjects ADD COLUMN colorHex TEXT NOT NULL DEFAULT '#0F4C81'"
+                )
+                db.execSQL(
+                    "ALTER TABLE timetable_slots ADD COLUMN colorHex TEXT NOT NULL DEFAULT '#0F4C81'"
+                )
+            }
+        }
+
         @Volatile
         private var INSTANCE: CampusOneDatabase? = null
 
@@ -77,7 +91,7 @@ abstract class CampusOneDatabase : RoomDatabase() {
                     CampusOneDatabase::class.java,
                     DB_NAME
                 )
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()
                     .also { INSTANCE = it }
             }

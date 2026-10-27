@@ -63,6 +63,9 @@ interface StudyAndCampusDao {
     @Query("UPDATE syllabus_topics SET isCompleted = :completed, updatedAtMillis = :updatedAt WHERE id = :id")
     suspend fun setSyllabusTopicCompleted(id: String, completed: Boolean, updatedAt: Long)
 
+    @Query("DELETE FROM syllabus_topics WHERE id = :id")
+    suspend fun deleteSyllabusTopic(id: String)
+
     @Query("SELECT * FROM course_grades ORDER BY semester ASC, subjectName ASC")
     fun observeCourseGrades(): Flow<List<CourseGradeEntity>>
 

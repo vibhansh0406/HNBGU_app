@@ -8,6 +8,7 @@ import com.campusone.app.data.repository.OfflineCoreCampusRepository
 import com.campusone.app.data.repository.OfflineStudyAndCampusRepository
 import com.campusone.app.data.repository.StudyAndCampusRepository
 import com.campusone.app.util.BackupRestoreManager
+import com.campusone.app.util.DepartmentPackManager
 
 class AppContainer(context: Context) {
     private val appContext = context.applicationContext
@@ -36,6 +37,14 @@ class AppContainer(context: Context) {
 
     val backupRestoreManager: BackupRestoreManager by lazy {
         BackupRestoreManager(
+            context = appContext,
+            database = database,
+            userPreferences = userPreferencesRepository
+        )
+    }
+
+    val departmentPackManager: DepartmentPackManager by lazy {
+        DepartmentPackManager(
             context = appContext,
             database = database,
             userPreferences = userPreferencesRepository

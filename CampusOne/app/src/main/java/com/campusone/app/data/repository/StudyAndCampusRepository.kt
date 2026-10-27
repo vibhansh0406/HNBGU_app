@@ -48,6 +48,7 @@ interface StudyAndCampusRepository {
 
     suspend fun addSyllabusTopic(subjectName: String, unitNumber: Int, topicTitle: String)
     suspend fun toggleSyllabusTopic(id: String, completed: Boolean)
+    suspend fun deleteSyllabusTopic(id: String)
 
     suspend fun addCourseGrade(semester: Int, subjectName: String, credits: Int, gradePointOrMarks: Double)
     suspend fun deleteCourseGrade(id: String)
@@ -321,6 +322,10 @@ class OfflineStudyAndCampusRepository(
 
     override suspend fun toggleSyllabusTopic(id: String, completed: Boolean) {
         dao.setSyllabusTopicCompleted(id, completed, System.currentTimeMillis())
+    }
+
+    override suspend fun deleteSyllabusTopic(id: String) {
+        dao.deleteSyllabusTopic(id)
     }
 
     override suspend fun addCourseGrade(

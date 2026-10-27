@@ -48,6 +48,9 @@ data class UserProfile(
     val section: String = "A",
     val role: UserRole = UserRole.STUDENT,
     val targetAttendancePercent: Int = 75,
+    val lowAttendanceAlertEnabled: Boolean = true,
+    val lowAttendanceAlertThreshold: Int = 75,
+    val semesterEndEpochDay: Long = 0L,
     val reminderLeadMinutes: Int = 15,
     val gradingScale: GradingScale = GradingScale.SCALE_10,
     val languageCode: String = "en",
@@ -62,7 +65,8 @@ data class AttendanceAdvice(
     val targetPercentage: Int,
     val safeBunksAvailable: Int,
     val classesMustAttendToRecover: Int,
-    val isAboveTarget: Boolean
+    val isAboveTarget: Boolean,
+    val isWarningZone: Boolean = false
 )
 
 @Serializable
@@ -75,7 +79,44 @@ data class SubjectSummary(
     val attendedCount: Int,
     val totalClassesCount: Int,
     val cancelledCount: Int,
+    val targetPercentage: Int = 75,
+    val colorHex: String = "#0F4C81",
     val advice: AttendanceAdvice
+)
+
+@Serializable
+data class SafeBunkProjection(
+    val subjectId: String,
+    val subjectCode: String,
+    val subjectName: String,
+    val attended: Int,
+    val totalConducted: Int,
+    val targetPercentage: Int,
+    val currentPercentage: Double,
+    val safeBunksNow: Int,
+    val mustAttendToRecoverNow: Int,
+    val remainingScheduledClasses: Int,
+    val projectedSafeBunksUntilEnd: Int,
+    val projectedMustAttendUntilEnd: Int,
+    val whatIfSkipCount: Int,
+    val whatIfPercentage: Double,
+    val isWhatIfAboveTarget: Boolean
+)
+
+@Serializable
+data class MonthlyHeatmapDay(
+    val epochDay: Long,
+    val dayOfMonth: Int,
+    val presentCount: Int,
+    val absentCount: Int,
+    val cancelledCount: Int
+)
+
+@Serializable
+data class AttendanceTrendPoint(
+    val epochDay: Long,
+    val dateLabel: String,
+    val cumulativePercentage: Double
 )
 
 @Serializable
@@ -101,7 +142,14 @@ data class TimetableSlot(
     val room: String,
     val teacherName: String,
     val semester: Int,
-    val section: String
+    val section: String,
+    val colorHex: String = "#0F4C81"
+)
+
+@Serializable
+data class TimetableClash(
+    val conflictingSlot: TimetableSlot,
+    val overlapMinutes: Int
 )
 
 @Serializable
@@ -228,4 +276,29 @@ data class LostFoundPreviewItem(
     val isFoundItem: Boolean,
     val isResolved: Boolean,
     val postedAtMillis: Long
+)
+
+@Serializable
+data class DepartmentPackSubject(
+    val id: String,
+    val code: String,
+    val name: String,
+    val professor: String,
+    val semester: Int,
+    val targetPercentage: Int = 75,
+    val colorHex: String = "#0F4C81"
+)
+
+@Serializable
+data class DepartmentPackPayload(
+    val version: Int = 1,
+    val departmentName: String = "Computer Science & Engineering",
+    val course: String = "B.Tech CSE",
+    val semester: Int = 4,
+    val section: String = "A",
+    val exportedAtMillis: Long = 0L,
+    val subjects: List<DepartmentPackSubject> = emptyList(),
+    val timetableSlots: List<TimetableSlot> = emptyList(),
+    val notices: List<PersonalNotice> = emptyList(),
+    val syllabusTopics: List<SyllabusTopic> = emptyList()
 )

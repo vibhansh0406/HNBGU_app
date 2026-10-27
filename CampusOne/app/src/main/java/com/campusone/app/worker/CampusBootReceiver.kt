@@ -6,6 +6,7 @@ import android.content.Intent
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.campusone.app.widget.CampusWidgetUpdater
 
 class CampusBootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
@@ -18,6 +19,8 @@ class CampusBootReceiver : BroadcastReceiver() {
                     ExistingWorkPolicy.KEEP,
                     req
                 )
+                LowAttendanceAlertWorker.scheduleDailyCheck(context)
+                CampusWidgetUpdater.refreshAllWidgets(context)
             } catch (_: Exception) {
             }
         }

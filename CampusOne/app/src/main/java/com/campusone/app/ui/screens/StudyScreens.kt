@@ -26,11 +26,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.FileOpen
-import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
@@ -454,6 +453,9 @@ private fun ExamsAndSyllabusSubScreen(
                                 )
                             }
                         )
+                        IconButton(onClick = { viewModel.deleteExam(exam.id) }) {
+                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.common_delete))
+                        }
                     }
                 }
             }
@@ -507,6 +509,9 @@ private fun ExamsAndSyllabusSubScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
+                    IconButton(onClick = { viewModel.deleteSyllabusTopic(topic.id) }) {
+                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.common_delete))
                     }
                 }
             }
@@ -671,7 +676,7 @@ private fun GpaCalculatorSubScreen(
                             Text("Add Subject Grade")
                         }
                         OutlinedButton(onClick = { viewModel.exportGpaPdf(context) }, modifier = Modifier.weight(1f)) {
-                            Icon(Icons.Default.PictureAsPdf, contentDescription = null)
+                            Icon(Icons.Default.Share, contentDescription = null)
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(stringResource(R.string.gpa_export_pdf))
                         }
@@ -876,7 +881,7 @@ private fun StudyVaultSubScreen(
                 onClick = { filePickerLauncher.launch(arrayOf("application/pdf", "image/*")) },
                 modifier = Modifier.weight(1f)
             ) {
-                Icon(Icons.Default.FileOpen, contentDescription = null)
+                Icon(Icons.Default.Add, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(stringResource(R.string.notes_import_btn))
             }
@@ -931,7 +936,7 @@ private fun StudyVaultSubScreen(
                                     onClick = { viewModel.toggleBookmarkMaterial(mat.id, !mat.isBookmarked) }
                                 ) {
                                     Icon(
-                                        imageVector = if (mat.isBookmarked) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                                        imageVector = if (mat.isBookmarked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                                         contentDescription = null
                                     )
                                 }

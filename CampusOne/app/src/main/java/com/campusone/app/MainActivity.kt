@@ -1,7 +1,6 @@
 package com.campusone.app
 
-import com.campusone.app.R
-
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -11,11 +10,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
@@ -25,7 +24,10 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -52,10 +54,14 @@ import com.campusone.app.ui.viewmodel.StudyAndCampusViewModel
 
 class MainActivity : AppCompatActivity() {
 
+    private var pendingRoute by mutableStateOf<String?>(null)
+    private var pendingSubjectId by mutableStateOf<String?>(null)
+
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        extractDeepLinkIntent(intent)
 
         val appContainer = (application as CampusOneApp).container
 
@@ -72,6 +78,13 @@ class MainActivity : AppCompatActivity() {
             )
 
             val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
+
+            LaunchedEffect(pendingSubjectId) {
+                if (!pendingSubjectId.isNullOrBlank()) {
+                    coreViewModel.setHighlightedSubject(pendingSubjectId)
+                    pendingSubjectId = null
+                }
+            }
 
             CampusOneTheme {
                 val showSetup = !coreState.isLoading && !coreState.profile.setupCompleted
@@ -90,11 +103,30 @@ class MainActivity : AppCompatActivity() {
                         CampusOneAdaptiveShell(
                             useNavRail = useNavRail,
                             coreViewModel = coreViewModel,
-                            studyViewModel = studyViewModel
+                            studyViewModel = studyViewModel,
+                            requestedRoute = pendingRoute,
+                            onRouteConsumed = { pendingRoute = null }
                         )
                     }
                 }
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        extractDeepLinkIntent(intent)
+    }
+
+    private fun extractDeepLinkIntent(intent: Intent?) {
+        val route = intent?.getStringExtra("open_route")
+        val subjectId = intent?.getStringExtra("open_subject_id")
+        if (!route.isNullOrBlank()) {
+            pendingRoute = route
+        }
+        if (!subjectId.isNullOrBlank()) {
+            pendingSubjectId = subjectId
         }
     }
 }
@@ -103,7 +135,9 @@ class MainActivity : AppCompatActivity() {
 private fun CampusOneAdaptiveShell(
     useNavRail: Boolean,
     coreViewModel: CoreViewModel,
-    studyViewModel: StudyAndCampusViewModel
+    studyViewModel: StudyAndCampusViewModel,
+    requestedRoute: String?,
+    onRouteConsumed: () -> Unit
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -118,9 +152,9 @@ private fun CampusOneAdaptiveShell(
     val destinations = listOf(
         FluidNavDestination("home", R.string.nav_home, Icons.Default.Home, 0),
         FluidNavDestination("attendance", R.string.nav_attendance, Icons.Default.CheckCircle, 0),
-        FluidNavDestination("timetable", R.string.nav_timetable, Icons.Default.Schedule, 0),
+        FluidNavDestination("timetable", R.string.nav_timetable, Icons.Default.DateRange, 0),
         FluidNavDestination("notices", R.string.nav_notices, Icons.Default.Notifications, unreadNoticesCount),
-        FluidNavDestination("more", R.string.nav_more, Icons.Default.Apps, 0)
+        FluidNavDestination("more", R.string.nav_more, Icons.Default.Menu, 0)
     )
 
     val navigateTo: (String) -> Unit = { route ->
@@ -132,6 +166,13 @@ private fun CampusOneAdaptiveShell(
                 launchSingleTop = true
                 restoreState = true
             }
+        }
+    }
+
+    LaunchedEffect(requestedRoute) {
+        if (!requestedRoute.isNullOrBlank()) {
+            navigateTo(requestedRoute)
+            onRouteConsumed()
         }
     }
 

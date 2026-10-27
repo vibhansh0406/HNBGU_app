@@ -15,9 +15,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -147,7 +147,7 @@ fun CampusDirectoryScreen(
                                         CampusIntentHelper.copyToClipboard(context, contact.name, contact.phone)
                                     }
                                 ) {
-                                    Icon(Icons.Default.ContentCopy, contentDescription = stringResource(R.string.directory_copy))
+                                    Icon(Icons.Default.Share, contentDescription = stringResource(R.string.directory_copy))
                                 }
                             }
                             Spacer(modifier = Modifier.height(6.dp))
@@ -163,7 +163,7 @@ fun CampusDirectoryScreen(
                                 },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Icon(Icons.Default.Map, contentDescription = null)
+                                Icon(Icons.Default.Place, contentDescription = null)
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(stringResource(R.string.directory_open_maps))
                             }

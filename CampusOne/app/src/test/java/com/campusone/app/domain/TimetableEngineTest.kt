@@ -39,4 +39,27 @@ class TimetableEngineTest {
         val nextAt1pm = TimetableEngine.findNextClassToday(sampleSlots, currentDayOfWeek = 1, currentMinutesOfDay = 13 * 60)
         assertNull(nextAt1pm)
     }
+
+    @Test
+    fun detectClashes_identifiesOverlappingSlotsAndIgnoresSelf() {
+        val clashes = TimetableEngine.detectClashes(
+            allSlots = sampleSlots,
+            dayOfWeek = 1,
+            startTime = "10:00",
+            endTime = "11:30",
+            ignoreSlotId = null
+        )
+        assertEquals(2, clashes.size)
+        assertEquals(30, clashes[0].overlapMinutes)
+        assertEquals(30, clashes[1].overlapMinutes)
+
+        val selfIgnored = TimetableEngine.detectClashes(
+            allSlots = sampleSlots,
+            dayOfWeek = 1,
+            startTime = "09:30",
+            endTime = "10:30",
+            ignoreSlotId = "2"
+        )
+        assertTrue(selfIgnored.isEmpty())
+    }
 }

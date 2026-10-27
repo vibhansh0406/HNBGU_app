@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.campusone.app.domain.model.GradingScale
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
+import java.time.LocalDate
 
 private val Context.userPrefsDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "campusone_user_prefs"
@@ -31,6 +33,9 @@ class UserPreferencesRepository(private val context: Context) {
         val SEMESTER = intPreferencesKey("semester_num")
         val SECTION = stringPreferencesKey("section_name")
         val TARGET_ATTENDANCE = intPreferencesKey("target_attendance_pct")
+        val LOW_ATT_ALERT_ENABLED = booleanPreferencesKey("low_att_alert_enabled")
+        val LOW_ATT_ALERT_THRESHOLD = intPreferencesKey("low_att_alert_threshold")
+        val SEMESTER_END_EPOCH_DAY = longPreferencesKey("semester_end_epoch_day")
         val REMINDER_LEAD_MINS = intPreferencesKey("reminder_lead_mins")
         val GRADING_SCALE = stringPreferencesKey("grading_scale")
         val LANGUAGE_CODE = stringPreferencesKey("language_code")
@@ -44,6 +49,8 @@ class UserPreferencesRepository(private val context: Context) {
         .map { prefs ->
             val scaleName = prefs[Keys.GRADING_SCALE] ?: GradingScale.SCALE_10.name
             val scale = runCatching { GradingScale.valueOf(scaleName) }.getOrDefault(GradingScale.SCALE_10)
+            val defaultEndEpoch = LocalDate.now().plusDays(60).toEpochDay()
+            val targetPct = prefs[Keys.TARGET_ATTENDANCE] ?: 75
             UserProfile(
                 name = prefs[Keys.NAME] ?: "",
                 college = prefs[Keys.COLLEGE] ?: "HNB Garhwal University",
@@ -51,7 +58,10 @@ class UserPreferencesRepository(private val context: Context) {
                 semester = prefs[Keys.SEMESTER] ?: 4,
                 section = prefs[Keys.SECTION] ?: "A",
                 role = UserRole.STUDENT,
-                targetAttendancePercent = prefs[Keys.TARGET_ATTENDANCE] ?: 75,
+                targetAttendancePercent = targetPct,
+                lowAttendanceAlertEnabled = prefs[Keys.LOW_ATT_ALERT_ENABLED] ?: true,
+                lowAttendanceAlertThreshold = prefs[Keys.LOW_ATT_ALERT_THRESHOLD] ?: targetPct,
+                semesterEndEpochDay = prefs[Keys.SEMESTER_END_EPOCH_DAY] ?: defaultEndEpoch,
                 reminderLeadMinutes = prefs[Keys.REMINDER_LEAD_MINS] ?: 15,
                 gradingScale = scale,
                 languageCode = prefs[Keys.LANGUAGE_CODE] ?: "en",
@@ -69,13 +79,18 @@ class UserPreferencesRepository(private val context: Context) {
         section: String,
         targetAttendancePercent: Int
     ) {
+        val clampedTarget = targetAttendancePercent.coerceIn(50, 95)
         context.userPrefsDataStore.edit { prefs ->
             prefs[Keys.NAME] = name.trim().ifEmpty { "Student" }
             prefs[Keys.COLLEGE] = college.trim().ifEmpty { "HNB Garhwal University" }
             prefs[Keys.COURSE] = course.trim().ifEmpty { "B.Tech CSE" }
             prefs[Keys.SEMESTER] = semester.coerceIn(1, 10)
             prefs[Keys.SECTION] = section.trim().ifEmpty { "A" }
-            prefs[Keys.TARGET_ATTENDANCE] = targetAttendancePercent.coerceIn(50, 95)
+            prefs[Keys.TARGET_ATTENDANCE] = clampedTarget
+            prefs[Keys.LOW_ATT_ALERT_THRESHOLD] = clampedTarget
+            if (prefs[Keys.SEMESTER_END_EPOCH_DAY] == null) {
+                prefs[Keys.SEMESTER_END_EPOCH_DAY] = LocalDate.now().plusDays(60).toEpochDay()
+            }
             prefs[Keys.SETUP_COMPLETED] = true
         }
     }
@@ -88,6 +103,11 @@ class UserPreferencesRepository(private val context: Context) {
             prefs[Keys.SEMESTER] = profile.semester
             prefs[Keys.SECTION] = profile.section
             prefs[Keys.TARGET_ATTENDANCE] = profile.targetAttendancePercent
+            prefs[Keys.LOW_ATT_ALERT_ENABLED] = profile.lowAttendanceAlertEnabled
+            prefs[Keys.LOW_ATT_ALERT_THRESHOLD] = profile.lowAttendanceAlertThreshold
+            if (profile.semesterEndEpochDay > 0L) {
+                prefs[Keys.SEMESTER_END_EPOCH_DAY] = profile.semesterEndEpochDay
+            }
             prefs[Keys.REMINDER_LEAD_MINS] = profile.reminderLeadMinutes
             prefs[Keys.GRADING_SCALE] = profile.gradingScale.name
             prefs[Keys.LANGUAGE_CODE] = profile.languageCode
@@ -98,6 +118,25 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun updateTargetAttendance(targetPct: Int) {
         context.userPrefsDataStore.edit { prefs ->
             prefs[Keys.TARGET_ATTENDANCE] = targetPct.coerceIn(50, 95)
+        }
+    }
+
+    suspend fun updateLowAttendanceAlertSettings(enabled: Boolean, thresholdPct: Int) {
+        context.userPrefsDataStore.edit { prefs ->
+            prefs[Keys.LOW_ATT_ALERT_ENABLED] = enabled
+            prefs[Keys.LOW_ATT_ALERT_THRESHOLD] = thresholdPct.coerceIn(50, 95)
+        }
+    }
+
+    suspend fun updateSemesterEndEpochDay(epochDay: Long) {
+        context.userPrefsDataStore.edit { prefs ->
+            prefs[Keys.SEMESTER_END_EPOCH_DAY] = epochDay
+        }
+    }
+
+    suspend fun updateReminderLeadMinutes(leadMins: Int) {
+        context.userPrefsDataStore.edit { prefs ->
+            prefs[Keys.REMINDER_LEAD_MINS] = leadMins.coerceIn(5, 120)
         }
     }
 

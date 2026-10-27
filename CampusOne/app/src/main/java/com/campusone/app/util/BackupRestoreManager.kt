@@ -42,12 +42,14 @@ data class BackupSubjectRecord(
     val attendedCount: Int,
     val totalClassesCount: Int,
     val cancelledCount: Int,
+    val targetPercentage: Int = 75,
+    val colorHex: String = "#0F4C81",
     val updatedAtMillis: Long
 )
 
 @Serializable
 data class CampusBackupPayload(
-    val schemaVersion: Int = 2,
+    val schemaVersion: Int = 3,
     val exportedAtMillis: Long = System.currentTimeMillis(),
     val userProfile: UserProfile,
     val subjects: List<BackupSubjectRecord> = emptyList(),
@@ -88,6 +90,8 @@ class BackupRestoreManager(
                     attendedCount = it.attendedCount,
                     totalClassesCount = it.totalClassesCount,
                     cancelledCount = it.cancelledCount,
+                    targetPercentage = it.targetPercentage,
+                    colorHex = it.colorHex,
                     updatedAtMillis = it.updatedAtMillis
                 )
             }
@@ -114,7 +118,8 @@ class BackupRestoreManager(
                     room = it.room,
                     teacherName = it.teacherName,
                     semester = it.semester,
-                    section = it.section
+                    section = it.section,
+                    colorHex = it.colorHex
                 )
             }
             val notices = coreDao.getAllPersonalNoticesOnce().map {
@@ -233,6 +238,8 @@ class BackupRestoreManager(
                         attendedCount = it.attendedCount,
                         totalClassesCount = it.totalClassesCount,
                         cancelledCount = it.cancelledCount,
+                        targetPercentage = it.targetPercentage,
+                        colorHex = it.colorHex,
                         updatedAtMillis = it.updatedAtMillis
                     )
                 })
@@ -259,7 +266,8 @@ class BackupRestoreManager(
                         room = it.room,
                         teacherName = it.teacherName,
                         semester = it.semester,
-                        section = it.section
+                        section = it.section,
+                        colorHex = it.colorHex
                     )
                 })
                 coreDao.upsertPersonalNotices(payload.personalNotices.map {
