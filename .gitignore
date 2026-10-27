@@ -1,10 +1,22 @@
-local.properties
-*.jks
-*.keystore
+# Android / Gradle
 .gradle/
-build/
-*.apk
-*.zip
-.kotlin/
+**/build/
 local.properties
-_backup_in_tree/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# Next.js / Node
+admin-portal/node_modules/
+admin-portal/.next/
+admin-portal/out/
+admin-portal/.env*.local
+.env
+.env.local
+
+# Secrets & OS
+*service-account*.json
+google-services.json
+.DS_Store
+.idea/

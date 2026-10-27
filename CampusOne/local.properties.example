@@ -1,0 +1,10 @@
+# ============================================================================
+# CampusOne Android — Local Configuration Template (DO NOT COMMIT local.properties)
+# Copy these keys into CampusOne/local.properties or export as environment variables.
+# NEVER put service_role keys or Google OAuth client secrets in this file!
+# ============================================================================
+
+SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+SUPABASE_PUBLISHABLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.YOUR_SUPABASE_ANON_PUBLISHABLE_KEY
+GOOGLE_WEB_CLIENT_ID=YOUR_GOOGLE_WEB_CLIENT_ID.apps.googleusercontent.com
+FCM_ENABLED=false

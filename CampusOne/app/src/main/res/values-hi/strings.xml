@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">कैम्पस-वन (CampusOne)</string>
     <string name="setup_welcome_title">कैम्पस-वन में आपका स्वागत है</string>
-    <string name="setup_welcome_subtitle">भारतीय कॉलेज छात्रों के लिए ऑफलाइन-फर्स्ट ऐप (पायलट: एचएनबी गढ़वाल विश्वविद्यालय)। बिना इंटरनेट और बिना लॉगिन के काम करता है।</string>
+    <string name="setup_welcome_subtitle">भारतीय कॉलेज छात्रों के लिए ऑफलाइन-फर्स्ट ऐप (पायलट: एचएनबी गढ़वाल विश्वविद्यालय)। सुपाबेस सिंक या ऑफलाइन मोड के साथ काम करता है।</string>
     <string name="setup_name_label">आपका नाम</string>
     <string name="setup_college_label">कॉलेज / विश्वविद्यालय</string>
     <string name="setup_course_label">कोर्स / ब्रांच (जैसे B.Tech CSE)</string>
@@ -11,6 +11,19 @@
     <string name="setup_target_attendance">लक्षित उपस्थिति %</string>
     <string name="setup_start_btn">सहेजें और आगे बढ़ें</string>
     <string name="setup_validation_error">आगे बढ़ने के लिए कृपया अपना नाम और कोर्स दर्ज करें।</string>
+    <string name="auth_welcome_title">कैम्पस-वन • एचएनबीजीयू</string>
+    <string name="auth_welcome_subtitle">गूगल खाते से साइन-इन करें या ऑफलाइन मोड में जारी रखें।</string>
+    <string name="auth_student_card_title">1. छात्र के रूप में जारी रखें</string>
+    <string name="auth_student_card_desc">विभाग की समय-सारणी, नोटिस, असाइनमेंट, परीक्षा और अपनी उपस्थिति सिंक करने के लिए गूगल से साइन-इन करें।</string>
+    <string name="auth_continue_student_btn">छात्र लॉगिन (Google)</string>
+    <string name="auth_admin_card_title">2. एडमिन लॉगिन</string>
+    <string name="auth_admin_card_desc">केवल अधिकृत विभाग एडमिन, नोटिस एडमिन, परीक्षा एडमिन और सुपर एडमिन के लिए।</string>
+    <string name="auth_admin_login_btn">एडमिन लॉगिन (Google)</string>
+    <string name="auth_config_status_title">सुपाबेस और गूगल OAuth स्थिति</string>
+    <string name="auth_offline_fallback_btn">ऑफ़लाइन लोकल मोड में जारी रखें</string>
+    <string name="auth_switch_to_student_btn">छात्र डैशबोर्ड खोलें</string>
+    <string name="auth_sign_out_btn">साइन आउट</string>
+    <string name="auth_settings_card_title">क्लाउड खाता, भूमिका और सुपाबेस सिंक</string>
     <string name="nav_home">होम</string>
     <string name="nav_attendance">उपस्थिति</string>
     <string name="nav_timetable">समय-सारणी</string>
@@ -25,7 +38,7 @@
     <string name="home_upcoming_deadlines">अगली 3 समय-सीमाएं</string>
     <string name="home_upcoming_exams">परीक्षा उलटी गिनती</string>
     <string name="home_quick_actions">त्वरित कार्य</string>
-    <string name="attendance_disclaimer">यह व्यक्तिगत ट्रैकर है — इसे आधिकारिक विश्वविद्यालय उपस्थिति न मानें।</string>
+    <string name="attendance_disclaimer">यह व्यक्तिगत ट्रैकर है — सत्यापित होने पर आधिकारिक उपस्थिति भी सिंक होती है।</string>
     <string name="attendance_swipe_hint">उपस्थित के लिए दाएं स्वाइप करें, अनुपस्थित के लिए बाएं स्वाइप करें, या नीचे बटन दबाएं।</string>
     <string name="attendance_tab_subjects">विषय</string>
     <string name="attendance_tab_safe_bunk">सेफ-बंक प्लानर</string>
@@ -63,7 +76,7 @@
     <string name="timetable_clash_warning">%1$s (%2$s-%3$s) के साथ %4$d मि. का समय टकराव</string>
     <string name="timetable_share_pdf">PDF साझा करें</string>
     <string name="timetable_share_png">चित्र साझा करें</string>
-    <string name="timetable_empty_hint">नई कक्षा जोड़ने के लिए + दबाएं या सेटिंग्स से डिपार्टमेंट पैक आयात करें।</string>
+    <string name="timetable_empty_hint">नई कक्षा जोड़ने के लिए + दबाएं या सुपाबेस से सिंक करें।</string>
     <string name="timetable_day_mon">सोम</string>
     <string name="timetable_day_tue">मंगल</string>
     <string name="timetable_day_wed">बुध</string>
@@ -125,8 +138,8 @@
     <string name="notices_mark_read">पढ़ा हुआ चिह्नित करें</string>
     <string name="notices_unread_badge">नया</string>
     <string name="form_validation_required">सहेजने से पहले कृपया आवश्यक शीर्षक या नाम भरें।</string>
-    <string name="cloud_coming_soon_title">जल्द आ रहा है — क्लाउड सिंक बंद है</string>
-    <string name="cloud_coming_soon_body">लाइव नोटिस बोर्ड, साझा नोट्स, क्लब और इवेंट RSVP तथा खोया-पाया CLOUD_FEATURES_ENABLED = false फ़्लैग के पीछे सुरक्षित हैं।</string>
+    <string name="cloud_coming_soon_title">सुपाबेस सिंक और ऑफलाइन कैश तैयार है</string>
+    <string name="cloud_coming_soon_body">लाइव गूगल साइन-इन और विभाग सिंक सक्षम करने के लिए सेटिंग्स या local.properties में SUPABASE_URL और GOOGLE_WEB_CLIENT_ID जोड़ें।</string>
     <string name="settings_language_toggle">भाषा बदलें (English / हिन्दी)</string>
     <string name="settings_notifications_btn">कक्षा और असाइनमेंट अलर्ट सक्षम करें</string>
     <string name="settings_backup_title">लोकल डेटा बैकअप और रीस्टोर (JSON)</string>

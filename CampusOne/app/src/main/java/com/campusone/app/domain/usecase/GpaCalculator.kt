@@ -60,3 +60,4 @@ object GpaCalculator {
         return round(rawRequired * 100.0) / 100.0
     }
 }
+

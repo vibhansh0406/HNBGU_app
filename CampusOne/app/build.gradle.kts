@@ -1,9 +1,29 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+}
+
+val localProps = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use { load(it) }
+    }
+}
+
+fun resolveConfigValue(key: String): String {
+    val fromProps = localProps.getProperty(key)?.trim()
+    val fromEnv = System.getenv(key)?.trim()
+    val raw = when {
+        !fromProps.isNullOrEmpty() -> fromProps
+        !fromEnv.isNullOrEmpty() -> fromEnv
+        else -> ""
+    }
+    return raw.replace("\"", "\\\"")
 }
 
 android {
@@ -14,13 +34,18 @@ android {
         applicationId = "com.campusone.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = 5
-        versionName = "5.0.0-partb"
+        versionCode = 6
+        versionName = "6.0.0-supabase"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        buildConfigField("String", "SUPABASE_URL", "\"${resolveConfigValue("SUPABASE_URL")}\"")
+        buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"${resolveConfigValue("SUPABASE_PUBLISHABLE_KEY")}\"")
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${resolveConfigValue("GOOGLE_WEB_CLIENT_ID")}\"")
+        buildConfigField("String", "FCM_ENABLED", "\"${resolveConfigValue("FCM_ENABLED")}\"")
     }
 
     buildTypes {
@@ -91,6 +116,10 @@ dependencies {
 
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.work.runtime.ktx)
+
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)

@@ -5,3 +5,4 @@ Built with Kotlin 2.0.20, Jetpack Compose Material 3, Room 2.6.1, WorkManager 2.
 
 ## Build Command (GitHub Actions / Codespaces)
 Run `gradle testDebugUnitTest assembleDebug` inside the `CampusOne` directory with JDK 17 and Gradle 8.9.
+

@@ -5,3 +5,4 @@ object SyncConflictResolver {
         return incomingUpdatedAtMillis >= localUpdatedAtMillis
     }
 }
+

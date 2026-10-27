@@ -35,3 +35,4 @@ class GpaCalculatorTest {
         assertEquals(9.00, req, 0.01)
     }
 }
+

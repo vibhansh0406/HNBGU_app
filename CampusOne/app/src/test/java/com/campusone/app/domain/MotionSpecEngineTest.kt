@@ -24,3 +24,4 @@ class MotionSpecEngineTest {
         assertEquals(135, MotionSpecEngine.computeStaggerDelayMs(3, reducedMotion = false))
     }
 }
+

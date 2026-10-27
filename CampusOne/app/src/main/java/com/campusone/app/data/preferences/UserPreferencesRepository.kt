@@ -11,6 +11,9 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.campusone.app.domain.model.GradingScale
+import com.campusone.app.domain.model.LoginIntentPath
+import com.campusone.app.domain.model.RemoteProfileDto
+import com.campusone.app.domain.model.SupabaseAuthSession
 import com.campusone.app.domain.model.UserProfile
 import com.campusone.app.domain.model.UserRole
 import kotlinx.coroutines.flow.Flow
@@ -22,6 +25,16 @@ import java.time.LocalDate
 
 private val Context.userPrefsDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "campusone_user_prefs"
+)
+
+data class PersistedCloudAuthState(
+    val session: SupabaseAuthSession? = null,
+    val remoteProfile: RemoteProfileDto? = null,
+    val loginIntentPath: LoginIntentPath = LoginIntentPath.STUDENT,
+    val overrideSupabaseUrl: String = "",
+    val overrideSupabaseKey: String = "",
+    val overrideGoogleClientId: String = "",
+    val fcmDeviceToken: String = ""
 )
 
 class UserPreferencesRepository(private val context: Context) {
@@ -40,6 +53,22 @@ class UserPreferencesRepository(private val context: Context) {
         val GRADING_SCALE = stringPreferencesKey("grading_scale")
         val LANGUAGE_CODE = stringPreferencesKey("language_code")
         val SETUP_COMPLETED = booleanPreferencesKey("setup_completed")
+
+        // Supabase Auth & Cloud session keys
+        val ACCESS_TOKEN = stringPreferencesKey("sb_access_token")
+        val REFRESH_TOKEN = stringPreferencesKey("sb_refresh_token")
+        val EXPIRES_AT_SEC = longPreferencesKey("sb_expires_at_sec")
+        val AUTH_USER_ID = stringPreferencesKey("sb_user_id")
+        val AUTH_EMAIL = stringPreferencesKey("sb_email")
+        val REMOTE_ROLE = stringPreferencesKey("sb_remote_role")
+        val REMOTE_DEPT_ID = stringPreferencesKey("sb_remote_dept_id")
+        val REMOTE_STATUS = stringPreferencesKey("sb_remote_status")
+        val LOGIN_PATH = stringPreferencesKey("sb_login_intent_path")
+
+        val OVERRIDE_SB_URL = stringPreferencesKey("override_sb_url")
+        val OVERRIDE_SB_KEY = stringPreferencesKey("override_sb_key")
+        val OVERRIDE_GOOGLE_ID = stringPreferencesKey("override_google_id")
+        val FCM_DEVICE_TOKEN = stringPreferencesKey("fcm_device_token")
     }
 
     val userProfileFlow: Flow<UserProfile> = context.userPrefsDataStore.data
@@ -69,7 +98,115 @@ class UserPreferencesRepository(private val context: Context) {
             )
         }
 
+    val cloudAuthStateFlow: Flow<PersistedCloudAuthState> = context.userPrefsDataStore.data
+        .catch { e ->
+            if (e is IOException) emit(emptyPreferences()) else throw e
+        }
+        .map { prefs ->
+            val token = prefs[Keys.ACCESS_TOKEN].orEmpty()
+            val userId = prefs[Keys.AUTH_USER_ID].orEmpty()
+            val email = prefs[Keys.AUTH_EMAIL].orEmpty()
+            val session = if (token.isNotBlank() && userId.isNotBlank()) {
+                SupabaseAuthSession(
+                    accessToken = token,
+                    refreshToken = prefs[Keys.REFRESH_TOKEN].orEmpty(),
+                    expiresAtEpochSec = prefs[Keys.EXPIRES_AT_SEC] ?: 0L,
+                    userId = userId,
+                    email = email
+                )
+            } else {
+                null
+            }
+            val remoteProfile = if (userId.isNotBlank()) {
+                RemoteProfileDto(
+                    id = userId,
+                    fullName = prefs[Keys.NAME].orEmpty(),
+                    email = email,
+                    role = prefs[Keys.REMOTE_ROLE] ?: "student",
+                    departmentId = prefs[Keys.REMOTE_DEPT_ID]?.takeIf { it.isNotBlank() },
+                    accountStatus = prefs[Keys.REMOTE_STATUS] ?: "active"
+                )
+            } else {
+                null
+            }
+            val pathName = prefs[Keys.LOGIN_PATH] ?: LoginIntentPath.STUDENT.name
+            val path = runCatching { LoginIntentPath.valueOf(pathName) }
+                .getOrDefault(LoginIntentPath.STUDENT)
+
+            PersistedCloudAuthState(
+                session = session,
+                remoteProfile = remoteProfile,
+                loginIntentPath = path,
+                overrideSupabaseUrl = prefs[Keys.OVERRIDE_SB_URL].orEmpty(),
+                overrideSupabaseKey = prefs[Keys.OVERRIDE_SB_KEY].orEmpty(),
+                overrideGoogleClientId = prefs[Keys.OVERRIDE_GOOGLE_ID].orEmpty(),
+                fcmDeviceToken = prefs[Keys.FCM_DEVICE_TOKEN].orEmpty()
+            )
+        }
+
     suspend fun getProfileOnce(): UserProfile = userProfileFlow.first()
+
+    suspend fun getCloudAuthOnce(): PersistedCloudAuthState = cloudAuthStateFlow.first()
+
+    suspend fun saveSupabaseSessionAndProfile(
+        session: SupabaseAuthSession,
+        profile: RemoteProfileDto,
+        intentPath: LoginIntentPath
+    ) {
+        context.userPrefsDataStore.edit { prefs ->
+            prefs[Keys.ACCESS_TOKEN] = session.accessToken
+            prefs[Keys.REFRESH_TOKEN] = session.refreshToken
+            prefs[Keys.EXPIRES_AT_SEC] = session.expiresAtEpochSec
+            prefs[Keys.AUTH_USER_ID] = session.userId
+            prefs[Keys.AUTH_EMAIL] = profile.email.ifBlank { session.email }
+            prefs[Keys.REMOTE_ROLE] = profile.role
+            prefs[Keys.REMOTE_DEPT_ID] = profile.departmentId.orEmpty()
+            prefs[Keys.REMOTE_STATUS] = profile.accountStatus
+            prefs[Keys.LOGIN_PATH] = intentPath.name
+            if (profile.fullName.isNotBlank()) {
+                prefs[Keys.NAME] = profile.fullName
+            }
+            prefs[Keys.SETUP_COMPLETED] = true
+        }
+    }
+
+    suspend fun updateLoginIntentPath(intentPath: LoginIntentPath) {
+        context.userPrefsDataStore.edit { prefs ->
+            prefs[Keys.LOGIN_PATH] = intentPath.name
+        }
+    }
+
+    suspend fun clearSupabaseSession() {
+        context.userPrefsDataStore.edit { prefs ->
+            prefs.remove(Keys.ACCESS_TOKEN)
+            prefs.remove(Keys.REFRESH_TOKEN)
+            prefs.remove(Keys.EXPIRES_AT_SEC)
+            prefs.remove(Keys.AUTH_USER_ID)
+            prefs.remove(Keys.AUTH_EMAIL)
+            prefs.remove(Keys.REMOTE_ROLE)
+            prefs.remove(Keys.REMOTE_DEPT_ID)
+            prefs.remove(Keys.REMOTE_STATUS)
+            prefs[Keys.LOGIN_PATH] = LoginIntentPath.STUDENT.name
+        }
+    }
+
+    suspend fun saveRuntimeConfigOverrides(
+        supabaseUrl: String,
+        supabasePublishableKey: String,
+        googleWebClientId: String
+    ) {
+        context.userPrefsDataStore.edit { prefs ->
+            prefs[Keys.OVERRIDE_SB_URL] = supabaseUrl.trim()
+            prefs[Keys.OVERRIDE_SB_KEY] = supabasePublishableKey.trim()
+            prefs[Keys.OVERRIDE_GOOGLE_ID] = googleWebClientId.trim()
+        }
+    }
+
+    suspend fun saveFcmDeviceToken(token: String) {
+        context.userPrefsDataStore.edit { prefs ->
+            prefs[Keys.FCM_DEVICE_TOKEN] = token.trim()
+        }
+    }
 
     suspend fun saveSetupProfile(
         name: String,

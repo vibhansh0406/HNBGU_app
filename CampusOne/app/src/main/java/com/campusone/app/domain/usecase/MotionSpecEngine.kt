@@ -53,3 +53,4 @@ object MotionSpecEngine {
         return (sectionIndex.coerceIn(0, 6) * 45).coerceAtMost(180)
     }
 }
+

@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -37,13 +38,19 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.campusone.app.domain.model.LoginIntentPath
+import com.campusone.app.domain.usecase.AuthorizationDecision
 import com.campusone.app.domain.usecase.MotionSpecEngine
+import com.campusone.app.domain.usecase.RoleAuthorizationEngine
 import com.campusone.app.ui.components.FluidGlassBottomBar
 import com.campusone.app.ui.components.FluidNavDestination
 import com.campusone.app.ui.motion.FluidMotion
 import com.campusone.app.ui.motion.rememberReducedMotionEnabled
+import com.campusone.app.ui.screens.AccessDeniedScreen
+import com.campusone.app.ui.screens.AdminRoleConsoleScreen
 import com.campusone.app.ui.screens.AttendanceTrackerScreen
 import com.campusone.app.ui.screens.FirstLaunchSetupScreen
+import com.campusone.app.ui.screens.GoogleLoginSelectionScreen
 import com.campusone.app.ui.screens.HomeDashboardScreen
 import com.campusone.app.ui.screens.MoreHubScreen
 import com.campusone.app.ui.screens.NoticesScreen
@@ -78,6 +85,7 @@ class MainActivity : AppCompatActivity() {
             )
 
             val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
+            var showOfflineSetupWizard by rememberSaveable { mutableStateOf(false) }
 
             LaunchedEffect(pendingSubjectId) {
                 if (!pendingSubjectId.isNullOrBlank()) {
@@ -87,26 +95,89 @@ class MainActivity : AppCompatActivity() {
             }
 
             CampusOneTheme {
-                val showSetup = !coreState.isLoading && !coreState.profile.setupCompleted
+                val rootScreenKey = when {
+                    coreState.isLoading -> "loading"
+                    coreState.remoteProfile != null -> {
+                        when (
+                            RoleAuthorizationEngine.evaluateLoginGate(
+                                intentPath = coreState.loginIntentPath,
+                                profile = coreState.remoteProfile
+                            )
+                        ) {
+                            is AuthorizationDecision.AccessDenied -> "access_denied"
+                            is AuthorizationDecision.AuthorizedAdmin -> "admin_console"
+                            is AuthorizationDecision.AuthorizedStudent -> "student_shell"
+                        }
+                    }
+                    showOfflineSetupWizard -> "offline_setup"
+                    !coreState.profile.setupCompleted -> "login_selection"
+                    else -> "student_shell"
+                }
+
                 AnimatedContent(
-                    targetState = showSetup,
+                    targetState = rootScreenKey,
                     transitionSpec = { FluidMotion.verticalStateTransform(reducedMotion) },
-                    label = "root_setup_vs_shell"
-                ) { isSetupScreen ->
-                    if (isSetupScreen) {
-                        FirstLaunchSetupScreen(
-                            onCompleteSetup = { name, college, course, sem, section, target ->
-                                coreViewModel.completeSetup(name, college, course, sem, section, target)
-                            }
-                        )
-                    } else {
-                        CampusOneAdaptiveShell(
-                            useNavRail = useNavRail,
-                            coreViewModel = coreViewModel,
-                            studyViewModel = studyViewModel,
-                            requestedRoute = pendingRoute,
-                            onRouteConsumed = { pendingRoute = null }
-                        )
+                    label = "root_auth_gate"
+                ) { screenKey ->
+                    when (screenKey) {
+                        "login_selection" -> {
+                            GoogleLoginSelectionScreen(
+                                runtimeConfig = coreState.runtimeConfig,
+                                isAuthenticating = coreState.isAuthenticating,
+                                authErrorMessage = coreState.authErrorMessage,
+                                onSelectGoogleLogin = { path ->
+                                    coreViewModel.signInWithGoogle(this@MainActivity, path)
+                                },
+                                onSaveRuntimeConfig = { url, key, googleId ->
+                                    coreViewModel.saveRuntimeSupabaseConfig(url, key, googleId)
+                                },
+                                onContinueOfflineSetup = {
+                                    showOfflineSetupWizard = true
+                                }
+                            )
+                        }
+                        "offline_setup" -> {
+                            FirstLaunchSetupScreen(
+                                onCompleteSetup = { name, college, course, sem, section, target ->
+                                    showOfflineSetupWizard = false
+                                    coreViewModel.completeSetup(name, college, course, sem, section, target)
+                                }
+                            )
+                        }
+                        "access_denied" -> {
+                            val decision = RoleAuthorizationEngine.evaluateLoginGate(
+                                intentPath = coreState.loginIntentPath,
+                                profile = coreState.remoteProfile
+                            ) as? AuthorizationDecision.AccessDenied
+                            AccessDeniedScreen(
+                                title = decision?.title ?: "Access Denied",
+                                reason = decision?.reason ?: "Your account is not authorized for this portal.",
+                                email = coreState.remoteProfile?.email.orEmpty(),
+                                roleLabel = coreState.remoteProfile?.role ?: "student",
+                                canSwitchToStudentView = decision?.canFallbackToStudentDashboard == true,
+                                onSwitchToStudentView = {
+                                    coreViewModel.switchLoginIntentPath(LoginIntentPath.STUDENT)
+                                },
+                                onSignOut = {
+                                    coreViewModel.signOutOfSupabase(this@MainActivity)
+                                }
+                            )
+                        }
+                        "admin_console" -> {
+                            AdminRoleConsoleScreen(
+                                coreState = coreState,
+                                viewModel = coreViewModel
+                            )
+                        }
+                        else -> {
+                            CampusOneAdaptiveShell(
+                                useNavRail = useNavRail,
+                                coreViewModel = coreViewModel,
+                                studyViewModel = studyViewModel,
+                                requestedRoute = pendingRoute,
+                                onRouteConsumed = { pendingRoute = null }
+                            )
+                        }
                     }
                 }
             }

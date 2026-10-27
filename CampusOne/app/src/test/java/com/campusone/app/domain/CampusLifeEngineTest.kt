@@ -31,3 +31,4 @@ class CampusLifeEngineTest {
         assertEquals(5, transition.interestedCount)
     }
 }
+

@@ -1,12 +1,12 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 2,
-    "identityHash": "af4137e6795f313458ffe3c07c097ea2",
+    "version": 3,
+    "identityHash": "8f0c438ae86bfaa2b2e4fdc669538897",
     "entities": [
       {
         "tableName": "subjects",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `code` TEXT NOT NULL, `name` TEXT NOT NULL, `professor` TEXT NOT NULL, `semester` INTEGER NOT NULL, `attendedCount` INTEGER NOT NULL, `totalClassesCount` INTEGER NOT NULL, `cancelledCount` INTEGER NOT NULL, `updatedAtMillis` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `code` TEXT NOT NULL, `name` TEXT NOT NULL, `professor` TEXT NOT NULL, `semester` INTEGER NOT NULL, `attendedCount` INTEGER NOT NULL, `totalClassesCount` INTEGER NOT NULL, `cancelledCount` INTEGER NOT NULL, `targetPercentage` INTEGER NOT NULL, `colorHex` TEXT NOT NULL, `updatedAtMillis` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -54,6 +54,18 @@
             "fieldPath": "cancelledCount",
             "columnName": "cancelledCount",
             "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetPercentage",
+            "columnName": "targetPercentage",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "colorHex",
+            "columnName": "colorHex",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -151,7 +163,7 @@
       },
       {
         "tableName": "timetable_slots",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `subjectId` TEXT NOT NULL, `subjectName` TEXT NOT NULL, `subjectCode` TEXT NOT NULL, `dayOfWeek` INTEGER NOT NULL, `startTime` TEXT NOT NULL, `endTime` TEXT NOT NULL, `room` TEXT NOT NULL, `teacherName` TEXT NOT NULL, `semester` INTEGER NOT NULL, `section` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `subjectId` TEXT NOT NULL, `subjectName` TEXT NOT NULL, `subjectCode` TEXT NOT NULL, `dayOfWeek` INTEGER NOT NULL, `startTime` TEXT NOT NULL, `endTime` TEXT NOT NULL, `room` TEXT NOT NULL, `teacherName` TEXT NOT NULL, `semester` INTEGER NOT NULL, `section` TEXT NOT NULL, `colorHex` TEXT NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -216,6 +228,12 @@
           {
             "fieldPath": "section",
             "columnName": "section",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "colorHex",
+            "columnName": "colorHex",
             "affinity": "TEXT",
             "notNull": true
           }
@@ -749,7 +767,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'af4137e6795f313458ffe3c07c097ea2')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8f0c438ae86bfaa2b2e4fdc669538897')"
     ]
   }
 }

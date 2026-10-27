@@ -38,3 +38,4 @@ jobs:
         with:
           name: CampusOne-debug-apk
           path: CampusOne/app/build/outputs/apk/debug/app-debug.apk
+

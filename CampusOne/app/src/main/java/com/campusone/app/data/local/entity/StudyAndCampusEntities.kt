@@ -95,3 +95,4 @@ data class DirectoryContactEntity(
     val latitude: Double = 30.2224,
     val longitude: Double = 78.7834
 )
+

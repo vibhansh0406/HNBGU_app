@@ -3,3 +3,4 @@
 -keep class com.campusone.app.domain.model.** { *; }
 -keep class com.campusone.app.util.CampusBackupPayload { *; }
 -dontwarn kotlinx.serialization.**
+

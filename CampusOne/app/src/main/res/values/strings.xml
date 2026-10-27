@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">CampusOne</string>
     <string name="setup_welcome_title">Welcome to CampusOne</string>
-    <string name="setup_welcome_subtitle">Offline-first companion for Indian college students (Pilot: HNB Garhwal University). No login or internet required.</string>
+    <string name="setup_welcome_subtitle">Offline-first companion for Indian college students (Pilot: HNB Garhwal University). Works with Supabase sync or local Room mode.</string>
     <string name="setup_name_label">Your Name</string>
     <string name="setup_college_label">College / University</string>
     <string name="setup_course_label">Course / Branch (e.g. B.Tech CSE)</string>
@@ -11,6 +11,19 @@
     <string name="setup_target_attendance">Target Attendance %</string>
     <string name="setup_start_btn">Save &amp; Open CampusOne</string>
     <string name="setup_validation_error">Please enter your name and course to continue.</string>
+    <string name="auth_welcome_title">CampusOne • HNBGU</string>
+    <string name="auth_welcome_subtitle">Sign in with Google via Supabase Auth, or continue with local offline setup.</string>
+    <string name="auth_student_card_title">1. Continue as Student</string>
+    <string name="auth_student_card_desc">Sign in with your Google account to sync published department timetables, notices, assignments, exams, and your verified attendance.</string>
+    <string name="auth_continue_student_btn">Continue as Student (Google)</string>
+    <string name="auth_admin_card_title">2. Admin Login</string>
+    <string name="auth_admin_card_desc">For authorized Department Admins, Notice Admins, Exam Admins, and Super Admins. Role is verified server-side from Supabase.</string>
+    <string name="auth_admin_login_btn">Admin Login (Google)</string>
+    <string name="auth_config_status_title">Supabase &amp; Google OAuth Status</string>
+    <string name="auth_offline_fallback_btn">Continue in Offline Local Mode (No Cloud Account)</string>
+    <string name="auth_switch_to_student_btn">Open Student Dashboard Instead</string>
+    <string name="auth_sign_out_btn">Sign Out</string>
+    <string name="auth_settings_card_title">Cloud Account, Role &amp; Supabase Sync</string>
     <string name="nav_home">Home</string>
     <string name="nav_attendance">Attendance</string>
     <string name="nav_timetable">Timetable</string>
@@ -25,7 +38,7 @@
     <string name="home_upcoming_deadlines">Next 3 Deadlines</string>
     <string name="home_upcoming_exams">Exam Countdowns</string>
     <string name="home_quick_actions">Quick Actions</string>
-    <string name="attendance_disclaimer">Personal tracker for self-monitoring — not official university attendance.</string>
+    <string name="attendance_disclaimer">Personal tracker for self-monitoring — synced official records appear when verified.</string>
     <string name="attendance_swipe_hint">Swipe right for Present, swipe left for Absent, or tap buttons below.</string>
     <string name="attendance_tab_subjects">Subjects</string>
     <string name="attendance_tab_safe_bunk">Safe-Bunk Planner</string>
@@ -63,7 +76,7 @@
     <string name="timetable_clash_warning">Clash with %1$s (%2$s-%3$s, %4$dm overlap)</string>
     <string name="timetable_share_pdf">Share PDF</string>
     <string name="timetable_share_png">Share Image</string>
-    <string name="timetable_empty_hint">Tap + below to add a class slot or import a Department Pack in Settings.</string>
+    <string name="timetable_empty_hint">Tap + below to add a class slot or sync from Supabase.</string>
     <string name="timetable_day_mon">Mon</string>
     <string name="timetable_day_tue">Tue</string>
     <string name="timetable_day_wed">Wed</string>
@@ -125,8 +138,8 @@
     <string name="notices_mark_read">Mark Read</string>
     <string name="notices_unread_badge">NEW</string>
     <string name="form_validation_required">Please fill in the required title/name field before saving.</string>
-    <string name="cloud_coming_soon_title">Coming Soon — Cloud Sync Disabled</string>
-    <string name="cloud_coming_soon_body">Live section Notice Board, Shared Notes Moderation, Clubs &amp; Events RSVP sync, and Lost &amp; Found cloud moderation are gated behind CLOUD_FEATURES_ENABLED = false. You can test local previews below.</string>
+    <string name="cloud_coming_soon_title">Supabase Sync &amp; Offline Cache Ready</string>
+    <string name="cloud_coming_soon_body">Configure SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, and GOOGLE_WEB_CLIENT_ID in local.properties or Settings to enable live Google Sign-In and department sync.</string>
     <string name="settings_language_toggle">Switch Language (English / हिन्दी)</string>
     <string name="settings_notifications_btn">Enable Class &amp; Deadline Notifications</string>
     <string name="settings_backup_title">Local Data Backup &amp; Restore (JSON)</string>

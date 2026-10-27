@@ -18,6 +18,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
@@ -28,6 +31,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Tab
@@ -37,6 +41,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,6 +53,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.campusone.app.R
+import com.campusone.app.domain.model.LoginIntentPath
 import com.campusone.app.ui.components.InteractiveGlassCard
 import com.campusone.app.ui.motion.FluidMotion
 import com.campusone.app.ui.motion.rememberReducedMotionEnabled
@@ -156,7 +162,7 @@ fun CampusHubScreen(
         }
 
         AnimatedVisibility(
-            visible = studyState.statusBannerMessage != null,
+            visible = studyState.statusBannerMessage != null || coreState.exportBannerMessage != null,
             enter = FluidMotion.expandCollapseEnter(reducedMotion),
             exit = FluidMotion.expandCollapseExit(reducedMotion)
         ) {
@@ -173,8 +179,16 @@ fun CampusHubScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(studyState.statusBannerMessage ?: "", modifier = Modifier.weight(1f))
-                    TextButton(onClick = { studyViewModel.clearBanner() }) {
+                    Text(
+                        text = studyState.statusBannerMessage ?: coreState.exportBannerMessage ?: "",
+                        modifier = Modifier.weight(1f)
+                    )
+                    TextButton(
+                        onClick = {
+                            studyViewModel.clearBanner()
+                            coreViewModel.clearExportBanner()
+                        }
+                    ) {
                         Text(stringResource(R.string.common_close))
                     }
                 }
@@ -207,6 +221,16 @@ private fun BackupAndSettingsSubScreen(
     studyViewModel: StudyAndCampusViewModel
 ) {
     val context = LocalContext.current
+    var showCloudConfigFields by rememberSaveable { mutableStateOf(false) }
+    var sbUrl by rememberSaveable(coreState.runtimeConfig.supabaseUrl) {
+        mutableStateOf(coreState.runtimeConfig.supabaseUrl)
+    }
+    var sbKey by rememberSaveable(coreState.runtimeConfig.supabasePublishableKey) {
+        mutableStateOf(coreState.runtimeConfig.supabasePublishableKey)
+    }
+    var googleId by rememberSaveable(coreState.runtimeConfig.googleWebClientId) {
+        mutableStateOf(coreState.runtimeConfig.googleWebClientId)
+    }
 
     LaunchedEffect(Unit) {
         studyViewModel.refreshCrashLog(context)
@@ -253,6 +277,166 @@ private fun BackupAndSettingsSubScreen(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
+        // Cloud & Google Auth Account Card
+        item {
+            InteractiveGlassCard(
+                isHighlighted = coreState.remoteProfile != null,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.AccountCircle,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.auth_settings_card_title),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+
+                    val remoteProf = coreState.remoteProfile
+                    if (remoteProf != null) {
+                        Text(
+                            text = "${remoteProf.fullName} (${remoteProf.email})",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "Trusted Supabase Role: ${remoteProf.role} • Status: ${remoteProf.accountStatus}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = { coreViewModel.refreshSupabaseSync(context) },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                            ) {
+                                Icon(Icons.Default.Refresh, contentDescription = null)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Sync Now")
+                            }
+                            OutlinedButton(
+                                onClick = { coreViewModel.signOutOfSupabase(context) },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                            ) {
+                                Icon(Icons.Default.ExitToApp, contentDescription = null)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(stringResource(R.string.auth_sign_out_btn))
+                            }
+                        }
+                        if (remoteProf.parsedRole.isAdminRole) {
+                            OutlinedButton(
+                                onClick = { coreViewModel.switchLoginIntentPath(LoginIntentPath.ADMIN) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp)
+                            ) {
+                                Icon(Icons.Default.Lock, contentDescription = null)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Open Role-Scoped Admin Console (${remoteProf.role})")
+                            }
+                        }
+                    } else {
+                        Text(
+                            text = coreState.runtimeConfig.missingConfigDiagnosis(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        if (!coreState.authErrorMessage.isNullOrBlank()) {
+                            Text(
+                                text = coreState.authErrorMessage,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = {
+                                    coreViewModel.signInWithGoogle(context, LoginIntentPath.STUDENT)
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                            ) {
+                                Text(stringResource(R.string.auth_continue_student_btn))
+                            }
+                            OutlinedButton(
+                                onClick = {
+                                    coreViewModel.signInWithGoogle(context, LoginIntentPath.ADMIN)
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                            ) {
+                                Text(stringResource(R.string.auth_admin_login_btn))
+                            }
+                        }
+                    }
+
+                    TextButton(
+                        onClick = { showCloudConfigFields = !showCloudConfigFields },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            if (showCloudConfigFields) "Hide Cloud & OAuth Keys"
+                            else "Configure SUPABASE_URL & GOOGLE_WEB_CLIENT_ID"
+                        )
+                    }
+
+                    AnimatedVisibility(visible = showCloudConfigFields) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = sbUrl,
+                                onValueChange = { sbUrl = it },
+                                label = { Text("SUPABASE_URL") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            OutlinedTextField(
+                                value = sbKey,
+                                onValueChange = { sbKey = it },
+                                label = { Text("SUPABASE_PUBLISHABLE_KEY") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            OutlinedTextField(
+                                value = googleId,
+                                onValueChange = { googleId = it },
+                                label = { Text("GOOGLE_WEB_CLIENT_ID") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Button(
+                                onClick = {
+                                    coreViewModel.saveRuntimeSupabaseConfig(sbUrl, sbKey, googleId)
+                                    showCloudConfigFields = false
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(stringResource(R.string.common_save))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         item {
             InteractiveGlassCard(modifier = Modifier.fillMaxWidth()) {
                 Column(

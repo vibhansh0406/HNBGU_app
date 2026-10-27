@@ -6,18 +6,26 @@ import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.campusone.app.config.FeatureFlags
+import com.campusone.app.config.SupabaseRuntimeConfig
+import com.campusone.app.data.preferences.PersistedCloudAuthState
 import com.campusone.app.data.preferences.UserPreferencesRepository
 import com.campusone.app.data.repository.CoreCampusRepository
+import com.campusone.app.data.repository.SupabaseSyncRepository
 import com.campusone.app.di.AppContainer
 import com.campusone.app.domain.model.AttendanceRecordItem
 import com.campusone.app.domain.model.AttendanceStatus
+import com.campusone.app.domain.model.LoginIntentPath
 import com.campusone.app.domain.model.PersonalNotice
+import com.campusone.app.domain.model.RemoteAuditLogDto
+import com.campusone.app.domain.model.RemoteProfileDto
 import com.campusone.app.domain.model.SubjectSummary
 import com.campusone.app.domain.model.TimetableSlot
 import com.campusone.app.domain.model.UserProfile
 import com.campusone.app.domain.usecase.AttendanceCalculator
 import com.campusone.app.domain.usecase.TimetableEngine
 import com.campusone.app.util.CampusIntentHelper
+import com.campusone.app.util.GoogleCredentialHelper
 import com.campusone.app.util.TimetableAndAttendanceExportHelper
 import com.campusone.app.widget.CampusWidgetUpdater
 import com.campusone.app.worker.ClassReminderWorker
@@ -43,17 +51,29 @@ data class CoreUiState(
     val lastUndoRecordId: String? = null,
     val lastUndoLabel: String? = null,
     val highlightedSubjectId: String? = null,
-    val exportBannerMessage: String? = null
+    val exportBannerMessage: String? = null,
+    val runtimeConfig: SupabaseRuntimeConfig = FeatureFlags.resolveConfig(),
+    val remoteProfile: RemoteProfileDto? = null,
+    val loginIntentPath: LoginIntentPath = LoginIntentPath.STUDENT,
+    val isAuthenticating: Boolean = false,
+    val authErrorMessage: String? = null,
+    val adminManagedProfiles: List<RemoteProfileDto> = emptyList(),
+    val adminAuditLogs: List<RemoteAuditLogDto> = emptyList()
 )
 
 class CoreViewModel(
     private val coreRepository: CoreCampusRepository,
-    private val userPreferences: UserPreferencesRepository
+    private val userPreferences: UserPreferencesRepository,
+    private val supabaseSyncRepository: SupabaseSyncRepository
 ) : ViewModel() {
 
     private val undoState = MutableStateFlow<Pair<String?, String?>>(null to null)
     private val highlightedSubjectFlow = MutableStateFlow<String?>(null)
     private val exportBannerFlow = MutableStateFlow<String?>(null)
+    private val authBusyFlow = MutableStateFlow(false)
+    private val authErrorFlow = MutableStateFlow<String?>(null)
+    private val adminProfilesFlow = MutableStateFlow<List<RemoteProfileDto>>(emptyList())
+    private val adminLogsFlow = MutableStateFlow<List<RemoteAuditLogDto>>(emptyList())
 
     private val baseDataFlow = combine(
         userPreferences.userProfileFlow,
@@ -69,15 +89,27 @@ class CoreViewModel(
         BaseCoreTuple(profile, subjects, history, slots, notices)
     }
 
-    val uiState: StateFlow<CoreUiState> = combine(
-        baseDataFlow,
+    private val uiOverlaysFlow = combine(
         undoState,
         highlightedSubjectFlow,
-        exportBannerFlow
+        exportBannerFlow,
+        authBusyFlow,
+        authErrorFlow
+    ) { undoPair, highlightedId, exportMsg, isAuthBusy, authErr ->
+        OverlayTuple(undoPair, highlightedId, exportMsg, isAuthBusy, authErr)
+    }
+
+    val uiState: StateFlow<CoreUiState> = combine(
+        baseDataFlow,
+        userPreferences.cloudAuthStateFlow,
+        uiOverlaysFlow,
+        adminProfilesFlow,
+        adminLogsFlow
     ) { base: BaseCoreTuple,
-        undoPair: Pair<String?, String?>,
-        highlightedSubId: String?,
-        exportMsg: String? ->
+        cloudAuth: PersistedCloudAuthState,
+        overlay: OverlayTuple,
+        adminProfiles: List<RemoteProfileDto>,
+        adminLogs: List<RemoteAuditLogDto> ->
         val totalAttended = base.subjects.sumOf { it.attendedCount }
         val totalConducted = base.subjects.sumOf { it.totalClassesCount }
         val overallAdvice = AttendanceCalculator.evaluate(
@@ -88,6 +120,11 @@ class CoreViewModel(
         val todayDow = LocalDate.now().dayOfWeek.value
         val nowMinutes = LocalTime.now().let { it.hour * 60 + it.minute }
         val nextSlot = TimetableEngine.findNextClassToday(base.slots, todayDow, nowMinutes)
+        val runtimeCfg = FeatureFlags.resolveConfig(
+            overrideUrl = cloudAuth.overrideSupabaseUrl,
+            overrideKey = cloudAuth.overrideSupabaseKey,
+            overrideGoogleClientId = cloudAuth.overrideGoogleClientId
+        )
 
         CoreUiState(
             isLoading = false,
@@ -98,10 +135,17 @@ class CoreViewModel(
             timetableSlots = base.slots,
             nextClassToday = nextSlot,
             personalNotices = base.notices,
-            lastUndoRecordId = undoPair.first,
-            lastUndoLabel = undoPair.second,
-            highlightedSubjectId = highlightedSubId,
-            exportBannerMessage = exportMsg
+            lastUndoRecordId = overlay.undoPair.first,
+            lastUndoLabel = overlay.undoPair.second,
+            highlightedSubjectId = overlay.highlightedSubId,
+            exportBannerMessage = overlay.exportMsg,
+            runtimeConfig = runtimeCfg,
+            remoteProfile = cloudAuth.remoteProfile,
+            loginIntentPath = cloudAuth.loginIntentPath,
+            isAuthenticating = overlay.isAuthBusy,
+            authErrorMessage = overlay.authErr,
+            adminManagedProfiles = adminProfiles,
+            adminAuditLogs = adminLogs
         )
     }.stateIn(
         scope = viewModelScope,
@@ -112,6 +156,152 @@ class CoreViewModel(
     init {
         viewModelScope.launch {
             coreRepository.ensurePilotSeedData()
+            supabaseSyncRepository.refreshSessionAndProfileIfNeeded()
+        }
+    }
+
+    fun signInWithGoogle(activityContext: Context, intentPath: LoginIntentPath) {
+        viewModelScope.launch {
+            authBusyFlow.value = true
+            authErrorFlow.value = null
+            val cfg = supabaseSyncRepository.activeRuntimeConfig()
+            if (!cfg.isSupabaseConfigured || !cfg.isGoogleAuthConfigured) {
+                authBusyFlow.value = false
+                authErrorFlow.value = cfg.missingConfigDiagnosis()
+                return@launch
+            }
+
+            val googleTokenResult = GoogleCredentialHelper.requestGoogleIdToken(
+                activityContext = activityContext,
+                googleWebClientId = cfg.googleWebClientId
+            )
+
+            googleTokenResult.onSuccess { googleRes ->
+                supabaseSyncRepository.authenticateWithGoogleIdToken(
+                    idToken = googleRes.idToken,
+                    intentPath = intentPath
+                ).onSuccess {
+                    authBusyFlow.value = false
+                    authErrorFlow.value = null
+                    CampusWidgetUpdater.refreshAllWidgets(activityContext)
+                }.onFailure { err ->
+                    authBusyFlow.value = false
+                    authErrorFlow.value = "Supabase Auth failed: ${err.message}"
+                }
+            }.onFailure { err ->
+                authBusyFlow.value = false
+                authErrorFlow.value = err.message
+            }
+        }
+    }
+
+    fun switchLoginIntentPath(intentPath: LoginIntentPath) {
+        viewModelScope.launch {
+            userPreferences.updateLoginIntentPath(intentPath)
+            authErrorFlow.value = null
+        }
+    }
+
+    fun signOutOfSupabase(context: Context) {
+        viewModelScope.launch {
+            supabaseSyncRepository.signOut()
+            adminProfilesFlow.value = emptyList()
+            adminLogsFlow.value = emptyList()
+            exportBannerFlow.value = "Signed out of Supabase."
+            CampusWidgetUpdater.refreshAllWidgets(context)
+        }
+    }
+
+    fun saveRuntimeSupabaseConfig(
+        supabaseUrl: String,
+        supabasePublishableKey: String,
+        googleWebClientId: String
+    ) {
+        viewModelScope.launch {
+            userPreferences.saveRuntimeConfigOverrides(
+                supabaseUrl = supabaseUrl,
+                supabasePublishableKey = supabasePublishableKey,
+                googleWebClientId = googleWebClientId
+            )
+            authErrorFlow.value = null
+            exportBannerFlow.value = "Supabase & Google OAuth configuration saved."
+        }
+    }
+
+    fun refreshSupabaseSync(context: Context) {
+        viewModelScope.launch {
+            supabaseSyncRepository.refreshSessionAndProfileIfNeeded()
+                .onSuccess { prof ->
+                    if (prof != null) {
+                        exportBannerFlow.value = "Synced live campus data for ${prof.email} (${prof.role})."
+                        CampusWidgetUpdater.refreshAllWidgets(context)
+                    } else {
+                        exportBannerFlow.value = "Sign in with Google first to sync from Supabase."
+                    }
+                }
+                .onFailure { err ->
+                    exportBannerFlow.value = "Sync failed: ${err.message}"
+                }
+        }
+    }
+
+    fun publishNoticeAsAdmin(
+        title: String,
+        content: String,
+        priority: String,
+        isPinned: Boolean,
+        publishImmediately: Boolean
+    ) {
+        viewModelScope.launch {
+            val deptId = uiState.value.remoteProfile?.departmentId
+            supabaseSyncRepository.createNoticeFromAdminConsole(
+                title = title,
+                content = content,
+                departmentId = deptId,
+                priority = priority,
+                isPinned = isPinned,
+                publishImmediately = publishImmediately
+            ).onSuccess {
+                exportBannerFlow.value = if (publishImmediately) {
+                    "Notice published to Supabase."
+                } else {
+                    "Draft notice saved to Supabase."
+                }
+            }.onFailure { err ->
+                exportBannerFlow.value = "Failed to save notice: ${err.message}"
+            }
+        }
+    }
+
+    fun loadAdminUsersAndAuditLogs() {
+        viewModelScope.launch {
+            supabaseSyncRepository.fetchProfilesForAdmin().onSuccess {
+                adminProfilesFlow.value = it
+            }
+            supabaseSyncRepository.fetchAuditLogsForSuperAdmin().onSuccess {
+                adminLogsFlow.value = it
+            }
+        }
+    }
+
+    fun assignRoleAsSuperAdmin(
+        targetUserId: String,
+        newRole: String,
+        newDepartmentId: String?,
+        newAccountStatus: String
+    ) {
+        viewModelScope.launch {
+            supabaseSyncRepository.assignRoleAsSuperAdmin(
+                targetUserId = targetUserId,
+                newRole = newRole,
+                newDepartmentId = newDepartmentId,
+                newAccountStatus = newAccountStatus
+            ).onSuccess { updated ->
+                exportBannerFlow.value = "Updated ${updated.email} -> role=${updated.role}, status=${updated.accountStatus}"
+                loadAdminUsersAndAuditLogs()
+            }.onFailure { err ->
+                exportBannerFlow.value = "Role update denied: ${err.message}"
+            }
         }
     }
 
@@ -386,6 +576,14 @@ class CoreViewModel(
         val notices: List<PersonalNotice>
     )
 
+    private data class OverlayTuple(
+        val undoPair: Pair<String?, String?>,
+        val highlightedSubId: String?,
+        val exportMsg: String?,
+        val isAuthBusy: Boolean,
+        val authErr: String?
+    )
+
     companion object {
         fun provideFactory(container: AppContainer): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
@@ -393,7 +591,8 @@ class CoreViewModel(
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
                     return CoreViewModel(
                         coreRepository = container.coreCampusRepository,
-                        userPreferences = container.userPreferencesRepository
+                        userPreferences = container.userPreferencesRepository,
+                        supabaseSyncRepository = container.supabaseSyncRepository
                     ) as T
                 }
             }
