@@ -61,7 +61,7 @@ fun HomeScreen(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Namaste, ${uiState.profile.name.substringBefore(" ")} 👋",
+                        text = "Namaste, ${uiState.profile.name.substringBefore(" ")}",
                         style = MaterialTheme.typography.headlineMedium
                     )
                     Text(

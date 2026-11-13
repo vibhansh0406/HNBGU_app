@@ -1,18 +1,14 @@
 package `in`.campusone.app.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -28,105 +24,139 @@ val DangerRed = Color(0xFFDC2626)
 val DangerRedContainer = Color(0xFFFEE2E2)
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF0F6B50), // Himalayan Pine Emerald
+    primary = Color(0xFF0E6B4F),
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFA6F2D4),
-    onPrimaryContainer = Color(0xFF002116),
+    primaryContainer = Color(0xFFCDEEDF),
+    onPrimaryContainer = Color(0xFF06281D),
     secondary = Color(0xFF3E5F90),
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFD6E3FF),
-    onSecondaryContainer = Color(0xFF001B3E),
+    secondaryContainer = Color(0xFFDCE7F7),
+    onSecondaryContainer = Color(0xFF10233F),
     tertiary = Color(0xFF7D5260),
-    background = Color(0xFFF7FBF8),
-    surface = Color(0xFFF7FBF8),
-    surfaceVariant = Color(0xFFDBE5DE),
-    onSurfaceVariant = Color(0xFF404944)
+    background = Color(0xFFF5F5F7),
+    onBackground = Color(0xFF17181A),
+    surface = Color(0xFFFFFFFF),
+    onSurface = Color(0xFF17181A),
+    surfaceVariant = Color(0xFFEDEEF0),
+    onSurfaceVariant = Color(0xFF6E7278),
+    outline = Color(0xFFC7C9CD),
+    error = Color(0xFFDC2626),
+    errorContainer = Color(0xFFFEE2E2),
+    onError = Color.White,
+    onErrorContainer = Color(0xFF410E0B)
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF8AD6B9),
-    onPrimary = Color(0xFF003828),
-    primaryContainer = Color(0xFF00513B),
-    onPrimaryContainer = Color(0xFFA6F2D4),
+    primary = Color(0xFF5BD6A8),
+    onPrimary = Color(0xFF003824),
+    primaryContainer = Color(0xFF0E4A36),
+    onPrimaryContainer = Color(0xFFB9EBD6),
     secondary = Color(0xFFA8C8FF),
     onSecondary = Color(0xFF04305F),
     secondaryContainer = Color(0xFF244777),
     onSecondaryContainer = Color(0xFFD6E3FF),
     tertiary = Color(0xFFEFB8C8),
-    background = Color(0xFF0F1512),
-    surface = Color(0xFF0F1512),
-    surfaceVariant = Color(0xFF404944),
-    onSurfaceVariant = Color(0xFFBFC9C2)
+    background = Color(0xFF000000),
+    onBackground = Color(0xFFF2F2F7),
+    surface = Color(0xFF1C1C1E),
+    onSurface = Color(0xFFF2F2F7),
+    surfaceVariant = Color(0xFF2C2C2E),
+    onSurfaceVariant = Color(0xFF9E9EA5),
+    outline = Color(0xFF48484A),
+    error = Color(0xFFFF6B60),
+    errorContainer = Color(0xFF3A0B08),
+    onError = Color(0xFF2B0503),
+    onErrorContainer = Color(0xFFFEE2E2)
 )
 
-// Material 3 Expressive Shapes (generous, friendly corner radii)
+// iOS-adjacent continuous-feeling corner radii
 val ExpressiveShapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),
+    extraSmall = RoundedCornerShape(10.dp),
     small = RoundedCornerShape(14.dp),
-    medium = RoundedCornerShape(20.dp),
-    large = RoundedCornerShape(28.dp),
-    extraLarge = RoundedCornerShape(32.dp)
+    medium = RoundedCornerShape(18.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(30.dp)
 )
 
+// SF-inspired type scale: heavy confident titles, calm body, tight tracking
 val ExpressiveTypography = Typography(
     headlineLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.ExtraBold,
-        fontSize = 30.sp,
-        lineHeight = 38.sp
+        fontWeight = FontWeight.Bold,
+        fontSize = 32.sp,
+        lineHeight = 38.sp,
+        letterSpacing = (-0.5).sp
     ),
     headlineMedium = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Bold,
-        fontSize = 24.sp,
-        lineHeight = 32.sp
+        fontSize = 26.sp,
+        lineHeight = 32.sp,
+        letterSpacing = (-0.4).sp
+    ),
+    headlineSmall = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 20.sp,
+        lineHeight = 26.sp,
+        letterSpacing = (-0.2).sp
     ),
     titleLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Bold,
-        fontSize = 20.sp,
-        lineHeight = 28.sp
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 19.sp,
+        lineHeight = 26.sp,
+        letterSpacing = (-0.2).sp
     ),
     titleMedium = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.SemiBold,
         fontSize = 16.sp,
-        lineHeight = 24.sp
+        lineHeight = 22.sp,
+        letterSpacing = (-0.1).sp
     ),
     bodyLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
-        lineHeight = 24.sp
+        lineHeight = 24.sp,
+        letterSpacing = (-0.1).sp
     ),
     bodyMedium = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
-        lineHeight = 20.sp
+        lineHeight = 20.sp,
+        letterSpacing = (-0.05).sp
     ),
     labelLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.SemiBold,
         fontSize = 14.sp,
         lineHeight = 20.sp
+    ),
+    labelMedium = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Medium,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.sp
+    ),
+    labelSmall = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
+        lineHeight = 14.sp,
+        letterSpacing = 0.2.sp
     )
 )
 
 @Composable
 fun CampusOneTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,

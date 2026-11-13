@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.Button
@@ -57,9 +55,8 @@ fun OnboardingScreen(
     ) -> Unit
 ) {
     val haptics = LocalHapticFeedback.current
-    var name by rememberSaveable { mutableStateOf("Aarav Rawat") }
-    var email by rememberSaveable { mutableStateOf("aarav.rawat@hnbgu.ac.in") }
-    var isGoogleSignedIn by rememberSaveable { mutableStateOf(false) }
+    var name by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
 
     val colleges = listOf(
         "HNB Garhwal University (Chauras / Birla Campus)",
@@ -112,7 +109,7 @@ fun OnboardingScreen(
             Text(
                 text = stringResource(R.string.welcome_title),
                 style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = stringResource(R.string.welcome_subtitle),
@@ -120,7 +117,7 @@ fun OnboardingScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            // 1. Google Sign-In Card
+            // 1. Your details (Google account is already signed in via the auth wall)
             ElevatedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier.padding(16.dp),
@@ -140,22 +137,6 @@ fun OnboardingScreen(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Button(
-                        onClick = {
-                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            isGoogleSignedIn = true
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(
-                            imageVector = if (isGoogleSignedIn) Icons.Default.Check else Icons.Default.AccountCircle,
-                            contentDescription = null
-                        )
-                        Text(
-                            text = if (isGoogleSignedIn) "Signed in as $email" else stringResource(R.string.sign_in_google),
-                            modifier = Modifier.padding(start = 8.dp)
-                        )
-                    }
                 }
             }
 
@@ -258,6 +239,7 @@ fun OnboardingScreen(
                         selectedRole
                     )
                 },
+                enabled = name.isNotBlank() && email.isNotBlank(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
