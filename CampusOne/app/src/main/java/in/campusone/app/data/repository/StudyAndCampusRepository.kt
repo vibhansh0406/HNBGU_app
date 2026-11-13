@@ -27,8 +27,8 @@ import `in`.campusone.app.util.StudyFileAndPdfHelper
 import `in`.campusone.app.util.security.SecurityUtils
 import `in`.campusone.app.data.preferences.UserPreferencesRepository
 import `in`.campusone.app.data.remote.AuthManager
+import `in`.campusone.app.data.remote.SupabaseClient
 import `in`.campusone.app.data.remote.SupabaseSyncRepository
-import io.github.kelvinino18.supabase.SupabaseClient
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first

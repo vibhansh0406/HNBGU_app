@@ -95,9 +95,6 @@ dependencies {
     implementation(libs.firebase.storage)
     implementation(libs.firebase.messaging)
 
-    // Supabase (Permanent Backend)
-    implementation(libs.supabase.kt)
-
     // Google Sign-In
     implementation(libs.play.services.auth)
 

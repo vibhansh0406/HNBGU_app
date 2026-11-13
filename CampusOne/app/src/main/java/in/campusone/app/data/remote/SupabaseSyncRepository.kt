@@ -1,8 +1,6 @@
 package `in`.campusone.app.data.remote
 
-import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
-import io.github.kelvinino18.supabase.SupabaseClient
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -56,10 +54,8 @@ class SupabaseSyncRepository @Inject constructor(
 
     suspend fun downloadProfile(uid: String): Map<String, Any>? {
         if (!isSyncedEnabled()) return null
-        return withContext(context.mainCoroutineScope.context) {
-            val result = supabaseClient.from("profiles").select("*").eq("id", uid).single().execute()
-            result.data as? Map<String, Any>
-        }
+        val result = supabaseClient.from("profiles").select("*").eq("id", uid).single().execute()
+        return result.data as? Map<String, Any>
     }
 
     // =========================================================================

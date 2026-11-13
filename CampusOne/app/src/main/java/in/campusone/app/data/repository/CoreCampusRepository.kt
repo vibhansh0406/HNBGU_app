@@ -8,8 +8,8 @@ import `in`.campusone.app.data.local.dao.AttendanceDao
 import `in`.campusone.app.data.local.dao.NoticeDao
 import `in`.campusone.app.data.local.dao.TimetableDao
 import `in`.campusone.app.data.remote.AuthManager
+import `in`.campusone.app.data.remote.SupabaseClient
 import `in`.campusone.app.data.remote.SupabaseSyncRepository
-import io.github.kelvinino18.supabase.SupabaseClient
 import `in`.campusone.app.data.local.entity.AttendanceLogEntity
 import `in`.campusone.app.data.local.entity.NoticeEntity
 import `in`.campusone.app.data.local.entity.SubjectEntity

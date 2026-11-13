@@ -9,17 +9,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
 import dagger.hilt.android.qualifiers.ApplicationContext
-import io.github.kelvinino18.supabase.SupabaseClient
-import io.github.kelvinino18.supabase.auth.AuthChangeEvent
-import io.github.kelvinino18.supabase.auth.AuthFlowError
-import io.github.kelvinino18.supabase.auth.Session
-import io.github.kelvinino18.supabase.auth.SupabaseAuth
-import io.github.kelvinino18.supabase.auth.UserAttributes
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.Result
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 @Singleton
 class AuthManager @Inject constructor(
@@ -37,8 +29,6 @@ class AuthManager @Inject constructor(
         GoogleSignIn.getClient(context, gso)
     }
 
-    val supabaseAuth: SupabaseAuth = supabaseClient.auth
-
     /** Initialize Google Sign-In client (call once). */
     fun initGoogleSignIn() {
         googleSignInClient // force initialization
@@ -54,14 +44,14 @@ class AuthManager @Inject constructor(
     }
 
     /** Exchange Google ID token with Supabase. Returns the Supabase session. */
-    suspend fun signInWithGoogle(idToken: String): Result<Session> {
+    suspend fun signInWithGoogle(idToken: String): Result<SupabaseSession> {
         return try {
-            // Supabase GoTrue supports Google OAuth via provider token
-            val session = supabaseClient.auth.signInWithIdToken(
-                provider = "google",
-                token = idToken
-            )
-            Result.success(session)
+            val session = supabaseClient.auth.signInWithIdToken("google", idToken)
+            if (session != null) {
+                Result.success(session)
+            } else {
+                Result.failure(Exception("Supabase sign-in returned null session"))
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -78,16 +68,14 @@ class AuthManager @Inject constructor(
     }
 
     /** Get current Supabase session. */
-    fun currentSession(): Session? = supabaseClient.auth.currentSession
+    fun currentSession(): SupabaseSession? = supabaseClient.auth.currentSession
 
-    /** Get current Supabase user. */
+    /** Get current Supabase user ID. */
     fun currentUserId(): String? = supabaseClient.auth.currentUser?.id
 
     /** Listen to auth state changes. */
-    fun onAuthStateChanged(callback: (Session?) -> Unit) {
-        supabaseClient.auth.authStateChanges { event, session ->
-            callback(session)
-        }
+    fun onAuthStateChanged(callback: (SupabaseSession?) -> Unit) {
+        supabaseClient.auth.authStateChanges(callback)
     }
 
     /** Create a Supabase user profile record after sign-in. */
