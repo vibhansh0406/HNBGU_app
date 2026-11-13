@@ -2,6 +2,8 @@ package `in`.campusone.app.data.remote
 
 import java.io.File
 import java.util.Properties
+
+data class SupabaseConfig(
     val url: String = "",
     val anonKey: String = "",
     val googleClientId: String = "",
