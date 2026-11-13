@@ -182,9 +182,9 @@ private class HttpSupabaseAuth(
         if (responseCode in 200..299) {
             return try {
                 val obj = org.json.JSONObject(json)
-                val accessToken = obj.optString("access_token", null)
+                val accessToken = obj.optString("access_token").takeIf { it.isNotBlank() }
                 val userObj = obj.optJSONObject("user")
-                val userId = userObj?.optString("id", null)
+                val userId = userObj?.optString("id")?.takeIf { it.isNotBlank() }
                 val session = SupabaseSession(accessToken, SupabaseUser(userId))
                 currentSessionValue = session
                 session

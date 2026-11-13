@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import dagger.hilt.android.qualifiers.ApplicationContext
 import `in`.campusone.app.data.preferences.UserPreferencesRepository
 import `in`.campusone.app.domain.model.UserProfile
 import `in`.campusone.app.domain.model.UserRole
@@ -17,7 +18,7 @@ import javax.inject.Singleton
 
 @Singleton
 class ModeratorRepository @Inject constructor(
-    private val context: Context,
+    @ApplicationContext private val context: Context,
     private val prefs: UserPreferencesRepository
 ) {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
