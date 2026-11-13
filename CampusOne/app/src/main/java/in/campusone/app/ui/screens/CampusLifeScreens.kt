@@ -329,6 +329,41 @@ fun LostAndFoundScreen(
                     )
                 }
             }
+            val myPendingClaims = uiState.contactRequests.filter { req ->
+                req.status == "PENDING" && uiState.lostFoundItems.any {
+                    it.id == req.itemId && it.posterUid == uiState.profile.uid
+                }
+            }
+            if (myPendingClaims.isNotEmpty()) {
+                Text(
+                    text = "Claim requests for your items",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+                myPendingClaims.forEach { req ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text(
+                                text = "${req.requesterName} wants to contact you",
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                TextButton(onClick = { viewModel.respondToClaimRequest(req, true) }) {
+                                    Text("Accept & share contact")
+                                }
+                                TextButton(onClick = { viewModel.respondToClaimRequest(req, false) }) {
+                                    Text("Ignore")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             if (items.isEmpty()) {
                 EmptyState("Nothing reported yet", Icons.Default.Search)
             } else {

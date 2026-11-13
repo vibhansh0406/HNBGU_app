@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Call
@@ -149,6 +150,7 @@ enum class MoreSubScreen {
 fun MoreHubScreen(
     uiState: StudyAndCampusUiState,
     viewModel: StudyAndCampusViewModel,
+    onSignOut: () -> Unit = {},
     adminViewModel: `in`.campusone.app.ui.viewmodel.AdminViewModel = hiltViewModel(),
     moderatorViewModel: `in`.campusone.app.ui.viewmodel.ModeratorViewModel = hiltViewModel()
 ) {
@@ -265,6 +267,14 @@ fun MoreHubScreen(
                     subtitle = "Zero ads, zero trackers, offline-first • MIT Open Source",
                     icon = Icons.Default.PrivacyTip,
                     onClick = { activeScreen = MoreSubScreen.PRIVACY_POLICY }
+                )
+            }
+            item {
+                FeatureHubCard(
+                    title = "Sign Out",
+                    subtitle = "Sign out of Google & Supabase on this device",
+                    icon = Icons.Default.AccountCircle,
+                    onClick = onSignOut
                 )
             }
             item { Spacer(modifier = Modifier.height(24.dp)) }
