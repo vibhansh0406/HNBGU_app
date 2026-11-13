@@ -14,7 +14,7 @@ enum class SlotLiveState {
     UPCOMING_LATER
 }
 
-data classEvaluatedSlot(
+data class EvaluatedSlot(
     val slot: TimetableSlot,
     val state: SlotLiveState,
     val minutesUntilStart: Long? = null,
@@ -41,7 +41,7 @@ object TimetableEngine {
         allSlots: List<TimetableSlot>,
         now: LocalDateTime,
         selectedSubjectIds: Set<String> = emptySet()
-    ): List<classEvaluatedSlot> {
+    ): List<EvaluatedSlot> {
         val todayDayValue = now.dayOfWeek.value
         val currentTime = now.toLocalTime()
 
@@ -57,11 +57,11 @@ object TimetableEngine {
 
             when {
                 !currentTime.isBefore(end) -> {
-                    classEvaluatedSlot(slot, SlotLiveState.COMPLETED)
+                    EvaluatedSlot(slot, SlotLiveState.COMPLETED)
                 }
                 !currentTime.isBefore(start) && currentTime.isBefore(end) -> {
                     val rem = Duration.between(currentTime, end).toMinutes()
-                    classEvaluatedSlot(slot, SlotLiveState.ONGOING, minutesRemaining = rem)
+                    EvaluatedSlot(slot, SlotLiveState.ONGOING, minutesRemaining = rem)
                 }
                 else -> {
                     val until = Duration.between(currentTime, start).toMinutes()
@@ -71,7 +71,7 @@ object TimetableEngine {
                     } else {
                         SlotLiveState.UPCOMING_LATER
                     }
-                    classEvaluatedSlot(slot, state, minutesUntilStart = until)
+                    EvaluatedSlot(slot, state, minutesUntilStart = until)
                 }
             }
         }

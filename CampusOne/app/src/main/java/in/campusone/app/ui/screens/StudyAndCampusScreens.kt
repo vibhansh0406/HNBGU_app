@@ -875,12 +875,9 @@ private fun InAppZoomableDocumentViewerDialog(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Key Concepts & Solved University Questions:
-" +
-                                "1. ${resource.title}
-" +
-                                "2. Time & Space Complexity / Derivation Steps
-" +
+                            text = "Key Concepts & Solved University Questions:\n" +
+                                "1. ${resource.title}\n" +
+                                "2. Time & Space Complexity / Derivation Steps\n" +
                                 "3. HNB Garhwal University Marking Scheme Notes",
                             style = MaterialTheme.typography.bodyMedium
                         )

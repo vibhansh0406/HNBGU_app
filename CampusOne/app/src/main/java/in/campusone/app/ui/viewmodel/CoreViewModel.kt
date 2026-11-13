@@ -17,7 +17,7 @@ import `in`.campusone.app.domain.usecase.AttendanceCalculator
 import `in`.campusone.app.domain.usecase.AttendanceInsight
 import `in`.campusone.app.domain.usecase.NextClassResult
 import `in`.campusone.app.domain.usecase.TimetableEngine
-import `in`.campusone.app.domain.usecase.classEvaluatedSlot
+import `in`.campusone.app.domain.usecase.EvaluatedSlot
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -45,7 +45,7 @@ data class CoreUiState(
     val subjectInsights: List<SubjectWithInsight> = emptyList(),
     val recentAttendanceLogs: List<AttendanceLogEntity> = emptyList(),
     val allTimetableSlots: List<TimetableSlot> = emptyList(),
-    val todaySchedule: List<classEvaluatedSlot> = emptyList(),
+    val todaySchedule: List<EvaluatedSlot> = emptyList(),
     val nextClass: NextClassResult? = null,
     val notices: List<NoticeItem> = emptyList(),
     val unreadNoticeCount: Int = 0

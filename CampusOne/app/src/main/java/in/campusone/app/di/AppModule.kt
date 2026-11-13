@@ -2,7 +2,6 @@ package `in`.campusone.app.di
 
 import android.content.Context
 import androidx.room.Room
-import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -44,10 +43,4 @@ object AppModule {
 
     @Provides
     fun provideCampusLifeDao(db: CampusOneDatabase): CampusLifeDao = db.campusLifeDao()
-
-    @Provides
-    @Singleton
-    fun provideFirestore(): FirebaseFirestore? {
-        return runCatching { FirebaseFirestore.getInstance() }.getOrNull()
-    }
 }

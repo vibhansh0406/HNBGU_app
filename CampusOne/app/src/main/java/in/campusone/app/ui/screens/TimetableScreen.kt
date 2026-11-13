@@ -51,7 +51,7 @@ import `in`.campusone.app.R
 import `in`.campusone.app.domain.model.TimetableSlot
 import `in`.campusone.app.domain.model.UserRole
 import `in`.campusone.app.domain.usecase.SlotLiveState
-import `in`.campusone.app.domain.usecase.classEvaluatedSlot
+import `in`.campusone.app.domain.usecase.EvaluatedSlot
 import `in`.campusone.app.ui.viewmodel.CoreUiState
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -215,7 +215,7 @@ fun TimetableScreen(
 }
 
 @Composable
-private fun EvaluatedSlotCard(evaluated: classEvaluatedSlot) {
+private fun EvaluatedSlotCard(evaluated: EvaluatedSlot) {
     val slot = evaluated.slot
     val isHighlighted = evaluated.state == SlotLiveState.ONGOING || evaluated.state == SlotLiveState.UP_NEXT
 
