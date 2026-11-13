@@ -29,21 +29,21 @@ class SessionStore @Inject constructor(
     val session: StateFlow<SupabaseSession?> = _session.asStateFlow()
 
     fun save(session: SupabaseSession?) {
-        prefs.edit().apply {
-            if (session == null) {
-                remove("access_token")
-                remove("refresh_token")
-                remove("expires_at")
-                remove("user_id")
-                remove("user_email")
-            } else {
-                putString("access_token", session.accessToken)
-                putString("refresh_token", session.refreshToken)
-                putLong("expires_at", session.expiresAt)
-                putString("user_id", session.user?.id)
-                putString("user_email", session.user?.email)
-            }
-        }.apply()
+        val editor = prefs.edit()
+        if (session == null) {
+            editor.remove("access_token")
+            editor.remove("refresh_token")
+            editor.remove("expires_at")
+            editor.remove("user_id")
+            editor.remove("user_email")
+        } else {
+            editor.putString("access_token", session.accessToken)
+            editor.putString("refresh_token", session.refreshToken)
+            editor.putLong("expires_at", session.expiresAt)
+            editor.putString("user_id", session.user?.id)
+            editor.putString("user_email", session.user?.email)
+        }
+        editor.apply()
         _session.value = session
     }
 

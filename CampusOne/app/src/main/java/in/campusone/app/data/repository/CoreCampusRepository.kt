@@ -59,7 +59,6 @@ class CoreCampusRepository @Inject constructor(
         if (currentSlots.isEmpty()) {
             attendanceDao.upsertSubjects(HnbguSeedData.defaultSubjects(sectionKey))
             timetableDao.upsertSlots(HnbguSeedData.defaultTimetable(sectionKey))
-            noticeDao.upsertNotices(HnbguSeedData.defaultNotices(sectionKey))
         }
 
         // Sync with Supabase if user is signed in (permanent backend)

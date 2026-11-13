@@ -97,6 +97,9 @@ interface StudyDao {
     @Query("UPDATE syllabus_topics SET isCompleted = :completed, updatedAtMillis = :now WHERE id = :id")
     suspend fun setSyllabusTopicCompleted(id: String, completed: Boolean, now: Long = System.currentTimeMillis())
 
+    @Query("DELETE FROM syllabus_topics WHERE id = :id")
+    suspend fun deleteSyllabusTopic(id: String)
+
     // GPA Semesters History
     @Query("SELECT * FROM gpa_semesters ORDER BY semesterNumber ASC")
     fun observeGpaSemesters(): Flow<List<GpaSemesterEntity>>
@@ -125,6 +128,9 @@ interface CampusLifeDao {
 
     @Query("UPDATE clubs SET adminUid = :adminUid, adminName = :adminName WHERE id = :clubId")
     suspend fun assignClubAdmin(clubId: String, adminUid: String, adminName: String)
+
+    @Query("DELETE FROM clubs WHERE id = :id")
+    suspend fun deleteClub(id: String)
 
     // 2. Events Feed
     @Query("SELECT * FROM campus_events WHERE collegeId = :collegeId ORDER BY eventEpochMillis ASC LIMIT :limit")

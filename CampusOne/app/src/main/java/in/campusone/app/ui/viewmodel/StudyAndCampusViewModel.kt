@@ -76,15 +76,7 @@ class StudyAndCampusViewModel @Inject constructor(
     val statusMessages = _statusMessages.asSharedFlow()
 
     private val _gpaScaleType = MutableStateFlow(GradingScaleType.TEN_POINT_INDIAN)
-    private val _gpaCourses = MutableStateFlow(
-        listOf(
-            CourseGradeInput("c1", "SOET-CS-301", "Data Structures & Algorithms", 4, 9.0),
-            CourseGradeInput("c2", "SOET-CS-302", "Operating Systems", 4, 8.0),
-            CourseGradeInput("c3", "SOET-CS-303", "Database Management Systems", 4, 9.0),
-            CourseGradeInput("c4", "SOS-MATH-301", "Discrete Mathematics (GE)", 4, 8.0),
-            CourseGradeInput("c5", "SOET-SEC-301", "Android App Development (SEC)", 2, 10.0)
-        )
-    )
+    private val _gpaCourses = MutableStateFlow<List<CourseGradeInput>>(emptyList())
     private val _gpaMultiplier = MutableStateFlow(9.5)
     private val _targetCgpa = MutableStateFlow(8.75)
     private val _upcomingCredits = MutableStateFlow(20)

@@ -58,6 +58,9 @@ interface TimetableDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertSlots(slots: List<TimetableSlotEntity>)
 
+    @Query("DELETE FROM timetable_slots WHERE id = :slotId")
+    suspend fun deleteSlot(slotId: String)
+
     @Query("DELETE FROM timetable_slots WHERE sectionKey = :sectionKey")
     suspend fun clearSectionTimetable(sectionKey: String)
 
@@ -72,6 +75,9 @@ interface TimetableDao {
 interface NoticeDao {
     @Query("SELECT * FROM notices WHERE sectionKey = :sectionKey ORDER BY isPinned DESC, createdAtMillis DESC")
     fun observeNotices(sectionKey: String): Flow<List<NoticeEntity>>
+
+    @Query("DELETE FROM notices WHERE id = :id")
+    suspend fun deleteNotice(id: String)
 
     @Query("SELECT COUNT(*) FROM notices WHERE sectionKey = :sectionKey AND isRead = 0")
     fun observeUnreadCount(sectionKey: String): Flow<Int>

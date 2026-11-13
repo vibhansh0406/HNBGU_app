@@ -72,7 +72,7 @@ class RoomConverters {
         CampusMapPlaceEntity::class
     ],
     version = 3,
-    exportSchema = false
+    exportSchema = true
 )
 @TypeConverters(RoomConverters::class)
 abstract class CampusOneDatabase : RoomDatabase() {

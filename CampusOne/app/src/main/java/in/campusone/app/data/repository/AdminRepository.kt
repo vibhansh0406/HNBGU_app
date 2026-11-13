@@ -82,7 +82,7 @@ class AdminRepository @Inject constructor(
         timetableDao.upsertSlots(slots)
 
     suspend fun deleteTimetableSlot(slotId: String, sectionKey: String) {
-        timetableDao.clearSectionTimetable(sectionKey)
+        timetableDao.deleteSlot(slotId)
     }
 
     // =========================================================================
@@ -94,9 +94,8 @@ class AdminRepository @Inject constructor(
     suspend fun upsertNotices(notices: List<NoticeEntity>) =
         noticeDao.upsertNotices(notices)
 
-    suspend fun deleteNotice(noticeId: String) {
-        // NoticeDao has no delete-by-id; keep read-state approach
-    }
+    suspend fun deleteNotice(noticeId: String) =
+        noticeDao.deleteNotice(noticeId)
 
     // =========================================================================
     // ASSIGNMENTS
@@ -131,9 +130,8 @@ class AdminRepository @Inject constructor(
     suspend fun upsertSyllabusTopics(items: List<SyllabusTopicEntity>) =
         studyDao.upsertSyllabusTopics(items)
 
-    suspend fun deleteSyllabusTopic(id: String) {
-        // No delete-by-id on StudyDao; leave as-is
-    }
+    suspend fun deleteSyllabusTopic(id: String) =
+        studyDao.deleteSyllabusTopic(id)
 
     // =========================================================================
     // STUDY RESOURCES
@@ -159,9 +157,8 @@ class AdminRepository @Inject constructor(
     suspend fun approveClub(clubId: String) =
         campusLifeDao.approveClubByCr(clubId)
 
-    suspend fun deleteClub(clubId: String) {
-        // No delete-by-id on CampusLifeDao
-    }
+    suspend fun deleteClub(clubId: String) =
+        campusLifeDao.deleteClub(clubId)
 
     // =========================================================================
     // EVENTS

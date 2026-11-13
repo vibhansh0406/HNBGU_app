@@ -59,6 +59,7 @@ fun ModeratorManagementScreen(
     var showDialog by rememberSaveable { mutableStateOf(false) }
     var editingUid by rememberSaveable { mutableStateOf<String?>(null) }
     var editName by rememberSaveable { mutableStateOf("") }
+    var editEmail by rememberSaveable { mutableStateOf("") }
     var editScope by rememberSaveable { mutableStateOf("") }
 
     Scaffold(
@@ -215,13 +216,15 @@ fun ModeratorManagementScreen(
         ModeratorDialog(
             isAdmin = uiState.isAdmin,
             name = editName,
+            email = editEmail,
             scope = editScope,
             onNameChange = { editName = it },
+            onEmailChange = { editEmail = it },
             onScopeChange = { editScope = it },
             onDismiss = { showDialog = false; editingUid = null },
             onSave = {
                 if (editingUid == null) {
-                    viewModel.appointModerator(editName, uiState.newModeratorEmail, editScope)
+                    viewModel.appointModerator(editName, editEmail, editScope)
                 } else {
                     // For editing an existing moderator, update scope
                     val target = uiState.moderators.find { it.uid == editingUid }
@@ -309,8 +312,10 @@ private fun ModeratorRow(
 private fun ModeratorDialog(
     isAdmin: Boolean,
     name: String,
+    email: String,
     scope: String,
     onNameChange: (String) -> Unit,
+    onEmailChange: (String) -> Unit,
     onScopeChange: (String) -> Unit,
     onDismiss: () -> Unit,
     onSave: () -> Unit
@@ -328,6 +333,13 @@ private fun ModeratorDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
+                    value = email,
+                    onValueChange = onEmailChange,
+                    label = { Text("Email") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
                     value = scope,
                     onValueChange = onScopeChange,
                     label = { Text("Department / Course (e.g. BSc Life Science)") },
@@ -339,7 +351,7 @@ private fun ModeratorDialog(
         confirmButton = {
             Button(
                 onClick = onSave,
-                enabled = name.isNotBlank() && scope.isNotBlank()
+                enabled = name.isNotBlank() && email.isNotBlank() && scope.isNotBlank()
             ) {
                 Text("Save")
             }
