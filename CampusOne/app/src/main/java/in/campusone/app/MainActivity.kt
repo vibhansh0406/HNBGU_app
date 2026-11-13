@@ -1,9 +1,14 @@
 package `in`.campusone.app
 
+import android.content.Intent
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Campaign
@@ -13,25 +18,37 @@ import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextAlign
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import com.google.android.gms.auth.api.signin.GoogleSignIn
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import `in`.campusone.app.data.remote.AuthManager
 import `in`.campusone.app.ui.screens.AttendanceScreen
 import `in`.campusone.app.ui.screens.HomeScreen
 import `in`.campusone.app.ui.screens.MoreHubScreen
@@ -41,6 +58,7 @@ import `in`.campusone.app.ui.screens.TimetableScreen
 import `in`.campusone.app.ui.theme.CampusOneTheme
 import `in`.campusone.app.ui.viewmodel.CoreViewModel
 import `in`.campusone.app.ui.viewmodel.StudyAndCampusViewModel
+import kotlinx.coroutines.launch
 
 enum class BottomNavTab {
     HOME, ATTENDANCE, TIMETABLE, NOTICES, MORE
@@ -48,12 +66,53 @@ enum class BottomNavTab {
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var authManager: AuthManager
+
+    private val googleSignInLauncher: ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            result.data?.let { data ->
+                val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+                if (task.isSuccessful) {
+                    task.result?.let { account ->
+                        val idToken = account.idToken
+                        if (idToken != null) {
+                            lifecycleScope.launch {
+                                val result = authManager.signInWithGoogle(idToken)
+                                if (result.isSuccess) {
+                                    val session = result.getOrNull()
+                                    session?.user?.id?.let { uid ->
+                                        authManager.ensureUserProfile(
+                                            uid = uid,
+                                            email = account.email,
+                                            name = account.displayName,
+                                            role = "STUDENT"
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        authManager.initGoogleSignIn()
         setContent {
             CampusOneTheme {
-                CampusOneRoot()
+                CampusOneRoot(
+                    onGoogleSignIn = {
+                        googleSignInLauncher.launch(authManager.getSignInIntent())
+                    },
+                    isSignedIn = { authManager.currentSession() != null },
+                    onSignOut = {
+                        lifecycleScope.launch { authManager.signOut() }
+                    }
+                )
             }
         }
     }
@@ -61,6 +120,9 @@ class MainActivity : AppCompatActivity() {
 
 @Composable
 fun CampusOneRoot(
+    onGoogleSignIn: () -> Unit,
+    isSignedIn: () -> Boolean,
+    onSignOut: () -> Unit,
     coreViewModel: CoreViewModel = hiltViewModel(),
     studyCampusViewModel: StudyAndCampusViewModel = hiltViewModel()
 ) {
@@ -80,10 +142,21 @@ fun CampusOneRoot(
         }
     }
 
+    // If not signed in to Supabase/Google, show sign-in screen
+    if (!isSignedIn()) {
+        SignInScreen(onGoogleSignIn = onGoogleSignIn)
+        return
+    }
+
+    // If not onboarded locally, show onboarding
     if (!coreState.isOnboarded) {
         OnboardingScreen(
             onToggleLanguage = coreViewModel::toggleLanguage,
-            onCompleteSetup = coreViewModel::completeOnboarding
+            onCompleteSetup = { name, email, collegeName, courseId, courseName, semester, section, role ->
+                coreViewModel.completeOnboarding(
+                    name, email, collegeName, courseId, courseName, semester, section, role
+                )
+            }
         )
         return
     }
@@ -168,6 +241,73 @@ fun CampusOneRoot(
                     viewModel = studyCampusViewModel
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun SignInScreen(onGoogleSignIn: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.School,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(64.dp)
+            )
+            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = stringResource(`in`.campusone.app.R.string.welcome_title),
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(`in`.campusone.app.R.string.welcome_subtitle),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(32.dp))
+            Button(
+                onClick = onGoogleSignIn,
+                modifier = Modifier.fillMaxWidth().height(56.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(`in`.campusone.app.R.string.sign_in_google),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Sign in with Google to sync your data permanently across devices.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }

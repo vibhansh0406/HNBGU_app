@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0a0b12">
+  <title>Aura — Energy & Rhythm</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body{visibility:hidden}
+    body.ready{visibility:visible}
+    /* safety: never stay blank longer than 3s even if JS fails */
+    @keyframes __aura_show{from{visibility:hidden}to{visibility:visible}}
+    body.__aura_fallback{animation:__aura_show 0.01s forwards 3s}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header class="bar" id="shell-bar">
+      <div class="brand" id="shell-brand"><div class="mark">A</div>Aura</div>
+      <div class="bar-right" id="shell-bar-right"></div>
+    </header>
+    <div id="views"></div>
+    <nav class="bottom-nav" id="shell-nav">
+      <a class="nav-tab" data-tab="home" href="#home"><span class="ic">✦</span><span>Home</span></a>
+      <a class="nav-tab" data-tab="rhythm" href="#rhythm"><span class="ic">📈</span><span>Rhythm</span></a>
+      <a class="nav-tab" data-tab="history" href="#history"><span class="ic">🕓</span><span>History</span></a>
+      <a class="nav-tab" data-tab="settings" href="#settings"><span class="ic">⚙️</span><span>Settings</span></a>
+    </nav>
+  </div>
+  <script src="app.js"></script>
+  <script>
+    // capture init errors so we never stay blank
+    window.addEventListener("error", (e) => {
+      try{ console.error("Aura error:", e.message, e.filename, e.lineno); }catch(_){}
+      document.body.classList.add("__aura_fallback", "ready");
+    });
+    (function(){
+      const start = Date.now();
+      const force = setTimeout(() => {
+        document.body.classList.add("__aura_fallback", "ready");
+      }, 3000);
+      if (document.readyState === "loading") {
+        window.addEventListener("load", () => {
+          clearTimeout(force);
+          document.body.classList.add("ready");
+        });
+      } else {
+        clearTimeout(force);
+        document.body.classList.add("ready");
+      }
+    })();
+  </script>
+</body>
+</html>

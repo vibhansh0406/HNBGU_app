@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="campusone_background">#F7FBF8</color>
+    <color name="campusone_background_dark">#0F1512</color>
+    <color name="campusone_primary">#0F6B50</color>
+    <color name="campusone_primary_container">#A6F2D4</color>
+    <color name="campusone_surface">#F7FBF8</color>
+    <color name="campusone_surface_dark">#0F1512</color>
+</resources>

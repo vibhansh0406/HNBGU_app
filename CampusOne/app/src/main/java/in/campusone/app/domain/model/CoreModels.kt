@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class UserRole {
-    STUDENT, CR, TEACHER, CLUB_ADMIN
+    STUDENT, CR, TEACHER, CLUB_ADMIN, ADMIN, MODERATOR
 }
 
 @Serializable
@@ -46,10 +46,18 @@ data class UserProfile(
     val assignedSectionKeys: List<String> = emptyList(),
     val selectedSubjectIds: List<String> = emptyList(),
     val managedClubIds: List<String> = listOf("club_gdsc_hnbgu"),
-    val lastPostTimestampMillis: Long = 0L
+    val lastPostTimestampMillis: Long = 0L,
+    /** Department/course this moderator manages (e.g. "BSc Life Science", "BTech CS"). Empty for non-moderators. */
+    val moderatorScope: String = "",
+    /** Whether this moderator appointment is approved by an Admin. */
+    val isModeratorApproved: Boolean = false
 ) {
     val sectionKey: String
         get() = "${collegeId}_${courseId}_sem${semester}_sec${section}"
+
+    /** True only if the user is a MODERATOR AND their appointment is approved. */
+    val isActiveModerator: Boolean
+        get() = role == UserRole.MODERATOR && isModeratorApproved && moderatorScope.isNotBlank()
 }
 
 @Serializable

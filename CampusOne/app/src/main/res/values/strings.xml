@@ -24,6 +24,8 @@
     <string name="role_cr">Class Representative (CR)</string>
     <string name="role_teacher">Teacher / Faculty</string>
     <string name="role_club_admin">Club Admin</string>
+    <string name="role_admin">App Admin</string>
+    <string name="role_moderator">Department Moderator</string>
     <string name="complete_setup">Complete Setup</string>
 
     <!-- Attendance -->
@@ -113,4 +115,32 @@
 
     <string name="privacy_policy">Privacy &amp; Open Source (MIT)</string>
     <string name="language_toggle">Language: English / हिन्दी</string>
+
+    <!-- Admin / Moderator -->
+    <string name="admin_panel">Admin Panel</string>
+    <string name="admin_dashboard">Admin Dashboard</string>
+    <string name="admin_manage_users">Manage Users</string>
+    <string name="admin_manage_moderators">Manage Moderators</string>
+    <string name="admin_manage_notices">Manage Notices</string>
+    <string name="admin_manage_timetable">Manage Timetable</string>
+    <string name="admin_manage_subjects">Manage Subjects</string>
+    <string name="admin_manage_assignments">Manage Assignments</string>
+    <string name="admin_manage_exams">Manage Exams</string>
+    <string name="admin_manage_clubs">Manage Clubs</string>
+    <string name="admin_manage_events">Manage Events</string>
+    <string name="admin_manage_lost_found">Lost &amp; Found</string>
+    <string name="admin_manage_directory">Directory</string>
+    <string name="moderator_title">Moderator Management</string>
+    <string name="moderator_subtitle">Assign department moderators (BSc Life Science, BTech CS, etc.)</string>
+    <string name="moderator_scope_hint">Department / Course scope (e.g. BSc Life Science)</string>
+    <string name="moderator_assign">Assign Moderator</string>
+    <string name="moderator_revoke">Revoke Moderator</string>
+    <string name="moderator_approved">Approved</string>
+    <string name="moderator_pending">Pending Approval</string>
+    <string name="moderator_scope">Scope</string>
+    <string name="moderator_only_own">Moderators see only their department data</string>
+    <string name="security_input_required">This field is required</string>
+    <string name="security_invalid_email">Please enter a valid email</string>
+    <string name="security_access_denied">Access denied: insufficient permissions</string>
+    <string name="security_action_blocked">This action is blocked for your role</string>
 </resources>

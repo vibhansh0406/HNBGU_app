@@ -24,6 +24,8 @@
     <string name="role_cr">क्लास रिप्रेजेंटेटिव (CR)</string>
     <string name="role_teacher">शिक्षक / प्राध्यापक (Teacher)</string>
     <string name="role_club_admin">क्लब एडमिन (Club Admin)</string>
+    <string name="role_admin">ऐप एडमिन (App Admin)</string>
+    <string name="role_moderator">विभागीय मॉडरेटर (Department Moderator)</string>
     <string name="complete_setup">सेटअप पूरा करें</string>
 
     <!-- Attendance -->

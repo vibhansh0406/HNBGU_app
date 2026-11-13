@@ -18,10 +18,17 @@ import `in`.campusone.app.data.local.entity.LostFoundEntity
 import `in`.campusone.app.data.local.entity.StudyResourceEntity
 import `in`.campusone.app.data.local.entity.SyllabusTopicEntity
 import `in`.campusone.app.domain.model.EventRsvpStatus
+import `in`.campusone.app.domain.model.UserProfile
+import `in`.campusone.app.domain.model.UserRole
 import `in`.campusone.app.domain.usecase.CampusLifeEngine
 import `in`.campusone.app.domain.usecase.CourseGradeInput
 import `in`.campusone.app.domain.usecase.SemesterGpaRecord
 import `in`.campusone.app.util.StudyFileAndPdfHelper
+import `in`.campusone.app.util.security.SecurityUtils
+import `in`.campusone.app.data.preferences.UserPreferencesRepository
+import `in`.campusone.app.data.remote.AuthManager
+import `in`.campusone.app.data.remote.SupabaseSyncRepository
+import io.github.kelvinino18.supabase.SupabaseClient
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -36,7 +43,11 @@ import javax.inject.Singleton
 class StudyAndCampusRepository @Inject constructor(
     @ApplicationContext private val context: Context,
     private val studyDao: StudyDao,
-    private val campusLifeDao: CampusLifeDao
+    private val campusLifeDao: CampusLifeDao,
+    private val prefs: UserPreferencesRepository,
+    private val supabaseClient: SupabaseClient,
+    private val supabaseSync: SupabaseSyncRepository,
+    private val authManager: AuthManager
 ) {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
@@ -55,6 +66,65 @@ class StudyAndCampusRepository @Inject constructor(
     }
 
     suspend fun ensureStudyAndCampusSeeded(sectionKey: String, collegeId: String = "hnbgu") {
+        val profile = prefs.userProfile.first()
+        SecurityUtils.requireScopeMatch(
+            moderatorScope = profile.moderatorScope,
+            targetScope = profile.courseId,
+            role = profile.role
+        ).getOrThrow()
+
+        // Sync from Supabase if user is signed in (permanent backend)
+        if (supabaseSync.isSyncedEnabled()) {
+            val remoteExams = supabaseSync.downloadExams(sectionKey)
+            if (remoteExams.isNotEmpty()) {
+                studyDao.upsertExams(remoteExams.map { map ->
+                    ExamEntity(
+                        id = map["id"] as? String ?: "exam_${System.currentTimeMillis()}",
+                        sectionKey = sectionKey,
+                        subjectId = map["subject_id"] as? String ?: "",
+                        subjectName = map["subject_name"] as? String ?: "",
+                        subjectCode = map["subject_code"] as? String ?: "",
+                        examTitle = map["exam_title"] as? String ?: "",
+                        examDateEpochMillis = (map["exam_date_epoch_millis"] as? Number)?.toLong() ?: System.currentTimeMillis(),
+                        examDateIso = map["exam_date_iso"] as? String ?: "",
+                        examTimeFormatted = map["exam_time_formatted"] as? String ?: "",
+                        examDateFormatted = map["exam_date_formatted"] as? String ?: "",
+                        roomOrCenter = map["room_or_center"] as? String ?: "",
+                        reminderEnabled = map["reminder_enabled"] as? Boolean ?: true,
+                        publishedByCrOrTeacher = map["published_by_cr_or_teacher"] as? Boolean ?: true,
+                        updatedAtMillis = System.currentTimeMillis()
+                    )
+                })
+            }
+            val remoteAssignments = supabaseSync.downloadAssignments(sectionKey)
+            if (remoteAssignments.isNotEmpty()) {
+                studyDao.upsertAssignments(remoteAssignments.map { map ->
+                    AssignmentEntity(
+                        id = map["id"] as? String ?: "assign_${System.currentTimeMillis()}",
+                        sectionKey = sectionKey,
+                        subjectId = map["subject_id"] as? String ?: "",
+                        subjectTag = map["subject_tag"] as? String ?: "",
+                        title = map["title"] as? String ?: "",
+                        description = map["description"] as? String ?: "",
+                        priority = map["priority"] as? String ?: "MEDIUM",
+                        dueDateEpochMillis = (map["due_date_epoch_millis"] as? Number)?.toLong() ?: System.currentTimeMillis(),
+                        dueDateFormatted = map["due_date_formatted"] as? String ?: "",
+                        reminderEnabled = map["reminder_enabled"] as? Boolean ?: true,
+                        remind1DayBefore = map["remind_1_day_before"] as? Boolean ?: true,
+                        remind2HoursBefore = map["remind_2_hours_before"] as? Boolean ?: true,
+                        isCompleted = map["is_completed"] as? Boolean ?: false,
+                        isSharedByCrOrTeacher = map["is_shared_by_cr_or_teacher"] as? Boolean ?: false,
+                        isAddedToPersonalList = map["is_added_to_personal_list"] as? Boolean ?: true,
+                        sharedSourceId = map["shared_source_id"] as? String?,
+                        authorName = map["author_name"] as? String ?: "Self",
+                        isSynced = map["is_synced"] as? Boolean ?: false,
+                        createdAtMillis = System.currentTimeMillis(),
+                        updatedAtMillis = System.currentTimeMillis()
+                    )
+                })
+            }
+        }
+
         val currentExams = studyDao.observeExams().first()
         if (currentExams.isNotEmpty()) {
             // Always run 30-day Lost & Found auto-archive sweep on startup
@@ -726,6 +796,32 @@ class StudyAndCampusRepository @Inject constructor(
             authorName = authorName
         )
         studyDao.upsertAssignments(listOf(entity))
+
+        // Supabase permanent sync
+        if (supabaseSync.isSyncedEnabled()) {
+            supabaseSync.uploadAssignments(sectionKey, listOf(mapOf(
+                "id" to entity.id,
+                "section_key" to entity.sectionKey,
+                "subject_id" to entity.subjectId,
+                "subject_tag" to entity.subjectTag,
+                "title" to entity.title,
+                "description" to entity.description,
+                "priority" to entity.priority,
+                "due_date_epoch_millis" to entity.dueDateEpochMillis,
+                "due_date_formatted" to entity.dueDateFormatted,
+                "reminder_enabled" to entity.reminderEnabled,
+                "remind_1_day_before" to entity.remind1DayBefore,
+                "remind_2_hours_before" to entity.remind2HoursBefore,
+                "is_completed" to entity.isCompleted,
+                "is_shared_by_cr_or_teacher" to entity.isSharedByCrOrTeacher,
+                "is_added_to_personal_list" to entity.isAddedToPersonalList,
+                "shared_source_id" to entity.sharedSourceId,
+                "author_name" to entity.authorName,
+                "is_synced" to entity.isSynced,
+                "created_at" to entity.createdAtMillis,
+                "updated_at" to entity.updatedAtMillis
+            )))
+        }
     }
 
     suspend fun addSharedAssignmentToPersonalList(id: String) =
@@ -769,6 +865,26 @@ class StudyAndCampusRepository @Inject constructor(
             publishedByCrOrTeacher = publishedByCr
         )
         studyDao.upsertExams(listOf(entity))
+
+        // Supabase permanent sync
+        if (supabaseSync.isSyncedEnabled()) {
+            supabaseSync.uploadExams(sectionKey, listOf(mapOf(
+                "id" to entity.id,
+                "section_key" to entity.sectionKey,
+                "subject_id" to entity.subjectId,
+                "subject_name" to entity.subjectName,
+                "subject_code" to entity.subjectCode,
+                "exam_title" to entity.examTitle,
+                "exam_date_epoch_millis" to entity.examDateEpochMillis,
+                "exam_date_iso" to entity.examDateIso,
+                "exam_time_formatted" to entity.examTimeFormatted,
+                "exam_date_formatted" to entity.examDateFormatted,
+                "room_or_center" to entity.roomOrCenter,
+                "reminder_enabled" to entity.reminderEnabled,
+                "published_by_cr_or_teacher" to entity.publishedByCrOrTeacher,
+                "updated_at" to entity.updatedAtMillis
+            )))
+        }
     }
 
     suspend fun addSyllabusTopic(
@@ -1051,7 +1167,7 @@ class StudyAndCampusRepository @Inject constructor(
                 contactId = contactId,
                 contactName = contactName,
                 suggesterUid = suggesterUid,
-                suggesterName = sugggesterName,
+                suggesterName = suggesterName,
                 proposedChange = proposedChange.trim(),
                 status = "PENDING"
             )

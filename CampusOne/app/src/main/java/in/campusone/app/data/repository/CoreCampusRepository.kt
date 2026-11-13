@@ -7,6 +7,9 @@ import `in`.campusone.app.data.local.HnbguSeedData
 import `in`.campusone.app.data.local.dao.AttendanceDao
 import `in`.campusone.app.data.local.dao.NoticeDao
 import `in`.campusone.app.data.local.dao.TimetableDao
+import `in`.campusone.app.data.remote.AuthManager
+import `in`.campusone.app.data.remote.SupabaseSyncRepository
+import io.github.kelvinino18.supabase.SupabaseClient
 import `in`.campusone.app.data.local.entity.AttendanceLogEntity
 import `in`.campusone.app.data.local.entity.NoticeEntity
 import `in`.campusone.app.data.local.entity.SubjectEntity
@@ -19,6 +22,7 @@ import `in`.campusone.app.domain.model.SubjectAttendanceSummary
 import `in`.campusone.app.domain.model.TimetableSlot
 import `in`.campusone.app.domain.model.UserProfile
 import `in`.campusone.app.domain.model.UserRole
+import `in`.campusone.app.util.security.SecurityUtils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -33,7 +37,10 @@ class CoreCampusRepository @Inject constructor(
     private val timetableDao: TimetableDao,
     private val noticeDao: NoticeDao,
     private val prefs: UserPreferencesRepository,
-    private val firestore: FirebaseFirestore?
+    private val firestore: FirebaseFirestore?,
+    private val supabaseClient: SupabaseClient,
+    private val supabaseSync: SupabaseSyncRepository,
+    private val authManager: AuthManager
 ) {
 
     /**
@@ -41,17 +48,75 @@ class CoreCampusRepository @Inject constructor(
      * HNB Garhwal University default section timetable, subjects, and notices are seeded.
      */
     suspend fun ensureSeededForSection(sectionKey: String) {
+        val profile = prefs.userProfile.first()
+        SecurityUtils.requireScopeMatch(
+            moderatorScope = profile.moderatorScope,
+            targetScope = profile.courseId,
+            role = profile.role
+        ).getOrThrow()
+
         val currentSlots = timetableDao.getTimetableSnapshot(sectionKey)
         if (currentSlots.isEmpty()) {
             attendanceDao.upsertSubjects(HnbguSeedData.defaultSubjects(sectionKey))
             timetableDao.upsertSlots(HnbguSeedData.defaultTimetable(sectionKey))
             noticeDao.upsertNotices(HnbguSeedData.defaultNotices(sectionKey))
         }
+
+        // Sync with Supabase if user is signed in (permanent backend)
+        if (supabaseSync.isSyncedEnabled()) {
+            // Pull timetable & notices from Supabase
+            val remoteSlots = supabaseSync.downloadTimetable(sectionKey)
+            if (remoteSlots.isNotEmpty()) {
+                timetableDao.replaceSectionTimetable(sectionKey, remoteSlots.map { map ->
+                    TimetableSlotEntity(
+                        id = map["id"] as? String ?: "${sectionKey}_${System.currentTimeMillis()}",
+                        sectionKey = sectionKey,
+                        subjectId = map["subject_id"] as? String ?: "",
+                        subjectName = map["subject_name"] as? String ?: "",
+                        subjectCode = map["subject_code"] as? String ?: "",
+                        teacherName = map["teacher_name"] as? String ?: "",
+                        roomNumber = map["room_number"] as? String ?: "",
+                        dayOfWeek = (map["day_of_week"] as? Number)?.toInt() ?: 1,
+                        startTime = map["start_time"] as? String ?: "09:00",
+                        endTime = map["end_time"] as? String ?: "10:00",
+                        isElective = map["is_elective"] as? Boolean ?: false,
+                        updatedAtMillis = System.currentTimeMillis()
+                    )
+                })
+            }
+            val remoteNotices = supabaseSync.downloadNotices(sectionKey)
+            if (remoteNotices.isNotEmpty()) {
+                noticeDao.upsertNotices(remoteNotices.map { map ->
+                    NoticeEntity(
+                        id = map["id"] as? String ?: "notice_${System.currentTimeMillis()}",
+                        sectionKey = sectionKey,
+                        title = map["title"] as? String ?: "",
+                        body = map["body"] as? String ?: "",
+                        attachmentUrl = map["attachment_url"] as? String?,
+                        attachmentType = runCatchingDefault({
+                            AttachmentType.valueOf(map["attachment_type"] as? String ?: "NONE")
+                        }, AttachmentType.NONE),
+                        isPinned = map["is_pinned"] as? Boolean ?: false,
+                        authorUid = map["author_uid"] as? String ?: "",
+                        authorName = map["author_name"] as? String ?: "Faculty",
+                        authorRole = runCatchingDefault({
+                            UserRole.valueOf(map["author_role"] as? String ?: "CR")
+                        }, UserRole.CR),
+                        createdAtMillis = (map["created_at"] as? String)?.let { it.toLong() } ?: System.currentTimeMillis(),
+                        isRead = map["is_read"] as? Boolean ?: false
+                    )
+                })
+            }
+        }
+
         // Subscribe to section FCM topic for zero-cost push notifications
         runCatching {
             FirebaseMessaging.getInstance().subscribeToTopic("sec_$sectionKey")
         }
     }
+
+    private fun <T> runCatchingDefault(block: () -> T, default: T): T =
+        runCatching { block() }.getOrDefault(default)
 
     /**
      * Reactive stream of per-subject attendance summaries computed from local Room DB logs.
@@ -162,6 +227,27 @@ class CoreCampusRepository @Inject constructor(
         )
         timetableDao.upsertSlots(listOf(entity))
 
+        // Supabase permanent sync
+        if (supabaseSync.isSyncedEnabled()) {
+            val allSectionSlots = timetableDao.getTimetableSnapshot(profile.sectionKey)
+            supabaseSync.uploadTimetable(profile.sectionKey, allSectionSlots.map { it ->
+                mapOf(
+                    "id" to it.id,
+                    "section_key" to it.sectionKey,
+                    "subject_id" to it.subjectId,
+                    "subject_name" to it.subjectName,
+                    "subject_code" to it.subjectCode,
+                    "teacher_name" to it.teacherName,
+                    "room_number" to it.roomNumber,
+                    "day_of_week" to it.dayOfWeek,
+                    "start_time" to it.startTime,
+                    "end_time" to it.endTime,
+                    "is_elective" to it.isElective,
+                    "updated_at" to System.currentTimeMillis()
+                )
+            })
+        }
+
         // Sync whole-section timetable as a single Firestore document (1 read/write optimization)
         val allSectionSlots = timetableDao.getTimetableSnapshot(profile.sectionKey)
         firestore?.collection("sections")
@@ -255,6 +341,25 @@ class CoreCampusRepository @Inject constructor(
             isRead = true
         )
         noticeDao.upsertNotices(listOf(entity))
+
+        // Supabase permanent sync
+        if (supabaseSync.isSyncedEnabled()) {
+            supabaseSync.uploadNotices(profile.sectionKey, listOf(mapOf(
+                "id" to entity.id,
+                "section_key" to entity.sectionKey,
+                "title" to entity.title,
+                "body" to entity.body,
+                "attachment_url" to entity.attachmentUrl,
+                "attachment_type" to entity.attachmentType.name,
+                "is_pinned" to entity.isPinned,
+                "author_uid" to entity.authorUid,
+                "author_name" to entity.authorName,
+                "author_role" to entity.authorRole.name,
+                "created_at" to entity.createdAtMillis,
+                "updated_at" to now,
+                "is_read" to entity.isRead
+            )))
+        }
 
         firestore?.collection("sections")
             ?.document(profile.sectionKey)
@@ -387,6 +492,33 @@ class CoreCampusRepository @Inject constructor(
             if (entities.isNotEmpty()) {
                 noticeDao.upsertNotices(entities)
                 prefs.updateSyncTimestamps(noticeSync = maxUpdated)
+            }
+        }
+
+        // 4. Supabase permanent sync (if user signed in)
+        if (supabaseSync.isSyncedEnabled()) {
+            runCatching {
+                // Upload unsynced attendance logs to Supabase profiles table
+                val uid = authManager.currentUserId()
+                if (uid != null) {
+                    val unsynced = attendanceDao.getUnsyncedLogs()
+                    if (unsynced.isNotEmpty()) {
+                        supabaseClient.from("attendance_logs").upsert(
+                            unsynced.map { log ->
+                                mapOf(
+                                    "id" to log.id,
+                                    "user_id" to uid,
+                                    "subject_id" to log.subjectId,
+                                    "date_iso" to log.dateIso,
+                                    "status" to log.status.name,
+                                    "note" to log.note,
+                                    "updated_at" to log.updatedAtMillis
+                                )
+                            }
+                        ).execute()
+                        attendanceDao.markLogsSynced(unsynced.map { it.id })
+                    }
+                }
             }
         }
     }

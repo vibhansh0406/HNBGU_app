@@ -231,6 +231,8 @@ fun OnboardingScreen(
                         UserRole.CR -> stringResource(R.string.role_cr)
                         UserRole.TEACHER -> stringResource(R.string.role_teacher)
                         UserRole.CLUB_ADMIN -> stringResource(R.string.role_club_admin)
+                        UserRole.ADMIN -> stringResource(R.string.role_admin)
+                        UserRole.MODERATOR -> stringResource(R.string.role_moderator)
                     }
                     FilterChip(
                         selected = selectedRole == role,

@@ -79,6 +79,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -101,6 +102,9 @@ import `in`.campusone.app.domain.usecase.GradingScaleType
 import `in`.campusone.app.domain.usecase.SemesterGpaRecord
 import `in`.campusone.app.ui.viewmodel.StudyAndCampusUiState
 import `in`.campusone.app.ui.viewmodel.StudyAndCampusViewModel
+import `in`.campusone.app.ui.screens.admin.AdminHubScreen
+import `in`.campusone.app.ui.screens.admin.ModeratorManagementScreen
+import `in`.campusone.app.ui.viewmodel.ModeratorViewModel
 import java.io.File
 import java.util.Locale
 
@@ -113,16 +117,29 @@ enum class MoreSubScreen {
     EVENTS_CLUBS,
     LOST_FOUND,
     DIRECTORY,
-    PRIVACY_POLICY
+    PRIVACY_POLICY,
+    ADMIN_PANEL,
+    ADMIN_MODERATORS
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MoreHubScreen(
     uiState: StudyAndCampusUiState,
-    viewModel: StudyAndCampusViewModel
+    viewModel: StudyAndCampusViewModel,
+    adminViewModel: `in`.campusone.app.ui.viewmodel.AdminViewModel = hiltViewModel(),
+    moderatorViewModel: `in`.campusone.app.ui.viewmodel.ModeratorViewModel = hiltViewModel()
 ) {
     var activeScreen by rememberSaveable { mutableStateOf(MoreSubScreen.HUB) }
+    val isAdminOrStaff = uiState.profile.role == `in`.campusone.app.domain.model.UserRole.ADMIN ||
+        uiState.profile.role == `in`.campusone.app.domain.model.UserRole.TEACHER ||
+        uiState.profile.role == `in`.campusone.app.domain.model.UserRole.CR
+    val isAdmin = uiState.profile.role == `in`.campusone.app.domain.model.UserRole.ADMIN
+
+    androidx.compose.runtime.LaunchedEffect(uiState.profile) {
+        adminViewModel.init(uiState.profile)
+        moderatorViewModel.init()
+    }
 
     if (activeScreen == MoreSubScreen.HUB) {
         LazyColumn(
@@ -206,6 +223,19 @@ fun MoreHubScreen(
                     onClick = { activeScreen = MoreSubScreen.DIRECTORY }
                 )
             }
+            if (isAdminOrStaff) {
+                item {
+                    FeatureHubCard(
+                        title = "Admin Panel",
+                        subtitle = "Manage app data, users, notices, timetable & more",
+                        icon = Icons.Default.School,
+                        onClick = {
+                            adminViewModel.init(uiState.profile)
+                            activeScreen = MoreSubScreen.ADMIN_PANEL
+                        }
+                    )
+                }
+            }
             item {
                 FeatureHubCard(
                     title = stringResource(R.string.privacy_policy),
@@ -243,6 +273,17 @@ fun MoreHubScreen(
                     MoreSubScreen.LOST_FOUND -> LostAndFoundScreen(uiState, viewModel)
                     MoreSubScreen.DIRECTORY -> CampusDirectoryScreen(uiState, viewModel)
                     MoreSubScreen.PRIVACY_POLICY -> PrivacyPolicyScreen()
+                    MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
+                        uiState = adminViewModel.uiState,
+                        viewModel = adminViewModel,
+                        onBack = { activeScreen = MoreSubScreen.HUB },
+                        onManageModerators = { activeScreen = MoreSubScreen.ADMIN_MODERATORS }
+                    )
+                    MoreSubScreen.ADMIN_MODERATORS -> ModeratorManagementScreen(
+                        uiState = moderatorViewModel.uiState.value,
+                        viewModel = moderatorViewModel,
+                        onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
+                    )
                     MoreSubScreen.HUB -> Unit
                 }
             }
