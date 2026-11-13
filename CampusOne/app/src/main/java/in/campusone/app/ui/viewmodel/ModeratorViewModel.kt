@@ -42,8 +42,8 @@ class ModeratorViewModel @Inject constructor(
         val isLoading: Boolean = false
     )
 
-    private val _uiState = MutableSharedFlow<ModeratorUiState>(replay = 1)
-    val uiState: StateFlow<ModeratorUiState> = _uiState.asStateFlow(initialValue = ModeratorUiState())
+    private val _uiState = MutableStateFlow<ModeratorUiState>(ModeratorUiState())
+    val uiState: StateFlow<ModeratorUiState> = _uiState
 
     fun init() {
         viewModelScope.launch {

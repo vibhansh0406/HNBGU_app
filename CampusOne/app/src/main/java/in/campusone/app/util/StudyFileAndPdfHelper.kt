@@ -5,7 +5,7 @@ import android.graphics.pdf.PdfDocument
 import android.os.Environment
 import androidx.core.content.ContextCompat
 import `in`.campusone.app.domain.model.UserProfile
-import `in`.campusone.app.ui.viewmodel.GpaCalculationResult
+import `in`.campusone.app.domain.usecase.GpaCalculationResult
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
