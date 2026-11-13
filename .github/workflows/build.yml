@@ -27,8 +27,10 @@ jobs:
               -keyalg RSA -keysize 2048 -validity 10000 \
               -dname "CN=Android Debug,O=Android,C=US"
           fi
+          SHA1=$(keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android | grep SHA1: | head -1)
           echo "=== DEBUG SHA-1 (register this in Google Cloud console) ==="
-          keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android | grep SHA1:
+          echo "$SHA1"
+          echo "::notice title=Debug SHA-1::$SHA1"
       - name: Write local.properties
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -49,7 +51,7 @@ jobs:
       - name: Build debug APK
         run: gradle assembleDebug
       - name: Upload keystore artifact (first run only)
-        if: ${{ ! hashFiles('ci/debug.keystore') }}
+        if: ${{ ! hashFiles('CampusOne/ci/debug.keystore') }}
         uses: actions/upload-artifact@v4
         with:
           name: debug-keystore
