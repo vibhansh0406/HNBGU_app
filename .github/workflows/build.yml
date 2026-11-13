@@ -32,7 +32,7 @@ jobs:
           echo "$SHA1"
           echo "::notice title=Debug SHA-1::$SHA1"
       - name: Signing report (SHA-1 of each build variant)
-        run: ./gradlew signingReport --console=plain
+        run: gradle signingReport --console=plain
       - name: Write local.properties
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
