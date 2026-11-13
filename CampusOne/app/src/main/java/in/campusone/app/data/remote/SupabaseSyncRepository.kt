@@ -1,5 +1,6 @@
 package `in`.campusone.app.data.remote
 
+import android.content.Context
 import javax.inject.Inject
 import javax.inject.Singleton
 
