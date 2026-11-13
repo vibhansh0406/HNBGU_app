@@ -103,13 +103,26 @@ class MainActivity : AppCompatActivity() {
                                 if (result.isSuccess) {
                                     val session = result.getOrNull()
                                     session?.user?.id?.let { uid ->
-                                        authManager.ensureUserProfile(
+                                        val profileResult = authManager.ensureUserProfile(
                                             uid = uid,
                                             email = account.email,
                                             name = account.displayName,
                                             role = "STUDENT"
                                         )
+                                        if (!profileResult.isSuccess) {
+                                            android.widget.Toast.makeText(
+                                                this@MainActivity,
+                                                "Profile save failed: ${profileResult.exceptionOrNull()?.message ?: ""}",
+                                                android.widget.Toast.LENGTH_LONG
+                                            ).show()
+                                        }
                                     }
+                                } else {
+                                    android.widget.Toast.makeText(
+                                        this@MainActivity,
+                                        "Sign-in failed: ${result.exceptionOrNull()?.message ?: "unknown error"}",
+                                        android.widget.Toast.LENGTH_LONG
+                                    ).show()
                                 }
                             }
                         }

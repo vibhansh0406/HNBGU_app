@@ -267,7 +267,7 @@ private class HttpSupabaseAuth(
                 conn.connectTimeout = 15000
                 conn.readTimeout = 15000
                 conn.outputStream.use { it.write(body.toByteArray(StandardCharsets.UTF_8)) }
-                readAuthSession(conn)?.also { sessionStore.save(it) }
+                readAuthSession(conn).also { sessionStore.save(it) }
             } finally {
                 conn.disconnect()
             }
@@ -306,22 +306,27 @@ private class HttpSupabaseAuth(
         callback(currentSession)
     }
 
-    private fun readAuthSession(conn: HttpURLConnection): SupabaseSession? {
+    private fun readAuthSession(conn: HttpURLConnection): SupabaseSession {
         val code = try {
             conn.responseCode
         } catch (e: Exception) {
-            return null
+            throw IllegalStateException("Auth network error: ${e.message}")
         }
         val body = try {
             val stream = if (code in 200..299) conn.inputStream else conn.errorStream
             stream?.use { it.readBytes() } ?: ByteArray(0)
         } catch (_: Exception) {
-            return null
+            ByteArray(0)
         }
-        if (code !in 200..299) return null
+        if (code !in 200..299) {
+            throw IllegalStateException(
+                "Auth failed ($code): ${String(body, StandardCharsets.UTF_8).take(180)}"
+            )
+        }
         return try {
             val obj = JSONObject(String(body, StandardCharsets.UTF_8))
-            val accessToken = obj.optString("access_token").takeIf { it.isNotBlank() } ?: return null
+            val accessToken = obj.optString("access_token").takeIf { it.isNotBlank() }
+                ?: throw IllegalStateException("Auth response missing access_token")
             val refreshToken = obj.optString("refresh_token").takeIf { it.isNotBlank() }
             val expiresIn = obj.optLong("expires_in", 3600L)
             val userObj = obj.optJSONObject("user")
@@ -334,8 +339,10 @@ private class HttpSupabaseAuth(
                     email = userObj?.optString("email")?.takeIf { it.isNotBlank() }
                 )
             )
-        } catch (_: Exception) {
-            null
+        } catch (e: IllegalStateException) {
+            throw e
+        } catch (e: Exception) {
+            throw IllegalStateException("Auth response parse failed: ${e.message}")
         }
     }
 }
