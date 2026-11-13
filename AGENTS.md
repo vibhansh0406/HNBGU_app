@@ -29,6 +29,18 @@
 - Room: bump/exported schemas go to `CampusOne/app/schemas`; new entities need DAO + migration or fresh-install fallback consistent with existing `CampusOneDatabase`.
 - No comments unless asked; no emojis; match surrounding style.
 
+## Context discipline (per session)
+- Load once at session start: AGENTS.md + the specific area of the task. Nothing else.
+- Never reread a file already read in the session unless you changed it or have reason to believe it changed.
+- After finishing a task, retain only: files changed + why, symbols touched, open follow-ups. Discard exploration details.
+- Build dirs (`build-output/`, `CampusOne/app/build/`, `.gradle/`) are watcher-ignored and never read.
+- Ask clarifying questions early; do not burn tokens exploring to resolve ambiguity you can resolve by asking.
+
+## Failure recovery
+- On a failed command: read the actual error, diagnose the cause, retry at most once and only for transient failures (network, timeout). Never loop retries.
+- Never change approach randomly on failure; fix the root cause or stop.
+- Never hide or soften failed verification. State what failed and why, exactly.
+
 ## Discipline
 - Fix root causes; never stack random patches on a symptom.
 - Never claim success without a real check (CI green, compile-consistent code, or executed test where possible). If unverifiable here, say exactly what remains to verify.

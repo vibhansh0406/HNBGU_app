@@ -114,6 +114,14 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                     }
+                } else {
+                    val err = task.exception
+                    val code = (err as? com.google.android.gms.common.api.ApiException)?.statusCode ?: -1
+                    android.widget.Toast.makeText(
+                        this@MainActivity,
+                        "Google sign-in failed: code $code ${err?.message ?: ""}",
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }

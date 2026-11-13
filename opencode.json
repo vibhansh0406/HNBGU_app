@@ -1,0 +1,17 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "build",
+  "compaction": {
+    "auto": true,
+    "keep": {
+      "tokens": 10000
+    }
+  },
+  "watcher": {
+    "ignore": [
+      "build-output/**",
+      "CampusOne/app/build/**",
+      "CampusOne/.gradle/**"
+    ]
+  }
+}

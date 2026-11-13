@@ -50,6 +50,8 @@ jobs:
           } > local.properties
       - name: Build debug APK
         run: gradle assembleDebug
+      - name: Run unit tests
+        run: gradle testDebugUnitTest
       - name: Upload keystore artifact (first run only)
         if: ${{ ! hashFiles('CampusOne/ci/debug.keystore') }}
         uses: actions/upload-artifact@v4
