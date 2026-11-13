@@ -64,7 +64,7 @@ fun AdminNoticesScreen(
                 title = { Text("Manage Notices") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -77,7 +77,7 @@ fun AdminNoticesScreen(
                 isPinned = false
                 showDialog = true
             }) {
-                Icon(Add, contentDescription = "Add Notice")
+                Icon(Icons.Default.Add, contentDescription = "Add Notice")
             }
         }
     ) { padding ->
@@ -95,7 +95,7 @@ fun AdminNoticesScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             if (notice.isPinned) {
-                                Icon(PushPin, contentDescription = "Pinned", tint = MaterialTheme.colorScheme.primary)
+                                Icon(Icons.Default.PushPin, contentDescription = "Pinned", tint = MaterialTheme.colorScheme.primary)
                             }
                         }
                         Spacer(modifier = Modifier.height(6.dp))
@@ -125,10 +125,10 @@ fun AdminNoticesScreen(
                                 isPinned = notice.isPinned
                                 showDialog = true
                             }) {
-                                Icon(Edit, contentDescription = "Edit")
+                                Icon(Icons.Default.Edit, contentDescription = "Edit")
                             }
                             IconButton(onClick = { }) {
-                                Icon(Delete, contentDescription = "Delete")
+                                Icon(Icons.Default.Delete, contentDescription = "Delete")
                             }
                         }
                     }

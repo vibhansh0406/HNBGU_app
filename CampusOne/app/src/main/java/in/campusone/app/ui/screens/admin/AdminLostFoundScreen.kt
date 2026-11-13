@@ -44,14 +44,14 @@ fun AdminLostFoundScreen(
                 title = { Text("Lost & Found") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
         },
         floatingActionButton = {
             androidx.compose.material3.FloatingActionButton(onClick = { }) {
-                Icon(Add, contentDescription = "Add Item")
+                Icon(Icons.Default.Add, contentDescription = "Add Item")
             }
         }
     ) { padding ->
@@ -78,7 +78,7 @@ fun AdminLostFoundScreen(
                                     Icon(Icons.Default.CheckCircle, contentDescription = "Resolved", tint = MaterialTheme.colorScheme.primary)
                                 }
                                 androidx.compose.material3.IconButton(onClick = { viewModel.hideLostFound(item.id) }) {
-                                    Icon(FindInPage, contentDescription = "Hide")
+                                    Icon(Icons.Default.FindInPage, contentDescription = "Hide")
                                 }
                             }
                         }

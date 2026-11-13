@@ -48,14 +48,14 @@ fun AdminEventsScreen(
                 title = { Text("Manage Events") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
         },
         floatingActionButton = {
             androidx.compose.material3.FloatingActionButton(onClick = { }) {
-                Icon(Add, contentDescription = "Add Event")
+                Icon(Icons.Default.Add, contentDescription = "Add Event")
             }
         }
     ) { padding ->
@@ -82,7 +82,7 @@ fun AdminEventsScreen(
                                     onCheckedChange = { viewModel.approveEvent(event.id) }
                                 )
                                 androidx.compose.material3.IconButton(onClick = { viewModel.deleteEvent(event.id) }) {
-                                    Icon(Delete, contentDescription = "Delete")
+                                    Icon(Icons.Default.Delete, contentDescription = "Delete")
                                 }
                             }
                         }

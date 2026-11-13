@@ -19,12 +19,12 @@ import `in`.campusone.app.data.repository.AdminRepository
 import `in`.campusone.app.domain.model.UserProfile
 import `in`.campusone.app.domain.model.UserRole
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -73,47 +73,68 @@ class AdminViewModel @Inject constructor(
             val isAdmin = profile.role == UserRole.ADMIN || profile.role == UserRole.TEACHER ||
                 profile.role == UserRole.CR
 
-            combine(
-                repository.observeSubjects(sectionKey),
-                repository.observeTimetableSlots(sectionKey),
-                repository.observeNotices(sectionKey),
-                repository.observeAssignments(),
-                repository.observeExams(),
-                repository.observeSyllabusTopics(),
-                repository.observeStudyResources(sectionKey),
-                repository.observeClubs(collegeId),
-                repository.observeEvents(collegeId),
-                repository.observeLostFound(collegeId),
-                repository.observeDirectory(collegeId)
-            ) { subjects, slots, notices, assignments, exams, syllabus, resources, clubs, events, lostFound, directory ->
-                AdminUiState(
-                    isAdmin = isAdmin,
-                    profile = profile,
-                    sectionKey = sectionKey,
-                    collegeId = collegeId,
-                    subjects = subjects,
-                    timetableSlots = slots,
-                    notices = notices,
-                    assignments = assignments,
-                    exams = exams,
-                    syllabusTopics = syllabus,
-                    studyResources = resources,
-                    clubs = clubs,
-                    events = events,
-                    lostFound = lostFound,
-                    directory = directory,
-                    subjectCount = subjects.size,
-                    noticeCount = notices.size,
-                    assignmentCount = assignments.size,
-                    examCount = exams.size,
-                    clubCount = clubs.size,
-                    eventCount = events.size
-                )
-            }.stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = AdminUiState(isAdmin = isAdmin, profile = profile, sectionKey = sectionKey, collegeId = collegeId)
-            ).collect { _uiState.value = it }
+            _uiState.value = AdminUiState(
+                isAdmin = isAdmin,
+                profile = profile,
+                sectionKey = sectionKey,
+                collegeId = collegeId
+            )
+
+            launch {
+                repository.observeSubjects(sectionKey).collect { subjects ->
+                    _uiState.update { it.copy(subjects = subjects, subjectCount = subjects.size) }
+                }
+            }
+            launch {
+                repository.observeTimetableSlots(sectionKey).collect { slots ->
+                    _uiState.update { it.copy(timetableSlots = slots) }
+                }
+            }
+            launch {
+                repository.observeNotices(sectionKey).collect { notices ->
+                    _uiState.update { it.copy(notices = notices, noticeCount = notices.size) }
+                }
+            }
+            launch {
+                repository.observeAssignments().collect { assignments ->
+                    _uiState.update { it.copy(assignments = assignments, assignmentCount = assignments.size) }
+                }
+            }
+            launch {
+                repository.observeExams().collect { exams ->
+                    _uiState.update { it.copy(exams = exams, examCount = exams.size) }
+                }
+            }
+            launch {
+                repository.observeSyllabusTopics().collect { topics ->
+                    _uiState.update { it.copy(syllabusTopics = topics) }
+                }
+            }
+            launch {
+                repository.observeStudyResources(sectionKey).collect { resources ->
+                    _uiState.update { it.copy(studyResources = resources) }
+                }
+            }
+            launch {
+                repository.observeClubs(collegeId).collect { clubs ->
+                    _uiState.update { it.copy(clubs = clubs, clubCount = clubs.size) }
+                }
+            }
+            launch {
+                repository.observeEvents(collegeId).collect { events ->
+                    _uiState.update { it.copy(events = events, eventCount = events.size) }
+                }
+            }
+            launch {
+                repository.observeLostFound(collegeId).collect { lostFound ->
+                    _uiState.update { it.copy(lostFound = lostFound) }
+                }
+            }
+            launch {
+                repository.observeDirectory(collegeId).collect { directory ->
+                    _uiState.update { it.copy(directory = directory) }
+                }
+            }
         }
     }
 

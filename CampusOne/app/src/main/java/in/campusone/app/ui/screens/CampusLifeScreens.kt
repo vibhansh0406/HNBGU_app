@@ -17,14 +17,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -564,7 +562,7 @@ fun CampusDirectoryScreen(
                                     Button(
                                         onClick = {
                                             try {
-                                                context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${contact.phone}")))
+                                                context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${contact.phone}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                                             } catch (_: Exception) { }
                                         }
                                     ) {
@@ -575,7 +573,7 @@ fun CampusDirectoryScreen(
                                     TextButton(
                                         onClick = {
                                             try {
-                                                val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:${contact.email}"))
+                                                val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:${contact.email}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                                 context.startActivity(intent)
                                             } catch (_: Exception) { }
                                         }

@@ -63,6 +63,9 @@ fun AdminHubScreen(
 ) {
     val state by uiState.collectAsStateWithLifecycle()
     val haptics = LocalHapticFeedback.current
+    val colorPrimary = MaterialTheme.colorScheme.primary
+    val colorSecondary = MaterialTheme.colorScheme.secondary
+    val colorTertiary = MaterialTheme.colorScheme.tertiary
 
     Scaffold(
         topBar = {
@@ -117,13 +120,13 @@ fun AdminHubScreen(
             items(
                 listOf(
                     StatCard("Subjects", state.subjectCount.toString(), Icons.Default.School, SafeGreen),
-                    StatCard("Notices", state.noticeCount.toString(), Icons.Default.Campaign, MaterialTheme.colorScheme.primary),
-                    StatCard("Assignments", state.assignmentCount.toString(), Icons.Default.Assignment, MaterialTheme.colorScheme.secondary),
-                    StatCard("Exams", state.examCount.toString(), Icons.Default.CalendarMonth, MaterialTheme.colorScheme.tertiary),
-                    StatCard("Clubs", state.clubCount.toString(), Icons.Default.Group, MaterialTheme.colorScheme.primary),
-                    StatCard("Events", state.eventCount.toString(), Icons.Default.Event, MaterialTheme.colorScheme.secondary)
+                    StatCard("Notices", state.noticeCount.toString(), Icons.Default.Campaign, colorPrimary),
+                    StatCard("Assignments", state.assignmentCount.toString(), Icons.Default.Assignment, colorSecondary),
+                    StatCard("Exams", state.examCount.toString(), Icons.Default.CalendarMonth, colorTertiary),
+                    StatCard("Clubs", state.clubCount.toString(), Icons.Default.Group, colorPrimary),
+                    StatCard("Events", state.eventCount.toString(), Icons.Default.Event, colorSecondary)
                 ),
-                key = { it.first }
+                key = { it.title }
             ) { (title, count, icon, color) ->
                 StatCardItem(title = title, count = count, icon = icon, color = color)
             }
@@ -155,9 +158,9 @@ fun AdminHubScreen(
                     ActionCard("Users & Roles", Icons.Default.Group, { /* navigate */ }),
                     ActionCard("Manage Moderators", Icons.Default.PersonAdd, onManageModerators)
                 ),
-                key = { it.first }
+                key = { it.title }
             ) { (title, icon, onClick) ->
-                ActionCardItem(title = title, icon = icon, color = MaterialTheme.colorScheme.primary, onClick = onClick)
+                ActionCardItem(title = title, icon = icon, color = colorPrimary, onClick = onClick)
             }
 
             item(span = { GridItemSpan(2) }) {

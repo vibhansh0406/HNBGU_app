@@ -172,7 +172,7 @@ private fun SubjectDialog(
                 OutlinedTextField(value = subjectCode, onValueChange = onSubjectCodeChange, label = { Text("Subject Code") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(value = teacherName, onValueChange = onTeacherNameChange, label = { Text("Teacher") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = credits.toString(), onValueChange = { credits = it.toIntOrNull() ?: 4 }, label = { Text("Credits") }, singleLine = true, modifier = Modifier.weight(1f))
+                    OutlinedTextField(value = credits.toString(), onValueChange = { onCreditsChange(it.toIntOrNull() ?: 4) }, label = { Text("Credits") }, singleLine = true, modifier = Modifier.weight(1f))
                     androidx.compose.material3.Checkbox(checked = isElective, onCheckedChange = onElectiveChange)
                     Text("Elective", style = MaterialTheme.typography.bodyMedium)
                 }

@@ -9,6 +9,7 @@ import `in`.campusone.app.domain.model.UserRole
 import `in`.campusone.app.util.security.SecurityUtils
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -72,7 +73,7 @@ class ModeratorViewModel @Inject constructor(
     fun appointModerator(name: String, email: String, scope: String) {
         val state = _uiState.value
         if (!state.isAdmin) {
-            _errors.emit("Access denied: only App Admin can appoint moderators.")
+            viewModelScope.launch { _errors.emit("Access denied: only App Admin can appoint moderators.") }
             return
         }
 
@@ -86,7 +87,7 @@ class ModeratorViewModel @Inject constructor(
                 emailResult.exceptionOrNull()?.message,
                 scopeResult.exceptionOrNull()?.message
             )
-            _errors.emit(errs.joinToString("\n"))
+            viewModelScope.launch { _errors.emit(errs.joinToString("\n")) }
             return
         }
 
@@ -122,7 +123,7 @@ class ModeratorViewModel @Inject constructor(
     fun revokeModerator(uid: String) {
         val state = _uiState.value
         if (!state.isAdmin) {
-            _errors.emit("Access denied: only App Admin can revoke moderators.")
+            viewModelScope.launch { _errors.emit("Access denied: only App Admin can revoke moderators.") }
             return
         }
         viewModelScope.launch {
@@ -135,7 +136,7 @@ class ModeratorViewModel @Inject constructor(
     fun setModeratorApproval(uid: String, approved: Boolean) {
         val state = _uiState.value
         if (!state.isAdmin) {
-            _errors.emit("Access denied: only App Admin can approve moderators.")
+            viewModelScope.launch { _errors.emit("Access denied: only App Admin can approve moderators.") }
             return
         }
         viewModelScope.launch {
@@ -148,12 +149,12 @@ class ModeratorViewModel @Inject constructor(
     fun updateModeratorScope(uid: String, newScope: String) {
         val state = _uiState.value
         if (!state.isAdmin) {
-            _errors.emit("Access denied: only App Admin can change moderator scope.")
+            viewModelScope.launch { _errors.emit("Access denied: only App Admin can change moderator scope.") }
             return
         }
         val scopeResult = SecurityUtils.validateScope(newScope)
         if (scopeResult.isFailure) {
-            _errors.emit(scopeResult.exceptionOrNull()?.message ?: "Invalid scope")
+            viewModelScope.launch { _errors.emit(scopeResult.exceptionOrNull()?.message ?: "Invalid scope") }
             return
         }
         viewModelScope.launch {

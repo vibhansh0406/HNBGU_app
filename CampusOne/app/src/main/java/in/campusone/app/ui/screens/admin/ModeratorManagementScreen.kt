@@ -270,7 +270,7 @@ private fun ModeratorRow(
                         fontWeight = FontWeight.Medium
                     )
                 }
-                Column(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
                     if (isAdmin) {
                         Checkbox(
                             checked = mod.isModeratorApproved,

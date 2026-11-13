@@ -46,14 +46,14 @@ fun AdminClubsScreen(
                 title = { Text("Manage Clubs") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
         },
         floatingActionButton = {
             androidx.compose.material3.FloatingActionButton(onClick = { }) {
-                Icon(Add, contentDescription = "Add Club")
+                Icon(Icons.Default.Add, contentDescription = "Add Club")
             }
         }
     ) { padding ->
