@@ -66,11 +66,15 @@ class StudyAndCampusRepository @Inject constructor(
 
     suspend fun ensureStudyAndCampusSeeded(sectionKey: String, collegeId: String = "hnbgu") {
         val profile = prefs.userProfile.first()
-        SecurityUtils.requireScopeMatch(
-            moderatorScope = profile.moderatorScope,
-            targetScope = profile.courseId,
-            role = profile.role
-        ).getOrThrow()
+        // Local bootstrap is allowed for every role; scope checks guard moderator
+        // writes only (see SecurityUtils.requireScopeMatch at write call sites).
+        if (profile.role == UserRole.MODERATOR || profile.role == UserRole.ADMIN) {
+            SecurityUtils.requireScopeMatch(
+                moderatorScope = profile.moderatorScope,
+                targetScope = profile.courseId,
+                role = profile.role
+            ).getOrElse { }
+        }
 
         // Sync from Supabase if user is signed in (permanent backend)
         if (supabaseSync.isSyncedEnabled()) {

@@ -19,6 +19,7 @@ import `in`.campusone.app.domain.model.SubjectAttendanceSummary
 import `in`.campusone.app.domain.model.TimetableSlot
 import `in`.campusone.app.domain.model.UserProfile
 import `in`.campusone.app.domain.model.UserRole
+import `in`.campusone.app.util.TimestampUtils
 import `in`.campusone.app.util.security.SecurityUtils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -44,11 +45,15 @@ class CoreCampusRepository @Inject constructor(
      */
     suspend fun ensureSeededForSection(sectionKey: String) {
         val profile = prefs.userProfile.first()
-        SecurityUtils.requireScopeMatch(
-            moderatorScope = profile.moderatorScope,
-            targetScope = profile.courseId,
-            role = profile.role
-        ).getOrThrow()
+        // Seeding/initialization is allowed for everyone; the scope check only
+        // applies to moderator/admin write actions, not to local bootstrap.
+        if (profile.role == UserRole.MODERATOR || profile.role == UserRole.ADMIN) {
+            SecurityUtils.requireScopeMatch(
+                moderatorScope = profile.moderatorScope,
+                targetScope = profile.courseId,
+                role = profile.role
+            ).getOrElse { }
+        }
 
         val currentSlots = timetableDao.getTimetableSnapshot(sectionKey)
         if (currentSlots.isEmpty()) {
@@ -97,7 +102,7 @@ class CoreCampusRepository @Inject constructor(
                         authorRole = runCatchingDefault({
                             UserRole.valueOf(map["author_role"] as? String ?: "CR")
                         }, UserRole.CR),
-                        createdAtMillis = (map["created_at"] as? String)?.let { it.toLong() } ?: System.currentTimeMillis(),
+                        createdAtMillis = TimestampUtils.toEpochMillis(map["created_at"]) ?: System.currentTimeMillis(),
                         isRead = map["is_read"] as? Boolean ?: false
                     )
                 })

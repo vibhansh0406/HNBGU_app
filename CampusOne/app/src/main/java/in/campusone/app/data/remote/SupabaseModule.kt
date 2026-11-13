@@ -20,9 +20,9 @@ object SupabaseModule {
     @Provides
     @Singleton
     fun provideSupabaseClient(
-        @ApplicationContext context: Context,
-        config: SupabaseConfig
+        config: SupabaseConfig,
+        sessionStore: SessionStore
     ): SupabaseClient {
-        return HttpSupabaseClient(context, config)
+        return HttpSupabaseClient(config, sessionStore)
     }
 }

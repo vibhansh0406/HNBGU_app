@@ -1,16 +1,15 @@
 package `in`.campusone.app.data.remote
 
-import android.app.Activity
 import android.content.Context
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.StateFlow
 import kotlin.Result
 
 @Singleton
@@ -33,6 +32,9 @@ class AuthManager @Inject constructor(
     /** True when a Google web client ID is available for ID-token sign-in. */
     val isGoogleSignInConfigured: Boolean
         get() = config.googleWebClientId.isNotBlank()
+
+    /** Observable Supabase session (survives process restarts). */
+    val session: StateFlow<SupabaseSession?> = supabaseClient.sessionFlow
 
     /** Initialize Google Sign-In client (call once). */
     fun initGoogleSignIn() {
@@ -91,14 +93,15 @@ class AuthManager @Inject constructor(
         role: String = "STUDENT"
     ): Result<Unit> {
         return try {
-            supabaseClient.from("profiles").upsert(mapOf(
+            val response = supabaseClient.from("profiles").upsert(mapOf(
                 "id" to uid,
                 "email" to (email ?: ""),
                 "full_name" to (name ?: ""),
                 "role" to role,
                 "updated_at" to java.time.Instant.now().toString()
             ))
-            Result.success(Unit)
+            if (response.isSuccess) Result.success(Unit)
+            else Result.failure(Exception(response.error ?: "Failed to save profile"))
         } catch (e: Exception) {
             Result.failure(e)
         }

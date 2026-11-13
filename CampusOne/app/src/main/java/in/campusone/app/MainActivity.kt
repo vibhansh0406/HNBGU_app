@@ -61,6 +61,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import `in`.campusone.app.data.remote.AuthManager
+import `in`.campusone.app.data.remote.SupabaseSession
 import `in`.campusone.app.ui.screens.AttendanceScreen
 import `in`.campusone.app.ui.screens.HomeScreen
 import `in`.campusone.app.ui.screens.MoreHubScreen
@@ -70,6 +71,7 @@ import `in`.campusone.app.ui.screens.TimetableScreen
 import `in`.campusone.app.ui.theme.CampusOneTheme
 import `in`.campusone.app.ui.viewmodel.CoreViewModel
 import `in`.campusone.app.ui.viewmodel.StudyAndCampusViewModel
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 enum class BottomNavTab {
@@ -120,7 +122,7 @@ class MainActivity : AppCompatActivity() {
                     onGoogleSignIn = {
                         googleSignInLauncher.launch(authManager.getSignInIntent())
                     },
-                    isSignedIn = { authManager.currentSession() != null },
+                    authSession = authManager.session,
                     onSignOut = {
                         lifecycleScope.launch { authManager.signOut() }
                     }
@@ -133,11 +135,12 @@ class MainActivity : AppCompatActivity() {
 @Composable
 fun CampusOneRoot(
     onGoogleSignIn: () -> Unit,
-    isSignedIn: () -> Boolean,
+    authSession: StateFlow<SupabaseSession?>,
     onSignOut: () -> Unit,
     coreViewModel: CoreViewModel = hiltViewModel(),
     studyCampusViewModel: StudyAndCampusViewModel = hiltViewModel()
 ) {
+    val authSessionState by authSession.collectAsStateWithLifecycle()
     val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
     val studyCampusState by studyCampusViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -155,7 +158,7 @@ fun CampusOneRoot(
     }
 
     // If not signed in to Supabase/Google, show sign-in screen
-    if (!isSignedIn()) {
+    if (authSessionState == null) {
         SignInScreen(onGoogleSignIn = onGoogleSignIn)
         return
     }

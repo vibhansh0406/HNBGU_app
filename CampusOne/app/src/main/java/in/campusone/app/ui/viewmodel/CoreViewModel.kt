@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import `in`.campusone.app.data.local.entity.AttendanceLogEntity
 import `in`.campusone.app.data.preferences.UserPreferencesRepository
+import `in`.campusone.app.data.remote.AuthManager
 import `in`.campusone.app.data.repository.CoreCampusRepository
 import `in`.campusone.app.domain.model.AttachmentType
 import `in`.campusone.app.domain.model.AttendanceStatus
@@ -55,7 +56,8 @@ data class CoreUiState(
 @HiltViewModel
 class CoreViewModel @Inject constructor(
     private val repository: CoreCampusRepository,
-    private val prefs: UserPreferencesRepository
+    private val prefs: UserPreferencesRepository,
+    private val authManager: AuthManager
 ) : ViewModel() {
 
     private val _uiMessages = MutableSharedFlow<String>()
@@ -136,8 +138,9 @@ class CoreViewModel @Inject constructor(
         role: UserRole
     ) {
         viewModelScope.launch {
+            val uid = authManager.currentUserId() ?: "local_${email.hashCode().toUInt()}"
             val profile = UserProfile(
-                uid = "uid_${email.hashCode().toUInt()}",
+                uid = uid,
                 name = name.ifBlank { "HNBGU Student" },
                 email = email.ifBlank { "student@hnbgu.ac.in" },
                 role = role,
@@ -151,6 +154,12 @@ class CoreViewModel @Inject constructor(
             )
             prefs.saveUserProfile(profile, markOnboarded = true)
             repository.ensureSeededForSection(profile.sectionKey)
+            authManager.ensureUserProfile(
+                uid = uid,
+                email = email,
+                name = name,
+                role = role.name
+            )
         }
     }
 
