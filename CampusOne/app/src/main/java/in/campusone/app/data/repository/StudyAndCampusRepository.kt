@@ -1,7 +1,6 @@
 package `in`.campusone.app.data.repository
 
 import android.content.Context
-import dagger.hilt.android.qualifiers.ApplicationContext
 import `in`.campusone.app.data.local.dao.CampusLifeDao
 import `in`.campusone.app.data.local.dao.StudyDao
 import `in`.campusone.app.data.local.entity.AssignmentEntity
@@ -40,7 +39,7 @@ import javax.inject.Singleton
 
 @Singleton
 class StudyAndCampusRepository @Inject constructor(
-    @ApplicationContext private val context: Context,
+    private val context: Context,
     private val studyDao: StudyDao,
     private val campusLifeDao: CampusLifeDao,
     private val prefs: UserPreferencesRepository,

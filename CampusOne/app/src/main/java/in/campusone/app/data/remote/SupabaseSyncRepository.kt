@@ -1,12 +1,11 @@
 package `in`.campusone.app.data.remote
 
-import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class SupabaseSyncRepository @Inject constructor(
-    @ApplicationContext private val context: Context,
+    private val context: Context,
     private val supabaseClient: SupabaseClient,
     private val authManager: AuthManager
 ) {
