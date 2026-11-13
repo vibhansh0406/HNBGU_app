@@ -17,11 +17,14 @@ jobs:
           java-version: 17
       - name: Install Gradle 8.9
         run: |
-          wget -q https://services.gradle.org/distributions/gradle-8.9-bin.zip -O /tmp/gradle.zip
-          unzip -q -d /opt /tmp/gradle.zip
+          curl -fsSL https://services.gradle.org/distributions/gradle-8.9-bin.zip -o /tmp/gradle.zip
+          sudo unzip -q -d /opt /tmp/gradle.zip
+          sudo chmod +x /opt/gradle-8.9/bin/gradle
           echo "/opt/gradle-8.9/bin" >> $GITHUB_PATH
+      - name: Verify Gradle
+        run: gradle --version
       - name: Build debug APK
-        run: gradle -Pandroid.useAndroidX=true assembleDebug
+        run: gradle assembleDebug
       - uses: actions/upload-artifact@v4
         with:
           name: campusone-debug-apk
