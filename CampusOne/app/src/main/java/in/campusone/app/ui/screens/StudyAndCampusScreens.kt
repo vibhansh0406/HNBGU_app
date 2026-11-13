@@ -103,7 +103,17 @@ import `in`.campusone.app.domain.usecase.GradingScaleType
 import `in`.campusone.app.domain.usecase.SemesterGpaRecord
 import `in`.campusone.app.ui.viewmodel.StudyAndCampusUiState
 import `in`.campusone.app.ui.viewmodel.StudyAndCampusViewModel
+import `in`.campusone.app.ui.screens.admin.AdminAssignmentsScreen
+import `in`.campusone.app.ui.screens.admin.AdminClubsScreen
+import `in`.campusone.app.ui.screens.admin.AdminDirectoryScreen
+import `in`.campusone.app.ui.screens.admin.AdminEventsScreen
+import `in`.campusone.app.ui.screens.admin.AdminExamsScreen
 import `in`.campusone.app.ui.screens.admin.AdminHubScreen
+import `in`.campusone.app.ui.screens.admin.AdminLostFoundScreen
+import `in`.campusone.app.ui.screens.admin.AdminNoticesScreen
+import `in`.campusone.app.ui.screens.admin.AdminSubjectsScreen
+import `in`.campusone.app.ui.screens.admin.AdminTimetableScreen
+import `in`.campusone.app.ui.screens.admin.AdminUsersScreen
 import `in`.campusone.app.ui.screens.admin.ModeratorManagementScreen
 import `in`.campusone.app.ui.viewmodel.ModeratorViewModel
 import java.io.File
@@ -120,7 +130,17 @@ enum class MoreSubScreen {
     DIRECTORY,
     PRIVACY_POLICY,
     ADMIN_PANEL,
-    ADMIN_MODERATORS
+    ADMIN_MODERATORS,
+    ADMIN_SUBJECTS,
+    ADMIN_TIMETABLE,
+    ADMIN_NOTICES,
+    ADMIN_ASSIGNMENTS,
+    ADMIN_EXAMS,
+    ADMIN_CLUBS,
+    ADMIN_EVENTS,
+    ADMIN_LOST_FOUND,
+    ADMIN_DIRECTORY,
+    ADMIN_USERS
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -136,6 +156,7 @@ fun MoreHubScreen(
         uiState.profile.role == `in`.campusone.app.domain.model.UserRole.TEACHER ||
         uiState.profile.role == `in`.campusone.app.domain.model.UserRole.CR
     val isAdmin = uiState.profile.role == `in`.campusone.app.domain.model.UserRole.ADMIN
+    val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
 
     androidx.compose.runtime.LaunchedEffect(uiState.profile) {
         adminViewModel.init(uiState.profile)
@@ -278,12 +299,57 @@ fun MoreHubScreen(
                         uiState = adminViewModel.uiState,
                         viewModel = adminViewModel,
                         onBack = { activeScreen = MoreSubScreen.HUB },
-                        onManageModerators = { activeScreen = MoreSubScreen.ADMIN_MODERATORS }
+                        onManageModerators = { activeScreen = MoreSubScreen.ADMIN_MODERATORS },
+                        onNavigate = { route ->
+                            activeScreen = when (route) {
+                                "SUBJECTS" -> MoreSubScreen.ADMIN_SUBJECTS
+                                "TIMETABLE" -> MoreSubScreen.ADMIN_TIMETABLE
+                                "NOTICES" -> MoreSubScreen.ADMIN_NOTICES
+                                "ASSIGNMENTS" -> MoreSubScreen.ADMIN_ASSIGNMENTS
+                                "EXAMS" -> MoreSubScreen.ADMIN_EXAMS
+                                "CLUBS" -> MoreSubScreen.ADMIN_CLUBS
+                                "EVENTS" -> MoreSubScreen.ADMIN_EVENTS
+                                "LOST_FOUND" -> MoreSubScreen.ADMIN_LOST_FOUND
+                                "DIRECTORY" -> MoreSubScreen.ADMIN_DIRECTORY
+                                "USERS" -> MoreSubScreen.ADMIN_USERS
+                                else -> MoreSubScreen.ADMIN_PANEL
+                            }
+                        }
                     )
                     MoreSubScreen.ADMIN_MODERATORS -> ModeratorManagementScreen(
                         uiState = moderatorViewModel.uiState.value,
                         viewModel = moderatorViewModel,
                         onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
+                    )
+                    MoreSubScreen.ADMIN_SUBJECTS -> AdminSubjectsScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
+                    )
+                    MoreSubScreen.ADMIN_TIMETABLE -> AdminTimetableScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
+                    )
+                    MoreSubScreen.ADMIN_NOTICES -> AdminNoticesScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
+                    )
+                    MoreSubScreen.ADMIN_ASSIGNMENTS -> AdminAssignmentsScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
+                    )
+                    MoreSubScreen.ADMIN_EXAMS -> AdminExamsScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
+                    )
+                    MoreSubScreen.ADMIN_CLUBS -> AdminClubsScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
+                    )
+                    MoreSubScreen.ADMIN_EVENTS -> AdminEventsScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
+                    )
+                    MoreSubScreen.ADMIN_LOST_FOUND -> AdminLostFoundScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
+                    )
+                    MoreSubScreen.ADMIN_DIRECTORY -> AdminDirectoryScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
+                    )
+                    MoreSubScreen.ADMIN_USERS -> AdminUsersScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
                     )
                     MoreSubScreen.HUB -> Unit
                 }

@@ -59,7 +59,8 @@ fun AdminHubScreen(
     uiState: StateFlow<AdminUiState>,
     viewModel: AdminViewModel,
     onBack: () -> Unit,
-    onManageModerators: () -> Unit = {}
+    onManageModerators: () -> Unit = {},
+    onNavigate: (String) -> Unit = {}
 ) {
     val state by uiState.collectAsStateWithLifecycle()
     val haptics = LocalHapticFeedback.current
@@ -146,16 +147,16 @@ fun AdminHubScreen(
             }
             items(
                 listOf(
-                    ActionCard("Manage Subjects", Icons.Default.School, { /* navigate */ }),
-                    ActionCard("Manage Timetable", Icons.Default.Schedule, { /* navigate */ }),
-                    ActionCard("Manage Notices", Icons.Default.Campaign, { /* navigate */ }),
-                    ActionCard("Manage Assignments", Icons.Default.Assignment, { /* navigate */ }),
-                    ActionCard("Manage Exams", Icons.Default.CalendarMonth, { /* navigate */ }),
-                    ActionCard("Manage Clubs", Icons.Default.Group, { /* navigate */ }),
-                    ActionCard("Manage Events", Icons.Default.Event, { /* navigate */ }),
-                    ActionCard("Lost & Found", Icons.Default.FindInPage, { /* navigate */ }),
-                    ActionCard("Directory", Icons.Default.Info, { /* navigate */ }),
-                    ActionCard("Users & Roles", Icons.Default.Group, { /* navigate */ }),
+                    ActionCard("Manage Subjects", Icons.Default.School, { onNavigate("SUBJECTS") }),
+                    ActionCard("Manage Timetable", Icons.Default.Schedule, { onNavigate("TIMETABLE") }),
+                    ActionCard("Manage Notices", Icons.Default.Campaign, { onNavigate("NOTICES") }),
+                    ActionCard("Manage Assignments", Icons.Default.Assignment, { onNavigate("ASSIGNMENTS") }),
+                    ActionCard("Manage Exams", Icons.Default.CalendarMonth, { onNavigate("EXAMS") }),
+                    ActionCard("Manage Clubs", Icons.Default.Group, { onNavigate("CLUBS") }),
+                    ActionCard("Manage Events", Icons.Default.Event, { onNavigate("EVENTS") }),
+                    ActionCard("Lost & Found", Icons.Default.FindInPage, { onNavigate("LOST_FOUND") }),
+                    ActionCard("Directory", Icons.Default.Info, { onNavigate("DIRECTORY") }),
+                    ActionCard("Users & Roles", Icons.Default.Group, { onNavigate("USERS") }),
                     ActionCard("Manage Moderators", Icons.Default.PersonAdd, onManageModerators)
                 ),
                 key = { it.title }
