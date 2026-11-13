@@ -1,15 +1,17 @@
 package `in`.campusone.app.data.remote
 
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 import javax.inject.Singleton
+
 @Singleton
 class HttpSupabaseClient @Inject constructor(
-    private val context: Context,
+    @ApplicationContext private val context: Context,
     private val config: SupabaseConfig
 ) : SupabaseClient {
 

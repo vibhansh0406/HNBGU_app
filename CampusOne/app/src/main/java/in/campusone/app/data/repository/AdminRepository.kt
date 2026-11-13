@@ -2,6 +2,7 @@ package `in`.campusone.app.data.repository
 
 import android.content.Context
 import androidx.datastore.preferences.preferencesDataStore
+import dagger.hilt.android.qualifiers.ApplicationContext
 import `in`.campusone.app.data.local.dao.AttendanceDao
 import `in`.campusone.app.data.local.dao.CampusLifeDao
 import `in`.campusone.app.data.local.dao.NoticeDao
@@ -29,7 +30,7 @@ import javax.inject.Singleton
 
 @Singleton
 class AdminRepository @Inject constructor(
-    private val context: Context,
+    @ApplicationContext private val context: Context,
     private val attendanceDao: AttendanceDao,
     private val timetableDao: TimetableDao,
     private val noticeDao: NoticeDao,

@@ -4,6 +4,7 @@ import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -13,13 +14,13 @@ object SupabaseModule {
 
     @Provides
     @Singleton
-    fun provideSupabaseConfig(context: Context): SupabaseConfig =
+    fun provideSupabaseConfig(@ApplicationContext context: Context): SupabaseConfig =
         SupabaseConfigLoader.load(context)
 
     @Provides
     @Singleton
     fun provideSupabaseClient(
-        context: Context,
+        @ApplicationContext context: Context,
         config: SupabaseConfig
     ): SupabaseClient {
         return HttpSupabaseClient(context, config)

@@ -8,13 +8,14 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.Result
 
 @Singleton
 class AuthManager @Inject constructor(
-    private val context: Context,
+    @ApplicationContext private val context: Context,
     private val supabaseClient: SupabaseClient,
     private val config: SupabaseConfig
 ) {
