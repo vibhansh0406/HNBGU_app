@@ -27,47 +27,6 @@ class HttpSupabaseClient @Inject constructor(
         HttpSupabaseQueryBuilder("$baseUrl/$table", headers)
 
     override val auth: SupabaseAuth = HttpSupabaseAuth(config, authBaseUrl)
-
-    private fun request(
-        method: String,
-        url: String,
-        body: String? = null,
-        extraHeaders: Map<String, String> = emptyMap()
-    ): SupabaseResponse {
-        val connection = URL(url).openConnection() as HttpURLConnection
-        connection.requestMethod = method
-        headers.forEach { (k, v) -> connection.addRequestProperty(k, v) }
-        extraHeaders.forEach { (k, v) -> connection.addRequestProperty(k, v) }
-        connection.doOutput = true
-        connection.connectTimeout = 15000
-        connection.readTimeout = 15000
-
-        body?.let {
-            connection.outputStream.use { os -> os.write(it.toByteArray(StandardCharsets.UTF_8)) }
-        }
-
-        val responseCode = connection.responseCode
-        val responseBody = connection.inputStream.use { it.readBytes() }
-        connection.disconnect()
-
-        val json = String(responseBody, StandardCharsets.UTF_8)
-        return when {
-            responseCode in 200..299 -> SupabaseResponse(parseJson(json))
-            else -> SupabaseResponse(null)
-        }
-    }
-
-    private fun parseJson(json: String): Any? {
-        return try {
-            org.json.JSONArray(json)
-        } catch (_: Exception) {
-            try {
-                org.json.JSONObject(json)
-            } catch (_: Exception) {
-                json
-            }
-        }
-    }
 }
 
 private class HttpSupabaseQueryBuilder(
@@ -114,51 +73,56 @@ private class HttpSupabaseQueryBuilder(
     }
 
     override fun execute(): SupabaseResponse {
-        val connection = java.net.URL(url).openConnection() as java.net.HttpURLConnection
-        if (upsertData != null) {
-            connection.requestMethod = "POST"
-            headers.forEach { (k, v) -> connection.addRequestProperty(k, v) }
-            connection.addRequestProperty("Prefer", "return=representation")
-            connection.doOutput = true
-            connection.connectTimeout = 15000
-            connection.readTimeout = 15000
-            val body = org.json.JSONArray(upsertData).toString()
-            connection.outputStream.use { os -> os.write(body.toByteArray(java.nio.charset.StandardCharsets.UTF_8)) }
+        return if (upsertData != null) {
+            doUpsert()
         } else {
-            connection.requestMethod = "GET"
-            headers.forEach { (k, v) -> connection.addRequestProperty(k, v) }
-            val queryParams = mutableListOf<String>()
-            queryParams.add("select=$selectColumns")
-            filters.forEach { queryParams.add(it) }
-            if (isSingle) queryParams.add("limit=1")
-            if (orderColumn != null) {
-                queryParams.add("order=${orderColumn}.${if (orderAscending) "asc" else "desc"}")
-            }
-            val fullUrl = if (queryParams.isNotEmpty()) "$url?${queryParams.joinToString("&")}" else url
-            // Re-open with full URL
-            return get(fullUrl)
-        }
-
-        val responseCode = connection.responseCode
-        val body = connection.inputStream.use { it.readBytes() }
-        connection.disconnect()
-        val json = String(body, java.nio.charset.StandardCharsets.UTF_8)
-        return when {
-            responseCode in 200..299 -> SupabaseResponse(parseJson(json))
-            else -> SupabaseResponse(null)
+            doGet()
         }
     }
 
-    private fun get(fullUrl: String): SupabaseResponse {
-        val connection = java.net.URL(fullUrl).openConnection() as java.net.HttpURLConnection
+    private fun doUpsert(): SupabaseResponse {
+        val connection = URL(url).openConnection() as HttpURLConnection
+        connection.requestMethod = "POST"
+        headers.forEach { (k, v) -> connection.addRequestProperty(k, v) }
+        connection.doOutput = true
+        connection.connectTimeout = 15000
+        connection.readTimeout = 15000
+
+        val body = org.json.JSONArray(upsertData).toString()
+        connection.outputStream.use { os -> os.write(body.toByteArray(StandardCharsets.UTF_8)) }
+
+        return readResponse(connection)
+    }
+
+    private fun doGet(): SupabaseResponse {
+        val queryParams = mutableListOf<String>()
+        queryParams.add("select=$selectColumns")
+        filters.forEach { queryParams.add(it) }
+        if (isSingle) queryParams.add("limit=1")
+        if (orderColumn != null) {
+            queryParams.add("order=${orderColumn}.${if (orderAscending) "asc" else "desc"}")
+        }
+        val fullUrl = if (queryParams.isNotEmpty()) "$url?${queryParams.joinToString("&")}" else url
+
+        val connection = URL(fullUrl).openConnection() as HttpURLConnection
         connection.requestMethod = "GET"
         headers.forEach { (k, v) -> connection.addRequestProperty(k, v) }
         connection.connectTimeout = 15000
         connection.readTimeout = 15000
+
+        return readResponse(connection)
+    }
+
+    private fun readResponse(connection: HttpURLConnection): SupabaseResponse {
         val responseCode = connection.responseCode
-        val body = if (responseCode in 200..299) connection.inputStream.use { it.readBytes() } else byteArray(0)
+        val body = try {
+            connection.inputStream.use { it.readBytes() }
+        } catch (_: Exception) {
+            connection.errorStream?.use { it.readBytes() } ?: byteArray(0)
+        }
         connection.disconnect()
-        val json = String(body, java.nio.charset.StandardCharsets.UTF_8)
+
+        val json = String(body, StandardCharsets.UTF_8)
         return when {
             responseCode in 200..299 -> SupabaseResponse(parseJson(json))
             else -> SupabaseResponse(null)
@@ -187,31 +151,39 @@ private class HttpSupabaseAuth(
 
     override fun signInWithIdToken(provider: String, token: String): SupabaseSession? {
         val url = "$authBaseUrl/token?grant_type=id_token&provider=$provider"
-        val connection = java.net.URL(url).openConnection() as java.net.HttpURLConnection
+        val connection = URL(url).openConnection() as HttpURLConnection
         connection.requestMethod = "POST"
         connection.addRequestProperty("apikey", config.anonKey)
         connection.addRequestProperty("Content-Type", "application/json")
         connection.doOutput = true
+
         val body = """{"access_token":"$token"}"""
-        connection.outputStream.use { os -> os.write(body.toByteArray(java.nio.charset.StandardCharsets.UTF_8)) }
+        connection.outputStream.use { os -> os.write(body.toByteArray(StandardCharsets.UTF_8)) }
+
         val responseCode = connection.responseCode
-        val response = if (responseCode in 200..299) {
-            connection.inputStream.use { it.readBytes() }
-        } else {
-            connection.errorStream?.use { it.readBytes() } ?: byteArray(0)
+        val response = try {
+            if (responseCode in 200..299) {
+                connection.inputStream.use { it.readBytes() }
+            } else {
+                connection.errorStream?.use { it.readBytes() } ?: byteArray(0)
+            }
+        } catch (_: Exception) {
+            byteArray(0)
         }
         connection.disconnect()
-        val json = String(response, java.nio.charset.StandardCharsets.UTF_8)
+
+        val json = String(response, StandardCharsets.UTF_8)
         if (responseCode in 200..299) {
-            try {
+            return try {
                 val obj = org.json.JSONObject(json)
                 val accessToken = obj.optString("access_token", null)
                 val userObj = obj.optJSONObject("user")
                 val userId = userObj?.optString("id", null)
-                currentSessionValue = SupabaseSession(accessToken, SupabaseUser(userId))
-                return currentSessionValue
+                val session = SupabaseSession(accessToken, SupabaseUser(userId))
+                currentSessionValue = session
+                session
             } catch (_: Exception) {
-                return null
+                null
             }
         }
         return null
@@ -227,20 +199,7 @@ private class HttpSupabaseAuth(
     override val currentUser: SupabaseUser?
         get() = currentSessionValue?.user
 
-    override fun authStateChanges(callback: (SupabaseSession?) -> Unit): Unit {
-        // Stateless HTTP client - no persistent auth state
+    override fun authStateChanges(callback: (SupabaseSession?) -> Unit) {
         callback(currentSessionValue)
-    }
-}
-
-private fun parseJson(json: String): Any? {
-    return if (json.isBlank()) null else try {
-        org.json.JSONArray(json)
-    } catch (_: Exception) {
-        try {
-            org.json.JSONObject(json)
-        } catch (_: Exception) {
-            json
-        }
     }
 }
