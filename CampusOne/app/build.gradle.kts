@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,6 +8,21 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
 }
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use { load(it) }
+    }
+}
+
+fun configValue(key: String): String {
+    val envKey = key.uppercase().replace('.', '_')
+    return (localProperties.getProperty(key) ?: System.getenv(envKey) ?: "").trim()
+}
+
+fun quoted(value: String): String =
+    "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
 android {
     namespace = "in.campusone.app"
@@ -23,6 +40,13 @@ android {
             useSupportLibrary = true
         }
         resourceConfigurations += listOf("en", "hi")
+
+        buildConfigField("String", "SUPABASE_URL", quoted(configValue("supabase.url")))
+        buildConfigField("String", "SUPABASE_ANON_KEY", quoted(configValue("supabase.anon.key")))
+        buildConfigField("String", "GOOGLE_OAUTH_CLIENT_ID", quoted(configValue("google.oauth.client_id")))
+        buildConfigField("String", "GOOGLE_OAUTH_WEB_CLIENT_ID", quoted(configValue("google.oauth.web_client_id")))
+        buildConfigField("String", "GOOGLE_OAUTH_WEB_CLIENT_SECRET", quoted(configValue("google.oauth.web_client_secret")))
+        buildConfigField("String", "GOOGLE_OAUTH_CALLBACK_URL", quoted(configValue("google.oauth.callback_url")))
     }
 
     buildTypes {

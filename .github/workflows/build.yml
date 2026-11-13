@@ -16,6 +16,23 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v3
+      - name: Write local.properties
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+          GOOGLE_OAUTH_WEB_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_WEB_CLIENT_ID }}
+          GOOGLE_OAUTH_WEB_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_WEB_CLIENT_SECRET }}
+          GOOGLE_OAUTH_CALLBACK_URL: ${{ secrets.GOOGLE_OAUTH_CALLBACK_URL }}
+        run: |
+          {
+            echo "supabase.url=$SUPABASE_URL"
+            echo "supabase.anon.key=$SUPABASE_ANON_KEY"
+            echo "google.oauth.client_id=$GOOGLE_OAUTH_CLIENT_ID"
+            echo "google.oauth.web_client_id=$GOOGLE_OAUTH_WEB_CLIENT_ID"
+            echo "google.oauth.web_client_secret=$GOOGLE_OAUTH_WEB_CLIENT_SECRET"
+            echo "google.oauth.callback_url=$GOOGLE_OAUTH_CALLBACK_URL"
+          } > local.properties
       - name: Build debug APK
         run: gradle assembleDebug
       - uses: actions/upload-artifact@v4

@@ -21,13 +21,18 @@ class AuthManager @Inject constructor(
 ) {
 
     private val googleSignInClient: GoogleSignInClient by lazy {
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(config.googleWebClientId)
+        val builder = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
             .requestProfile()
-            .build()
-        GoogleSignIn.getClient(context, gso)
+        if (config.googleWebClientId.isNotBlank()) {
+            builder.requestIdToken(config.googleWebClientId)
+        }
+        GoogleSignIn.getClient(context, builder.build())
     }
+
+    /** True when a Google web client ID is available for ID-token sign-in. */
+    val isGoogleSignInConfigured: Boolean
+        get() = config.googleWebClientId.isNotBlank()
 
     /** Initialize Google Sign-In client (call once). */
     fun initGoogleSignIn() {
