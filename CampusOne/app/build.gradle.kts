@@ -68,7 +68,7 @@ dependencies {
     implementation(libs.material.views)
 
     // Google Sign-In
-    implementation(libs.play-services-auth)
+    implementation(libs.play.services.auth)
 
     // Hilt DI
     implementation(libs.hilt.android)

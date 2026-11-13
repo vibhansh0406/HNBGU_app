@@ -64,7 +64,7 @@ class SupabaseSyncRepository @Inject constructor(
     // =========================================================================
     suspend fun uploadNotices(sectionKey: String, notices: List<Map<String, Any>>) {
         if (!isSyncedEnabled() || notices.isEmpty()) return
-        supabaseClient.from("notices").upsert(notices).execute()
+        supabaseClient.from("notices").upsert(notices)
     }
 
     suspend fun downloadNotices(sectionKey: String): List<Map<String, Any>> {
@@ -82,7 +82,7 @@ class SupabaseSyncRepository @Inject constructor(
     // =========================================================================
     suspend fun uploadTimetable(sectionKey: String, slots: List<Map<String, Any>>) {
         if (!isSyncedEnabled() || slots.isEmpty()) return
-        supabaseClient.from("timetable_slots").upsert(slots).execute()
+        supabaseClient.from("timetable_slots").upsert(slots)
     }
 
     suspend fun downloadTimetable(sectionKey: String): List<Map<String, Any>> {
@@ -101,7 +101,7 @@ class SupabaseSyncRepository @Inject constructor(
     // =========================================================================
     suspend fun uploadAssignments(sectionKey: String, assignments: List<Map<String, Any>>) {
         if (!isSyncedEnabled() || assignments.isEmpty()) return
-        supabaseClient.from("assignments").upsert(assignments).execute()
+        supabaseClient.from("assignments").upsert(assignments)
     }
 
     suspend fun downloadAssignments(sectionKey: String): List<Map<String, Any>> {
@@ -119,7 +119,7 @@ class SupabaseSyncRepository @Inject constructor(
     // =========================================================================
     suspend fun uploadExams(sectionKey: String, exams: List<Map<String, Any>>) {
         if (!isSyncedEnabled() || exams.isEmpty()) return
-        supabaseClient.from("exams").upsert(exams).execute()
+        supabaseClient.from("exams").upsert(exams)
     }
 
     suspend fun downloadExams(sectionKey: String): List<Map<String, Any>> {
@@ -137,7 +137,7 @@ class SupabaseSyncRepository @Inject constructor(
     // =========================================================================
     suspend fun uploadStudyResources(sectionKey: String, resources: List<Map<String, Any>>) {
         if (!isSyncedEnabled() || resources.isEmpty()) return
-        supabaseClient.from("study_resources").upsert(resources).execute()
+        supabaseClient.from("study_resources").upsert(resources)
     }
 
     suspend fun downloadStudyResources(sectionKey: String): List<Map<String, Any>> {
@@ -155,7 +155,7 @@ class SupabaseSyncRepository @Inject constructor(
     // =========================================================================
     suspend fun uploadClubs(collegeId: String, clubs: List<Map<String, Any>>) {
         if (!isSyncedEnabled() || clubs.isEmpty()) return
-        supabaseClient.from("clubs").upsert(clubs).execute()
+        supabaseClient.from("clubs").upsert(clubs)
     }
 
     suspend fun downloadClubs(collegeId: String): List<Map<String, Any>> {
@@ -172,7 +172,7 @@ class SupabaseSyncRepository @Inject constructor(
     // =========================================================================
     suspend fun uploadEvents(collegeId: String, events: List<Map<String, Any>>) {
         if (!isSyncedEnabled() || events.isEmpty()) return
-        supabaseClient.from("campus_events").upsert(events).execute()
+        supabaseClient.from("campus_events").upsert(events)
     }
 
     suspend fun downloadEvents(collegeId: String): List<Map<String, Any>> {
@@ -189,7 +189,7 @@ class SupabaseSyncRepository @Inject constructor(
     // =========================================================================
     suspend fun uploadLostFound(collegeId: String, items: List<Map<String, Any>>) {
         if (!isSyncedEnabled() || items.isEmpty()) return
-        supabaseClient.from("lost_found_items").upsert(items).execute()
+        supabaseClient.from("lost_found_items").upsert(items)
     }
 
     suspend fun downloadLostFound(collegeId: String): List<Map<String, Any>> {
@@ -206,7 +206,7 @@ class SupabaseSyncRepository @Inject constructor(
     // =========================================================================
     suspend fun uploadDirectory(collegeId: String, contacts: List<Map<String, Any>>) {
         if (!isSyncedEnabled() || contacts.isEmpty()) return
-        supabaseClient.from("directory_contacts").upsert(contacts).execute()
+        supabaseClient.from("directory_contacts").upsert(contacts)
     }
 
     suspend fun downloadDirectory(collegeId: String): List<Map<String, Any>> {
@@ -223,7 +223,7 @@ class SupabaseSyncRepository @Inject constructor(
     // =========================================================================
     suspend fun uploadModerators(collegeId: String, moderators: List<Map<String, Any>>) {
         if (!isSyncedEnabled() || moderators.isEmpty()) return
-        supabaseClient.from("moderators").upsert(moderators).execute()
+        supabaseClient.from("moderators").upsert(moderators)
     }
 
     suspend fun downloadModerators(collegeId: String): List<Map<String, Any>> {

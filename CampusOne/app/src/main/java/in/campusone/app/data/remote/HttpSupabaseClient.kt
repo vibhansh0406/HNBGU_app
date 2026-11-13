@@ -40,7 +40,6 @@ private class HttpSupabaseQueryBuilder(
     private var orderColumn: String? = null
     private var orderAscending: Boolean = true
     private var isSingle: Boolean = false
-    private var upsertData: Any? = null
 
     override fun select(columns: String): SupabaseQueryBuilder {
         selectColumns = columns
@@ -62,6 +61,8 @@ private class HttpSupabaseQueryBuilder(
         isSingle = true
         return this
     }
+
+    override fun execute(): SupabaseResponse = doGet()
 
     override fun upsert(data: Map<String, Any>): SupabaseResponse {
         return doUpsert(data)

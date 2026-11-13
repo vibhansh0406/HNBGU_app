@@ -88,11 +88,11 @@ class AuthManager @Inject constructor(
         return try {
             supabaseClient.from("profiles").upsert(mapOf(
                 "id" to uid,
-                "email" to email,
-                "full_name" to name,
+                "email" to (email ?: ""),
+                "full_name" to (name ?: ""),
                 "role" to role,
                 "updated_at" to java.time.Instant.now().toString()
-            )).execute()
+            ))
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

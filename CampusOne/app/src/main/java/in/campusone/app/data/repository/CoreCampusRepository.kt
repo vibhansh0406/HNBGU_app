@@ -349,7 +349,7 @@ class CoreCampusRepository @Inject constructor(
                                 "updated_at" to log.updatedAtMillis
                             )
                         }
-                    ).execute()
+                    )
                     attendanceDao.markLogsSynced(unsynced.map { it.id })
                 }
             }
