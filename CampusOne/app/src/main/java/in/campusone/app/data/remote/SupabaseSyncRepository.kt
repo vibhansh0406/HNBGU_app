@@ -50,7 +50,7 @@ class SupabaseSyncRepository @Inject constructor(
             "moderator_scope" to moderatorScope,
             "is_moderator_approved" to isModeratorApproved,
             "updated_at" to java.time.Instant.now().toString()
-        )).execute()
+        ))
     }
 
     suspend fun downloadProfile(uid: String): Map<String, Any>? {

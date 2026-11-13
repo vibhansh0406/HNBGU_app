@@ -63,25 +63,15 @@ private class HttpSupabaseQueryBuilder(
         return this
     }
 
-    override fun upsert(data: Map<String, Any>): SupabaseQueryBuilder {
-        upsertData = listOf(data)
-        return this
+    override fun upsert(data: Map<String, Any>): SupabaseResponse {
+        return doUpsert(data)
     }
 
-    override fun upsert(data: List<Map<String, Any>>): SupabaseQueryBuilder {
-        upsertData = data
-        return this
+    override fun upsert(data: List<Map<String, Any>>): SupabaseResponse {
+        return doUpsert(data)
     }
 
-    override fun execute(): SupabaseResponse {
-        return if (upsertData != null) {
-            doUpsert()
-        } else {
-            doGet()
-        }
-    }
-
-    private fun doUpsert(): SupabaseResponse {
+    private fun doUpsert(data: List<Map<String, Any>>): SupabaseResponse {
         val connection = URL(url).openConnection() as HttpURLConnection
         connection.requestMethod = "POST"
         headers.forEach { (k, v) -> connection.addRequestProperty(k, v) }
@@ -89,7 +79,21 @@ private class HttpSupabaseQueryBuilder(
         connection.connectTimeout = 15000
         connection.readTimeout = 15000
 
-        val body = org.json.JSONArray(upsertData).toString()
+        val body = org.json.JSONArray(data).toString()
+        connection.outputStream.use { os -> os.write(body.toByteArray(StandardCharsets.UTF_8)) }
+
+        return readResponse(connection)
+    }
+
+    private fun doUpsert(data: Map<String, Any>): SupabaseResponse {
+        val connection = URL(url).openConnection() as HttpURLConnection
+        connection.requestMethod = "POST"
+        headers.forEach { (k, v) -> connection.addRequestProperty(k, v) }
+        connection.doOutput = true
+        connection.connectTimeout = 15000
+        connection.readTimeout = 15000
+
+        val body = org.json.JSONObject(data).toString()
         connection.outputStream.use { os -> os.write(body.toByteArray(StandardCharsets.UTF_8)) }
 
         return readResponse(connection)
@@ -119,7 +123,7 @@ private class HttpSupabaseQueryBuilder(
         val body = try {
             connection.inputStream.use { it.readBytes() }
         } catch (_: Exception) {
-            connection.errorStream?.use { it.readBytes() } ?: byteArray(0)
+            ByteArray(0)
         }
         connection.disconnect()
 
@@ -166,10 +170,10 @@ private class HttpSupabaseAuth(
             if (responseCode in 200..299) {
                 connection.inputStream.use { it.readBytes() }
             } else {
-                connection.errorStream?.use { it.readBytes() } ?: byteArray(0)
+                ByteArray(0)
             }
         } catch (_: Exception) {
-            byteArray(0)
+            ByteArray(0)
         }
         connection.disconnect()
 

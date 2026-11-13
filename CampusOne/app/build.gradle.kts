@@ -67,6 +67,9 @@ dependencies {
     // Material Components (Views)
     implementation(libs.material.views)
 
+    // Google Sign-In
+    implementation(libs.play-services-auth)
+
     // Hilt DI
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

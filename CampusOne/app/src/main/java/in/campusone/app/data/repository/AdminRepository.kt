@@ -23,6 +23,8 @@ import `in`.campusone.app.data.preferences.UserPreferencesRepository
 import `in`.campusone.app.domain.model.UserProfile
 import `in`.campusone.app.domain.model.UserRole
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import javax.inject.Inject

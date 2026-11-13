@@ -31,10 +31,8 @@ object SupabaseConfigLoader {
     private fun loadLocalProperties(): java.util.Properties {
         val props = java.util.Properties()
         val candidates = listOf(
-            java.io.File("local.properties"),
-            java.io.File("CampusOne/local.properties"),
-            java.io.File(System.getProperty("user.dir"), "local.properties"),
-            java.io.File(System.getProperty("user.dir"), "CampusOne", "local.properties")
+            java.io.File(System.getProperty("user.dir")?.trim() ?: "", "local.properties"),
+            java.io.File(System.getProperty("user.dir")?.trim() ?: "", "CampusOne", "local.properties")
         )
         for (file in candidates) {
             if (file.exists()) {
