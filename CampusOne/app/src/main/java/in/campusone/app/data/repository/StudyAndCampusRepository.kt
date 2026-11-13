@@ -1,7 +1,6 @@
 package `in`.campusone.app.data.repository
 
 import android.content.Context
-import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.qualifiers.ApplicationContext
 import `in`.campusone.app.data.local.dao.CampusLifeDao
 import `in`.campusone.app.data.local.dao.StudyDao
@@ -959,10 +958,7 @@ class StudyAndCampusRepository @Inject constructor(
      */
     suspend fun toggleFollowClub(clubId: String, follow: Boolean) {
         campusLifeDao.setClubFollowed(clubId, follow)
-        runCatching {
-            val fcm = FirebaseMessaging.getInstance()
-            if (follow) fcm.subscribeToTopic("club_$clubId") else fcm.unsubscribeFromTopic("club_$clubId")
-        }
+        // FCM topic subscription handled via Supabase backend
     }
 
     suspend fun createOrProposeClub(
