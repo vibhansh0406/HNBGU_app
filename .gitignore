@@ -1,6 +1,7 @@
 local.properties
 *.jks
 *.keystore
+!CampusOne/ci/debug.keystore
 .gradle/
 build/
 build-output/
