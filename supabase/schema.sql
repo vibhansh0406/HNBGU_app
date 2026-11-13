@@ -118,22 +118,29 @@ create table if not exists public.exams (
   updated_at bigint not null default 0
 );
 
-create table if not exists public.study_resources (
+-- Re-created on storage upgrade (old table carried unused columns and no real data).
+drop table if exists public.study_resources;
+create table public.study_resources (
   id text primary key,
   section_key text not null default '',
+  subject_id text not null default '',
+  subject_name text not null default '',
+  semester integer not null default 1,
   title text not null default '',
-  subject_tag text not null default '',
   category text not null default 'NOTES',
-  semester text not null default '',
-  file_name text not null default '',
-  file_size_mb real not null default 0,
+  exam_year integer not null default 2025,
+  file_url text not null default '',
+  file_type text not null default 'PDF',
+  file_size_bytes bigint not null default 0,
+  file_hash text not null default '',
   uploader_uid text not null default '',
   uploader_name text not null default '',
+  show_uploader_name boolean not null default true,
   upvotes integer not null default 0,
-  downloads integer not null default 0,
-  is_bookmarked boolean not null default false,
-  is_hidden boolean not null default false,
   report_count integer not null default 0,
+  is_flagged boolean not null default false,
+  is_hidden boolean not null default false,
+  is_approved_by_cr boolean not null default true,
   upload_status text not null default 'PUBLISHED',
   created_at bigint not null default 0,
   updated_at bigint not null default 0
@@ -317,3 +324,30 @@ create policy "own_gpa" on public.gpa_semesters
   for all to authenticated
   using (auth.uid()::text = user_id)
   with check (auth.uid()::text = user_id);
+
+-- =========================================================================
+-- SUPABASE STORAGE: study file vault (PDFs / images uploaded by moderators & CRs)
+-- Public bucket: anyone can read; only signed-in users can write.
+-- Files are content-addressed (resources/<sha256>.<ext>) so duplicate
+-- uploads reuse the same object automatically.
+-- =========================================================================
+insert into storage.buckets (id, name, public)
+values ('study-resources', 'study-resources', true)
+on conflict (id) do nothing;
+
+drop policy if exists "campusone_storage_read" on storage.objects;
+create policy "campusone_storage_read" on storage.objects
+  for select using (bucket_id = 'study-resources');
+
+drop policy if exists "campusone_storage_insert" on storage.objects;
+create policy "campusone_storage_insert" on storage.objects
+  for insert to authenticated with check (bucket_id = 'study-resources');
+
+drop policy if exists "campusone_storage_update" on storage.objects;
+create policy "campusone_storage_update" on storage.objects
+  for update to authenticated using (bucket_id = 'study-resources')
+  with check (bucket_id = 'study-resources');
+
+drop policy if exists "campusone_storage_delete" on storage.objects;
+create policy "campusone_storage_delete" on storage.objects
+  for delete to authenticated using (bucket_id = 'study-resources');

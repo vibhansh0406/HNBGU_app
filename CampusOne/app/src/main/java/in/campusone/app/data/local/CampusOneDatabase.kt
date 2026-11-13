@@ -71,7 +71,7 @@ class RoomConverters {
         DirectorySuggestionEntity::class,
         CampusMapPlaceEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 @TypeConverters(RoomConverters::class)

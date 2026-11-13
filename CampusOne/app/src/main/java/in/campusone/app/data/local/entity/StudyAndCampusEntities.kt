@@ -21,6 +21,7 @@ data class StudyResourceEntity(
     val category: String, // "NOTES", "PYQ", "ASSIGNMENT", "OTHER"
     val examYear: Int = 2025,
     val fileUrl: String,
+    val fileHash: String = "",
     val localFilePath: String? = null,
     val fileType: String, // "PDF" or "IMAGE"
     val fileSizeBytes: Long = 1_450_000L,

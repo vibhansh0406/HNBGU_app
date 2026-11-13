@@ -44,6 +44,23 @@ interface StudyDao {
     @Query("UPDATE study_resources SET uploadStatus = :status, uploadProgressPct = :progress, updatedAtMillis = :now WHERE id = :id")
     suspend fun updateUploadProgress(id: String, status: String, progress: Int, now: Long = System.currentTimeMillis())
 
+    @Query("SELECT * FROM study_resources WHERE fileHash = :hash LIMIT 1")
+    suspend fun findResourceByHash(hash: String): StudyResourceEntity?
+
+    @Query("UPDATE study_resources SET fileUrl = :url, fileHash = :hash, fileSizeBytes = :size, uploadStatus = :status, uploadProgressPct = :progress, updatedAtMillis = :now WHERE id = :id")
+    suspend fun finishResourceUpload(
+        id: String,
+        url: String,
+        hash: String,
+        size: Long,
+        status: String,
+        progress: Int,
+        now: Long = System.currentTimeMillis()
+    )
+
+    @Query("UPDATE study_resources SET uploadStatus = 'FAILED', uploadProgressPct = 0, updatedAtMillis = :now WHERE id = :id")
+    suspend fun markResourceUploadFailed(id: String, now: Long = System.currentTimeMillis())
+
     @Query("UPDATE study_resources SET reportCount = reportCount + 1, isFlagged = 1, updatedAtMillis = :now WHERE id = :id")
     suspend fun reportResourceAbuse(id: String, now: Long = System.currentTimeMillis())
 

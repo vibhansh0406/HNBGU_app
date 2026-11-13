@@ -1,11 +1,13 @@
 package `in`.campusone.app.ui.screens
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -55,6 +57,7 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -74,6 +77,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -89,9 +93,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -108,6 +114,9 @@ import `in`.campusone.app.ui.viewmodel.StudyAndCampusViewModel
 import `in`.campusone.app.ui.screens.admin.AdminAssignmentsScreen
 import `in`.campusone.app.ui.screens.admin.AdminClubsScreen
 import `in`.campusone.app.ui.screens.admin.AdminDirectoryScreen
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.File
 import `in`.campusone.app.ui.screens.admin.AdminEventsScreen
 import `in`.campusone.app.ui.screens.admin.AdminExamsScreen
 import `in`.campusone.app.ui.screens.admin.AdminHubScreen
@@ -588,7 +597,7 @@ fun NotesAndPyqScreen(
         UploadStudyResourceDialog(
             defaultSemester = uiState.profile.semester,
             onDismiss = { showUploadDialog = false },
-            onUpload = { subjId, subjName, sem, title, cat, year, url, type, sizeBytes, showName ->
+            onUpload = { subjId, subjName, sem, title, cat, year, uri, type, showName ->
                 viewModel.uploadResource(
                     subjectId = subjId,
                     subjectName = subjName,
@@ -596,9 +605,8 @@ fun NotesAndPyqScreen(
                     title = title,
                     category = cat,
                     examYear = year,
-                    fileUrl = url,
+                    contentUri = uri,
                     fileType = type,
-                    fileSizeBytes = sizeBytes,
                     showUploaderName = showName
                 )
                 showUploadDialog = false
@@ -609,6 +617,7 @@ fun NotesAndPyqScreen(
     viewingResource?.let { resource ->
         InAppZoomableDocumentViewerDialog(
             resource = resource,
+            fileLoader = viewModel::obtainViewerFile,
             onDismiss = { viewingResource = null },
             onDownloadOffline = { viewModel.downloadResourceOffline(resource) }
         )
@@ -753,9 +762,8 @@ private fun UploadStudyResourceDialog(
         title: String,
         category: String,
         examYear: Int,
-        fileUrl: String,
+        fileUri: String,
         fileType: String,
-        fileSizeBytes: Long,
         showUploaderName: Boolean
     ) -> Unit
 ) {
@@ -766,20 +774,25 @@ private fun UploadStudyResourceDialog(
     var category by rememberSaveable { mutableStateOf("NOTES") }
     var examYear by rememberSaveable { mutableIntStateOf(2025) }
     var fileType by rememberSaveable { mutableStateOf("PDF") }
-    var selectedUriString by rememberSaveable { mutableStateOf("content://campusone/picked_document.pdf") }
-    var simulatedSizeMb by rememberSaveable { mutableFloatStateOf(2.4f) }
+    var selectedUriString by rememberSaveable { mutableStateOf("") }
+    var pickedSizeMb by rememberSaveable { mutableFloatStateOf(0f) }
     var showUploaderName by rememberSaveable { mutableStateOf(true) }
+    val context = LocalContext.current
 
-    // Native Android Document / Gallery / Camera Picker
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         if (uri != null) {
             selectedUriString = uri.toString()
+            pickedSizeMb = runCatching {
+                context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { it.length } ?: 0L
+            }.getOrDefault(0L) / (1024f * 1024f)
+            fileType = if (context.contentResolver.getType(uri)?.contains("pdf") == true) "PDF" else "IMAGE"
         }
     }
 
-    val isOverLimit = simulatedSizeMb > 10.0f
+    val isOverLimit = pickedSizeMb > 10.0f
+    val hasFile = selectedUriString.isNotBlank() && pickedSizeMb > 0f
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -844,6 +857,14 @@ private fun UploadStudyResourceDialog(
                 ) {
                     Text("Pick File / Gallery Image")
                 }
+                if (hasFile) {
+                    Text(
+                        text = if (pickedSizeMb >= 1f) "Selected: %.1f MB".format(pickedSizeMb)
+                        else "Selected: %.0f KB".format(pickedSizeMb * 1024f),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
@@ -856,9 +877,8 @@ private fun UploadStudyResourceDialog(
         },
         confirmButton = {
             Button(
-                enabled = title.isNotBlank() && !isOverLimit,
+                enabled = title.isNotBlank() && hasFile && !isOverLimit,
                 onClick = {
-                    val bytes = (simulatedSizeMb * 1024 * 1024).toLong()
                     onUpload(
                         subjectId,
                         subjectName,
@@ -868,12 +888,11 @@ private fun UploadStudyResourceDialog(
                         examYear,
                         selectedUriString,
                         fileType,
-                        bytes,
                         showUploaderName
                     )
                 }
             ) {
-                Text("Start Resumable Upload")
+                Text("Start Upload")
             }
         },
         dismissButton = {
@@ -882,14 +901,10 @@ private fun UploadStudyResourceDialog(
     )
 }
 
-/**
- * In-App PDF & Image Viewer with Pinch-to-Zoom (`detectTransformGestures`), Pan, and Offline Download.
- * Uses Android's native `PdfRenderer` when a local PDF file descriptor is available, and renders
- * an interactive multi-page preview with smooth 1x..4x zoom.
- */
 @Composable
 private fun InAppZoomableDocumentViewerDialog(
     resource: StudyResourceEntity,
+    fileLoader: suspend (StudyResourceEntity) -> Pair<Int, File>?,
     onDismiss: () -> Unit,
     onDownloadOffline: () -> Unit
 ) {
@@ -897,7 +912,53 @@ private fun InAppZoomableDocumentViewerDialog(
     var offsetX by remember { mutableFloatStateOf(0f) }
     var offsetY by remember { mutableFloatStateOf(0f) }
     var currentPage by rememberSaveable { mutableIntStateOf(1) }
-    val totalPages = 4
+    var totalPages by remember { mutableIntStateOf(0) }
+    var pageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var sourceFile by remember { mutableStateOf<File?>(null) }
+    var loading by remember { mutableStateOf(true) }
+    var loadError by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(resource.id) {
+        val loaded = fileLoader(resource)
+        if (loaded == null) {
+            loading = false
+            loadError = "Document could not be downloaded for viewing"
+        } else {
+            totalPages = loaded.first
+            sourceFile = loaded.second
+            currentPage = 1
+        }
+    }
+
+    LaunchedEffect(sourceFile, currentPage, resource.fileType) {
+        val file = sourceFile ?: return@LaunchedEffect
+        loading = true
+        val bitmap = withContext(Dispatchers.IO) {
+            runCatching {
+                if (resource.fileType == "PDF") {
+                    ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use { pfd ->
+                        PdfRenderer(pfd).use { renderer ->
+                            renderer.openPage((currentPage - 1).coerceIn(0, renderer.pageCount - 1)).use { page ->
+                                val bmp = Bitmap.createBitmap(
+                                    page.width * 2,
+                                    page.height * 2,
+                                    Bitmap.Config.ARGB_8888
+                                )
+                                bmp.eraseColor(android.graphics.Color.WHITE)
+                                page.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                                bmp
+                            }
+                        }
+                    }
+                } else {
+                    BitmapFactory.decodeFile(file.absolutePath)
+                }
+            }.getOrNull()
+        }
+        pageBitmap = bitmap
+        if (bitmap == null) loadError = "Page could not be rendered"
+        loading = false
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -916,7 +977,7 @@ private fun InAppZoomableDocumentViewerDialog(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(320.dp)
+                        .height(420.dp)
                         .clip(RoundedCornerShape(16.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                         .pointerInput(Unit) {
@@ -930,33 +991,32 @@ private fun InAppZoomableDocumentViewerDialog(
                                     offsetY = 0f
                                 }
                             }
-                        }
-                        .padding(16.dp),
+                        },
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(
-                        modifier = Modifier.graphicsLayer(
-                            scaleX = scale,
-                            scaleY = scale,
-                            translationX = offsetX,
-                            translationY = offsetY
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = if (resource.fileType == "PDF") {
-                                "📄 PDF Page $currentPage of $totalPages — ${resource.subjectName}"
-                            } else {
-                                "🖼️ High-Resolution Image Note — ${resource.subjectName}"
-                            },
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                    val bmp = pageBitmap
+                    when {
+                        loading -> CircularProgressIndicator()
+                        bmp != null -> Image(
+                            bitmap = bmp.asImageBitmap(),
+                            contentDescription = resource.title,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .graphicsLayer(
+                                    scaleX = scale,
+                                    scaleY = scale,
+                                    translationX = offsetX,
+                                    translationY = offsetY
+                                ),
+                            contentScale = ContentScale.Fit
                         )
-                        Text(
-                            text = "Key Concepts & Solved University Questions:\n" +
-                                "1. ${resource.title}\n" +
-                                "2. Time & Space Complexity / Derivation Steps\n" +
-                                "3. HNB Garhwal University Marking Scheme Notes",
+                        loadError != null -> Text(
+                            text = loadError.orEmpty(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        else -> Text(
+                            text = "No content",
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -967,8 +1027,11 @@ private fun InAppZoomableDocumentViewerDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (resource.fileType == "PDF") {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (resource.fileType == "PDF" && totalPages > 0) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             OutlinedButton(
                                 enabled = currentPage > 1,
                                 onClick = { currentPage-- }
@@ -977,6 +1040,10 @@ private fun InAppZoomableDocumentViewerDialog(
                                 enabled = currentPage < totalPages,
                                 onClick = { currentPage++ }
                             ) { Text("Next") }
+                            Text(
+                                text = "$currentPage / $totalPages",
+                                style = MaterialTheme.typography.labelLarge
+                            )
                         }
                     }
                     TextButton(

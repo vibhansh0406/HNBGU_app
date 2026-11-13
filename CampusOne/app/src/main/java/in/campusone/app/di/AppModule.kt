@@ -2,6 +2,8 @@ package `in`.campusone.app.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,6 +21,12 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
+    private val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE study_resources ADD COLUMN fileHash TEXT NOT NULL DEFAULT ''")
+        }
+    }
+
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): CampusOneDatabase {
@@ -26,7 +34,7 @@ object AppModule {
             context,
             CampusOneDatabase::class.java,
             "campusone_offline.db"
-        ).fallbackToDestructiveMigration().build()
+        ).addMigrations(MIGRATION_3_4).fallbackToDestructiveMigration().build()
     }
 
     @Provides

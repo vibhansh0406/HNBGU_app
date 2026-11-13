@@ -195,9 +195,8 @@ class StudyAndCampusViewModel @Inject constructor(
         title: String,
         category: String,
         examYear: Int,
-        fileUrl: String,
+        contentUri: String,
         fileType: String,
-        fileSizeBytes: Long,
         showUploaderName: Boolean
     ) {
         val p = uiState.value.profile
@@ -210,9 +209,8 @@ class StudyAndCampusViewModel @Inject constructor(
                 title = title,
                 category = category,
                 examYear = examYear,
-                fileUrl = fileUrl,
+                contentUri = contentUri,
                 fileType = fileType,
-                fileSizeBytes = fileSizeBytes,
                 uploaderUid = p.uid,
                 uploaderName = p.name,
                 showUploaderName = showUploaderName
@@ -226,6 +224,9 @@ class StudyAndCampusViewModel @Inject constructor(
     }
 
     fun retryUpload(id: String) = viewModelScope.launch { repository.retryFailedUpload(id) }
+
+    suspend fun obtainViewerFile(resource: StudyResourceEntity): Pair<Int, java.io.File>? =
+        repository.obtainViewerFile(resource)
     fun upvoteResource(id: String) = viewModelScope.launch { repository.upvoteResource(id) }
     fun toggleBookmark(id: String, bookmarked: Boolean) =
         viewModelScope.launch { repository.toggleBookmarkOffline(id, bookmarked) }

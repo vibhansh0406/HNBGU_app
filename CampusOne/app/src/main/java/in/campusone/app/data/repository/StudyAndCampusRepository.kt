@@ -1,6 +1,10 @@
 package `in`.campusone.app.data.repository
 
 import android.content.Context
+import android.content.ContentResolver
+import android.graphics.pdf.PdfRenderer
+import android.net.Uri
+import android.os.ParcelFileDescriptor
 import dagger.hilt.android.qualifiers.ApplicationContext
 import `in`.campusone.app.data.local.dao.CampusLifeDao
 import `in`.campusone.app.data.local.dao.StudyDao
@@ -26,15 +30,18 @@ import `in`.campusone.app.util.StudyFileAndPdfHelper
 import `in`.campusone.app.util.security.SecurityUtils
 import `in`.campusone.app.data.preferences.UserPreferencesRepository
 import `in`.campusone.app.data.remote.AuthManager
+import `in`.campusone.app.data.remote.FileStore
+import `in`.campusone.app.data.remote.StorageBuckets
 import `in`.campusone.app.data.remote.SupabaseClient
 import `in`.campusone.app.data.remote.SupabaseSyncRepository
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -46,7 +53,8 @@ class StudyAndCampusRepository @Inject constructor(
     private val prefs: UserPreferencesRepository,
     private val supabaseClient: SupabaseClient,
     private val supabaseSync: SupabaseSyncRepository,
-    private val authManager: AuthManager
+    private val authManager: AuthManager,
+    private val fileStore: FileStore
 ) {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
@@ -95,6 +103,37 @@ class StudyAndCampusRepository @Inject constructor(
                         roomOrCenter = map["room_or_center"] as? String ?: "",
                         reminderEnabled = map["reminder_enabled"] as? Boolean ?: true,
                         publishedByCrOrTeacher = map["published_by_cr_or_teacher"] as? Boolean ?: true,
+                        updatedAtMillis = System.currentTimeMillis()
+                    )
+                })
+            }
+            val remoteResources = supabaseSync.downloadStudyResources(sectionKey)
+            if (remoteResources.isNotEmpty()) {
+                studyDao.upsertResources(remoteResources.map { map ->
+                    StudyResourceEntity(
+                        id = map["id"] as? String ?: "res_${System.currentTimeMillis()}",
+                        sectionKey = sectionKey,
+                        subjectId = map["subject_id"] as? String ?: "",
+                        subjectName = map["subject_name"] as? String ?: "",
+                        semester = (map["semester"] as? Number)?.toInt() ?: 1,
+                        title = map["title"] as? String ?: "",
+                        category = map["category"] as? String ?: "NOTES",
+                        examYear = (map["exam_year"] as? Number)?.toInt() ?: 2025,
+                        fileUrl = map["file_url"] as? String ?: "",
+                        fileHash = map["file_hash"] as? String ?: "",
+                        fileType = map["file_type"] as? String ?: "PDF",
+                        fileSizeBytes = (map["file_size_bytes"] as? Number)?.toLong() ?: 0L,
+                        uploaderUid = map["uploader_uid"] as? String ?: "",
+                        uploaderName = map["uploader_name"] as? String ?: "Student",
+                        showUploaderName = map["show_uploader_name"] as? Boolean ?: true,
+                        upvotes = (map["upvotes"] as? Number)?.toInt() ?: 0,
+                        isBookmarkedOffline = false,
+                        reportCount = (map["report_count"] as? Number)?.toInt() ?: 0,
+                        isFlagged = map["is_flagged"] as? Boolean ?: false,
+                        isHidden = map["is_hidden"] as? Boolean ?: false,
+                        isApprovedByCr = map["is_approved_by_cr"] as? Boolean ?: true,
+                        uploadStatus = map["upload_status"] as? String ?: "PUBLISHED",
+                        createdAtMillis = (map["created_at"] as? Number)?.toLong() ?: System.currentTimeMillis(),
                         updatedAtMillis = System.currentTimeMillis()
                     )
                 })
@@ -151,17 +190,13 @@ class StudyAndCampusRepository @Inject constructor(
         title: String,
         category: String,
         examYear: Int,
-        fileUrl: String,
+        contentUri: String,
         fileType: String,
-        fileSizeBytes: Long,
         uploaderUid: String,
         uploaderName: String,
         showUploaderName: Boolean
-    ): Result<Unit> = runCatching {
+    ): Result<Unit> {
         checkRateLimit().getOrThrow()
-        StudyFileAndPdfHelper.validateFileSize(fileSizeBytes).getOrThrow()
-        val effectiveSize = if (fileType == "IMAGE" && fileSizeBytes > 600_000L) 520_000L else fileSizeBytes
-
         val resId = "res_${System.currentTimeMillis()}"
         val initialEntity = StudyResourceEntity(
             id = resId,
@@ -172,27 +207,73 @@ class StudyAndCampusRepository @Inject constructor(
             title = title.trim(),
             category = category,
             examYear = examYear,
-            fileUrl = fileUrl.trim(),
+            fileUrl = contentUri.trim(),
             fileType = fileType,
-            fileSizeBytes = effectiveSize,
+            fileSizeBytes = 0L,
             uploaderUid = uploaderUid,
             uploaderName = uploaderName,
             showUploaderName = showUploaderName,
             uploadStatus = "UPLOADING",
-            uploadProgressPct = 20
+            uploadProgressPct = 5
         )
         studyDao.upsertResources(listOf(initialEntity))
-        for (pct in listOf(45, 75, 100)) {
-            delay(150)
-            studyDao.updateUploadProgress(resId, if (pct == 100) "COMPLETED" else "UPLOADING", pct)
+        return try {
+            val bytes = readContentBytes(context.contentResolver, contentUri).getOrThrow()
+            StudyFileAndPdfHelper.validateFileSize(bytes.size.toLong()).getOrThrow()
+            val hash = sha256Hex(bytes)
+            val remoteUrl = obtainRemoteFileUrl(resId, hash, bytes, fileType)
+            studyDao.finishResourceUpload(resId, remoteUrl, hash, bytes.size.toLong(), "COMPLETED", 100)
+            val saved = studyDao.getResourceById(resId) ?: initialEntity
+            if (supabaseSync.isSyncedEnabled() && remoteUrl.startsWith("http")) {
+                supabaseSync.uploadStudyResources(sectionKey, listOf(studyResourceSyncMap(saved)))
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            studyDao.markResourceUploadFailed(resId)
+            Result.failure(e)
         }
     }
 
-    suspend fun retryFailedUpload(id: String) {
-        for (pct in listOf(30, 70, 100)) {
-            delay(150)
-            studyDao.updateUploadProgress(id, if (pct == 100) "COMPLETED" else "UPLOADING", pct)
+    private suspend fun obtainRemoteFileUrl(
+        resId: String,
+        hash: String,
+        bytes: ByteArray,
+        fileType: String
+    ): String {
+        val existing = studyDao.findResourceByHash(hash)
+        if (existing != null && existing.fileUrl.startsWith("http")) {
+            return existing.fileUrl
         }
+        val ext = if (fileType == "IMAGE") "jpg" else "pdf"
+        val contentType = if (fileType == "IMAGE") "image/jpeg" else "application/pdf"
+        return fileStore.upload(
+            bucket = StorageBuckets.STUDY_RESOURCES,
+            path = "resources/$hash.$ext",
+            bytes = bytes,
+            contentType = contentType
+        ) { pct ->
+            studyDao.updateUploadProgress(resId, "UPLOADING", pct.coerceIn(5, 95))
+        }.getOrThrow()
+    }
+
+    suspend fun retryFailedUpload(id: String) {
+        val resource = studyDao.getResourceById(id) ?: return
+        if (!resource.fileUrl.startsWith("content://")) return
+        studyDao.deleteResourceByCr(id)
+        uploadStudyResourceWithProgress(
+            sectionKey = resource.sectionKey,
+            subjectId = resource.subjectId,
+            subjectName = resource.subjectName,
+            semester = resource.semester,
+            title = resource.title,
+            category = resource.category,
+            examYear = resource.examYear,
+            contentUri = resource.fileUrl,
+            fileType = resource.fileType,
+            uploaderUid = resource.uploaderUid,
+            uploaderName = resource.uploaderName,
+            showUploaderName = resource.showUploaderName
+        )
     }
 
     suspend fun toggleBookmarkOffline(id: String, bookmarked: Boolean) =
@@ -202,12 +283,99 @@ class StudyAndCampusRepository @Inject constructor(
         val offlineDir = File(context.filesDir, "offline_study_vault").apply { mkdirs() }
         val ext = if (resource.fileType == "PDF") "pdf" else "jpg"
         val targetFile = File(offlineDir, "${resource.id}.$ext")
-        if (!targetFile.exists()) {
-            targetFile.writeText("Offline cached content for ${resource.title} (${resource.subjectId})")
+        if (!targetFile.exists() || targetFile.length() == 0L) {
+            val bytes = resolveResourceBytes(resource)
+            if (bytes != null) {
+                withContext(Dispatchers.IO) { targetFile.writeBytes(bytes) }
+            } else {
+                targetFile.writeText("Offline cached content for ${resource.title} (${resource.subjectId})")
+            }
         }
         studyDao.setResourceLocalPath(resource.id, targetFile.absolutePath)
         return targetFile.absolutePath
     }
+
+    suspend fun obtainViewerFile(resource: StudyResourceEntity): Pair<Int, File>? = withContext(Dispatchers.IO) {
+        runCatching {
+            val file = when {
+                resource.localFilePath != null && File(resource.localFilePath).exists() -> File(resource.localFilePath)
+                resource.fileUrl.startsWith("http") || resource.fileUrl.startsWith("content://") ->
+                    resourceFileForViewing(resource)
+                else -> null
+            } ?: return@runCatching null
+            if (resource.fileType == "PDF") {
+                ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use { pfd ->
+                    PdfRenderer(pfd).use { renderer -> Pair(renderer.pageCount, file) }
+                }
+            } else {
+                Pair(1, file)
+            }
+        }.getOrNull()
+    }
+
+    private suspend fun resourceFileForViewing(resource: StudyResourceEntity): File {
+        val cacheDir = File(context.cacheDir, "study_view_cache").apply { mkdirs() }
+        val ext = if (resource.fileType == "PDF") "pdf" else "jpg"
+        val suffix = resource.fileHash.take(8).ifBlank { "raw" }
+        val cached = File(cacheDir, "${resource.id}.$suffix.$ext")
+        if (!cached.exists() || cached.length() == 0L) {
+            val bytes = resolveResourceBytes(resource)
+                ?: throw IllegalStateException("File source unavailable")
+            cached.writeBytes(bytes)
+        }
+        return cached
+    }
+
+    private suspend fun resolveResourceBytes(resource: StudyResourceEntity): ByteArray? {
+        return when {
+            resource.fileUrl.startsWith("http") ->
+                fileStore.download(resource.fileUrl).getOrThrow()
+            resource.fileUrl.startsWith("content://") ->
+                readContentBytes(context.contentResolver, resource.fileUrl).getOrThrow()
+            resource.localFilePath != null && File(resource.localFilePath).exists() ->
+                File(resource.localFilePath).readBytes()
+            else -> null
+        }
+    }
+
+    private suspend fun readContentBytes(resolver: ContentResolver, uriString: String): Result<ByteArray> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                resolver.openInputStream(Uri.parse(uriString))?.use { it.readBytes() }
+                    ?: throw IllegalStateException("Selected file could not be read")
+            }
+        }
+
+    private fun sha256Hex(bytes: ByteArray): String {
+        val digest = MessageDigest.getInstance("SHA-256").digest(bytes)
+        return digest.joinToString("") { "%02x".format(it) }
+    }
+
+    private fun studyResourceSyncMap(r: StudyResourceEntity): Map<String, Any> = mapOf<String, Any>(
+        "id" to r.id,
+        "section_key" to r.sectionKey,
+        "subject_id" to r.subjectId,
+        "subject_name" to r.subjectName,
+        "semester" to r.semester,
+        "title" to r.title,
+        "category" to r.category,
+        "exam_year" to r.examYear,
+        "file_url" to r.fileUrl,
+        "file_type" to r.fileType,
+        "file_size_bytes" to r.fileSizeBytes,
+        "file_hash" to r.fileHash,
+        "uploader_uid" to r.uploaderUid,
+        "uploader_name" to r.uploaderName,
+        "show_uploader_name" to r.showUploaderName,
+        "upvotes" to r.upvotes,
+        "report_count" to r.reportCount,
+        "is_flagged" to r.isFlagged,
+        "is_hidden" to r.isHidden,
+        "is_approved_by_cr" to r.isApprovedByCr,
+        "upload_status" to r.uploadStatus,
+        "created_at" to r.createdAtMillis,
+        "updated_at" to r.updatedAtMillis
+    )
 
     suspend fun upvoteResource(id: String) = studyDao.upvoteResource(id)
     suspend fun reportResourceAbuse(id: String) = studyDao.reportResourceAbuse(id)
