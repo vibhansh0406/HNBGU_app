@@ -4,12 +4,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
@@ -18,8 +21,10 @@ import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +49,7 @@ import `in`.campusone.app.domain.model.UserRole
 import `in`.campusone.app.ui.viewmodel.ModeratorViewModel
 import `in`.campusone.app.ui.viewmodel.ModeratorViewModel.ModeratorUiState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModeratorManagementScreen(
     uiState: ModeratorUiState,
@@ -61,7 +67,7 @@ fun ModeratorManagementScreen(
                 title = { Text("Manage Moderators") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -74,7 +80,7 @@ fun ModeratorManagementScreen(
                     editScope = ""
                     showDialog = true
                 }) {
-                    Icon(Add, contentDescription = "Add Moderator")
+                    Icon(Icons.Default.Add, contentDescription = "Add Moderator")
                 }
             }
         }
@@ -102,12 +108,14 @@ fun ModeratorManagementScreen(
             // Info if not admin
             if (!uiState.isAdmin && !uiState.isActiveModerator) {
                 ElevatedCard(
-                    colors = MaterialTheme.colorScheme.errorContainer,
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                            Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = stringResource(R.string.security_access_denied),
@@ -121,7 +129,7 @@ fun ModeratorManagementScreen(
             }
 
             // Approved moderators section
-            val approved = uiState.activeModerators()
+            val approved = viewModel.activeModerators()
             if (approved.isNotEmpty()) {
                 Column {
                     Text(
@@ -159,7 +167,7 @@ fun ModeratorManagementScreen(
             }
 
             // Pending moderators section
-            val pending = uiState.pendingModerators()
+            val pending = viewModel.pendingModerators()
             if (pending.isNotEmpty()) {
                 Column {
                     Text(
@@ -270,11 +278,11 @@ private fun ModeratorRow(
                         )
                         if (mod.role == UserRole.MODERATOR) {
                             IconButton(onClick = onRevoke) {
-                                Icon(Delete, contentDescription = "Revoke moderator")
+                                Icon(Icons.Default.Delete, contentDescription = "Revoke moderator")
                             }
                         }
                         IconButton(onClick = { onEdit?.invoke() }) {
-                            Icon(Edit, contentDescription = "Edit")
+                            Icon(Icons.Default.Edit, contentDescription = "Edit")
                         }
                     }
                 }

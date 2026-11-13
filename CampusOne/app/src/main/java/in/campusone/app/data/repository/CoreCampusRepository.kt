@@ -197,7 +197,7 @@ class CoreCampusRepository @Inject constructor(
     suspend fun saveAndPublishTimetableSlot(
         profile: UserProfile,
         slot: TimetableSlot
-    ): androidx.core.Result<Unit> = runCatching {
+    ): kotlin.Result<Unit> = runCatching {
         require(profile.role == UserRole.CR || profile.role == UserRole.TEACHER) {
             "Only Class Representatives (CR) or Teachers can publish section timetables."
         }
@@ -281,7 +281,7 @@ class CoreCampusRepository @Inject constructor(
         attachmentUrl: String?,
         attachmentType: AttachmentType,
         isPinned: Boolean
-    ): androidx.core.Result<Unit> = runCatching {
+    ): kotlin.Result<Unit> = runCatching {
         require(profile.role == UserRole.CR || profile.role == UserRole.TEACHER) {
             "Only Class Representatives (CR) or Teachers can post announcements."
         }
@@ -305,12 +305,12 @@ class CoreCampusRepository @Inject constructor(
 
         // Supabase permanent sync
         if (supabaseSync.isSyncedEnabled()) {
-            supabaseSync.uploadNotices(profile.sectionKey, listOf(mapOf(
+            supabaseSync.uploadNotices(profile.sectionKey, listOf(mapOf<String, Any>(
                 "id" to entity.id,
                 "section_key" to entity.sectionKey,
                 "title" to entity.title,
                 "body" to entity.body,
-                "attachment_url" to entity.attachmentUrl,
+                "attachment_url" to (entity.attachmentUrl ?: ""),
                 "attachment_type" to entity.attachmentType.name,
                 "is_pinned" to entity.isPinned,
                 "author_uid" to entity.authorUid,

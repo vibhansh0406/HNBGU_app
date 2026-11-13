@@ -4,18 +4,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +41,7 @@ import `in`.campusone.app.data.local.entity.SubjectEntity
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminSubjectsScreen(
     uiState: AdminUiState,
@@ -59,7 +62,7 @@ fun AdminSubjectsScreen(
                 title = { Text("Manage Subjects") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -74,7 +77,7 @@ fun AdminSubjectsScreen(
                 isElective = false
                 showDialog = true
             }) {
-                Icon(Add, contentDescription = "Add Subject")
+                Icon(Icons.Default.Add, contentDescription = "Add Subject")
             }
         }
     ) { padding ->
@@ -101,10 +104,10 @@ fun AdminSubjectsScreen(
                                     isElective = subject.isElective
                                     showDialog = true
                                 }) {
-                                    Icon(Edit, contentDescription = "Edit")
+                                    Icon(Icons.Default.Edit, contentDescription = "Edit")
                                 }
                                 IconButton(onClick = { viewModel.deleteSubject(subject.subjectId) }) {
-                                    Icon(Delete, contentDescription = "Delete")
+                                    Icon(Icons.Default.Delete, contentDescription = "Delete")
                                 }
                             }
                         }

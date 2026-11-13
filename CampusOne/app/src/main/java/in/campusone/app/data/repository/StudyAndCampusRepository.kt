@@ -798,7 +798,7 @@ class StudyAndCampusRepository @Inject constructor(
 
         // Supabase permanent sync
         if (supabaseSync.isSyncedEnabled()) {
-            supabaseSync.uploadAssignments(sectionKey, listOf(mapOf(
+            supabaseSync.uploadAssignments(sectionKey, listOf(mapOf<String, Any>(
                 "id" to entity.id,
                 "section_key" to entity.sectionKey,
                 "subject_id" to entity.subjectId,
@@ -814,7 +814,7 @@ class StudyAndCampusRepository @Inject constructor(
                 "is_completed" to entity.isCompleted,
                 "is_shared_by_cr_or_teacher" to entity.isSharedByCrOrTeacher,
                 "is_added_to_personal_list" to entity.isAddedToPersonalList,
-                "shared_source_id" to entity.sharedSourceId,
+                "shared_source_id" to (entity.sharedSourceId ?: ""),
                 "author_name" to entity.authorName,
                 "is_synced" to entity.isSynced,
                 "created_at" to entity.createdAtMillis,
