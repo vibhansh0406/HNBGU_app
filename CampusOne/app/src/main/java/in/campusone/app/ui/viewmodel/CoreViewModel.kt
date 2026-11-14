@@ -206,11 +206,8 @@ class CoreViewModel @Inject constructor(
             val signedInEmail = authManager.currentUserEmail().orEmpty()
             val isOwner = signedInEmail.equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true) ||
                 email.trim().equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true)
-            val effectiveRole = if (isOwner) {
-                UserRole.ADMIN
-            } else {
-                role
-            }
+            val requestedRole = role
+            val effectiveRole = if (isOwner) UserRole.ADMIN else UserRole.STUDENT
             val profileEmail = signedInEmail.ifBlank { email.trim() }
             val profile = UserProfile(
                 uid = uid,
@@ -234,6 +231,11 @@ class CoreViewModel @Inject constructor(
                 role = effectiveRole.name
             )
             repository.syncProfileToCloud(profile)
+            if (!isOwner && requestedRole != UserRole.STUDENT) {
+                repository.requestRoleChange(requestedRole, "Requested during onboarding")
+                    .onSuccess { _uiMessages.emit("Role request sent for admin approval.") }
+                    .onFailure { _uiMessages.emit("Could not send role request.") }
+            }
         }
     }
 

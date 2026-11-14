@@ -21,8 +21,10 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.FindInPage
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Schedule
@@ -125,7 +127,8 @@ fun AdminHubScreen(
                     StatCard("Assignments", state.assignmentCount.toString(), Icons.Default.Assignment, colorSecondary),
                     StatCard("Exams", state.examCount.toString(), Icons.Default.CalendarMonth, colorTertiary),
                     StatCard("Clubs", state.clubCount.toString(), Icons.Default.Group, colorPrimary),
-                    StatCard("Events", state.eventCount.toString(), Icons.Default.Event, colorSecondary)
+                    StatCard("Events", state.eventCount.toString(), Icons.Default.Event, colorSecondary),
+                    StatCard("Users", state.users.size.toString(), Icons.Default.People, colorTertiary)
                 ),
                 key = { it.title }
             ) { (title, count, icon, color) ->
@@ -156,6 +159,7 @@ fun AdminHubScreen(
                     ActionCard("Manage Events", Icons.Default.Event, { onNavigate("EVENTS") }),
                     ActionCard("Lost & Found", Icons.Default.FindInPage, { onNavigate("LOST_FOUND") }),
                     ActionCard("Directory", Icons.Default.Info, { onNavigate("DIRECTORY") }),
+                    ActionCard("Review Center", Icons.Default.Flag, { onNavigate("REVIEW") }),
                     ActionCard("Users & Roles", Icons.Default.Group, { onNavigate("USERS") }),
                     ActionCard("Manage Moderators", Icons.Default.PersonAdd, onManageModerators)
                 ),

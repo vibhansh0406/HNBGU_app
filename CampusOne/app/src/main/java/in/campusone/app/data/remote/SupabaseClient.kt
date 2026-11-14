@@ -15,10 +15,14 @@ interface SupabaseClient {
 interface SupabaseQueryBuilder {
     fun select(columns: String): SupabaseQueryBuilder
     fun eq(column: String, value: Any): SupabaseQueryBuilder
+    fun or(filter: String): SupabaseQueryBuilder
     fun order(column: String, ascending: Boolean): SupabaseQueryBuilder
     fun single(): SupabaseQueryBuilder
     suspend fun upsert(data: Map<String, Any>): SupabaseResponse
     suspend fun upsert(data: List<Map<String, Any>>): SupabaseResponse
+    suspend fun insert(data: Map<String, Any>): SupabaseResponse
+    suspend fun update(data: Map<String, Any>): SupabaseResponse
+    suspend fun delete(): SupabaseResponse
     suspend fun execute(): SupabaseResponse
 }
 

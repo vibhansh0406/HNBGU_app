@@ -111,6 +111,11 @@ private class HttpSupabaseQueryBuilder(
         return this
     }
 
+    override fun or(filter: String): SupabaseQueryBuilder {
+        filters.add("or=(${encode(filter)})")
+        return this
+    }
+
     override fun order(column: String, ascending: Boolean): SupabaseQueryBuilder {
         orders.add("${column}.${if (ascending) "asc" else "desc"}")
         return this
@@ -124,6 +129,14 @@ private class HttpSupabaseQueryBuilder(
     override suspend fun upsert(data: Map<String, Any>): SupabaseResponse = doUpsert(listOf(data))
 
     override suspend fun upsert(data: List<Map<String, Any>>): SupabaseResponse = doUpsert(data)
+
+    override suspend fun insert(data: Map<String, Any>): SupabaseResponse =
+        doWrite("POST", data)
+
+    override suspend fun update(data: Map<String, Any>): SupabaseResponse =
+        doWrite("PATCH", data)
+
+    override suspend fun delete(): SupabaseResponse = doWrite("DELETE", null)
 
     override suspend fun execute(): SupabaseResponse = doGet()
 
@@ -176,6 +189,33 @@ private class HttpSupabaseQueryBuilder(
                 conn.readTimeout = 15000
                 val body = JSONArray(data).toString()
                 conn.outputStream.use { it.write(body.toByteArray(StandardCharsets.UTF_8)) }
+                readResponse(conn)
+            } finally {
+                conn.disconnect()
+            }
+        }
+
+    private suspend fun doWrite(method: String, data: Map<String, Any>?): SupabaseResponse =
+        withContext(Dispatchers.IO) {
+            val query = filters.joinToString("&")
+            val fullUrl = if (query.isBlank()) "$baseUrl/$table" else "$baseUrl/$table?$query"
+            val conn = URL(fullUrl).openConnection() as HttpURLConnection
+            try {
+                conn.requestMethod = method
+                conn.setRequestProperty("apikey", config.anonKey)
+                conn.setRequestProperty(
+                    "Authorization",
+                    "Bearer " + (sessionStore.session.value?.accessToken?.takeIf { it.isNotBlank() } ?: config.anonKey)
+                )
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.setRequestProperty("Prefer", "return=representation")
+                conn.connectTimeout = 15000
+                conn.readTimeout = 15000
+                if (data != null) {
+                    conn.doOutput = true
+                    val body = JSONObject(data).toString()
+                    conn.outputStream.use { it.write(body.toByteArray(StandardCharsets.UTF_8)) }
+                }
                 readResponse(conn)
             } finally {
                 conn.disconnect()

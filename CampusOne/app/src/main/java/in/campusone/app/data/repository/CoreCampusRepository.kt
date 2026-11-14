@@ -65,6 +65,20 @@ class CoreCampusRepository @Inject constructor(
         )
     }
 
+    suspend fun requestRoleChange(role: UserRole, note: String): Result<Unit> {
+        val profile = prefs.userProfile.first()
+        val uid = authManager.currentUserId()
+            ?: return Result.failure(IllegalStateException("Sign in to send a role request"))
+        if (role == UserRole.STUDENT || role == UserRole.ADMIN) {
+            return Result.failure(IllegalArgumentException("Choose a staff role"))
+        }
+        return if (supabaseSync.submitRoleRequest(uid, profile.email, role.name, note)) {
+            Result.success(Unit)
+        } else {
+            Result.failure(IllegalStateException("Could not send role request"))
+        }
+    }
+
     suspend fun fetchRemoteProfile(uid: String): UserProfile? {
         val remote = supabaseSync.downloadProfile(uid) ?: return null
         val courseId = remote["course_id"] as? String ?: ""

@@ -73,6 +73,18 @@ class StudyAndCampusRepository @Inject constructor(
         }
     }
 
+    suspend fun requestRole(role: UserRole, note: String): Result<Unit> {
+        val profile = prefs.userProfile.first()
+        val uid = authManager.currentUserId()
+            ?: return Result.failure(IllegalStateException("Sign in to send a role request"))
+        if (role == UserRole.STUDENT || role == UserRole.ADMIN) {
+            return Result.failure(IllegalArgumentException("Choose a staff role"))
+        }
+        val ok = supabaseSync.submitRoleRequest(uid, profile.email, role.name, note)
+        return if (ok) Result.success(Unit)
+        else Result.failure(IllegalStateException("Could not send role request"))
+    }
+
     suspend fun ensureStudyAndCampusSeeded(sectionKey: String, collegeId: String = "hnbgu") {
         val profile = prefs.userProfile.first()
         // Local bootstrap is allowed for every role; scope checks guard moderator

@@ -303,6 +303,12 @@ fun OnboardingScreen(
                                     )
                                 }
                             }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "CR, Teacher, Moderator and Club Admin access is granted after admin approval. A request is sent automatically.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }

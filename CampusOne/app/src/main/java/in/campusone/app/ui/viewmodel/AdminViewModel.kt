@@ -16,6 +16,10 @@ import `in`.campusone.app.data.local.entity.SubjectEntity
 import `in`.campusone.app.data.local.entity.SyllabusTopicEntity
 import `in`.campusone.app.data.local.entity.TimetableSlotEntity
 import `in`.campusone.app.data.repository.AdminRepository
+import `in`.campusone.app.data.repository.AdminUserRecord
+import `in`.campusone.app.data.repository.FlaggedItem
+import `in`.campusone.app.data.repository.RoleRequestRecord
+import `in`.campusone.app.data.repository.UserAttendanceRow
 import `in`.campusone.app.domain.model.UserProfile
 import `in`.campusone.app.domain.model.UserRole
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -60,11 +64,20 @@ class AdminViewModel @Inject constructor(
         val clubs: List<ClubEntity> = emptyList(),
         val events: List<CampusEventEntity> = emptyList(),
         val lostFound: List<LostFoundEntity> = emptyList(),
-        val directory: List<DirectoryContactEntity> = emptyList()
+        val directory: List<DirectoryContactEntity> = emptyList(),
+        // Remote admin data
+        val users: List<AdminUserRecord> = emptyList(),
+        val roleRequests: List<RoleRequestRecord> = emptyList(),
+        val flaggedContent: List<FlaggedItem> = emptyList(),
+        val selectedUserAttendance: List<UserAttendanceRow> = emptyList(),
+        val attendanceUserId: String = "",
+        val remoteLoading: Boolean = false
     )
 
     private val _uiState = MutableStateFlow(AdminUiState())
     val uiState: StateFlow<AdminUiState> = _uiState.asStateFlow()
+
+    private var remoteLoaded = false
 
     fun init(profile: UserProfile) {
         viewModelScope.launch {
@@ -77,8 +90,18 @@ class AdminViewModel @Inject constructor(
                 isAdmin = isAdmin,
                 profile = profile,
                 sectionKey = sectionKey,
-                collegeId = collegeId
+                collegeId = collegeId,
+                users = _uiState.value.users,
+                roleRequests = _uiState.value.roleRequests,
+                flaggedContent = _uiState.value.flaggedContent,
+                selectedUserAttendance = _uiState.value.selectedUserAttendance,
+                attendanceUserId = _uiState.value.attendanceUserId
             )
+
+            if (!remoteLoaded) {
+                remoteLoaded = true
+                launch { loadRemoteData() }
+            }
 
             launch {
                 repository.observeSubjects(sectionKey).collect { subjects ->
@@ -318,6 +341,113 @@ class AdminViewModel @Inject constructor(
         viewModelScope.launch {
             repository.saveProfile(profile)
             _messages.emit("Profile updated")
+        }
+    }
+
+    // =========================================================================
+    // REMOTE USERS / ROLE REQUESTS / MODERATION
+    // =========================================================================
+    fun refreshRemoteData() {
+        viewModelScope.launch { loadRemoteData() }
+    }
+
+    private suspend fun loadRemoteData() {
+        _uiState.update { it.copy(remoteLoading = true) }
+        val users = runCatching { repository.loadAllUsers() }.getOrDefault(emptyList())
+        val requests = runCatching { repository.loadRoleRequests() }.getOrDefault(emptyList())
+        val flagged = runCatching { repository.loadFlaggedContent() }.getOrDefault(emptyList())
+        _uiState.update {
+            it.copy(
+                users = users,
+                roleRequests = requests,
+                flaggedContent = flagged,
+                remoteLoading = false
+            )
+        }
+    }
+
+    fun changeUserRole(uid: String, role: UserRole) {
+        viewModelScope.launch {
+            val ok = runCatching { repository.updateUserRole(uid, role) }.getOrDefault(false)
+            if (ok) {
+                _uiState.update { state ->
+                    state.copy(users = state.users.map { if (it.uid == uid) it.copy(role = role) else it })
+                }
+                _messages.emit("Role updated to ${role.name}")
+            } else {
+                _messages.emit("Could not update role. Admin access is required.")
+            }
+        }
+    }
+
+    fun removeUser(uid: String) {
+        viewModelScope.launch {
+            val ok = runCatching { repository.removeUser(uid) }.getOrDefault(false)
+            if (ok) {
+                _uiState.update { state -> state.copy(users = state.users.filterNot { it.uid == uid }) }
+                _messages.emit("User removed")
+            } else {
+                _messages.emit("Could not remove user")
+            }
+        }
+    }
+
+    fun loadUserAttendance(uid: String) {
+        viewModelScope.launch {
+            val rows = runCatching { repository.loadUserAttendance(uid) }.getOrDefault(emptyList())
+            _uiState.update { it.copy(attendanceUserId = uid, selectedUserAttendance = rows) }
+        }
+    }
+
+    fun approveRequest(request: RoleRequestRecord) {
+        viewModelScope.launch {
+            val reviewer = _uiState.value.profile.email
+            val ok = runCatching {
+                repository.approveRoleRequest(request.id, request.userId, request.requestedRole, reviewer)
+            }.getOrDefault(false)
+            if (ok) {
+                _uiState.update { state ->
+                    state.copy(
+                        roleRequests = state.roleRequests.filterNot { it.id == request.id },
+                        users = state.users.map {
+                            if (it.uid == request.userId) it.copy(role = request.requestedRole) else it
+                        }
+                    )
+                }
+                _messages.emit("Approved ${request.email} as ${request.requestedRole.name}")
+            } else {
+                _messages.emit("Could not approve request")
+            }
+        }
+    }
+
+    fun rejectRequest(request: RoleRequestRecord) {
+        viewModelScope.launch {
+            val reviewer = _uiState.value.profile.email
+            val ok = runCatching { repository.rejectRoleRequest(request.id, reviewer) }
+                .getOrDefault(false)
+            if (ok) {
+                _uiState.update { state ->
+                    state.copy(roleRequests = state.roleRequests.filterNot { it.id == request.id })
+                }
+                _messages.emit("Request rejected")
+            } else {
+                _messages.emit("Could not reject request")
+            }
+        }
+    }
+
+    fun moderateFlagged(item: FlaggedItem, hide: Boolean) {
+        viewModelScope.launch {
+            runCatching { repository.moderateFlagged(item, hide) }
+            _uiState.update { state ->
+                state.copy(
+                    flaggedContent = state.flaggedContent.filterNot {
+                        it.id == item.id && it.kind == item.kind
+                    }
+                )
+            }
+            _messages.emit(if (hide) "Content hidden" else "Content approved")
         }
     }
 

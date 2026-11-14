@@ -245,6 +245,14 @@ class StudyAndCampusViewModel @Inject constructor(
         }
     }
 
+    fun requestRole(role: UserRole, note: String) {
+        viewModelScope.launch {
+            repository.requestRole(role, note)
+                .onSuccess { _statusMessages.emit("Role request sent for admin approval.") }
+                .onFailure { _statusMessages.emit(it.message ?: "Could not send role request") }
+        }
+    }
+
     fun crHideResource(id: String, hide: Boolean) =
         viewModelScope.launch { repository.moderateHideResource(id, hide) }
 

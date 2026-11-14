@@ -121,6 +121,7 @@ import `in`.campusone.app.ui.screens.admin.AdminExamsScreen
 import `in`.campusone.app.ui.screens.admin.AdminHubScreen
 import `in`.campusone.app.ui.screens.admin.AdminLostFoundScreen
 import `in`.campusone.app.ui.screens.admin.AdminNoticesScreen
+import `in`.campusone.app.ui.screens.admin.AdminReviewScreen
 import `in`.campusone.app.ui.screens.admin.AdminSubjectsScreen
 import `in`.campusone.app.ui.screens.admin.AdminTimetableScreen
 import `in`.campusone.app.ui.screens.admin.AdminUsersScreen
@@ -150,10 +151,18 @@ enum class MoreSubScreen {
     ADMIN_EVENTS,
     ADMIN_LOST_FOUND,
     ADMIN_DIRECTORY,
-    ADMIN_USERS
+    ADMIN_USERS,
+    ADMIN_REVIEW
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+private val requestableRoles = listOf(
+    UserRole.CR,
+    UserRole.TEACHER,
+    UserRole.MODERATOR,
+    UserRole.CLUB_ADMIN
+)
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun MoreHubScreen(
     uiState: StudyAndCampusUiState,
@@ -163,6 +172,9 @@ fun MoreHubScreen(
     moderatorViewModel: `in`.campusone.app.ui.viewmodel.ModeratorViewModel = hiltViewModel()
 ) {
     var activeScreen by rememberSaveable { mutableStateOf(MoreSubScreen.HUB) }
+    var showRoleRequest by rememberSaveable { mutableStateOf(false) }
+    var requestedRole by rememberSaveable { mutableStateOf(UserRole.CR.name) }
+    var roleRequestNote by rememberSaveable { mutableStateOf("") }
     val isAdmin = uiState.profile.role == `in`.campusone.app.domain.model.UserRole.ADMIN ||
         uiState.profile.email.equals(
             `in`.campusone.app.data.repository.CoreCampusRepository.OWNER_EMAIL,
@@ -273,6 +285,16 @@ fun MoreHubScreen(
                     )
                 }
             }
+            if (uiState.profile.role == UserRole.STUDENT) {
+                item {
+                    FeatureHubCard(
+                        title = "Request a Role",
+                        subtitle = "CR, Teacher, Moderator or Club Admin access — reviewed by the admin",
+                        icon = Icons.Default.AccountCircle,
+                        onClick = { showRoleRequest = true }
+                    )
+                }
+            }
             item {
                 FeatureHubCard(
                     title = stringResource(R.string.privacy_policy),
@@ -290,6 +312,49 @@ fun MoreHubScreen(
                 )
             }
             item { Spacer(modifier = Modifier.height(24.dp)) }
+        }
+        if (showRoleRequest) {
+            AlertDialog(
+                onDismissRequest = { showRoleRequest = false },
+                title = { Text("Request a role") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            text = "Your request is sent to the admin. Access is granted only after approval.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            requestableRoles.forEach { role ->
+                                FilterChip(
+                                    selected = requestedRole == role.name,
+                                    onClick = { requestedRole = role.name },
+                                    label = { Text(role.name) }
+                                )
+                            }
+                        }
+                        OutlinedTextField(
+                            value = roleRequestNote,
+                            onValueChange = { roleRequestNote = it },
+                            label = { Text("Note (optional)") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.requestRole(
+                            UserRole.entries.firstOrNull { it.name == requestedRole } ?: UserRole.CR,
+                            roleRequestNote.trim()
+                        )
+                        showRoleRequest = false
+                    }) { Text("Send request") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showRoleRequest = false }) { Text("Cancel") }
+                }
+            )
         }
     } else {
         Scaffold(
@@ -335,6 +400,7 @@ fun MoreHubScreen(
                                 "LOST_FOUND" -> MoreSubScreen.ADMIN_LOST_FOUND
                                 "DIRECTORY" -> MoreSubScreen.ADMIN_DIRECTORY
                                 "USERS" -> MoreSubScreen.ADMIN_USERS
+                                "REVIEW" -> MoreSubScreen.ADMIN_REVIEW
                                 else -> MoreSubScreen.ADMIN_PANEL
                             }
                         }
@@ -372,6 +438,9 @@ fun MoreHubScreen(
                         adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
                     )
                     MoreSubScreen.ADMIN_USERS -> AdminUsersScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
+                    )
+                    MoreSubScreen.ADMIN_REVIEW -> AdminReviewScreen(
                         adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
                     )
                     MoreSubScreen.HUB -> Unit

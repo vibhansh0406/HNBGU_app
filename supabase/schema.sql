@@ -23,8 +23,23 @@ create table if not exists public.profiles (
   updated_at bigint not null default 0
 );
 
--- Server-side role enforcement: the owner is always ADMIN and nobody else can
--- self-assign ADMIN. Runs in the database, so a modified client cannot spoof it.
+-- Admin helper: true when the current JWT belongs to the owner or an ADMIN.
+create or replace function public.campusone_is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid()
+      and (p.role = 'ADMIN' or lower(p.email) = 'vvibhaansh@gmail.com')
+  );
+$$;
+
+-- Server-side role enforcement: the owner is always ADMIN, nobody else can
+-- self-assign a staff role, and only an admin can change roles afterwards.
 create or replace function public.campusone_enforce_role()
 returns trigger
 language plpgsql
@@ -34,8 +49,15 @@ as $$
 begin
   if lower(coalesce(new.email, '')) = 'vvibhaansh@gmail.com' then
     new.role := 'ADMIN';
-  elsif new.role = 'ADMIN' then
-    new.role := case when tg_op = 'UPDATE' then coalesce(old.role, 'STUDENT') else 'STUDENT' end;
+    return new;
+  end if;
+  if coalesce(public.campusone_is_admin(), false) then
+    return new;
+  end if;
+  if tg_op = 'INSERT' then
+    new.role := 'STUDENT';
+  elsif new.role is distinct from old.role then
+    new.role := old.role;
   end if;
   return new;
 end;
@@ -301,6 +323,19 @@ create table if not exists public.moderators (
   created_at bigint not null default 0
 );
 
+-- Users ask for a staff role here; only an admin can approve it.
+create table if not exists public.role_requests (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  email text not null default '',
+  requested_role text not null default 'CR',
+  note text not null default '',
+  status text not null default 'PENDING',
+  created_at bigint not null default 0,
+  reviewed_by text not null default '',
+  reviewed_at bigint not null default 0
+);
+
 -- =========================================================================
 -- ROW LEVEL SECURITY
 -- =========================================================================
@@ -347,6 +382,24 @@ create policy "own_gpa" on public.gpa_semesters
   for all to authenticated
   using (auth.uid()::text = user_id)
   with check (auth.uid()::text = user_id);
+
+alter table public.role_requests enable row level security;
+
+drop policy if exists "own_role_requests_select" on public.role_requests;
+create policy "own_role_requests_select" on public.role_requests
+  for select to authenticated
+  using (auth.uid()::text = user_id::text);
+
+drop policy if exists "own_role_requests_insert" on public.role_requests;
+create policy "own_role_requests_insert" on public.role_requests
+  for insert to authenticated
+  with check (auth.uid()::text = user_id::text);
+
+drop policy if exists "admin_role_requests_all" on public.role_requests;
+create policy "admin_role_requests_all" on public.role_requests
+  for all to authenticated
+  using (public.campusone_is_admin())
+  with check (public.campusone_is_admin());
 
 -- =========================================================================
 -- SUPABASE STORAGE: study file vault (PDFs / images uploaded by moderators & CRs)
