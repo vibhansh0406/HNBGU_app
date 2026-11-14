@@ -77,6 +77,15 @@ class SupabaseSyncRepository @Inject constructor(
         return result.data as? List<Map<String, Any>> ?: emptyList()
     }
 
+    suspend fun downloadAttendanceLogs(uid: String): List<Map<String, Any>> {
+        if (!isSyncedEnabled()) return emptyList()
+        val result = supabaseClient.from("attendance_logs")
+            .select("*")
+            .eq("user_id", uid)
+            .execute()
+        return result.data as? List<Map<String, Any>> ?: emptyList()
+    }
+
     // =========================================================================
     // TIMETABLE SYNC
     // =========================================================================

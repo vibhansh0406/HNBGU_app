@@ -80,6 +80,11 @@ class AuthManager @Inject constructor(
     /** Get current Supabase user ID. */
     fun currentUserId(): String? = supabaseClient.auth.currentUser?.id
 
+    /** Get the signed-in account email (Supabase session, then Google). */
+    fun currentUserEmail(): String? =
+        supabaseClient.auth.currentUser?.email
+            ?: GoogleSignIn.getLastSignedInAccount(context)?.email
+
     /** Listen to auth state changes. */
     fun onAuthStateChanged(callback: (SupabaseSession?) -> Unit) {
         supabaseClient.auth.authStateChanges(callback)

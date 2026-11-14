@@ -236,8 +236,11 @@ fun CampusOneRoot(
 
     // If not onboarded locally, show onboarding
     if (!coreState.isOnboarded) {
+        val signedInEmail = authSessionState?.user?.email ?: coreState.profile.email
         OnboardingScreen(
             onToggleLanguage = coreViewModel::toggleLanguage,
+            initialEmail = signedInEmail,
+            isOwner = signedInEmail.equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true),
             onCompleteSetup = { name, email, collegeName, courseId, courseName, semester, section, role ->
                 coreViewModel.completeOnboarding(
                     name, email, collegeName, courseId, courseName, semester, section, role

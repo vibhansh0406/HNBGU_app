@@ -163,10 +163,14 @@ fun MoreHubScreen(
     moderatorViewModel: `in`.campusone.app.ui.viewmodel.ModeratorViewModel = hiltViewModel()
 ) {
     var activeScreen by rememberSaveable { mutableStateOf(MoreSubScreen.HUB) }
-    val isAdminOrStaff = uiState.profile.role == `in`.campusone.app.domain.model.UserRole.ADMIN ||
+    val isAdmin = uiState.profile.role == `in`.campusone.app.domain.model.UserRole.ADMIN ||
+        uiState.profile.email.equals(
+            `in`.campusone.app.data.repository.CoreCampusRepository.OWNER_EMAIL,
+            ignoreCase = true
+        )
+    val isAdminOrStaff = isAdmin ||
         uiState.profile.role == `in`.campusone.app.domain.model.UserRole.TEACHER ||
         uiState.profile.role == `in`.campusone.app.domain.model.UserRole.CR
-    val isAdmin = uiState.profile.role == `in`.campusone.app.domain.model.UserRole.ADMIN
     val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
 
     androidx.compose.runtime.LaunchedEffect(uiState.profile) {

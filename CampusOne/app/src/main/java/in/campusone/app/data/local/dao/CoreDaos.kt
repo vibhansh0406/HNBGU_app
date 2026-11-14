@@ -37,6 +37,12 @@ interface AttendanceDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAttendanceLog(log: AttendanceLogEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertAttendanceLogs(logs: List<AttendanceLogEntity>)
+
+    @Query("SELECT * FROM attendance_logs")
+    suspend fun getAttendanceLogsSnapshot(): List<AttendanceLogEntity>
+
     @Query("DELETE FROM attendance_logs WHERE id = :logId")
     suspend fun deleteAttendanceLog(logId: String)
 

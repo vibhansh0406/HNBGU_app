@@ -70,12 +70,12 @@ class CoreCampusRepository @Inject constructor(
         val courseId = remote["course_id"] as? String ?: ""
         if (courseId.isBlank()) return null
         val remoteRole = remote["role"] as? String ?: ""
-        val role = UserRole.entries.firstOrNull { it.name == remoteRole }
-            ?: if ((remote["email"] as? String)?.equals(OWNER_EMAIL, ignoreCase = true) == true) {
-                UserRole.ADMIN
-            } else {
-                UserRole.STUDENT
-            }
+        val isOwner = (remote["email"] as? String)?.equals(OWNER_EMAIL, ignoreCase = true) == true
+        val role = if (isOwner) {
+            UserRole.ADMIN
+        } else {
+            UserRole.entries.firstOrNull { it.name == remoteRole } ?: UserRole.STUDENT
+        }
         return UserProfile(
             uid = uid,
             name = remote["full_name"] as? String ?: "",
@@ -157,6 +157,40 @@ class CoreCampusRepository @Inject constructor(
                 })
             }
         }
+        restoreAttendanceFromCloud()
+    }
+
+    private suspend fun restoreAttendanceFromCloud() {
+        val uid = authManager.currentUserId() ?: return
+        val profile = prefs.userProfile.first()
+        if (!profile.syncAttendanceToCloud) return
+        if (attendanceDao.getAttendanceLogsSnapshot().isNotEmpty()) return
+        val remoteLogs = supabaseSync.downloadAttendanceLogs(uid)
+        if (remoteLogs.isEmpty()) return
+        val entities = remoteLogs.mapNotNull { map ->
+            val id = map["id"] as? String ?: return@mapNotNull null
+            val subjectId = map["subject_id"] as? String ?: return@mapNotNull null
+            val dateIso = map["date_iso"] as? String ?: return@mapNotNull null
+            val epochDay = runCatching { LocalDate.parse(dateIso).toEpochDay() }.getOrNull()
+                ?: return@mapNotNull null
+            AttendanceLogEntity(
+                id = id,
+                subjectId = subjectId,
+                dateEpochDay = epochDay,
+                dateIso = dateIso,
+                slotId = id.removePrefix("${subjectId}_${dateIso}_").ifBlank { "restored" },
+                status = runCatchingDefault(
+                    { AttendanceStatus.valueOf(map["status"] as? String ?: "PRESENT") },
+                    AttendanceStatus.PRESENT
+                ),
+                note = map["note"] as? String ?: "",
+                isSynced = true,
+                updatedAtMillis = (map["updated_at"] as? Number)?.toLong() ?: System.currentTimeMillis()
+            )
+        }
+        if (entities.isNotEmpty()) {
+            attendanceDao.upsertAttendanceLogs(entities)
+        }
     }
 
     private fun <T> runCatchingDefault(block: () -> T, default: T): T =
@@ -220,6 +254,21 @@ class CoreCampusRepository @Inject constructor(
             updatedAtMillis = System.currentTimeMillis()
         )
         attendanceDao.upsertAttendanceLog(entity)
+        runCatching {
+            val profile = prefs.userProfile.first()
+            if (!profile.syncAttendanceToCloud || !supabaseSync.isSyncedEnabled()) return@runCatching
+            val uid = authManager.currentUserId() ?: return@runCatching
+            supabaseClient.from("attendance_logs").upsert(listOf(mapOf<String, Any>(
+                "id" to entity.id,
+                "user_id" to uid,
+                "subject_id" to entity.subjectId,
+                "date_iso" to entity.dateIso,
+                "status" to entity.status.name,
+                "note" to entity.note,
+                "updated_at" to entity.updatedAtMillis
+            )))
+            attendanceDao.markLogsSynced(listOf(entity.id))
+        }
     }
 
     fun observeTimetable(sectionKey: String): Flow<List<TimetableSlot>> {

@@ -47,6 +47,8 @@ private const val TOTAL_STEPS = 3
 @Composable
 fun OnboardingScreen(
     onToggleLanguage: () -> Unit,
+    initialEmail: String = "",
+    isOwner: Boolean = false,
     onCompleteSetup: (
         name: String,
         email: String,
@@ -61,7 +63,7 @@ fun OnboardingScreen(
     val haptics = LocalHapticFeedback.current
     var step by rememberSaveable { mutableIntStateOf(0) }
     var name by rememberSaveable { mutableStateOf("") }
-    var email by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf(initialEmail) }
 
     val campuses = listOf(
         "Birla Campus, Srinagar (Garhwal)",
@@ -270,24 +272,36 @@ fun OnboardingScreen(
                             }
                         }
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = stringResource(R.string.select_role),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            selectableRoles.forEach { role ->
-                                val label = when (role) {
-                                    UserRole.STUDENT -> stringResource(R.string.role_student)
-                                    UserRole.CR -> stringResource(R.string.role_cr)
-                                    UserRole.TEACHER -> stringResource(R.string.role_teacher)
-                                    UserRole.CLUB_ADMIN -> stringResource(R.string.role_club_admin)
-                                    else -> role.name
+                        if (isOwner) {
+                            Text(
+                                text = "Admin access",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                text = "Signed in as the app owner. The admin panel will be enabled automatically.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        } else {
+                            Text(
+                                text = stringResource(R.string.select_role),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                selectableRoles.forEach { role ->
+                                    val label = when (role) {
+                                        UserRole.STUDENT -> stringResource(R.string.role_student)
+                                        UserRole.CR -> stringResource(R.string.role_cr)
+                                        UserRole.TEACHER -> stringResource(R.string.role_teacher)
+                                        UserRole.CLUB_ADMIN -> stringResource(R.string.role_club_admin)
+                                        else -> role.name
+                                    }
+                                    FilterChip(
+                                        selected = selectedRole == role,
+                                        onClick = { selectedRole = role },
+                                        label = { Text(label) }
+                                    )
                                 }
-                                FilterChip(
-                                    selected = selectedRole == role,
-                                    onClick = { selectedRole = role },
-                                    label = { Text(label) }
-                                )
                             }
                         }
                     }

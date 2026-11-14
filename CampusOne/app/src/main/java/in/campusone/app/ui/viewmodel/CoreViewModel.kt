@@ -74,17 +74,32 @@ class CoreViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val uid = authManager.currentUserId() ?: return@launch
-            val remote = repository.fetchRemoteProfile(uid) ?: return@launch
+            val isOwner = authManager.currentUserEmail()
+                ?.equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true) == true
             val alreadyOnboarded = prefs.isOnboarded.first()
+            val remote = repository.fetchRemoteProfile(uid)
+            if (remote == null) {
+                if (isOwner && alreadyOnboarded) {
+                    val local = prefs.userProfile.first()
+                    if (local.role != UserRole.ADMIN) {
+                        prefs.saveUserProfile(
+                            local.copy(role = UserRole.ADMIN),
+                            markOnboarded = true
+                        )
+                    }
+                }
+                return@launch
+            }
+            val remoteRole = if (isOwner) UserRole.ADMIN else remote.role
             if (!alreadyOnboarded) {
-                prefs.saveUserProfile(remote, markOnboarded = true)
+                prefs.saveUserProfile(remote.copy(role = remoteRole), markOnboarded = true)
                 repository.ensureSeededForSection(remote.sectionKey)
                 return@launch
             }
             val local = prefs.userProfile.first()
-            if (local.role != remote.role || local.name != remote.name) {
+            if (local.role != remoteRole || local.name != remote.name) {
                 prefs.saveUserProfile(
-                    local.copy(role = remote.role, name = remote.name),
+                    local.copy(role = remoteRole, name = remote.name),
                     markOnboarded = true
                 )
             }
@@ -167,15 +182,19 @@ class CoreViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             val uid = authManager.currentUserId() ?: "local_${email.hashCode().toUInt()}"
-            val effectiveRole = if (email.trim().equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true)) {
+            val signedInEmail = authManager.currentUserEmail().orEmpty()
+            val isOwner = signedInEmail.equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true) ||
+                email.trim().equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true)
+            val effectiveRole = if (isOwner) {
                 UserRole.ADMIN
             } else {
                 role
             }
+            val profileEmail = signedInEmail.ifBlank { email.trim() }
             val profile = UserProfile(
                 uid = uid,
                 name = name.ifBlank { "HNBGU Student" },
-                email = email.ifBlank { "student@hnbgu.ac.in" },
+                email = profileEmail.ifBlank { "student@hnbgu.ac.in" },
                 role = effectiveRole,
                 verifiedRole = true, // Pilot mode: enable immediate CR/Teacher publishing
                 collegeId = "hnbgu",
@@ -189,7 +208,7 @@ class CoreViewModel @Inject constructor(
             repository.ensureSeededForSection(profile.sectionKey)
             authManager.ensureUserProfile(
                 uid = uid,
-                email = email,
+                email = profileEmail,
                 name = name,
                 role = effectiveRole.name
             )
