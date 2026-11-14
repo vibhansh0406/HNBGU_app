@@ -205,6 +205,20 @@ class SupabaseSyncRepository @Inject constructor(
         return result.data as? List<Map<String, Any>> ?: emptyList()
     }
 
+    /** Files a role-change request for the signed-in user; admins approve it via RPC. */
+    suspend fun submitRoleRequest(uid: String, email: String, role: String, note: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("role_requests").insert(mapOf(
+            "user_id" to uid,
+            "email" to email,
+            "requested_role" to role,
+            "note" to note,
+            "status" to "PENDING",
+            "created_at" to System.currentTimeMillis()
+        ))
+        return result.isSuccess
+    }
+
     suspend fun downloadFlaggedResources(): List<Map<String, Any>> {
         if (!isSyncedEnabled()) return emptyList()
         val result = supabaseClient.from("study_resources")

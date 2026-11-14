@@ -519,7 +519,7 @@ class AdminViewModel @Inject constructor(
             return
         }
         val target = _uiState.value.users.firstOrNull { it.uid == uid }
-        if (target != null && (target.isOwner || target.role == UserRole.ADMIN) && !identity.isOwner) {
+        if (target != null && target.role == UserRole.ADMIN && !identity.isOwner) {
             viewModelScope.launch { _messages.emit("Only the platform owner can change an admin role.") }
             return
         }

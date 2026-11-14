@@ -837,6 +837,7 @@ private fun ContentCountRow(label: String, value: String) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FlaggedRow(
     item: FlaggedItem,

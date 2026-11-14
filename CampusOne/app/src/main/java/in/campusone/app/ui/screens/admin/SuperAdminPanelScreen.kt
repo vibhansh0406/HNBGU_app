@@ -265,6 +265,7 @@ private data class StatItem(
     val tint: Color
 )
 
+@Composable
 private fun overviewStats(state: AdminUiState): List<StatItem> {
     val users = state.users
     val primary = MaterialTheme.colorScheme.primary
