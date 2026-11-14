@@ -285,12 +285,26 @@ class CoreViewModel @Inject constructor(
         }
     }
 
+    fun updateDisplayName(name: String) {
+        val trimmed = name.trim()
+        if (trimmed.isBlank()) return
+        viewModelScope.launch {
+            val profile = prefs.userProfile.first().copy(name = trimmed)
+            prefs.saveUserProfile(profile, markOnboarded = true)
+            repository.syncProfileToCloud(profile)
+            _uiMessages.emit("Profile updated.")
+        }
+    }
+
     fun postNotice(
         title: String,
         body: String,
         attachmentUrl: String?,
         attachmentType: AttachmentType,
-        isPinned: Boolean
+        isPinned: Boolean,
+        category: String = "GENERAL",
+        priority: String = "NORMAL",
+        isOfficial: Boolean = false
     ) {
         viewModelScope.launch {
             val result = repository.postNotice(
@@ -299,7 +313,10 @@ class CoreViewModel @Inject constructor(
                 body = body,
                 attachmentUrl = attachmentUrl,
                 attachmentType = attachmentType,
-                isPinned = isPinned
+                isPinned = isPinned,
+                category = category,
+                priority = priority,
+                isOfficial = isOfficial
             )
             if (result.isSuccess) {
                 _uiMessages.emit("Notice published to section!")

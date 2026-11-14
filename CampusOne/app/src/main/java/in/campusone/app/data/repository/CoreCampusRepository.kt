@@ -168,6 +168,9 @@ class CoreCampusRepository @Inject constructor(
                             AttachmentType.valueOf(map["attachment_type"] as? String ?: "NONE")
                         }, AttachmentType.NONE),
                         isPinned = map["is_pinned"] as? Boolean ?: false,
+                        category = map["category"] as? String ?: "GENERAL",
+                        priority = map["priority"] as? String ?: "NORMAL",
+                        isOfficial = map["is_official"] as? Boolean ?: false,
                         authorUid = map["author_uid"] as? String ?: "",
                         authorName = map["author_name"] as? String ?: "Faculty",
                         authorRole = runCatchingDefault({
@@ -374,6 +377,9 @@ class CoreCampusRepository @Inject constructor(
                     attachmentUrl = entity.attachmentUrl,
                     attachmentType = entity.attachmentType,
                     isPinned = entity.isPinned,
+                    category = entity.category,
+                    priority = entity.priority,
+                    isOfficial = entity.isOfficial,
                     authorUid = entity.authorUid,
                     authorName = entity.authorName,
                     authorRole = entity.authorRole,
@@ -404,7 +410,10 @@ class CoreCampusRepository @Inject constructor(
         body: String,
         attachmentUrl: String?,
         attachmentType: AttachmentType,
-        isPinned: Boolean
+        isPinned: Boolean,
+        category: String = "GENERAL",
+        priority: String = "NORMAL",
+        isOfficial: Boolean = false
     ): kotlin.Result<Unit> = runCatching {
         require(
             profile.role == UserRole.CR ||
@@ -413,6 +422,9 @@ class CoreCampusRepository @Inject constructor(
                 profile.role == UserRole.MODERATOR
         ) {
             "Only CRs, Teachers, Moderators or Admins can post announcements."
+        }
+        require(!isOfficial || profile.role == UserRole.ADMIN) {
+            "Only administrators can publish official announcements."
         }
         val targetSectionKey = if (profile.role == UserRole.ADMIN) "global" else profile.sectionKey
         val now = System.currentTimeMillis()
@@ -425,6 +437,9 @@ class CoreCampusRepository @Inject constructor(
             attachmentUrl = attachmentUrl?.takeIf { it.isNotBlank() },
             attachmentType = attachmentType,
             isPinned = isPinned,
+            category = category,
+            priority = priority,
+            isOfficial = isOfficial,
             authorUid = profile.uid.ifBlank { "local_author" },
             authorName = profile.name.ifBlank { "CR / Faculty" },
             authorRole = profile.role,
@@ -443,6 +458,9 @@ class CoreCampusRepository @Inject constructor(
                 "attachment_url" to (entity.attachmentUrl ?: ""),
                 "attachment_type" to entity.attachmentType.name,
                 "is_pinned" to entity.isPinned,
+                "category" to entity.category,
+                "priority" to entity.priority,
+                "is_official" to entity.isOfficial,
                 "author_uid" to entity.authorUid,
                 "author_name" to entity.authorName,
                 "author_role" to entity.authorRole.name,

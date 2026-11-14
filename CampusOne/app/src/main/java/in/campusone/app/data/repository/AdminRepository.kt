@@ -62,7 +62,7 @@ data class UserAttendanceRow(
     val cancelled: Int
 )
 
-enum class FlaggedKind { RESOURCE, CLUB, EVENT, LOST_FOUND }
+enum class FlaggedKind { RESOURCE, CLUB, EVENT, LOST_FOUND, POST, COMMENT }
 
 data class FlaggedItem(
     val id: String,
@@ -90,6 +90,12 @@ data class ContentReportRecord(
     val reporterEmail: String,
     val status: String,
     val createdAtMillis: Long
+)
+
+data class ReportPreview(
+    val reportId: String,
+    val title: String,
+    val body: String
 )
 
 data class PlatformSettings(
@@ -302,7 +308,18 @@ class AdminRepository @Inject constructor(
                 kind = FlaggedKind.LOST_FOUND
             )
         }
-        return resources + clubs + events + lostFound
+        val communityPosts = runCatching {
+            supabaseSync.downloadFlaggedCommunityPosts().map { map ->
+                val reports = (map["report_count"] as? Number)?.toInt() ?: 0
+                FlaggedItem(
+                    id = map["id"] as? String ?: "",
+                    title = map["title"] as? String ?: "Community post",
+                    subtitle = "${map["author_name"] as? String ?: "Student"} • $reports reports",
+                    kind = FlaggedKind.POST
+                )
+            }
+        }.getOrDefault(emptyList())
+        return resources + clubs + events + lostFound + communityPosts
     }
 
     suspend fun moderateFlagged(item: FlaggedItem, action: String): AdminActionResult {
@@ -311,9 +328,39 @@ class AdminRepository @Inject constructor(
             FlaggedKind.CLUB -> "CLUB"
             FlaggedKind.EVENT -> "EVENT"
             FlaggedKind.LOST_FOUND -> "LOST_FOUND"
+            FlaggedKind.POST -> "POST"
+            FlaggedKind.COMMENT -> "COMMENT"
         }
-        val ok = supabaseSync.adminModerateContent(targetType, item.id, action)
+        val ok = if (item.kind == FlaggedKind.POST || item.kind == FlaggedKind.COMMENT) {
+            supabaseSync.adminModerateCommunity(targetType, item.id, action)
+        } else {
+            supabaseSync.adminModerateContent(targetType, item.id, action)
+        }
         return AdminActionResult(ok, if (ok) "Moderation applied" else "Moderation rejected by server")
+    }
+
+    suspend fun moderateReport(report: ContentReportRecord, action: String): AdminActionResult {
+        val ok = if (report.targetType == "POST" || report.targetType == "COMMENT") {
+            supabaseSync.adminModerateCommunity(report.targetType, report.targetId, action)
+        } else {
+            supabaseSync.adminModerateContent(report.targetType, report.targetId, action)
+        }
+        return AdminActionResult(ok, if (ok) "Report updated" else "Moderation rejected by server")
+    }
+
+    suspend fun loadReportPreview(report: ContentReportRecord): ReportPreview {
+        val map = when (report.targetType) {
+            "POST" -> supabaseSync.downloadCommunityPost(report.targetId)
+            "COMMENT" -> supabaseSync.downloadCommunityComment(report.targetId)
+            else -> null
+        }
+        return ReportPreview(
+            reportId = report.id,
+            title = map?.get("title") as? String
+                ?: map?.get("author_name")?.let { "Comment by $it" }
+                ?: "${report.targetType} ${report.targetId}",
+            body = map?.get("body") as? String ?: report.reason.ifBlank { "No preview available." }
+        )
     }
 
     suspend fun loadContentReports(): List<ContentReportRecord> =

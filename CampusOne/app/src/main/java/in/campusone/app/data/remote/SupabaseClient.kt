@@ -20,6 +20,7 @@ interface SupabaseQueryBuilder {
     fun eq(column: String, value: Any): SupabaseQueryBuilder
     fun neq(column: String, value: Any): SupabaseQueryBuilder
     fun inArray(column: String, values: List<String>): SupabaseQueryBuilder
+    fun lt(column: String, value: Any): SupabaseQueryBuilder
     fun or(filter: String): SupabaseQueryBuilder
     fun order(column: String, ascending: Boolean): SupabaseQueryBuilder
     fun limit(count: Int): SupabaseQueryBuilder

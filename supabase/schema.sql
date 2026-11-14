@@ -1237,3 +1237,602 @@ create policy "campusone_storage_update" on storage.objects
 drop policy if exists "campusone_storage_delete" on storage.objects;
 create policy "campusone_storage_delete" on storage.objects
   for delete to authenticated using (bucket_id = 'study-resources');
+-- =========================================================================
+-- MISSION 4 — COMMUNITY, DISCUSSIONS, NOTIFICATIONS, ANNOUNCEMENTS
+-- =========================================================================
+
+-- ---- Official campus announcements --------------------------------------
+alter table public.notices add column if not exists category text not null default 'GENERAL';
+alter table public.notices add column if not exists priority text not null default 'NORMAL';
+alter table public.notices add column if not exists is_official boolean not null default false;
+
+alter table public.notices drop constraint if exists notices_category_check;
+alter table public.notices add constraint notices_category_check
+  check (category in ('GENERAL','ACADEMIC','EXAM','EVENT','URGENT','PLACEMENT'));
+
+alter table public.notices drop constraint if exists notices_priority_check;
+alter table public.notices add constraint notices_priority_check
+  check (priority in ('LOW','NORMAL','HIGH','URGENT'));
+
+create or replace function public.campusone_guard_notice()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_is_admin boolean := public.campusone_is_owner()
+    or public.campusone_caller_role() = 'ADMIN';
+begin
+  if tg_op = 'INSERT' then
+    if auth.uid() is not null then
+      new.author_uid := auth.uid()::text;
+      if new.is_official and not v_is_admin then
+        raise exception 'Only administrators can publish official announcements';
+      end if;
+    end if;
+    new.created_at := coalesce(nullif(new.created_at, 0),
+      (extract(epoch from now()) * 1000)::bigint);
+    return new;
+  end if;
+
+  if auth.uid() is not null and not v_is_admin then
+    new.is_official := old.is_official;
+    if old.author_uid <> auth.uid()::text then
+      raise exception 'Only the author or an administrator can edit this notice';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function public.campusone_guard_notice_delete()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_is_admin boolean := public.campusone_is_owner()
+    or public.campusone_caller_role() = 'ADMIN';
+begin
+  if auth.uid() is not null and not v_is_admin
+     and old.author_uid <> auth.uid()::text then
+    raise exception 'Only the author or an administrator can delete this notice';
+  end if;
+  return old;
+end;
+$$;
+
+drop trigger if exists notices_guard_insert_update on public.notices;
+create trigger notices_guard_insert_update
+  before insert or update on public.notices
+  for each row execute function public.campusone_guard_notice();
+
+drop trigger if exists notices_guard_delete on public.notices;
+create trigger notices_guard_delete
+  before delete on public.notices
+  for each row execute function public.campusone_guard_notice_delete();
+
+-- ---- Community feed ------------------------------------------------------
+create table if not exists public.community_posts (
+  id text primary key,
+  college_id text not null default 'hnbgu',
+  author_uid uuid not null references auth.users(id) on delete cascade,
+  author_name text not null default 'Student',
+  author_role text not null default 'STUDENT',
+  category text not null default 'GENERAL',
+  title text not null default '',
+  body text not null default '',
+  like_count integer not null default 0,
+  comment_count integer not null default 0,
+  report_count integer not null default 0,
+  is_hidden boolean not null default false,
+  created_at bigint not null default 0,
+  updated_at bigint not null default 0,
+  constraint community_posts_category_check
+    check (category in ('GENERAL','ACADEMIC','CAMPUS_LIFE','QUESTION','ANNOUNCEMENT'))
+);
+
+create table if not exists public.community_comments (
+  id text primary key,
+  post_id text not null references public.community_posts(id) on delete cascade,
+  author_uid uuid not null references auth.users(id) on delete cascade,
+  author_name text not null default 'Student',
+  author_role text not null default 'STUDENT',
+  body text not null default '',
+  is_hidden boolean not null default false,
+  created_at bigint not null default 0
+);
+
+create table if not exists public.community_likes (
+  post_id text not null references public.community_posts(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  created_at bigint not null default 0,
+  primary key (post_id, user_id)
+);
+
+create index if not exists community_posts_feed_idx
+  on public.community_posts (college_id, created_at desc);
+create index if not exists community_posts_category_idx
+  on public.community_posts (category, created_at desc);
+create index if not exists community_posts_author_idx
+  on public.community_posts (author_uid, created_at desc);
+create index if not exists community_comments_post_idx
+  on public.community_comments (post_id, created_at);
+create index if not exists community_likes_post_idx
+  on public.community_likes (post_id);
+
+create or replace function public.campusone_guard_community_post()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_now bigint := (extract(epoch from now()) * 1000)::bigint;
+  v_author public.profiles%rowtype;
+begin
+  if tg_op = 'INSERT' then
+    new.created_at := coalesce(nullif(new.created_at, 0), v_now);
+    new.updated_at := v_now;
+    new.like_count := 0;
+    new.comment_count := 0;
+    new.report_count := 0;
+    new.is_hidden := false;
+    if auth.uid() is not null then
+      select * into v_author from public.profiles where id = auth.uid();
+      if not found then
+        raise exception 'Complete your profile before posting';
+      end if;
+      new.author_uid := auth.uid();
+      new.author_name := coalesce(nullif(v_author.full_name, ''), 'Student');
+      new.author_role := coalesce(nullif(v_author.role, ''), 'STUDENT');
+    end if;
+    return new;
+  end if;
+
+  new.author_uid := old.author_uid;
+  new.author_name := old.author_name;
+  new.author_role := old.author_role;
+  new.college_id := old.college_id;
+  new.created_at := old.created_at;
+  new.updated_at := v_now;
+  if auth.uid() is not null and not public.campusone_has_permission('MODERATE_REPORTS') then
+    new.like_count := old.like_count;
+    new.comment_count := old.comment_count;
+    new.report_count := old.report_count;
+    new.is_hidden := old.is_hidden;
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function public.campusone_guard_community_comment()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_author public.profiles%rowtype;
+begin
+  if tg_op = 'INSERT' then
+    new.created_at := coalesce(nullif(new.created_at, 0),
+      (extract(epoch from now()) * 1000)::bigint);
+    new.is_hidden := false;
+    if auth.uid() is not null then
+      select * into v_author from public.profiles where id = auth.uid();
+      if not found then
+        raise exception 'Complete your profile before commenting';
+      end if;
+      new.author_uid := auth.uid();
+      new.author_name := coalesce(nullif(v_author.full_name, ''), 'Student');
+      new.author_role := coalesce(nullif(v_author.role, ''), 'STUDENT');
+    end if;
+    return new;
+  end if;
+
+  new.post_id := old.post_id;
+  new.author_uid := old.author_uid;
+  new.author_name := old.author_name;
+  new.author_role := old.author_role;
+  new.created_at := old.created_at;
+  if auth.uid() is not null and not public.campusone_has_permission('MODERATE_REPORTS') then
+    new.is_hidden := old.is_hidden;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists community_posts_guard on public.community_posts;
+create trigger community_posts_guard
+  before insert or update on public.community_posts
+  for each row execute function public.campusone_guard_community_post();
+
+drop trigger if exists community_comments_guard on public.community_comments;
+create trigger community_comments_guard
+  before insert or update on public.community_comments
+  for each row execute function public.campusone_guard_community_comment();
+
+-- ---- Notifications -------------------------------------------------------
+create table if not exists public.notifications (
+  id text primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  type text not null default 'SYSTEM',
+  title text not null default '',
+  body text not null default '',
+  target_type text not null default '',
+  target_id text not null default '',
+  is_read boolean not null default false,
+  created_at bigint not null default 0
+);
+
+create index if not exists notifications_user_idx
+  on public.notifications (user_id, is_read, created_at desc);
+
+create or replace function public.campusone_notify(
+  p_user uuid,
+  p_type text,
+  p_title text,
+  p_body text,
+  p_target_type text,
+  p_target_id text,
+  p_id text
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_user is null then
+    return;
+  end if;
+  insert into public.notifications (id, user_id, type, title, body, target_type, target_id, is_read, created_at)
+  values (p_id, p_user, p_type, coalesce(p_title, ''), coalesce(p_body, ''),
+          coalesce(p_target_type, ''), coalesce(p_target_id, ''), false,
+          (extract(epoch from now()) * 1000)::bigint)
+  on conflict (id) do nothing;
+end;
+$$;
+
+create or replace function public.campusone_community_like_sync()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_post public.community_posts%rowtype;
+begin
+  if tg_op = 'INSERT' then
+    select * into v_post from public.community_posts where id = new.post_id;
+    update public.community_posts
+       set like_count = (select count(*) from public.community_likes where post_id = new.post_id)
+     where id = new.post_id;
+    if found and v_post.author_uid <> new.user_id then
+      perform public.campusone_notify(
+        v_post.author_uid, 'COMMUNITY_LIKE', 'New like on your post',
+        left(v_post.title, 120), 'POST', v_post.id,
+        'like_' || new.post_id || '_' || new.user_id::text);
+    end if;
+  else
+    update public.community_posts
+       set like_count = (select count(*) from public.community_likes where post_id = old.post_id)
+     where id = old.post_id;
+  end if;
+  return null;
+end;
+$$;
+
+create or replace function public.campusone_community_comment_sync()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_post public.community_posts%rowtype;
+  v_profile public.profiles%rowtype;
+  v_mentioned public.profiles%rowtype;
+begin
+  if tg_op = 'INSERT' then
+    select * into v_post from public.community_posts where id = new.post_id;
+    update public.community_posts
+       set comment_count = (select count(*) from public.community_comments
+                             where post_id = new.post_id and not is_hidden)
+     where id = new.post_id;
+    if found and not new.is_hidden then
+      if v_post.author_uid <> new.author_uid then
+        perform public.campusone_notify(
+          v_post.author_uid, 'COMMUNITY_COMMENT', 'New comment on your post',
+          left(new.body, 200), 'POST', v_post.id,
+          'comment_' || new.id || '_' || v_post.author_uid::text);
+      end if;
+      select * into v_profile from public.profiles where id = new.author_uid;
+      if found and v_profile.college_id is not null then
+        for v_mentioned in
+          select * from public.profiles p
+           where p.id <> new.author_uid
+             and p.college_id = v_profile.college_id
+             and strpos(new.body, '@' || p.full_name) > 0
+           limit 5
+        loop
+          perform public.campusone_notify(
+            v_mentioned.id, 'COMMUNITY_MENTION', 'You were mentioned',
+            left(new.body, 200), 'POST', v_post.id,
+            'mention_' || new.id || '_' || v_mentioned.id::text);
+        end loop;
+      end if;
+    end if;
+  elsif tg_op = 'UPDATE' then
+    update public.community_posts
+       set comment_count = (select count(*) from public.community_comments
+                             where post_id = new.post_id and not is_hidden)
+     where id = new.post_id;
+  else
+    update public.community_posts
+       set comment_count = (select count(*) from public.community_comments
+                             where post_id = old.post_id and not is_hidden)
+     where id = old.post_id;
+  end if;
+  return null;
+end;
+$$;
+
+drop trigger if exists community_likes_sync on public.community_likes;
+create trigger community_likes_sync
+  after insert or delete on public.community_likes
+  for each row execute function public.campusone_community_like_sync();
+
+drop trigger if exists community_comments_sync on public.community_comments;
+create trigger community_comments_sync
+  after insert or delete or update of is_hidden on public.community_comments
+  for each row execute function public.campusone_community_comment_sync();
+
+create or replace function public.campusone_notice_notify()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_type text := case when new.is_official then 'ANNOUNCEMENT' else 'NOTICE' end;
+begin
+  insert into public.notifications (id, user_id, type, title, body, target_type, target_id, is_read, created_at)
+  select 'notice_' || new.id || '_' || p.id,
+         p.id,
+         v_type,
+         new.title,
+         left(new.body, 200),
+         'NOTICE',
+         new.id,
+         false,
+         (extract(epoch from now()) * 1000)::bigint
+    from public.profiles p
+   where (new.section_key = 'global'
+          or new.section_key = p.college_id || '_' || p.course_id || '_sem' || p.semester || '_sec' || p.section)
+     and p.id <> coalesce(auth.uid(), '00000000-0000-0000-0000-000000000000'::uuid)
+  on conflict (id) do nothing;
+  return null;
+end;
+$$;
+
+drop trigger if exists notices_notify on public.notices;
+create trigger notices_notify
+  after insert on public.notices
+  for each row execute function public.campusone_notice_notify();
+
+create or replace function public.campusone_assignment_notify()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.notifications (id, user_id, type, title, body, target_type, target_id, is_read, created_at)
+  select 'assignment_' || new.id || '_' || p.id,
+         p.id,
+         'ASSIGNMENT',
+         'New assignment: ' || new.title,
+         coalesce(nullif(new.subject_tag, ''), new.subject_id)
+           || ' • due ' || to_char(to_timestamp(new.due_date_epoch_millis / 1000.0), 'DD Mon, HH24:MI'),
+         'ASSIGNMENT',
+         new.id,
+         false,
+         (extract(epoch from now()) * 1000)::bigint
+    from public.profiles p
+   where new.section_key = p.college_id || '_' || p.course_id || '_sem' || p.semester || '_sec' || p.section
+     and p.id <> coalesce(auth.uid(), '00000000-0000-0000-0000-000000000000'::uuid)
+  on conflict (id) do nothing;
+  return null;
+end;
+$$;
+
+drop trigger if exists assignments_notify on public.assignments;
+create trigger assignments_notify
+  after insert on public.assignments
+  for each row execute function public.campusone_assignment_notify();
+
+-- ---- RLS for community + notifications -----------------------------------
+alter table public.community_posts enable row level security;
+alter table public.community_comments enable row level security;
+alter table public.community_likes enable row level security;
+alter table public.notifications enable row level security;
+
+drop policy if exists "community_posts_read" on public.community_posts;
+create policy "community_posts_read" on public.community_posts
+  for select to authenticated
+  using (not is_hidden or public.campusone_has_permission('MODERATE_REPORTS'));
+
+drop policy if exists "community_posts_insert" on public.community_posts;
+create policy "community_posts_insert" on public.community_posts
+  for insert to authenticated
+  with check (author_uid = auth.uid());
+
+drop policy if exists "community_posts_update_own" on public.community_posts;
+create policy "community_posts_update_own" on public.community_posts
+  for update to authenticated
+  using (author_uid = auth.uid())
+  with check (author_uid = auth.uid());
+
+drop policy if exists "community_posts_delete_own" on public.community_posts;
+create policy "community_posts_delete_own" on public.community_posts
+  for delete to authenticated
+  using (author_uid = auth.uid());
+
+drop policy if exists "community_posts_admin" on public.community_posts;
+create policy "community_posts_admin" on public.community_posts
+  for all to authenticated
+  using (public.campusone_has_permission('MODERATE_REPORTS'))
+  with check (public.campusone_has_permission('MODERATE_REPORTS'));
+
+drop policy if exists "community_comments_read" on public.community_comments;
+create policy "community_comments_read" on public.community_comments
+  for select to authenticated
+  using (
+    (not is_hidden or public.campusone_has_permission('MODERATE_REPORTS'))
+    and exists (
+      select 1 from public.community_posts p
+       where p.id = community_comments.post_id
+         and (not p.is_hidden or public.campusone_has_permission('MODERATE_REPORTS'))
+    )
+  );
+
+drop policy if exists "community_comments_insert" on public.community_comments;
+create policy "community_comments_insert" on public.community_comments
+  for insert to authenticated
+  with check (
+    author_uid = auth.uid()
+    and exists (select 1 from public.community_posts p where p.id = post_id and not p.is_hidden)
+  );
+
+drop policy if exists "community_comments_update_own" on public.community_comments;
+create policy "community_comments_update_own" on public.community_comments
+  for update to authenticated
+  using (author_uid = auth.uid())
+  with check (author_uid = auth.uid());
+
+drop policy if exists "community_comments_delete_own" on public.community_comments;
+create policy "community_comments_delete_own" on public.community_comments
+  for delete to authenticated
+  using (author_uid = auth.uid());
+
+drop policy if exists "community_comments_admin" on public.community_comments;
+create policy "community_comments_admin" on public.community_comments
+  for all to authenticated
+  using (public.campusone_has_permission('MODERATE_REPORTS'))
+  with check (public.campusone_has_permission('MODERATE_REPORTS'));
+
+drop policy if exists "community_likes_read" on public.community_likes;
+create policy "community_likes_read" on public.community_likes
+  for select to authenticated
+  using (true);
+
+drop policy if exists "community_likes_insert_own" on public.community_likes;
+create policy "community_likes_insert_own" on public.community_likes
+  for insert to authenticated
+  with check (user_id = auth.uid());
+
+drop policy if exists "community_likes_delete_own" on public.community_likes;
+create policy "community_likes_delete_own" on public.community_likes
+  for delete to authenticated
+  using (user_id = auth.uid());
+
+drop policy if exists "notifications_read_own" on public.notifications;
+create policy "notifications_read_own" on public.notifications
+  for select to authenticated
+  using (user_id = auth.uid());
+
+drop policy if exists "notifications_update_own" on public.notifications;
+create policy "notifications_update_own" on public.notifications
+  for update to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
+
+-- ---- Moderation RPC for community content --------------------------------
+create or replace function public.admin_moderate_community(
+  p_target_type text,
+  p_target_id text,
+  p_action text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_now bigint := (extract(epoch from now()) * 1000)::bigint;
+  v_status text;
+begin
+  if not public.campusone_has_permission('MODERATE_REPORTS') then
+    perform public.campusone_audit('admin_moderate_community', p_target_type, p_target_id,
+      jsonb_build_object('action', p_action), 'DENIED');
+    return jsonb_build_object('ok', false, 'error', 'Missing MODERATE_REPORTS permission');
+  end if;
+
+  if p_action not in ('HIDE', 'RESTORE', 'DELETE', 'DISMISS') then
+    return jsonb_build_object('ok', false, 'error', 'Unknown action');
+  end if;
+
+  if p_target_type = 'POST' then
+    if p_action = 'HIDE' then
+      update public.community_posts set is_hidden = true, updated_at = v_now where id = p_target_id;
+    elsif p_action = 'RESTORE' then
+      update public.community_posts set is_hidden = false, updated_at = v_now where id = p_target_id;
+    elsif p_action = 'DELETE' then
+      delete from public.community_posts where id = p_target_id;
+    else
+      update public.community_posts set report_count = 0, updated_at = v_now where id = p_target_id;
+    end if;
+  elsif p_target_type = 'COMMENT' then
+    if p_action = 'HIDE' then
+      update public.community_comments set is_hidden = true where id = p_target_id;
+    elsif p_action = 'RESTORE' then
+      update public.community_comments set is_hidden = false where id = p_target_id;
+    elsif p_action = 'DELETE' then
+      delete from public.community_comments where id = p_target_id;
+    end if;
+  else
+    return jsonb_build_object('ok', false, 'error', 'Unsupported target type');
+  end if;
+
+  v_status := case when p_action = 'DISMISS' then 'DISMISSED' else 'RESOLVED' end;
+
+  update public.content_reports
+     set status = v_status,
+         resolution = p_action,
+         reviewed_by = public.campusone_caller_email(),
+         reviewed_at = v_now
+   where target_type = p_target_type and target_id = p_target_id and status = 'PENDING';
+
+  perform public.campusone_audit('admin_moderate_community', p_target_type, p_target_id,
+    jsonb_build_object('action', p_action));
+
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+-- ---- Grants --------------------------------------------------------------
+grant select on public.community_posts to authenticated;
+grant select on public.community_comments to authenticated;
+grant select on public.community_likes to authenticated;
+grant select on public.notifications to authenticated;
+
+grant insert, update, delete on public.community_posts to authenticated;
+grant insert, update, delete on public.community_comments to authenticated;
+grant insert, delete on public.community_likes to authenticated;
+grant update on public.notifications to authenticated;
+
+revoke all on public.community_posts from anon;
+revoke all on public.community_comments from anon;
+revoke all on public.community_likes from anon;
+revoke all on public.notifications from anon;
+
+revoke execute on function public.campusone_notify(uuid, text, text, text, text, text, text)
+  from public, anon, authenticated;
+revoke execute on function public.admin_moderate_community(text, text, text)
+  from public, anon;
+grant execute on function public.admin_moderate_community(text, text, text)
+  to authenticated;

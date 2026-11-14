@@ -85,6 +85,7 @@ import `in`.campusone.app.ui.screens.NoticeBoardScreen
 import `in`.campusone.app.ui.screens.OnboardingScreen
 import `in`.campusone.app.ui.screens.TimetableScreen
 import `in`.campusone.app.ui.theme.CampusOneTheme
+import `in`.campusone.app.ui.viewmodel.CommunityViewModel
 import `in`.campusone.app.ui.viewmodel.CoreViewModel
 import `in`.campusone.app.ui.viewmodel.StudyAndCampusViewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -196,7 +197,8 @@ fun CampusOneRoot(
     authSession: StateFlow<SupabaseSession?>,
     onSignOut: () -> Unit,
     coreViewModel: CoreViewModel = hiltViewModel(),
-    studyCampusViewModel: StudyAndCampusViewModel = hiltViewModel()
+    studyCampusViewModel: StudyAndCampusViewModel = hiltViewModel(),
+    communityViewModel: CommunityViewModel = hiltViewModel()
 ) {
     val authSessionState by authSession.collectAsStateWithLifecycle()
     val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
@@ -205,7 +207,11 @@ fun CampusOneRoot(
     val snackbarHostState = remember { SnackbarHostState() }
     var currentTab by rememberSaveable { mutableStateOf(BottomNavTab.HOME) }
     var pendingMoreScreen by rememberSaveable { mutableStateOf<MoreSubScreen?>(null) }
+    var pendingNoticeId by rememberSaveable { mutableStateOf<String?>(null) }
+    var pendingCommunityPostId by rememberSaveable { mutableStateOf<String?>(null) }
+    var pendingAssignmentId by rememberSaveable { mutableStateOf<String?>(null) }
     val noticesSyncError by coreViewModel.noticesSyncError.collectAsStateWithLifecycle()
+    val unreadNotifications by communityViewModel.unreadNotificationCount.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         coreViewModel.uiMessages.collect { msg ->
@@ -294,7 +300,17 @@ fun CampusOneRoot(
                 NavigationBarItem(
                     selected = currentTab == BottomNavTab.MORE,
                     onClick = { currentTab = BottomNavTab.MORE },
-                    icon = { Icon(Icons.Default.MenuBook, contentDescription = null) },
+                    icon = {
+                        BadgedBox(
+                            badge = {
+                                if (unreadNotifications > 0) {
+                                    Badge { Text(unreadNotifications.toString()) }
+                                }
+                            }
+                        ) {
+                            Icon(Icons.Default.MenuBook, contentDescription = null)
+                        }
+                    },
                     label = { Text(stringResource(R.string.nav_more)) }
                 )
             }
@@ -309,7 +325,7 @@ fun CampusOneRoot(
                     dataRefreshError = noticesSyncError,
                     onToggleLanguage = coreViewModel::toggleLanguage,
                     onOpenProfile = {
-                        pendingMoreScreen = MoreSubScreen.HUB
+                        pendingMoreScreen = MoreSubScreen.PROFILE
                         currentTab = BottomNavTab.MORE
                     },
                     onOpenAttendance = { currentTab = BottomNavTab.ATTENDANCE },
@@ -341,7 +357,9 @@ fun CampusOneRoot(
                     onMarkAllRead = coreViewModel::markAllNoticesRead,
                     onPostNotice = coreViewModel::postNotice,
                     dataRefreshError = noticesSyncError,
-                    onRetryRefresh = coreViewModel::refreshNotices
+                    onRetryRefresh = coreViewModel::refreshNotices,
+                    focusNoticeId = pendingNoticeId,
+                    onFocusConsumed = { pendingNoticeId = null }
                 )
                 BottomNavTab.MORE -> MoreHubScreen(
                     uiState = studyCampusState,
@@ -351,7 +369,36 @@ fun CampusOneRoot(
                         currentTab = BottomNavTab.HOME
                     },
                     deepLink = pendingMoreScreen,
-                    onDeepLinkConsumed = { pendingMoreScreen = null }
+                    onDeepLinkConsumed = { pendingMoreScreen = null },
+                    communityViewModel = communityViewModel,
+                    coreViewModel = coreViewModel,
+                    onNotificationNavigate = { targetType, targetId ->
+                        when (targetType) {
+                            "NOTICE" -> {
+                                pendingNoticeId = targetId
+                                coreViewModel.refreshNotices()
+                                currentTab = BottomNavTab.NOTICES
+                            }
+                            "ASSIGNMENT" -> {
+                                pendingAssignmentId = targetId
+                                pendingMoreScreen = MoreSubScreen.ASSIGNMENTS
+                                currentTab = BottomNavTab.MORE
+                            }
+                            "POST" -> {
+                                pendingCommunityPostId = targetId
+                                pendingMoreScreen = MoreSubScreen.COMMUNITY
+                                currentTab = BottomNavTab.MORE
+                            }
+                            "ADMIN" -> {
+                                pendingMoreScreen = MoreSubScreen.SUPER_ADMIN_MODERATION
+                                currentTab = BottomNavTab.MORE
+                            }
+                        }
+                    },
+                    focusPostId = pendingCommunityPostId,
+                    onFocusPostConsumed = { pendingCommunityPostId = null },
+                    focusAssignmentId = pendingAssignmentId,
+                    onFocusAssignmentConsumed = { pendingAssignmentId = null }
                 )
             }
         }

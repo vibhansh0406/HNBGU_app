@@ -79,7 +79,7 @@ interface TimetableDao {
 
 @Dao
 interface NoticeDao {
-    @Query("SELECT * FROM notices WHERE sectionKey = :sectionKey ORDER BY isPinned DESC, createdAtMillis DESC")
+    @Query("SELECT * FROM notices WHERE sectionKey = :sectionKey ORDER BY isOfficial DESC, isPinned DESC, createdAtMillis DESC")
     fun observeNotices(sectionKey: String): Flow<List<NoticeEntity>>
 
     @Query("DELETE FROM notices WHERE id = :id")

@@ -47,6 +47,9 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.FindInPage
 import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Forum
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Refresh
@@ -128,6 +131,8 @@ import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.components.C1Tone
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
+import `in`.campusone.app.ui.viewmodel.CommunityViewModel
+import `in`.campusone.app.ui.viewmodel.CoreViewModel
 import `in`.campusone.app.ui.viewmodel.StudyAndCampusUiState
 import `in`.campusone.app.ui.viewmodel.StudyAndCampusViewModel
 import `in`.campusone.app.ui.screens.admin.AdminAssignmentsScreen
@@ -159,6 +164,9 @@ import java.util.Locale
 
 enum class MoreSubScreen {
     HUB,
+    COMMUNITY,
+    NOTIFICATIONS,
+    PROFILE,
     NOTES_PYQ,
     ASSIGNMENTS,
     EXAMS_SYLLABUS,
@@ -203,7 +211,14 @@ fun MoreHubScreen(
     deepLink: MoreSubScreen? = null,
     onDeepLinkConsumed: () -> Unit = {},
     adminViewModel: `in`.campusone.app.ui.viewmodel.AdminViewModel = hiltViewModel(),
-    moderatorViewModel: `in`.campusone.app.ui.viewmodel.ModeratorViewModel = hiltViewModel()
+    moderatorViewModel: `in`.campusone.app.ui.viewmodel.ModeratorViewModel = hiltViewModel(),
+    communityViewModel: CommunityViewModel = hiltViewModel(),
+    coreViewModel: CoreViewModel = hiltViewModel(),
+    onNotificationNavigate: (targetType: String, targetId: String) -> Unit = { _, _ -> },
+    focusPostId: String? = null,
+    onFocusPostConsumed: () -> Unit = {},
+    focusAssignmentId: String? = null,
+    onFocusAssignmentConsumed: () -> Unit = {}
 ) {
     var activeScreen by rememberSaveable { mutableStateOf(MoreSubScreen.HUB) }
     var showRoleRequest by rememberSaveable { mutableStateOf(false) }
@@ -214,6 +229,14 @@ fun MoreHubScreen(
         if (deepLink != null) {
             activeScreen = deepLink
             onDeepLinkConsumed()
+        }
+    }
+
+    LaunchedEffect(focusPostId) {
+        if (focusPostId != null) {
+            activeScreen = MoreSubScreen.COMMUNITY
+            communityViewModel.openPost(focusPostId)
+            onFocusPostConsumed()
         }
     }
 
@@ -230,12 +253,44 @@ fun MoreHubScreen(
         uiState.profile.role == `in`.campusone.app.domain.model.UserRole.TEACHER ||
         uiState.profile.role == `in`.campusone.app.domain.model.UserRole.CR
     val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
+    val communityState by communityViewModel.uiState.collectAsStateWithLifecycle()
+    val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
+    val unreadNotifications by communityViewModel.unreadNotificationCount.collectAsStateWithLifecycle()
     val isSuperAdmin = adminState.identity.isOwner ||
         adminState.identity.can(`in`.campusone.app.data.repository.AdminPermission.VIEW_USERS)
 
     androidx.compose.runtime.LaunchedEffect(uiState.profile) {
         adminViewModel.init(uiState.profile)
         moderatorViewModel.init()
+    }
+
+    if (activeScreen == MoreSubScreen.COMMUNITY) {
+        CommunityHubScreen(
+            viewModel = communityViewModel,
+            onBack = { activeScreen = MoreSubScreen.HUB },
+            onOpenNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
+            onOpenProfile = { activeScreen = MoreSubScreen.PROFILE }
+        )
+        return
+    }
+    if (activeScreen == MoreSubScreen.NOTIFICATIONS) {
+        NotificationsScreen(
+            viewModel = communityViewModel,
+            onBack = { activeScreen = MoreSubScreen.HUB },
+            onNavigate = { targetType, targetId ->
+                activeScreen = MoreSubScreen.HUB
+                onNotificationNavigate(targetType, targetId)
+            }
+        )
+        return
+    }
+    if (activeScreen == MoreSubScreen.PROFILE) {
+        StudentProfileScreen(
+            uiState = coreState,
+            onBack = { activeScreen = MoreSubScreen.HUB },
+            onSaveName = coreViewModel::updateDisplayName
+        )
+        return
     }
 
     if (activeScreen == MoreSubScreen.HUB) {
@@ -288,6 +343,42 @@ fun MoreHubScreen(
                 )
             }
 
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(R.string.more_campus_community),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            item {
+                FeatureHubCard(
+                    title = stringResource(R.string.community_title),
+                    subtitle = "${stringResource(R.string.community_posts_count, communityState.posts.size)} • ${stringResource(R.string.community_subtitle)}",
+                    icon = Icons.Default.Forum,
+                    onClick = { activeScreen = MoreSubScreen.COMMUNITY }
+                )
+            }
+            item {
+                FeatureHubCard(
+                    title = stringResource(R.string.notifications_title),
+                    subtitle = if (unreadNotifications > 0) {
+                        "$unreadNotifications ${stringResource(R.string.notifications_unread)} • ${stringResource(R.string.notifications_subtitle)}"
+                    } else {
+                        stringResource(R.string.notifications_subtitle)
+                    },
+                    icon = Icons.Default.Notifications,
+                    onClick = { activeScreen = MoreSubScreen.NOTIFICATIONS }
+                )
+            }
+            item {
+                FeatureHubCard(
+                    title = stringResource(R.string.profile_title),
+                    subtitle = stringResource(R.string.profile_subtitle),
+                    icon = Icons.Default.Person,
+                    onClick = { activeScreen = MoreSubScreen.PROFILE }
+                )
+            }
             item {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -436,8 +527,16 @@ fun MoreHubScreen(
                     .padding(innerPadding)
             ) {
                 when (activeScreen) {
+                    MoreSubScreen.COMMUNITY,
+                    MoreSubScreen.NOTIFICATIONS,
+                    MoreSubScreen.PROFILE -> Unit
                     MoreSubScreen.NOTES_PYQ -> NotesAndPyqScreen(uiState, viewModel)
-                    MoreSubScreen.ASSIGNMENTS -> AssignmentsScreen(uiState, viewModel)
+                    MoreSubScreen.ASSIGNMENTS -> AssignmentsScreen(
+                        uiState,
+                        viewModel,
+                        focusAssignmentId = focusAssignmentId,
+                        onFocusConsumed = onFocusAssignmentConsumed
+                    )
                     MoreSubScreen.EXAMS_SYLLABUS -> ExamsAndSyllabusScreen(uiState, viewModel)
                     MoreSubScreen.GPA_CALCULATOR -> GpaCalculatorScreen(uiState, viewModel)
                     MoreSubScreen.EVENTS_CLUBS -> EventsAndClubsScreen(uiState, viewModel)
@@ -1243,7 +1342,9 @@ private fun InAppZoomableDocumentViewerDialog(
 @Composable
 fun AssignmentsScreen(
     uiState: StudyAndCampusUiState,
-    viewModel: StudyAndCampusViewModel
+    viewModel: StudyAndCampusViewModel,
+    focusAssignmentId: String? = null,
+    onFocusConsumed: () -> Unit = {}
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var groupBySubject by rememberSaveable { mutableStateOf(false) }
@@ -1252,6 +1353,20 @@ fun AssignmentsScreen(
     val now = System.currentTimeMillis()
     val endOfToday = now + 24 * 3_600_000L
     val isCrOrTeacher = uiState.profile.role == UserRole.CR || uiState.profile.role == UserRole.TEACHER
+
+    LaunchedEffect(focusAssignmentId, uiState.assignments) {
+        val target = focusAssignmentId?.let { id -> uiState.assignments.firstOrNull { it.id == id } }
+        if (target != null) {
+            selectedTab = when {
+                target.isCompleted -> 3
+                target.dueDateEpochMillis < now -> 2
+                target.dueDateEpochMillis <= endOfToday -> 0
+                else -> 1
+            }
+            groupBySubject = false
+            onFocusConsumed()
+        }
+    }
 
     val sharedNotAdded = uiState.assignments.filter { it.isSharedByCrOrTeacher && !it.isAddedToPersonalList }
     val personalTasks = uiState.assignments.filter { it.isAddedToPersonalList }

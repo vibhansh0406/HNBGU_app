@@ -247,6 +247,17 @@ class SupabaseSyncRepository @Inject constructor(
         return result.data as? List<Map<String, Any>> ?: emptyList()
     }
 
+    suspend fun downloadFlaggedCommunityPosts(): List<Map<String, Any>> {
+        if (!isSyncedEnabled()) return emptyList()
+        val result = supabaseClient.from("community_posts")
+            .select("*")
+            .or("report_count.gt.0,is_hidden.eq.true")
+            .order("report_count", ascending = false)
+            .limit(ADMIN_PAGE_LIMIT)
+            .execute()
+        return result.data as? List<Map<String, Any>> ?: emptyList()
+    }
+
     suspend fun downloadFlaggedLostFound(): List<Map<String, Any>> {
         if (!isSyncedEnabled()) return emptyList()
         val result = supabaseClient.from("lost_found_items")
@@ -441,5 +452,162 @@ class SupabaseSyncRepository @Inject constructor(
             .eq("college_id", collegeId)
             .execute()
         return result.data as? List<Map<String, Any>> ?: emptyList()
+    }
+
+    // =========================================================================
+    // COMMUNITY SYNC
+    // =========================================================================
+    suspend fun downloadCommunityPosts(
+        collegeId: String,
+        category: String? = null,
+        beforeCreatedAt: Long? = null,
+        limit: Int = 20
+    ): List<Map<String, Any>> {
+        if (!isSyncedEnabled()) return emptyList()
+        var query = supabaseClient.from("community_posts")
+            .select("*")
+            .eq("college_id", collegeId)
+        if (category != null) query = query.eq("category", category)
+        if (beforeCreatedAt != null) query = query.lt("created_at", beforeCreatedAt)
+        val result = query
+            .order("created_at", ascending = false)
+            .limit(limit)
+            .execute()
+        result.error?.let { throw IllegalStateException(it) }
+        return result.data as? List<Map<String, Any>> ?: emptyList()
+    }
+
+    suspend fun downloadCommunityPost(postId: String): Map<String, Any>? {
+        if (!isSyncedEnabled()) return null
+        val result = supabaseClient.from("community_posts")
+            .select("*")
+            .eq("id", postId)
+            .limit(1)
+            .execute()
+        return (result.data as? List<Map<String, Any>>)?.firstOrNull()
+    }
+
+    suspend fun downloadCommunityComments(postId: String, limit: Int = 100): List<Map<String, Any>> {
+        if (!isSyncedEnabled()) return emptyList()
+        val result = supabaseClient.from("community_comments")
+            .select("*")
+            .eq("post_id", postId)
+            .order("created_at", ascending = true)
+            .limit(limit)
+            .execute()
+        result.error?.let { throw IllegalStateException(it) }
+        return result.data as? List<Map<String, Any>> ?: emptyList()
+    }
+
+    suspend fun downloadCommunityComment(commentId: String): Map<String, Any>? {
+        if (!isSyncedEnabled()) return null
+        val result = supabaseClient.from("community_comments")
+            .select("*")
+            .eq("id", commentId)
+            .limit(1)
+            .execute()
+        return (result.data as? List<Map<String, Any>>)?.firstOrNull()
+    }
+
+    suspend fun downloadMyCommunityLikes(uid: String, postIds: List<String>): Set<String> {
+        if (!isSyncedEnabled() || postIds.isEmpty()) return emptySet()
+        val result = supabaseClient.from("community_likes")
+            .select("post_id")
+            .eq("user_id", uid)
+            .inArray("post_id", postIds)
+            .execute()
+        val rows = result.data as? List<Map<String, Any>> ?: return emptySet()
+        return rows.mapNotNull { it["post_id"] as? String }.toSet()
+    }
+
+    suspend fun uploadCommunityPost(post: Map<String, Any>): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("community_posts").upsert(post)
+        return result.isSuccess
+    }
+
+    suspend fun updateCommunityPost(
+        postId: String,
+        title: String,
+        body: String,
+        updatedAtMillis: Long
+    ): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("community_posts")
+            .eq("id", postId)
+            .update(mapOf("title" to title, "body" to body, "updated_at" to updatedAtMillis))
+        return result.isSuccess
+    }
+
+    suspend fun deleteCommunityPost(postId: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("community_posts").eq("id", postId).delete()
+        return result.isSuccess
+    }
+
+    suspend fun uploadCommunityComment(comment: Map<String, Any>): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("community_comments").upsert(comment)
+        return result.isSuccess
+    }
+
+    suspend fun deleteCommunityComment(commentId: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("community_comments").eq("id", commentId).delete()
+        return result.isSuccess
+    }
+
+    suspend fun setCommunityLike(postId: String, uid: String, liked: Boolean): Boolean {
+        if (!isSyncedEnabled()) return false
+        return if (liked) {
+            supabaseClient.from("community_likes").insert(mapOf(
+                "post_id" to postId,
+                "user_id" to uid,
+                "created_at" to System.currentTimeMillis()
+            )).isSuccess
+        } else {
+            supabaseClient.from("community_likes")
+                .eq("post_id", postId)
+                .eq("user_id", uid)
+                .delete()
+                .isSuccess
+        }
+    }
+
+    suspend fun adminModerateCommunity(targetType: String, targetId: String, action: String): Boolean =
+        callAdmin(
+            "admin_moderate_community",
+            mapOf("p_target_type" to targetType, "p_target_id" to targetId, "p_action" to action)
+        )
+
+    // =========================================================================
+    // NOTIFICATIONS SYNC
+    // =========================================================================
+    suspend fun downloadNotifications(uid: String, limit: Int = 100): List<Map<String, Any>> {
+        if (!isSyncedEnabled()) return emptyList()
+        val result = supabaseClient.from("notifications")
+            .select("*")
+            .eq("user_id", uid)
+            .order("created_at", ascending = false)
+            .limit(limit)
+            .execute()
+        result.error?.let { throw IllegalStateException(it) }
+        return result.data as? List<Map<String, Any>> ?: emptyList()
+    }
+
+    suspend fun markNotificationRead(notificationId: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("notifications")
+            .eq("id", notificationId)
+            .update(mapOf("is_read" to true))
+        return result.isSuccess
+    }
+
+    suspend fun markAllNotificationsRead(uid: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("notifications")
+            .eq("user_id", uid)
+            .update(mapOf("is_read" to true))
+        return result.isSuccess
     }
 }

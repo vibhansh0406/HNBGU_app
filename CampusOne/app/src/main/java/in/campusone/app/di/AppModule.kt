@@ -12,6 +12,7 @@ import dagger.hilt.components.SingletonComponent
 import `in`.campusone.app.data.local.CampusOneDatabase
 import `in`.campusone.app.data.local.dao.AttendanceDao
 import `in`.campusone.app.data.local.dao.CampusLifeDao
+import `in`.campusone.app.data.local.dao.CommunityDao
 import `in`.campusone.app.data.local.dao.NoticeDao
 import `in`.campusone.app.data.local.dao.StudyDao
 import `in`.campusone.app.data.local.dao.TimetableDao
@@ -51,4 +52,7 @@ object AppModule {
 
     @Provides
     fun provideCampusLifeDao(db: CampusOneDatabase): CampusLifeDao = db.campusLifeDao()
+
+    @Provides
+    fun provideCommunityDao(db: CampusOneDatabase): CommunityDao = db.communityDao()
 }

@@ -7,6 +7,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -77,7 +80,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private enum class NoticeFilter { ALL, PINNED, UNREAD }
+private enum class NoticeFilter { ALL, PINNED, UNREAD, OFFICIAL }
+
+private val noticeCategories = listOf("GENERAL", "ACADEMIC", "EXAM", "EVENT", "URGENT", "PLACEMENT")
+private val noticePriorities = listOf("LOW", "NORMAL", "HIGH", "URGENT")
 
 @Composable
 fun NoticeBoardScreen(
@@ -89,15 +95,21 @@ fun NoticeBoardScreen(
         body: String,
         attachmentUrl: String?,
         attachmentType: AttachmentType,
-        isPinned: Boolean
+        isPinned: Boolean,
+        category: String,
+        priority: String,
+        isOfficial: Boolean
     ) -> Unit,
     dataRefreshError: Boolean = false,
-    onRetryRefresh: () -> Unit = {}
+    onRetryRefresh: () -> Unit = {},
+    focusNoticeId: String? = null,
+    onFocusConsumed: () -> Unit = {}
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var filterIndex by rememberSaveable { mutableIntStateOf(0) }
     var showComposer by rememberSaveable { mutableStateOf(false) }
     var selectedNoticeId by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedCategory by rememberSaveable { mutableStateOf<String?>(null) }
     val filter = NoticeFilter.entries[filterIndex]
 
     val selectedNotice = uiState.notices.firstOrNull { it.id == selectedNoticeId }
@@ -105,6 +117,13 @@ fun NoticeBoardScreen(
     LaunchedEffect(selectedNoticeId, uiState.notices) {
         if (selectedNoticeId != null && selectedNotice == null) {
             selectedNoticeId = null
+        }
+    }
+
+    LaunchedEffect(focusNoticeId, uiState.notices) {
+        if (focusNoticeId != null && uiState.notices.any { it.id == focusNoticeId }) {
+            selectedNoticeId = focusNoticeId
+            onFocusConsumed()
         }
     }
 
@@ -127,11 +146,12 @@ fun NoticeBoardScreen(
             notice.title.contains(query, ignoreCase = true) ||
             notice.body.contains(query, ignoreCase = true) ||
             notice.authorName.contains(query, ignoreCase = true)
-    }
+    }.filter { selectedCategory == null || it.category == selectedCategory }
     val displayedNotices = when (filter) {
         NoticeFilter.ALL -> searched
         NoticeFilter.PINNED -> searched.filter { it.isPinned }
         NoticeFilter.UNREAD -> searched.filter { !it.isRead }
+        NoticeFilter.OFFICIAL -> searched.filter { it.isOfficial }
     }
 
     Scaffold(
@@ -187,31 +207,61 @@ fun NoticeBoardScreen(
                         label = stringResource(R.string.notices_search_hint)
                     )
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
-                        FilterChip(
-                            selected = filter == NoticeFilter.ALL,
-                            onClick = { filterIndex = 0 },
-                            label = { Text(stringResource(R.string.notices_filter_all)) }
-                        )
-                        FilterChip(
-                            selected = filter == NoticeFilter.PINNED,
-                            onClick = { filterIndex = 1 },
-                            label = { Text(stringResource(R.string.home_pinned)) }
-                        )
-                        FilterChip(
-                            selected = filter == NoticeFilter.UNREAD,
-                            onClick = { filterIndex = 2 },
-                            label = {
-                                val label = stringResource(R.string.notices_filter_unread)
-                                Text(
-                                    if (uiState.unreadNoticeCount > 0) {
-                                        "$label (${uiState.unreadNoticeCount})"
-                                    } else {
-                                        label
-                                    }
-                                )
-                            }
-                        )
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                        item {
+                            FilterChip(
+                                selected = filter == NoticeFilter.ALL,
+                                onClick = { filterIndex = 0 },
+                                label = { Text(stringResource(R.string.notices_filter_all)) }
+                            )
+                        }
+                        item {
+                            FilterChip(
+                                selected = filter == NoticeFilter.PINNED,
+                                onClick = { filterIndex = 1 },
+                                label = { Text(stringResource(R.string.home_pinned)) }
+                            )
+                        }
+                        item {
+                            FilterChip(
+                                selected = filter == NoticeFilter.UNREAD,
+                                onClick = { filterIndex = 2 },
+                                label = {
+                                    val label = stringResource(R.string.notices_filter_unread)
+                                    Text(
+                                        if (uiState.unreadNoticeCount > 0) {
+                                            "$label (${uiState.unreadNoticeCount})"
+                                        } else {
+                                            label
+                                        }
+                                    )
+                                }
+                            )
+                        }
+                        item {
+                            FilterChip(
+                                selected = filter == NoticeFilter.OFFICIAL,
+                                onClick = { filterIndex = 3 },
+                                label = { Text(stringResource(R.string.notice_official)) }
+                            )
+                        }
+                    }
+
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                        item {
+                            FilterChip(
+                                selected = selectedCategory == null,
+                                onClick = { selectedCategory = null },
+                                label = { Text(stringResource(R.string.notices_filter_all)) }
+                            )
+                        }
+                        items(noticeCategories) { category ->
+                            FilterChip(
+                                selected = selectedCategory == category,
+                                onClick = { selectedCategory = category },
+                                label = { Text(noticeCategoryLabel(category)) }
+                            )
+                        }
                     }
 
                     if (dataRefreshError) {
@@ -265,9 +315,10 @@ fun NoticeBoardScreen(
 
     if (showComposer) {
         PostNoticeDialog(
+            isAdmin = uiState.profile.role == UserRole.ADMIN,
             onDismiss = { showComposer = false },
-            onSubmit = { title, body, url, type, pinned ->
-                onPostNotice(title, body, url, type, pinned)
+            onSubmit = { title, body, url, type, pinned, category, priority, official ->
+                onPostNotice(title, body, url, type, pinned, category, priority, official)
                 showComposer = false
             }
         )
@@ -289,6 +340,7 @@ private fun NoticeEmptyState(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun NoticeListCard(notice: NoticeItem, onClick: () -> Unit) {
     Surface(
@@ -339,6 +391,22 @@ private fun NoticeListCard(notice: NoticeItem, onClick: () -> Unit) {
             }
 
             Spacer(modifier = Modifier.height(C1Spacing.xs))
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                if (notice.isOfficial) {
+                    C1StatusChip(
+                        text = stringResource(R.string.notice_official),
+                        tone = C1Tone.SUCCESS
+                    )
+                }
+                C1StatusChip(text = noticeCategoryLabel(notice.category), tone = C1Tone.NEUTRAL)
+                if (notice.priority == "HIGH" || notice.priority == "URGENT") {
+                    C1StatusChip(
+                        text = noticePriorityLabel(notice.priority),
+                        tone = if (notice.priority == "URGENT") C1Tone.DANGER else C1Tone.WARNING
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(C1Spacing.xs))
             Text(
                 text = notice.title,
                 style = MaterialTheme.typography.titleMedium,
@@ -380,6 +448,7 @@ private fun NoticeListCard(notice: NoticeItem, onClick: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun NoticeDetail(
     notice: NoticeItem,
@@ -426,10 +495,7 @@ private fun NoticeDetail(
 
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
-                    ) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                         if (notice.isPinned) {
                             C1StatusChip(
                                 text = stringResource(R.string.home_pinned),
@@ -440,6 +506,22 @@ private fun NoticeDetail(
                             C1StatusChip(
                                 text = stringResource(R.string.new_badge),
                                 tone = C1Tone.INFO
+                            )
+                        }
+                        if (notice.isOfficial) {
+                            C1StatusChip(
+                                text = stringResource(R.string.notice_official),
+                                tone = C1Tone.SUCCESS
+                            )
+                        }
+                        C1StatusChip(
+                            text = noticeCategoryLabel(notice.category),
+                            tone = C1Tone.NEUTRAL
+                        )
+                        if (notice.priority == "HIGH" || notice.priority == "URGENT") {
+                            C1StatusChip(
+                                text = noticePriorityLabel(notice.priority),
+                                tone = if (notice.priority == "URGENT") C1Tone.DANGER else C1Tone.WARNING
                             )
                         }
                     }
@@ -517,19 +599,26 @@ private fun NoticeDetail(
 
 @Composable
 private fun PostNoticeDialog(
+    isAdmin: Boolean,
     onDismiss: () -> Unit,
     onSubmit: (
         title: String,
         body: String,
         attachmentUrl: String?,
         attachmentType: AttachmentType,
-        isPinned: Boolean
+        isPinned: Boolean,
+        category: String,
+        priority: String,
+        isOfficial: Boolean
     ) -> Unit
 ) {
     var title by rememberSaveable { mutableStateOf("") }
     var body by rememberSaveable { mutableStateOf("") }
     var attachmentUrl by rememberSaveable { mutableStateOf("") }
     var isPinned by rememberSaveable { mutableStateOf(false) }
+    var category by rememberSaveable { mutableStateOf("GENERAL") }
+    var priority by rememberSaveable { mutableStateOf("NORMAL") }
+    var isOfficial by rememberSaveable { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -550,6 +639,32 @@ private fun PostNoticeDialog(
                     label = stringResource(R.string.notice_composer_body),
                     singleLine = false
                 )
+                Text(
+                    text = stringResource(R.string.notice_composer_category),
+                    style = MaterialTheme.typography.labelLarge
+                )
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                    items(noticeCategories) { option ->
+                        FilterChip(
+                            selected = category == option,
+                            onClick = { category = option },
+                            label = { Text(noticeCategoryLabel(option)) }
+                        )
+                    }
+                }
+                Text(
+                    text = stringResource(R.string.notice_composer_priority),
+                    style = MaterialTheme.typography.labelLarge
+                )
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                    items(noticePriorities) { option ->
+                        FilterChip(
+                            selected = priority == option,
+                            onClick = { priority = option },
+                            label = { Text(noticePriorityLabel(option)) }
+                        )
+                    }
+                }
                 C1TextField(
                     value = attachmentUrl,
                     onValueChange = { attachmentUrl = it },
@@ -559,6 +674,13 @@ private fun PostNoticeDialog(
                     Checkbox(checked = isPinned, onCheckedChange = { isPinned = it })
                     Spacer(modifier = Modifier.width(C1Spacing.xs))
                     Text(stringResource(R.string.notice_composer_pin))
+                }
+                if (isAdmin) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = isOfficial, onCheckedChange = { isOfficial = it })
+                        Spacer(modifier = Modifier.width(C1Spacing.xs))
+                        Text(stringResource(R.string.notice_composer_official))
+                    }
                 }
             }
         },
@@ -572,7 +694,16 @@ private fun PostNoticeDialog(
                         attachmentUrl.endsWith(".png", true) || attachmentUrl.endsWith(".jpg", true) -> AttachmentType.IMAGE
                         else -> AttachmentType.LINK
                     }
-                    onSubmit(title, body, attachmentUrl.ifBlank { null }, attType, isPinned)
+                    onSubmit(
+                        title,
+                        body,
+                        attachmentUrl.ifBlank { null },
+                        attType,
+                        isPinned,
+                        category,
+                        priority,
+                        isOfficial
+                    )
                 },
                 enabled = title.isNotBlank() && body.isNotBlank()
             )
@@ -594,3 +725,21 @@ private fun openUrl(context: Context, url: String): Boolean = runCatching {
 
 private fun formatNoticeDate(millis: Long): String =
     SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault()).format(Date(millis))
+
+@Composable
+private fun noticeCategoryLabel(category: String): String = when (category) {
+    "ACADEMIC" -> stringResource(R.string.notice_category_academic)
+    "EXAM" -> stringResource(R.string.notice_category_exam)
+    "EVENT" -> stringResource(R.string.notice_category_event)
+    "URGENT" -> stringResource(R.string.notice_category_urgent)
+    "PLACEMENT" -> stringResource(R.string.notice_category_placement)
+    else -> stringResource(R.string.notice_category_general)
+}
+
+@Composable
+private fun noticePriorityLabel(priority: String): String = when (priority) {
+    "LOW" -> stringResource(R.string.notice_priority_low)
+    "HIGH" -> stringResource(R.string.notice_priority_high)
+    "URGENT" -> stringResource(R.string.notice_priority_urgent)
+    else -> stringResource(R.string.notice_priority_normal)
+}

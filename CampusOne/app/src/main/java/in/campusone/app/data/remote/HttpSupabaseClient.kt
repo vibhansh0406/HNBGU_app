@@ -191,6 +191,11 @@ private class HttpSupabaseQueryBuilder(
         return this
     }
 
+    override fun lt(column: String, value: Any): SupabaseQueryBuilder {
+        filters.add("${encode(column)}=lt.${encode(value.toString())}")
+        return this
+    }
+
     override fun or(filter: String): SupabaseQueryBuilder {
         filters.add("or=(${encode(filter)})")
         return this

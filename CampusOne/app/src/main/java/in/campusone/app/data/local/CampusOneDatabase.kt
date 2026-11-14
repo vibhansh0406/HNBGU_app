@@ -6,14 +6,18 @@ import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import `in`.campusone.app.data.local.dao.AttendanceDao
 import `in`.campusone.app.data.local.dao.CampusLifeDao
+import `in`.campusone.app.data.local.dao.CommunityDao
 import `in`.campusone.app.data.local.dao.NoticeDao
 import `in`.campusone.app.data.local.dao.StudyDao
 import `in`.campusone.app.data.local.dao.TimetableDao
+import `in`.campusone.app.data.local.entity.AppNotificationEntity
 import `in`.campusone.app.data.local.entity.AssignmentEntity
 import `in`.campusone.app.data.local.entity.AttendanceLogEntity
 import `in`.campusone.app.data.local.entity.CampusEventEntity
 import `in`.campusone.app.data.local.entity.CampusMapPlaceEntity
 import `in`.campusone.app.data.local.entity.ClubEntity
+import `in`.campusone.app.data.local.entity.CommunityCommentEntity
+import `in`.campusone.app.data.local.entity.CommunityPostEntity
 import `in`.campusone.app.data.local.entity.DirectoryContactEntity
 import `in`.campusone.app.data.local.entity.DirectorySuggestionEntity
 import `in`.campusone.app.data.local.entity.ExamEntity
@@ -69,9 +73,12 @@ class RoomConverters {
         LostFoundContactRequestEntity::class,
         DirectoryContactEntity::class,
         DirectorySuggestionEntity::class,
-        CampusMapPlaceEntity::class
+        CampusMapPlaceEntity::class,
+        CommunityPostEntity::class,
+        CommunityCommentEntity::class,
+        AppNotificationEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = true
 )
 @TypeConverters(RoomConverters::class)
@@ -81,4 +88,5 @@ abstract class CampusOneDatabase : RoomDatabase() {
     abstract fun noticeDao(): NoticeDao
     abstract fun studyDao(): StudyDao
     abstract fun campusLifeDao(): CampusLifeDao
+    abstract fun communityDao(): CommunityDao
 }

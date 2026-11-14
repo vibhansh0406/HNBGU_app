@@ -23,6 +23,7 @@ import `in`.campusone.app.data.repository.AdminRepository
 import `in`.campusone.app.data.repository.AdminUserRecord
 import `in`.campusone.app.data.repository.AuditEntry
 import `in`.campusone.app.data.repository.ContentReportRecord
+import `in`.campusone.app.data.repository.ReportPreview
 import `in`.campusone.app.data.repository.FlaggedItem
 import `in`.campusone.app.data.repository.PlatformSettings
 import `in`.campusone.app.data.repository.RoleRequestRecord
@@ -82,6 +83,7 @@ class AdminViewModel @Inject constructor(
         val roleRequests: List<RoleRequestRecord> = emptyList(),
         val flaggedContent: List<FlaggedItem> = emptyList(),
         val contentReports: List<ContentReportRecord> = emptyList(),
+        val reportPreview: ReportPreview? = null,
         val auditLogs: List<AuditEntry> = emptyList(),
         val settings: PlatformSettings = PlatformSettings(),
         val selectedUserAttendance: List<UserAttendanceRow> = emptyList(),
@@ -631,19 +633,55 @@ class AdminViewModel @Inject constructor(
                         }
                     )
                 }
-                _messages.emit(
-                    when (action) {
-                        "HIDE" -> "Content hidden"
-                        "RESTORE" -> "Content restored"
-                        "DELETE" -> "Content deleted"
-                        else -> "Report dismissed"
-                    }
-                )
+                _messages.emit(moderationMessage(action))
                 loadAuditLogs()
             } else {
                 _messages.emit(result.message)
             }
         }
+    }
+
+    fun moderateReport(report: ContentReportRecord, action: String) {
+        viewModelScope.launch {
+            val result = repository.moderateReport(report, action)
+            if (result.success) {
+                _uiState.update { state ->
+                    state.copy(
+                        contentReports = state.contentReports.filterNot { it.id == report.id },
+                        flaggedContent = state.flaggedContent.filterNot {
+                            it.id == report.targetId
+                        },
+                        reportPreview = state.reportPreview?.takeUnless { it.reportId == report.id }
+                    )
+                }
+                _messages.emit(moderationMessage(action))
+                loadAuditLogs()
+            } else {
+                _messages.emit(result.message)
+            }
+        }
+    }
+
+    fun loadReportPreview(report: ContentReportRecord) {
+        viewModelScope.launch {
+            val preview = runCatching { repository.loadReportPreview(report) }.getOrNull()
+            if (preview == null) {
+                _messages.emit("Could not load this content preview.")
+            } else {
+                _uiState.update { it.copy(reportPreview = preview) }
+            }
+        }
+    }
+
+    fun clearReportPreview() {
+        _uiState.update { it.copy(reportPreview = null) }
+    }
+
+    private fun moderationMessage(action: String): String = when (action) {
+        "HIDE" -> "Content hidden"
+        "RESTORE" -> "Content restored"
+        "DELETE" -> "Content deleted"
+        else -> "Report dismissed"
     }
 
     fun saveSettings(settings: PlatformSettings) {

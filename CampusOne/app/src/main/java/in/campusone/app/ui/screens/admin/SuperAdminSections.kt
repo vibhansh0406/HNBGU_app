@@ -936,7 +936,7 @@ fun SuperAdminModerationScreen(
                     item = item,
                     onHide = { viewModel.moderateFlagged(item, "HIDE") },
                     onRestore = { viewModel.moderateFlagged(item, "RESTORE") },
-                    onDelete = { viewModel.moderateFlagged(item, "DISMISS") }
+                    onDelete = { viewModel.moderateFlagged(item, "DELETE") }
                 )
             }
 
@@ -973,6 +973,22 @@ fun SuperAdminModerationScreen(
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                            if (report.status == "PENDING") {
+                                FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    TextButton(onClick = { viewModel.loadReportPreview(report) }) {
+                                        Text("Preview")
+                                    }
+                                    TextButton(onClick = { viewModel.moderateReport(report, "HIDE") }) {
+                                        Text("Hide")
+                                    }
+                                    TextButton(onClick = { viewModel.moderateReport(report, "DELETE") }) {
+                                        Text("Delete")
+                                    }
+                                    TextButton(onClick = { viewModel.moderateReport(report, "DISMISS") }) {
+                                        Text("Dismiss")
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -980,6 +996,17 @@ fun SuperAdminModerationScreen(
 
             item { Spacer(modifier = Modifier.height(24.dp)) }
         }
+    }
+
+    uiState.reportPreview?.let { preview ->
+        AlertDialog(
+            onDismissRequest = viewModel::clearReportPreview,
+            title = { Text(preview.title) },
+            text = { Text(preview.body) },
+            confirmButton = {
+                TextButton(onClick = viewModel::clearReportPreview) { Text("Close") }
+            }
+        )
     }
 }
 
