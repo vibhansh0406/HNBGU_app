@@ -31,6 +31,23 @@ jobs:
           echo "=== DEBUG SHA-1 (register this in Google Cloud console) ==="
           echo "$SHA1"
           echo "::notice title=Debug SHA-1::$SHA1"
+      - name: Decode permanent release keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          mkdir -p ~/.android
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > ~/.android/release.keystore
+          else
+            cp ci/debug.keystore ~/.android/release.keystore
+          fi
+          echo "KEYSTORE_FILE=$HOME/.android/release.keystore" >> "$GITHUB_ENV"
+          echo "KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
       - name: Signing report (SHA-1 of each build variant)
         run: gradle signingReport --console=plain
       - name: Write local.properties
@@ -52,6 +69,17 @@ jobs:
           } > local.properties
       - name: Build debug APK
         run: gradle assembleDebug
+      - name: Build signed release APK
+        run: gradle assembleRelease
+      - name: Verify APK package name and signing certificate
+        run: |
+          APKSIGNER=$(ls -t $ANDROID_HOME/build-tools/*/apksigner | head -1)
+          AAPT=$(ls -t $ANDROID_HOME/build-tools/*/aapt | head -1)
+          for apk in app/build/outputs/apk/debug/*.apk app/build/outputs/apk/release/*.apk; do
+            echo "=== $apk ==="
+            $AAPT dump badging "$apk" | head -1
+            $APKSIGNER verify --print-certs "$apk" | grep -E "SHA-1|SHA-256"
+          done
       - name: Run unit tests
         run: gradle testDebugUnitTest
       - name: Upload keystore artifact (first run only)
@@ -64,3 +92,7 @@ jobs:
         with:
           name: campusone-debug-apk
           path: CampusOne/app/build/outputs/apk/debug/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: campusone-release-apk
+          path: CampusOne/app/build/outputs/apk/release/*.apk

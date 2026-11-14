@@ -6,6 +6,12 @@
 - **aura/** — zero-dependency Python (server.py) + vanilla JS web app; do not add npm/pip deps to it.
 - **CampusOne/ci/debug.keystore** — stable debug keystore pinned for Google Sign-In SHA-1. NEVER regenerate, move, or delete it.
 
+## Permanent project constants (immutable — never change)
+- **Application ID / package name: `in.campusone.app`** — locked in `namespace` + `applicationId` (`CampusOne/app/build.gradle.kts`). No renames, migrations, flavors, or `applicationIdSuffix` in any module or build type, ever.
+- **Signing identity: `CampusOne/ci/debug.keystore`** (alias `androiddebugkey`) — the permanent signing identity for BOTH debug and release builds. SHA-1 `A9:A0:15:5D:1C:57:5A:4A:66:5E:15:7C:C7:23:DE:81:7B:39:CC:DE`. Never regenerate or replace; the Google OAuth Android client is registered against exactly this package + SHA-1.
+- CI mirrors the keystore via GitHub Secrets (`KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`); workflow decodes it and exports `KEYSTORE_FILE`/`KEYSTORE_PASSWORD`/`KEY_ALIAS`/`KEY_PASSWORD` for the release signing config.
+- Every workflow must keep verifying the built APK's package name and cert fingerprint (`apksigner verify --print-certs` + `aapt dump badging`) so a signature drift fails loudly.
+
 ## Environment reality (read first, every session)
 - Running on Android/PRoot (aarch64). Java 21 exists but **the JVM cannot execute here** (proot memory restriction).
 - Therefore: **no local `gradle`/`./gradlew` builds or JVM tests can run in this environment.** Do not attempt or claim them.
