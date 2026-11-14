@@ -8,7 +8,6 @@ data class SupabaseConfig(
     val anonKey: String = "",
     val googleClientId: String = "",
     val googleWebClientId: String = "",
-    val googleWebClientSecret: String = "",
     val oauthCallbackUrl: String = ""
 )
 
@@ -27,7 +26,6 @@ object SupabaseConfigLoader {
             anonKey = value(BuildConfig.SUPABASE_ANON_KEY, "supabase.anon.key"),
             googleClientId = value(BuildConfig.GOOGLE_OAUTH_CLIENT_ID, "google.oauth.client_id"),
             googleWebClientId = value(BuildConfig.GOOGLE_OAUTH_WEB_CLIENT_ID, "google.oauth.web_client_id"),
-            googleWebClientSecret = value(BuildConfig.GOOGLE_OAUTH_WEB_CLIENT_SECRET, "google.oauth.web_client_secret"),
             oauthCallbackUrl = value(BuildConfig.GOOGLE_OAUTH_CALLBACK_URL, "google.oauth.callback_url")
         )
     }

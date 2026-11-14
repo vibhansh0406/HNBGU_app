@@ -35,6 +35,7 @@ enum class CommunityMode {
 data class CommunityUiState(
     val isLoading: Boolean = true,
     val isRefreshing: Boolean = false,
+    val isRefreshingFeed: Boolean = false,
     val isSubmitting: Boolean = false,
     val profile: UserProfile = UserProfile(),
     val mode: CommunityMode = CommunityMode.FEED,
@@ -135,13 +136,21 @@ class CommunityViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     isRefreshing = true,
+                    isRefreshingFeed = true,
                     isLoading = if (showLoading) true else it.isLoading,
                     isSyncing = false
                 )
             }
             repository.refreshFeed(profile)
                 .onFailure { _messages.emit(it.message ?: "Could not refresh the community feed.") }
-            _uiState.update { it.copy(isRefreshing = false, isLoading = false, isSyncing = false) }
+            _uiState.update {
+                it.copy(
+                    isRefreshing = false,
+                    isRefreshingFeed = false,
+                    isLoading = false,
+                    isSyncing = false
+                )
+            }
         }
     }
 

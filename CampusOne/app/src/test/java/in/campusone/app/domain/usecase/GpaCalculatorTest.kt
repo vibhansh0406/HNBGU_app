@@ -8,47 +8,75 @@ import org.junit.Test
 class GpaCalculatorTest {
 
     @Test
-    fun `marks convert to the ten point scale`() {
-        assertEquals(10.0, GpaCalculator.convertMarksToTenPointGrade(95.0), 0.001)
-        assertEquals(9.0, GpaCalculator.convertMarksToTenPointGrade(85.0), 0.001)
-        assertEquals(8.0, GpaCalculator.convertMarksToTenPointGrade(72.0), 0.001)
-        assertEquals(4.0, GpaCalculator.convertMarksToTenPointGrade(42.0), 0.001)
-        assertEquals(0.0, GpaCalculator.convertMarksToTenPointGrade(12.0), 0.001)
-    }
-
-    @Test
-    fun `sgpa is credit weighted`() {
-        val result = GpaCalculator.calculateSgpaAndCgpa(
-            currentSemesterNumber = 3,
-            currentSemesterCourses = listOf(
-                CourseGradeInput(subjectCode = "BCS301", subjectName = "DBMS", credits = 4, gradePoint = 9.0),
-                CourseGradeInput(subjectCode = "BCS302", subjectName = "OS", credits = 2, gradePoint = 7.0)
-            )
+    fun `10-point Indian scale computes weighted SGPA, multi-semester CGPA, and 9_5x percentage`() {
+        val currentCourses = listOf(
+            CourseGradeInput("1", "CS301", "DSA", credits = 4, gradePoint = 9.0),     // 36
+            CourseGradeInput("2", "CS302", "OS", credits = 4, gradePoint = 8.0),      // 32
+            CourseGradeInput("3", "SEC301", "Android", credits = 2, gradePoint = 10.0) // 20
         )
-        // (4 * 9 + 2 * 7) / 6 = 50 / 6 = 8.33
-        assertEquals(8.33, result.sgpa, 0.01)
-        assertEquals(6, result.totalCredits)
-    }
-
-    @Test
-    fun `cgpa combines past semesters with the current one`() {
-        val result = GpaCalculator.calculateSgpaAndCgpa(
-            currentSemesterNumber = 3,
-            currentSemesterCourses = listOf(
-                CourseGradeInput(subjectCode = "BCS301", subjectName = "DBMS", credits = 4, gradePoint = 8.0)
-            ),
-            pastSemesters = listOf(
-                SemesterGpaRecord(semesterNumber = 1, totalCredits = 6, sgpa = 8.0),
-                SemesterGpaRecord(semesterNumber = 2, totalCredits = 6, sgpa = 8.0)
-            )
+        // Current Sem: 88 / 10 = 8.80 SGPA
+        val pastSems = listOf(
+            SemesterGpaRecord(semesterNumber = 1, totalCredits = 10, sgpa = 8.0) // 80
         )
-        // ((4 * 8) + (6 * 8) + (6 * 8)) / 16 = 160 / 16 = 10 is impossible, so recompute:
-        // current weighted = 32, past weighted = 48 + 48 = 96, total = 128 / 16 = 8.0
-        assertEquals(8.0, result.cgpa, 0.01)
+        // Combined: (88 + 80) / 20 = 8.40 CGPA -> 8.40 * 9.5 = 79.8%
+        val result = GpaCalculator.calculateSgpaAndCgpa(
+            currentSemesterNumber = 2,
+            currentSemesterCourses = currentCourses,
+            pastSemesters = pastSems,
+            scaleType = GradingScaleType.TEN_POINT_INDIAN,
+            percentageMultiplier = 9.5
+        )
+
+        assertEquals(8.80, result.sgpa, 0.001)
+        assertEquals(8.40, result.cgpa, 0.001)
+        assertEquals(79.8, result.equivalentPercentage, 0.01)
+        assertEquals(2, result.semesterTrend.size)
     }
 
     @Test
-    fun `zero credits does not divide by zero`() {
+    fun `4-point scale computes SGPA and percentage accurately`() {
+        val courses = listOf(
+            CourseGradeInput("1", "CS101", "Intro CS", credits = 4, gradePoint = 4.0),
+            CourseGradeInput("2", "MA101", "Calculus", credits = 4, gradePoint = 3.0)
+        )
+        val result = GpaCalculator.calculateSgpaAndCgpa(
+            currentSemesterNumber = 1,
+            currentSemesterCourses = courses,
+            scaleType = GradingScaleType.FOUR_POINT_WES
+        )
+        assertEquals(3.50, result.sgpa, 0.001)
+        assertEquals(87.5, result.equivalentPercentage, 0.01)
+    }
+
+    @Test
+    fun `what do I need mode calculates exact required SGPA and detects impossible targets`() {
+        // Completed 40 credits with 8.0 CGPA (320 points). Next sem is 20 credits (total 60).
+        // To reach 8.5 CGPA overall: need 8.5 * 60 = 510 total points => 510 - 320 = 190 points in 20 credits => 9.50 SGPA.
+        val achievable = GpaCalculator.calculateRequiredSgpaForTargetCgpa(
+            completedCredits = 40,
+            currentCgpa = 8.0,
+            upcomingSemesterCredits = 20,
+            targetCgpa = 8.5,
+            scaleType = GradingScaleType.TEN_POINT_INDIAN
+        )
+        assertTrue(achievable.isAchievable)
+        assertFalse(achievable.alreadyAchieved)
+        assertEquals(9.50, achievable.requiredSgpa, 0.01)
+
+        // Target 9.2 CGPA overall: need 9.2 * 60 = 552 points => 232 / 20 = 11.60 SGPA (> 10.0 max)
+        val impossible = GpaCalculator.calculateRequiredSgpaForTargetCgpa(
+            completedCredits = 40,
+            currentCgpa = 8.0,
+            upcomingSemesterCredits = 20,
+            targetCgpa = 9.2,
+            scaleType = GradingScaleType.TEN_POINT_INDIAN
+        )
+        assertFalse(impossible.isAchievable)
+        assertEquals(11.60, impossible.requiredSgpa, 0.01)
+    }
+
+    @Test
+    fun `empty semester reports zero sgpa and cgpa without dividing by zero`() {
         val result = GpaCalculator.calculateSgpaAndCgpa(
             currentSemesterNumber = 1,
             currentSemesterCourses = emptyList()
@@ -58,22 +86,7 @@ class GpaCalculatorTest {
     }
 
     @Test
-    fun `required sgpa for a target cgpa is computed from credits`() {
-        // 60 credits done at 7.0, 24 upcoming credits, target 8.0:
-        // (8 * 84 - 7 * 60) / 24 = (672 - 420) / 24 = 10.5 -> not achievable on a 10 point scale
-        val requirement = GpaCalculator.calculateRequiredSgpaForTargetCgpa(
-            completedCredits = 60,
-            currentCgpa = 7.0,
-            upcomingSemesterCredits = 24,
-            targetCgpa = 8.0
-        )
-        assertEquals(10.5, requirement.requiredSgpa, 0.01)
-        assertFalse(requirement.isAchievable)
-        assertFalse(requirement.alreadyAchieved)
-    }
-
-    @Test
-    fun `target cgpa already met reports achieved without upcoming credits`() {
+    fun `target cgpa already met reports achieved when no credits remain`() {
         val requirement = GpaCalculator.calculateRequiredSgpaForTargetCgpa(
             completedCredits = 60,
             currentCgpa = 8.4,
@@ -85,15 +98,11 @@ class GpaCalculatorTest {
     }
 
     @Test
-    fun `achievable target returns the required sgpa`() {
-        val requirement = GpaCalculator.calculateRequiredSgpaForTargetCgpa(
-            completedCredits = 60,
-            currentCgpa = 7.0,
-            upcomingSemesterCredits = 24,
-            targetCgpa = 7.5
-        )
-        // (7.5 * 84 - 7 * 60) / 24 = (630 - 420) / 24 = 8.75
-        assertEquals(8.75, requirement.requiredSgpa, 0.01)
-        assertTrue(requirement.isAchievable)
+    fun `marks at the band boundaries convert to the expected grade points`() {
+        assertEquals(9.0, GpaCalculator.convertMarksToTenPointGrade(80.0), 0.001)
+        assertEquals(8.0, GpaCalculator.convertMarksToTenPointGrade(70.0), 0.001)
+        assertEquals(7.0, GpaCalculator.convertMarksToTenPointGrade(60.0), 0.001)
+        assertEquals(4.0, GpaCalculator.convertMarksToTenPointGrade(40.0), 0.001)
+        assertEquals(0.0, GpaCalculator.convertMarksToTenPointGrade(39.9), 0.001)
     }
 }

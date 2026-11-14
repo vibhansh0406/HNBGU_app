@@ -33,6 +33,8 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,6 +53,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -130,6 +134,7 @@ fun CommunityHubScreen(
                 onOpenNotifications = onOpenNotifications,
                 onOpenProfile = onOpenProfile,
                 onLoadMore = viewModel::loadMore,
+                onRefresh = { viewModel.refreshFeed() },
                 onModeChange = viewModel::selectMode,
                 onQueryChange = viewModel::updateQuery,
                 onCategoryChange = viewModel::selectCategory,
@@ -206,10 +211,12 @@ fun CommunityHubScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CommunityFeed(
     uiState: CommunityUiState,
     onBack: () -> Unit,
+    onRefresh: () -> Unit,
     onOpenNotifications: () -> Unit,
     onOpenProfile: () -> Unit,
     onLoadMore: () -> Unit,
@@ -239,7 +246,8 @@ private fun CommunityFeed(
                         text = stringResource(R.string.community_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.semantics { heading() }
                     )
                     Text(
                         text = stringResource(R.string.community_subtitle),
@@ -261,33 +269,39 @@ private fun CommunityFeed(
             }
         }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = C1Spacing.lg),
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = C1Spacing.lg),
             horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
         ) {
-            FilterChip(
-                selected = uiState.mode == CommunityMode.FEED,
-                onClick = { onModeChange(CommunityMode.FEED) },
-                label = { Text(stringResource(R.string.community_tab_feed)) }
-            )
-            FilterChip(
-                selected = uiState.mode == CommunityMode.DISCUSSIONS,
-                onClick = { onModeChange(CommunityMode.DISCUSSIONS) },
-                label = { Text(stringResource(R.string.community_tab_discussions)) }
-            )
-            Spacer(modifier = Modifier.width(C1Spacing.sm))
-            FilterChip(
-                selected = uiState.sort == CommunitySort.LATEST,
-                onClick = { onSortChange(CommunitySort.LATEST) },
-                label = { Text(stringResource(R.string.community_sort_latest)) }
-            )
-            FilterChip(
-                selected = uiState.sort == CommunitySort.RELEVANT,
-                onClick = { onSortChange(CommunitySort.RELEVANT) },
-                label = { Text(stringResource(R.string.community_sort_relevant)) }
-            )
+            item {
+                FilterChip(
+                    selected = uiState.mode == CommunityMode.FEED,
+                    onClick = { onModeChange(CommunityMode.FEED) },
+                    label = { Text(stringResource(R.string.community_tab_feed)) }
+                )
+            }
+            item {
+                FilterChip(
+                    selected = uiState.mode == CommunityMode.DISCUSSIONS,
+                    onClick = { onModeChange(CommunityMode.DISCUSSIONS) },
+                    label = { Text(stringResource(R.string.community_tab_discussions)) }
+                )
+            }
+            item {
+                FilterChip(
+                    selected = uiState.sort == CommunitySort.LATEST,
+                    onClick = { onSortChange(CommunitySort.LATEST) },
+                    label = { Text(stringResource(R.string.community_sort_latest)) }
+                )
+            }
+            item {
+                FilterChip(
+                    selected = uiState.sort == CommunitySort.RELEVANT,
+                    onClick = { onSortChange(CommunitySort.RELEVANT) },
+                    label = { Text(stringResource(R.string.community_sort_relevant)) }
+                )
+            }
         }
 
         C1TextField(
@@ -355,33 +369,39 @@ private fun CommunityFeed(
                     stringResource(R.string.community_no_match_hint)
                 }
             )
-            else -> LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                    start = C1Spacing.lg,
-                    end = C1Spacing.lg,
-                    bottom = C1Spacing.xxl
-                ),
-                verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
+            else -> PullToRefreshBox(
+                isRefreshing = uiState.isRefreshingFeed,
+                onRefresh = onRefresh,
+                modifier = Modifier.fillMaxSize()
             ) {
-                items(uiState.visiblePosts, key = { it.id }) { post ->
-                    CommunityPostCard(
-                        post = post,
-                        isOwn = post.authorUid == uiState.profile.uid,
-                        onClick = { onOpenPost(post.id) },
-                        onToggleLike = { onToggleLike(post) },
-                        onReport = { onReportPost(post) }
-                    )
-                }
-                if (uiState.hasMore) {
-                    item {
-                        C1Button(
-                            text = stringResource(R.string.community_more),
-                            onClick = onLoadMore,
-                            intent = C1ButtonIntent.OUTLINED,
-                            enabled = !uiState.isRefreshing,
-                            modifier = Modifier.fillMaxWidth()
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                        start = C1Spacing.lg,
+                        end = C1Spacing.lg,
+                        bottom = C1Spacing.xxl
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
+                ) {
+                    items(uiState.visiblePosts, key = { it.id }) { post ->
+                        CommunityPostCard(
+                            post = post,
+                            isOwn = post.authorUid == uiState.profile.uid,
+                            onClick = { onOpenPost(post.id) },
+                            onToggleLike = { onToggleLike(post) },
+                            onReport = { onReportPost(post) }
                         )
+                    }
+                    if (uiState.hasMore) {
+                        item {
+                            C1Button(
+                                text = stringResource(R.string.community_more),
+                                onClick = onLoadMore,
+                                intent = C1ButtonIntent.OUTLINED,
+                                enabled = !uiState.isRefreshing,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
                 }
             }

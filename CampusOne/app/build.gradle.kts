@@ -45,7 +45,6 @@ android {
         buildConfigField("String", "SUPABASE_ANON_KEY", quoted(configValue("supabase.anon.key")))
         buildConfigField("String", "GOOGLE_OAUTH_CLIENT_ID", quoted(configValue("google.oauth.client_id")))
         buildConfigField("String", "GOOGLE_OAUTH_WEB_CLIENT_ID", quoted(configValue("google.oauth.web_client_id")))
-        buildConfigField("String", "GOOGLE_OAUTH_WEB_CLIENT_SECRET", quoted(configValue("google.oauth.web_client_secret")))
         buildConfigField("String", "GOOGLE_OAUTH_CALLBACK_URL", quoted(configValue("google.oauth.callback_url")))
     }
 

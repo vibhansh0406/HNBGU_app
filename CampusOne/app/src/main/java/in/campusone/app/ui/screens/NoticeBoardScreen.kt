@@ -186,7 +186,7 @@ fun NoticeBoardScreen(
                             text = stringResource(R.string.notices_title),
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f).semantics { heading() }
                         )
                         if (uiState.unreadNoticeCount > 0) {
                             TextButton(onClick = onMarkAllRead) {
