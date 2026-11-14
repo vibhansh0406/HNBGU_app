@@ -2,39 +2,66 @@ package `in`.campusone.app.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.ripple
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import `in`.campusone.app.R
+import `in`.campusone.app.ui.theme.C1Border
+import `in`.campusone.app.ui.theme.C1Height
+import `in`.campusone.app.ui.theme.C1Motion
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.theme.C1TouchTarget
@@ -202,7 +229,8 @@ fun C1SectionHeader(
             text = title,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.semantics { heading() }
         )
         if (actionLabel != null && onAction != null) {
             TextButton(onClick = onAction) {
@@ -292,7 +320,7 @@ fun C1StatTile(
             )
             Text(
                 text = value,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = valueColor
             )
@@ -413,6 +441,282 @@ fun C1ErrorState(
                 onClick = onRetry,
                 intent = C1ButtonIntent.TONAL
             )
+        }
+    }
+}
+
+/**
+ * Flat content surface: hairline border, no shadow, optional press feedback.
+ * Cards group content; they are never nested inside another card.
+ */
+@Composable
+fun C1SurfaceCard(
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    contentPadding: PaddingValues = PaddingValues(C1Spacing.lg),
+    containerColor: Color = MaterialTheme.colorScheme.surface,
+    borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val shape = C1Radius.md
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) C1Motion.pressScale else 1f,
+        animationSpec = tween(durationMillis = C1Motion.fastMillis),
+        label = "cardPress"
+    )
+    val base = modifier
+        .fillMaxWidth()
+        .semantics(mergeDescendants = true) {}
+    val clickable = if (onClick != null) {
+        base.clickable(
+            interactionSource = interactionSource,
+            indication = ripple(),
+            onClick = onClick
+        )
+    } else {
+        base
+    }
+    Surface(
+        modifier = clickable.graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        },
+        shape = shape,
+        color = containerColor,
+        border = BorderStroke(C1Border.hairline, borderColor)
+    ) {
+        Column(modifier = Modifier.padding(contentPadding), content = content)
+    }
+}
+
+/** Hairline separator used between rows and sections. */
+@Composable
+fun C1Divider(
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.outlineVariant
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(C1Border.hairline)
+            .background(color)
+    )
+}
+
+/** Initials avatar for people and authors. */
+@Composable
+fun C1Avatar(
+    name: String,
+    modifier: Modifier = Modifier,
+    size: androidx.compose.ui.unit.Dp = 40.dp,
+    containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer
+) {
+    val initial = name.trim().take(1).uppercase()
+    Box(
+        modifier = modifier
+            .size(size)
+            .background(containerColor, CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = initial,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = contentColor
+        )
+    }
+}
+
+/**
+ * List row: leading element, title, optional subtitle, trailing slot.
+ * The whole row is one TalkBack target.
+ */
+@Composable
+fun C1ListRow(
+    title: String,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+    leading: (@Composable () -> Unit)? = null,
+    trailing: (@Composable () -> Unit)? = null,
+    onClick: (() -> Unit)? = null
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val base = modifier
+        .fillMaxWidth()
+        .heightIn(min = C1Height.listRow)
+        .semantics(mergeDescendants = true) {}
+    val row = if (onClick != null) {
+        base.clickable(
+            interactionSource = interactionSource,
+            indication = ripple(),
+            onClick = onClick
+        )
+    } else {
+        base
+    }
+    Row(
+        modifier = row.padding(vertical = C1Spacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
+    ) {
+        if (leading != null) {
+            leading()
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            if (!subtitle.isNullOrBlank()) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        if (trailing != null) {
+            trailing()
+        }
+    }
+}
+
+/** Selectable filter chip with a clear selected state. */
+@Composable
+fun C1FilterChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.heightIn(min = C1Height.chip),
+        shape = C1Radius.pill,
+        color = if (selected) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.surfaceContainer
+        },
+        border = BorderStroke(
+            C1Border.hairline,
+            if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+        ),
+        onClick = onClick
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+            color = if (selected) {
+                MaterialTheme.colorScheme.onPrimary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
+            modifier = Modifier.padding(horizontal = C1Spacing.md, vertical = C1Spacing.sm)
+        )
+    }
+}
+
+/** Screen title bar: optional back affordance, title, optional subtitle and actions. */
+@Composable
+fun C1TopBar(
+    title: String,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+    onBack: (() -> Unit)? = null,
+    actions: (@Composable RowScope.() -> Unit)? = null
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = C1Spacing.lg, vertical = C1Spacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
+    ) {
+        if (onBack != null) {
+            IconButton(onClick = onBack, modifier = Modifier.size(C1Height.touch)) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.action_back)
+                )
+            }
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.semantics { heading() }
+            )
+            if (!subtitle.isNullOrBlank()) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        if (actions != null) {
+            actions()
+        }
+    }
+}
+
+/** Shimmering placeholder block used while content loads. */
+@Composable
+fun C1Skeleton(
+    modifier: Modifier = Modifier,
+    shape: androidx.compose.ui.graphics.Shape = C1Radius.sm
+) {
+    val transition = rememberInfiniteTransition(label = "skeleton")
+    val progress by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "skeletonProgress"
+    )
+    val base = MaterialTheme.colorScheme.surfaceContainerHigh
+    val highlight = MaterialTheme.colorScheme.surfaceContainerLow
+    val brush = Brush.linearGradient(
+        colors = listOf(base, highlight, base),
+        start = androidx.compose.ui.geometry.Offset(progress * 400f - 200f, 0f),
+        end = androidx.compose.ui.geometry.Offset(progress * 400f + 200f, 0f)
+    )
+    Box(modifier = modifier.background(brush, shape))
+}
+
+/** Skeleton list placeholder: a few rows shaped like [C1ListRow]. */
+@Composable
+fun C1SkeletonRows(
+    modifier: Modifier = Modifier,
+    rows: Int = 3
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
+    ) {
+        repeat(rows) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
+            ) {
+                C1Skeleton(modifier = Modifier.size(40.dp), shape = CircleShape)
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+                ) {
+                    C1Skeleton(modifier = Modifier.fillMaxWidth(0.7f).height(14.dp))
+                    C1Skeleton(modifier = Modifier.fillMaxWidth(0.45f).height(12.dp))
+                }
+            }
         }
     }
 }

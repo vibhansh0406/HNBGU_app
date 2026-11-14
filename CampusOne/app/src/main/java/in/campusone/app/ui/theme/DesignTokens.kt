@@ -49,7 +49,37 @@ object C1IconSize {
 object C1Motion {
     val fastMillis = 150
     val normalMillis = 250
+    val slowMillis = 400
     val emphasizedEasing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
+    val standardEasing = CubicBezierEasing(0.2f, 0f, 0.2f, 1f)
+
+    /** Subtle scale applied to pressable surfaces. */
+    val pressScale = 0.97f
+}
+
+/** Hairline and emphasis border widths. */
+object C1Border {
+    val hairline = 1.dp
+    val emphasis = 1.5.dp
+    val focus = 2.dp
+}
+
+/** Fixed component heights so touch targets stay consistent across screens. */
+object C1Height {
+    val touch = 48.dp
+    val button = 48.dp
+    val field = 56.dp
+    val chip = 32.dp
+    val listRow = 56.dp
+    val navBar = 80.dp
+}
+
+/** Interaction state opacities for pressed, selected and disabled surfaces. */
+object C1State {
+    const val pressedAlpha = 0.12f
+    const val selectedAlpha = 0.10f
+    const val disabledAlpha = 0.38f
+    const val pressedIconScale = 0.92f
 }
 
 /** Minimum interactive touch target. */

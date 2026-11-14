@@ -12,10 +12,13 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import `in`.campusone.app.R
 
 // Semantic attendance health colors (forest-harmonized)
 val SafeGreen = Color(0xFF2E7D5B)
@@ -100,114 +103,83 @@ val ExpressiveShapes = Shapes(
     extraLarge = RoundedCornerShape(30.dp)
 )
 
-// SF-inspired type scale: heavy confident titles, calm body, tight tracking
-val ExpressiveTypography = Typography(
-    displayLarge = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Bold,
-        fontSize = 44.sp,
-        lineHeight = 50.sp,
-        letterSpacing = (-1.0).sp
-    ),
-    displayMedium = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Bold,
-        fontSize = 38.sp,
-        lineHeight = 44.sp,
-        letterSpacing = (-0.8).sp
-    ),
-    displaySmall = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Bold,
-        fontSize = 34.sp,
-        lineHeight = 40.sp,
-        letterSpacing = (-0.6).sp
-    ),
-    headlineLarge = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Bold,
-        fontSize = 32.sp,
-        lineHeight = 38.sp,
-        letterSpacing = (-0.5).sp
-    ),
-    headlineMedium = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Bold,
-        fontSize = 26.sp,
-        lineHeight = 32.sp,
-        letterSpacing = (-0.4).sp
-    ),
-    headlineSmall = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 20.sp,
-        lineHeight = 26.sp,
-        letterSpacing = (-0.2).sp
-    ),
-    titleLarge = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 19.sp,
-        lineHeight = 26.sp,
-        letterSpacing = (-0.2).sp
-    ),
-    titleMedium = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 16.sp,
-        lineHeight = 22.sp,
-        letterSpacing = (-0.1).sp
-    ),
-    titleSmall = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
-        letterSpacing = (-0.1).sp
-    ),
-    bodyLarge = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = (-0.1).sp
-    ),
-    bodyMedium = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Normal,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
-        letterSpacing = (-0.05).sp
-    ),
-    bodySmall = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Normal,
-        fontSize = 13.sp,
-        lineHeight = 18.sp,
-        letterSpacing = (0.0).sp
-    ),
-    labelLarge = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
-        letterSpacing = (0.0).sp
-    ),
-    labelMedium = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Medium,
-        fontSize = 12.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.sp
-    ),
-    labelSmall = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
-        lineHeight = 14.sp,
-        letterSpacing = 0.2.sp
-    )
+// ---------------------------------------------------------------------------
+// TYPOGRAPHY — Manrope (display voice) + Inter (text voice) + Noto Sans
+// Devanagari (bundled Hindi fallback).
+//
+// Roles: display/headline/title carry the brand voice and use Manrope; body,
+// label and form roles use Inter. Every style ships the Devanagari fallback so
+// Hindi never renders in an unknown system face.
+// ---------------------------------------------------------------------------
+
+private fun variableFont(resId: Int, weight: Int): Font = Font(
+    resId = resId,
+    weight = FontWeight(weight),
+    variationSettings = FontVariation.Settings(FontVariation.weight(weight))
 )
+
+/** Display voice: hero numbers, screen titles, section headings. */
+val CampusOneDisplayFamily = FontFamily(
+    variableFont(R.font.manrope_variable, 400),
+    variableFont(R.font.manrope_variable, 500),
+    variableFont(R.font.manrope_variable, 600),
+    variableFont(R.font.manrope_variable, 700)
+)
+
+/** Text voice: body copy, navigation, buttons, labels, forms. */
+val CampusOneTextFamily = FontFamily(
+    variableFont(R.font.inter_variable, 400),
+    variableFont(R.font.inter_variable, 500),
+    variableFont(R.font.inter_variable, 600),
+    variableFont(R.font.inter_variable, 700)
+)
+
+private val DevanagariFallback = listOf(
+    variableFont(R.font.noto_sans_devanagari_variable, 400),
+    variableFont(R.font.noto_sans_devanagari_variable, 500),
+    variableFont(R.font.noto_sans_devanagari_variable, 700)
+)
+
+private fun campusType(
+    family: FontFamily,
+    weight: FontWeight,
+    size: Int,
+    lineHeight: Int,
+    tracking: Double = 0.0
+): TextStyle = TextStyle(
+    fontFamily = family,
+    fontFamilyFallback = DevanagariFallback,
+    fontWeight = weight,
+    fontSize = size.sp,
+    lineHeight = lineHeight.sp,
+    letterSpacing = tracking.sp
+)
+
+/**
+ * The type scale. On dark surfaces body text gets one extra point of leading
+ * and a touch more tracking so light-on-dark stays comfortable.
+ */
+private fun campusTypography(dark: Boolean): Typography {
+    val bodyLine = if (dark) 1 else 0
+    val textWeight = if (dark) FontWeight.Normal else FontWeight.Normal
+    return Typography(
+        displayLarge = campusType(CampusOneDisplayFamily, FontWeight.Bold, 40, 46 + bodyLine, -1.0),
+        displayMedium = campusType(CampusOneDisplayFamily, FontWeight.Bold, 34, 40 + bodyLine, -0.8),
+        displaySmall = campusType(CampusOneDisplayFamily, FontWeight.Bold, 30, 36 + bodyLine, -0.6),
+        headlineLarge = campusType(CampusOneDisplayFamily, FontWeight.Bold, 26, 32 + bodyLine, -0.4),
+        headlineMedium = campusType(CampusOneDisplayFamily, FontWeight.SemiBold, 22, 28 + bodyLine, -0.3),
+        headlineSmall = campusType(CampusOneDisplayFamily, FontWeight.SemiBold, 19, 25 + bodyLine, -0.2),
+        titleLarge = campusType(CampusOneDisplayFamily, FontWeight.SemiBold, 18, 24 + bodyLine, -0.2),
+        titleMedium = campusType(CampusOneTextFamily, FontWeight.SemiBold, 16, 22 + bodyLine, -0.1),
+        titleSmall = campusType(CampusOneTextFamily, FontWeight.SemiBold, 14, 20 + bodyLine, -0.1),
+        bodyLarge = campusType(CampusOneTextFamily, textWeight, 16, 24 + bodyLine, -0.1),
+        bodyMedium = campusType(CampusOneTextFamily, textWeight, 14, 21 + bodyLine, 0.0),
+        bodySmall = campusType(CampusOneTextFamily, textWeight, 13, 19 + bodyLine, 0.0),
+        labelLarge = campusType(CampusOneTextFamily, FontWeight.SemiBold, 14, 20, 0.0),
+        labelMedium = campusType(CampusOneTextFamily, FontWeight.Medium, 12, 16, 0.1),
+        labelSmall = campusType(CampusOneTextFamily, FontWeight.Medium, 11, 14, 0.2)
+    )
+}
 
 @Composable
 fun CampusOneTheme(
@@ -220,7 +192,7 @@ fun CampusOneTheme(
     CompositionLocalProvider(LocalExtendedColors provides extended) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = ExpressiveTypography,
+            typography = campusTypography(darkTheme),
             shapes = ExpressiveShapes,
             content = content
         )

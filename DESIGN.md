@@ -38,90 +38,96 @@ colors:
   night-danger: "#FF8A7A"
   night-info: "#8FC3D9"
 typography:
+  families:
+    display: "Manrope (bundled variable, OFL)"
+    text: "Inter (bundled variable, OFL)"
+    hindi-fallback: "Noto Sans Devanagari (bundled variable, OFL)"
   display-large:
-    fontFamily: "System Sans (Roboto)"
-    fontSize: "44sp"
+    fontFamily: "Manrope"
+    fontSize: "40sp"
     fontWeight: 700
-    lineHeight: "50sp"
+    lineHeight: "46sp"
     letterSpacing: "-1sp"
   display-medium:
-    fontFamily: "System Sans (Roboto)"
-    fontSize: "38sp"
-    fontWeight: 700
-    lineHeight: "44sp"
-    letterSpacing: "-0.8sp"
-  display-small:
-    fontFamily: "System Sans (Roboto)"
+    fontFamily: "Manrope"
     fontSize: "34sp"
     fontWeight: 700
     lineHeight: "40sp"
+    letterSpacing: "-0.8sp"
+  display-small:
+    fontFamily: "Manrope"
+    fontSize: "30sp"
+    fontWeight: 700
+    lineHeight: "36sp"
     letterSpacing: "-0.6sp"
   headline-large:
-    fontFamily: "System Sans (Roboto)"
-    fontSize: "32sp"
-    fontWeight: 700
-    lineHeight: "38sp"
-    letterSpacing: "-0.5sp"
-  headline-medium:
-    fontFamily: "System Sans (Roboto)"
+    fontFamily: "Manrope"
     fontSize: "26sp"
     fontWeight: 700
     lineHeight: "32sp"
     letterSpacing: "-0.4sp"
-  headline-small:
-    fontFamily: "System Sans (Roboto)"
-    fontSize: "20sp"
+  headline-medium:
+    fontFamily: "Manrope"
+    fontSize: "22sp"
     fontWeight: 600
-    lineHeight: "26sp"
-    letterSpacing: "-0.2sp"
-  title-large:
-    fontFamily: "System Sans (Roboto)"
+    lineHeight: "28sp"
+    letterSpacing: "-0.3sp"
+  headline-small:
+    fontFamily: "Manrope"
     fontSize: "19sp"
     fontWeight: 600
-    lineHeight: "26sp"
+    lineHeight: "25sp"
+    letterSpacing: "-0.2sp"
+  title-large:
+    fontFamily: "Manrope"
+    fontSize: "18sp"
+    fontWeight: 600
+    lineHeight: "24sp"
     letterSpacing: "-0.2sp"
   title-medium:
-    fontFamily: "System Sans (Roboto)"
+    fontFamily: "Inter"
     fontSize: "16sp"
     fontWeight: 600
     lineHeight: "22sp"
     letterSpacing: "-0.1sp"
   title-small:
-    fontFamily: "System Sans (Roboto)"
+    fontFamily: "Inter"
     fontSize: "14sp"
     fontWeight: 600
     lineHeight: "20sp"
     letterSpacing: "-0.1sp"
   body-large:
-    fontFamily: "System Sans (Roboto)"
+    fontFamily: "Inter"
     fontSize: "16sp"
     fontWeight: 400
     lineHeight: "24sp"
     letterSpacing: "-0.1sp"
   body-medium:
-    fontFamily: "System Sans (Roboto)"
+    fontFamily: "Inter"
     fontSize: "14sp"
     fontWeight: 400
-    lineHeight: "20sp"
-    letterSpacing: "-0.05sp"
+    lineHeight: "21sp"
+    letterSpacing: "0sp"
   body-small:
-    fontFamily: "System Sans (Roboto)"
+    fontFamily: "Inter"
     fontSize: "13sp"
     fontWeight: 400
-    lineHeight: "18sp"
+    lineHeight: "19sp"
     letterSpacing: "0sp"
   label-large:
-    fontFamily: "System Sans (Roboto)"
+    fontFamily: "Inter"
     fontSize: "14sp"
     fontWeight: 600
     lineHeight: "20sp"
+    letterSpacing: "0sp"
   label-medium:
-    fontFamily: "System Sans (Roboto)"
+    fontFamily: "Inter"
     fontSize: "12sp"
     fontWeight: 500
     lineHeight: "16sp"
+    letterSpacing: "0.1sp"
   label-small:
-    fontFamily: "System Sans (Roboto)"
+    fontFamily: "Inter"
     fontSize: "11sp"
     fontWeight: 500
     lineHeight: "14sp"
@@ -219,7 +225,13 @@ Never hardcode these hexes in screens — read `MaterialTheme.colorScheme` and `
 
 ## Typography
 
-System sans (Roboto), SF-inspired scale: bold tight-tracked headlines, semibold titles, normal body, medium labels. Display sizes exist for the home greeting and hero numbers only. Body text never drops below 14sp; metadata uses `labelMedium` (12sp). Letter-spacing tightens as size grows (-0.5sp at 32sp → 0 at 12sp).
+Two bundled families, one clear job each:
+
+- **Manrope** — the display voice: screen titles, section headings and prominent numerals (attendance %, GPA, counts). Geometric, slightly rounded, calm at large sizes.
+- **Inter** — the text voice: body copy, navigation, buttons, labels, forms and supporting metadata. High legibility at 13–16sp.
+- **Noto Sans Devanagari** — bundled fallback for Hindi, so Devanagari never renders in an unknown system face.
+
+Both families are OFL-licensed variable fonts shipped in `res/font` (no runtime fetch). The scale runs 40sp display → 11sp label with an obvious step between display, headline, title, body and label roles. Body text never drops below 13sp; metadata uses `labelMedium` (12sp). Tracking tightens as size grows (-0.4sp at 26sp → 0 at 12sp). On dark surfaces body roles gain one point of leading so light-on-dark stays comfortable.
 
 ## Layout
 
@@ -255,6 +267,13 @@ Shared primitives live in `ui/components/CoreComponents.kt` and are the **only**
 - **C1EmptyState** — tonal icon circle + title + message.
 - **C1LoadingState** — centered progress indicator with optional label.
 - **C1ErrorState** — error tone icon circle, title, message, optional retry button.
+- **C1SurfaceCard** — flat hairline-bordered content surface with optional press feedback (0.97 scale + ripple). Cards are never nested.
+- **C1ListRow** — leading element + title + optional subtitle + trailing slot, merged into one TalkBack target.
+- **C1FilterChip** — selectable pill with an unmistakable selected state.
+- **C1TopBar** — screen title bar with optional back affordance and actions; the title carries heading semantics.
+- **C1Avatar** — initials avatar for people and authors.
+- **C1Divider** — hairline separator.
+- **C1Skeleton / C1SkeletonRows** — shimmer placeholders for loading lists (replaces spinners where content shape is known).
 - **AnimatedAttendanceRing** — the attendance hero component; colors come from `extendedColors`.
 
 Icons: Material filled set, 24dp standard / 18dp inline / 26dp in empty-state circles, tinted `onSurfaceVariant` unless they carry status meaning.
