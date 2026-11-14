@@ -132,7 +132,8 @@ class CoreCampusRepository @Inject constructor(
                     )
                 })
             }
-            val remoteNotices = supabaseSync.downloadNotices(sectionKey)
+            val remoteNotices = supabaseSync.downloadNotices(sectionKey) +
+                supabaseSync.downloadNotices("global")
             if (remoteNotices.isNotEmpty()) {
                 noticeDao.upsertNotices(remoteNotices.map { map ->
                     NoticeEntity(
@@ -335,9 +336,15 @@ class CoreCampusRepository @Inject constructor(
         attachmentType: AttachmentType,
         isPinned: Boolean
     ): kotlin.Result<Unit> = runCatching {
-        require(profile.role == UserRole.CR || profile.role == UserRole.TEACHER) {
-            "Only Class Representatives (CR) or Teachers can post announcements."
+        require(
+            profile.role == UserRole.CR ||
+                profile.role == UserRole.TEACHER ||
+                profile.role == UserRole.ADMIN ||
+                profile.role == UserRole.MODERATOR
+        ) {
+            "Only CRs, Teachers, Moderators or Admins can post announcements."
         }
+        val targetSectionKey = if (profile.role == UserRole.ADMIN) "global" else profile.sectionKey
         val now = System.currentTimeMillis()
         val noticeId = "notice_${now}_${profile.uid.take(6)}"
         val entity = NoticeEntity(
@@ -360,7 +367,7 @@ class CoreCampusRepository @Inject constructor(
         if (supabaseSync.isSyncedEnabled()) {
             supabaseSync.uploadNotices(profile.sectionKey, listOf(mapOf<String, Any>(
                 "id" to entity.id,
-                "section_key" to entity.sectionKey,
+                "section_key" to targetSectionKey,
                 "title" to entity.title,
                 "body" to entity.body,
                 "attachment_url" to (entity.attachmentUrl ?: ""),

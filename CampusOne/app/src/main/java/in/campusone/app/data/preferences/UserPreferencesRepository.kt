@@ -29,6 +29,7 @@ class UserPreferencesRepository @Inject constructor(
 
     private object Keys {
         val IS_ONBOARDED = booleanPreferencesKey("is_onboarded")
+        val INTRO_SEEN = booleanPreferencesKey("intro_seen")
         val USER_PROFILE_JSON = stringPreferencesKey("user_profile_json")
         val LANGUAGE_TAG = stringPreferencesKey("language_tag") // "en" or "hi"
         val DARK_MODE_OVERRIDE = stringPreferencesKey("dark_mode_override") // "SYSTEM", "LIGHT", "DARK"
@@ -39,6 +40,12 @@ class UserPreferencesRepository @Inject constructor(
     }
 
     val isOnboarded: Flow<Boolean> = context.dataStore.data.map { it[Keys.IS_ONBOARDED] ?: false }
+
+    val hasSeenIntro: Flow<Boolean> = context.dataStore.data.map { it[Keys.INTRO_SEEN] ?: false }
+
+    suspend fun markIntroSeen() {
+        context.dataStore.edit { prefs -> prefs[Keys.INTRO_SEEN] = true }
+    }
 
     val userProfile: Flow<UserProfile> = context.dataStore.data.map { prefs ->
         val raw = prefs[Keys.USER_PROFILE_JSON]

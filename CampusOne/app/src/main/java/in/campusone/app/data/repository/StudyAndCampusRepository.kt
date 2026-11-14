@@ -108,7 +108,8 @@ class StudyAndCampusRepository @Inject constructor(
                     )
                 })
             }
-            val remoteResources = supabaseSync.downloadStudyResources(sectionKey)
+            val remoteResources = supabaseSync.downloadStudyResources(sectionKey) +
+                supabaseSync.downloadStudyResources("global")
             if (remoteResources.isNotEmpty()) {
                 studyDao.upsertResources(remoteResources.map { map ->
                     StudyResourceEntity(
@@ -226,7 +227,12 @@ class StudyAndCampusRepository @Inject constructor(
             studyDao.finishResourceUpload(resId, remoteUrl, hash, bytes.size.toLong(), "COMPLETED", 100)
             val saved = studyDao.getResourceById(resId) ?: initialEntity
             if (supabaseSync.isSyncedEnabled() && remoteUrl.startsWith("http")) {
-                supabaseSync.uploadStudyResources(sectionKey, listOf(studyResourceSyncMap(saved)))
+                val isAdmin = prefs.userProfile.first().role == UserRole.ADMIN
+                val syncSectionKey = if (isAdmin) "global" else sectionKey
+                supabaseSync.uploadStudyResources(
+                    syncSectionKey,
+                    listOf(studyResourceSyncMap(saved, syncSectionKey))
+                )
             }
             Result.success(Unit)
         } catch (e: Exception) {
@@ -352,9 +358,12 @@ class StudyAndCampusRepository @Inject constructor(
         return digest.joinToString("") { "%02x".format(it) }
     }
 
-    private fun studyResourceSyncMap(r: StudyResourceEntity): Map<String, Any> = mapOf<String, Any>(
+    private fun studyResourceSyncMap(
+        r: StudyResourceEntity,
+        sectionKeyOverride: String? = null
+    ): Map<String, Any> = mapOf<String, Any>(
         "id" to r.id,
-        "section_key" to r.sectionKey,
+        "section_key" to (sectionKeyOverride ?: r.sectionKey),
         "subject_id" to r.subjectId,
         "subject_name" to r.subjectName,
         "semester" to r.semester,

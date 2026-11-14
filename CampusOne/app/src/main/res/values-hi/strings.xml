@@ -39,6 +39,11 @@
     <string name="bunk_on_edge">सावधान! %1$d%% बनाए रखने के लिए अगली कक्षा न छोड़ें</string>
     <string name="bunk_recover">%2$d%% तक पहुँचने के लिए अगली %1$d कक्षाओं में लगातार उपस्थित रहें</string>
     <string name="no_classes_recorded">अभी तक कोई कक्षा दर्ज नहीं की गई है। नीचे अपनी पहली उपस्थिति दर्ज करें।</string>
+    <string name="attendance_history">उपस्थिति इतिहास</string>
+    <string name="history_weekly">7 दिन</string>
+    <string name="history_monthly">30 दिन</string>
+    <string name="saved_on_device">इस डिवाइस पर सहेजा गया</string>
+    <string name="synced_to_cloud">क्लाउड से सिंक</string>
 
     <!-- Timetable & Widget -->
     <string name="timetable_today">आज की समय-सारणी</string>
@@ -49,7 +54,9 @@
     <string name="reminder_lead_time">कक्षा से %1$d मिनट पहले रिमाइंडर</string>
     <string name="widget_next_class_title">CampusOne अगली कक्षा</string>
     <string name="widget_next_class_desc">अपनी आगामी कक्षा, कमरा नंबर और समय सीधे होम स्क्रीन पर देखें।</string>
-    <string name="no_more_classes_today">आज के लिए कोई और कक्षा शेष नहीं है! 🎉</string>
+    <string name="no_more_classes_today">आज के लिए कोई और कक्षा शेष नहीं है।</string>
+    <string name="starts_in_min">%1$d मिनट में</string>
+    <string name="now_label">अभी</string>
 
     <!-- Notices -->
     <string name="notices_title">सूचना पट्ट (Notice Board)</string>
@@ -57,6 +64,9 @@
     <string name="notices_unread_only">केवल अपठित</string>
     <string name="post_notice">नई सूचना प्रकाशित करें</string>
     <string name="empty_notices">कोई नई सूचना नहीं है!</string>
+    <string name="empty_notices_hint">आपके CR, शिक्षक और विश्वविद्यालय की सूचनाएं यहां दिखाई देंगी।</string>
+    <string name="mark_all_read">सभी पढ़ी हुई करें</string>
+    <string name="new_badge">नई</string>
 
     <!-- Phase 2: Study Hub -->
     <string name="study_hub">अध्ययन केंद्र (Study Hub)</string>
@@ -80,6 +90,11 @@
     <string name="home_upcoming_deadlines">अगली 3 समय-सीमाएं (Deadlines)</string>
     <string name="exams_syllabus">परीक्षा कैलेंडर और सिलेबस ट्रैकर</string>
     <string name="home_exam_countdown">आगामी परीक्षा उलटी गिनती</string>
+    <string name="home_at_a_glance">एक नज़र में</string>
+    <string name="latest_notice">नवीनतम सूचना</string>
+    <string name="due_today">आज</string>
+    <string name="due_tomorrow">कल</string>
+    <string name="in_days">%1$d दिनों में</string>
     <string name="overall_syllabus_progress">कुल सिलेबस प्रगति</string>
     <string name="publish_exam">सेक्शन परीक्षा जोड़ें</string>
     <string name="publish_syllabus_topic">सिलेबस टॉपिक जोड़ें</string>

@@ -64,14 +64,30 @@ class CoreViewModel @Inject constructor(
     private val _uiMessages = MutableSharedFlow<String>()
     val uiMessages = _uiMessages.asSharedFlow()
 
+    val introSeen: StateFlow<Boolean?> = prefs.hasSeenIntro
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    fun markIntroSeen() {
+        viewModelScope.launch { prefs.markIntroSeen() }
+    }
+
     init {
         viewModelScope.launch {
-            val alreadyOnboarded = prefs.isOnboarded.first()
-            if (alreadyOnboarded) return@launch
             val uid = authManager.currentUserId() ?: return@launch
             val remote = repository.fetchRemoteProfile(uid) ?: return@launch
-            prefs.saveUserProfile(remote, markOnboarded = true)
-            repository.ensureSeededForSection(remote.sectionKey)
+            val alreadyOnboarded = prefs.isOnboarded.first()
+            if (!alreadyOnboarded) {
+                prefs.saveUserProfile(remote, markOnboarded = true)
+                repository.ensureSeededForSection(remote.sectionKey)
+                return@launch
+            }
+            val local = prefs.userProfile.first()
+            if (local.role != remote.role || local.name != remote.name) {
+                prefs.saveUserProfile(
+                    local.copy(role = remote.role, name = remote.name),
+                    markOnboarded = true
+                )
+            }
         }
     }
 

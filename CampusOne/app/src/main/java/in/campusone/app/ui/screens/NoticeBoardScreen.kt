@@ -1,5 +1,6 @@
 package `in`.campusone.app.ui.screens
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,12 +9,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Attachment
+import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material3.AlertDialog
@@ -37,7 +40,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.R
 import `in`.campusone.app.domain.model.AttachmentType
@@ -64,7 +68,10 @@ fun NoticeBoardScreen(
     var unreadOnly by rememberSaveable { mutableStateOf(false) }
     var showComposer by rememberSaveable { mutableStateOf(false) }
 
-    val canPost = uiState.profile.role == UserRole.CR || uiState.profile.role == UserRole.TEACHER
+    val canPost = uiState.profile.role == UserRole.CR ||
+        uiState.profile.role == UserRole.TEACHER ||
+        uiState.profile.role == UserRole.ADMIN ||
+        uiState.profile.role == UserRole.MODERATOR
     val displayedNotices = if (unreadOnly) {
         uiState.notices.filter { !it.isRead }
     } else {
@@ -85,6 +92,7 @@ fun NoticeBoardScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(bottom = 88.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
@@ -106,7 +114,7 @@ fun NoticeBoardScreen(
                         TextButton(onClick = onMarkAllRead) {
                             Icon(Icons.Default.DoneAll, contentDescription = null)
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Mark all read")
+                            Text(stringResource(R.string.mark_all_read))
                         }
                     }
                 }
@@ -114,11 +122,29 @@ fun NoticeBoardScreen(
 
             if (displayedNotices.isEmpty()) {
                 item {
-                    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 48.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Campaign,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(48.dp)
+                        )
                         Text(
                             text = stringResource(R.string.empty_notices),
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(20.dp)
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = stringResource(R.string.empty_notices_hint),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
@@ -130,8 +156,6 @@ fun NoticeBoardScreen(
                     )
                 }
             }
-
-            item { Spacer(modifier = Modifier.height(28.dp)) }
         }
     }
 
@@ -180,7 +204,7 @@ private fun NoticeCard(
                 if (!notice.isRead) {
                     AssistChip(
                         onClick = onMarkRead,
-                        label = { Text("NEW") }
+                        label = { Text(stringResource(R.string.new_badge)) }
                     )
                 }
             }
@@ -188,8 +212,7 @@ private fun NoticeCard(
             Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = notice.title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = if (notice.isRead) FontWeight.SemiBold else FontWeight.ExtraBold
+                style = MaterialTheme.typography.titleLarge
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
@@ -199,11 +222,22 @@ private fun NoticeCard(
 
             if (!notice.attachmentUrl.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(10.dp))
-                AssistChip(
-                    onClick = onMarkRead,
-                    leadingIcon = { Icon(Icons.Default.Attachment, contentDescription = null) },
-                    label = { Text("${notice.attachmentType.name}: ${notice.attachmentUrl}") }
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Attachment,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "${notice.attachmentType.name}: ${notice.attachmentUrl}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))

@@ -15,21 +15,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.RemoveCircleOutline
-import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -63,6 +60,7 @@ fun AttendanceScreen(
 ) {
     val haptics = LocalHapticFeedback.current
     var historyWindowDays by rememberSaveable { mutableStateOf(7) } // 7 = Weekly, 30 = Monthly
+    val subjectNames = uiState.subjectInsights.associate { it.summary.subjectId to it.summary.subjectName }
 
     LazyColumn(
         modifier = Modifier
@@ -159,16 +157,12 @@ fun AttendanceScreen(
         // Weekly / Monthly History Section
         item {
             Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.History, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Attendance Log History",
+                        text = stringResource(R.string.attendance_history),
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
@@ -176,12 +170,12 @@ fun AttendanceScreen(
                     FilterChip(
                         selected = historyWindowDays == 7,
                         onClick = { historyWindowDays = 7 },
-                        label = { Text("Weekly (7d)") }
+                        label = { Text(stringResource(R.string.history_weekly)) }
                     )
                     FilterChip(
                         selected = historyWindowDays == 30,
                         onClick = { historyWindowDays = 30 },
-                        label = { Text("Monthly (30d)") }
+                        label = { Text(stringResource(R.string.history_monthly)) }
                     )
                 }
             }
@@ -209,21 +203,28 @@ fun AttendanceScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "${log.subjectId} • ${log.dateIso}",
+                                text = subjectNames[log.subjectId] ?: log.subjectId,
                                 style = MaterialTheme.typography.titleMedium
                             )
                             Text(
-                                text = if (log.isSynced) "Synced to Cloud" else "Saved Offline (Room DB)",
+                                text = log.dateIso,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                            Text(
+                                text = if (log.isSynced) {
+                                    stringResource(R.string.synced_to_cloud)
+                                } else {
+                                    stringResource(R.string.saved_on_device)
+                                },
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
-                        AssistChip(
-                            onClick = {},
-                            label = { Text(log.status.name) }
-                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        AttendanceStatusBadge(status = log.status)
                     }
                 }
             }
@@ -279,32 +280,49 @@ fun SubjectAttendanceCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                FilledTonalButton(
+                Button(
                     onClick = { onMark(AttendanceStatus.PRESENT) },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Icon(Icons.Default.CheckCircle, contentDescription = null)
-                    Spacer(modifier = Modifier.width(4.dp))
                     Text(stringResource(R.string.mark_present))
                 }
                 OutlinedButton(
                     onClick = { onMark(AttendanceStatus.ABSENT) },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Icon(Icons.Default.Cancel, contentDescription = null)
-                    Spacer(modifier = Modifier.width(4.dp))
                     Text(stringResource(R.string.mark_absent))
                 }
-                OutlinedButton(
+                TextButton(
                     onClick = { onMark(AttendanceStatus.CANCELLED) },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Icon(Icons.Default.RemoveCircleOutline, contentDescription = null)
-                    Spacer(modifier = Modifier.width(4.dp))
                     Text(stringResource(R.string.mark_cancelled))
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun AttendanceStatusBadge(status: AttendanceStatus) {
+    val (label, color) = when (status) {
+        AttendanceStatus.PRESENT -> stringResource(R.string.mark_present) to SafeGreen
+        AttendanceStatus.ABSENT -> stringResource(R.string.mark_absent) to DangerRed
+        AttendanceStatus.CANCELLED ->
+            stringResource(R.string.mark_cancelled) to MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .background(color.copy(alpha = 0.12f))
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = color
+        )
     }
 }
 

@@ -39,6 +39,11 @@
     <string name="bunk_on_edge">On the edge! Don\u2019t miss the next class to stay at %1$d%%</string>
     <string name="bunk_recover">Attend next %1$d classes consecutively to reach %2$d%%</string>
     <string name="no_classes_recorded">No classes recorded yet. Mark your first class below.</string>
+    <string name="attendance_history">Attendance History</string>
+    <string name="history_weekly">7 Days</string>
+    <string name="history_monthly">30 Days</string>
+    <string name="saved_on_device">Saved on this device</string>
+    <string name="synced_to_cloud">Synced to cloud</string>
 
     <!-- Timetable & Widget -->
     <string name="timetable_today">Today\u2019s Schedule</string>
@@ -49,7 +54,9 @@
     <string name="reminder_lead_time">Reminder %1$d mins before class</string>
     <string name="widget_next_class_title">CampusOne Next Class</string>
     <string name="widget_next_class_desc">View your upcoming lecture, room number, and time right on your home screen.</string>
-    <string name="no_more_classes_today">No more classes scheduled for today! 🎉</string>
+    <string name="no_more_classes_today">No more classes scheduled for today.</string>
+    <string name="starts_in_min">in %1$d min</string>
+    <string name="now_label">Now</string>
 
     <!-- Notices -->
     <string name="notices_title">Notice Board</string>
@@ -57,6 +64,9 @@
     <string name="notices_unread_only">Unread Only</string>
     <string name="post_notice">Post Announcement</string>
     <string name="empty_notices">All caught up! No announcements yet.</string>
+    <string name="empty_notices_hint">Announcements from your CR, faculty and the university will appear here.</string>
+    <string name="mark_all_read">Mark all read</string>
+    <string name="new_badge">NEW</string>
 
     <!-- Phase 2: Study Hub -->
     <string name="study_hub">Study Hub</string>
@@ -80,6 +90,11 @@
     <string name="home_upcoming_deadlines">Next 3 Deadlines</string>
     <string name="exams_syllabus">Exam Calendar &amp; Syllabus Tracker</string>
     <string name="home_exam_countdown">Upcoming Exam Countdown</string>
+    <string name="home_at_a_glance">At a glance</string>
+    <string name="latest_notice">Latest notice</string>
+    <string name="due_today">Today</string>
+    <string name="due_tomorrow">Tomorrow</string>
+    <string name="in_days">In %1$d days</string>
     <string name="overall_syllabus_progress">Overall Syllabus Completion</string>
     <string name="publish_exam">Publish Section Exam</string>
     <string name="publish_syllabus_topic">Add Syllabus Topic</string>

@@ -24,6 +24,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -49,6 +51,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -59,6 +62,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -72,6 +76,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import `in`.campusone.app.data.remote.AuthManager
 import `in`.campusone.app.data.remote.SupabaseSession
+import `in`.campusone.app.data.repository.CoreCampusRepository
 import `in`.campusone.app.ui.screens.AttendanceScreen
 import `in`.campusone.app.ui.screens.HomeScreen
 import `in`.campusone.app.ui.screens.MoreHubScreen
@@ -112,7 +117,7 @@ class MainActivity : AppCompatActivity() {
                                             email = account.email,
                                             name = account.displayName,
                                             role = if (account.email?.trim()
-                                                    .equals("vvibhaansh@gmail.com", ignoreCase = true)
+                                                    .equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true)
                                             ) "ADMIN" else "STUDENT"
                                         )
                                         if (!profileResult.isSuccess) {
@@ -194,6 +199,7 @@ fun CampusOneRoot(
 ) {
     val authSessionState by authSession.collectAsStateWithLifecycle()
     val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
+    val introSeen by coreViewModel.introSeen.collectAsStateWithLifecycle()
     val studyCampusState by studyCampusViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var currentTab by rememberSaveable { mutableStateOf(BottomNavTab.HOME) }
@@ -207,6 +213,19 @@ fun CampusOneRoot(
         studyCampusViewModel.statusMessages.collect { msg ->
             snackbarHostState.showSnackbar(msg)
         }
+    }
+
+    // First launch: immersive intro before sign-in
+    if (introSeen == null) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {}
+        return
+    }
+    if (introSeen == false) {
+        IntroScreen(onFinish = coreViewModel::markIntroSeen)
+        return
     }
 
     // If not signed in to Supabase/Google, show sign-in screen
@@ -382,6 +401,134 @@ fun SignInScreen(onGoogleSignIn: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
+        }
+    }
+}
+
+private data class IntroPage(
+    val icon: ImageVector,
+    val title: String,
+    val body: String
+)
+
+@Composable
+fun IntroScreen(onFinish: () -> Unit) {
+    val pages = remember {
+        listOf(
+            IntroPage(
+                Icons.Default.CheckCircle,
+                "Attendance that never slips",
+                "Track every class in one tap. Know exactly how many lectures you can miss and still stay safe."
+            ),
+            IntroPage(
+                Icons.Default.Schedule,
+                "Your day, always in sync",
+                "Live timetable, classroom alerts and notice board updates from your section and the university."
+            ),
+            IntroPage(
+                Icons.Default.MenuBook,
+                "Everything campus, one app",
+                "Study material, exams, clubs, events, lost & found and the campus directory — all offline-first."
+            )
+        )
+    }
+    val pagerState = rememberPagerState(pageCount = { pages.size })
+    val scope = rememberCoroutineScope()
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 28.dp, vertical = 24.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(onClick = onFinish) {
+                    Text("Skip")
+                }
+            }
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.weight(1f)
+            ) { index ->
+                val page = pages[index]
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(112.dp)
+                            .clip(RoundedCornerShape(32.dp))
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = page.icon,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(54.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(40.dp))
+                    Text(
+                        text = page.title,
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = page.body,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 20.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                pages.indices.forEach { index ->
+                    val active = pagerState.currentPage == index
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 4.dp)
+                            .size(if (active) 22.dp else 8.dp, 8.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(
+                                if (active) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.outline
+                            )
+                    )
+                }
+            }
+            Button(
+                onClick = {
+                    if (pagerState.currentPage == pages.lastIndex) {
+                        onFinish()
+                    } else {
+                        scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                shape = RoundedCornerShape(27.dp)
+            ) {
+                Text(
+                    text = if (pagerState.currentPage == pages.lastIndex) "Get started" else "Next",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
         }
     }
 }

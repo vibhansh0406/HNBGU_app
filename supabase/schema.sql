@@ -23,6 +23,29 @@ create table if not exists public.profiles (
   updated_at bigint not null default 0
 );
 
+-- Server-side role enforcement: the owner is always ADMIN and nobody else can
+-- self-assign ADMIN. Runs in the database, so a modified client cannot spoof it.
+create or replace function public.campusone_enforce_role()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if lower(coalesce(new.email, '')) = 'vvibhaansh@gmail.com' then
+    new.role := 'ADMIN';
+  elsif new.role = 'ADMIN' then
+    new.role := case when tg_op = 'UPDATE' then coalesce(old.role, 'STUDENT') else 'STUDENT' end;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists campusone_enforce_role on public.profiles;
+create trigger campusone_enforce_role
+  before insert or update on public.profiles
+  for each row execute function public.campusone_enforce_role();
+
 -- =========================================================================
 -- CORE CAMPUS
 -- =========================================================================

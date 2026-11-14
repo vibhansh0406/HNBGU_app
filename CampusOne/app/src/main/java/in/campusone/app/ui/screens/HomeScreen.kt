@@ -1,5 +1,6 @@
 package `in`.campusone.app.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import `in`.campusone.app.R
 import `in`.campusone.app.data.local.entity.AssignmentEntity
 import `in`.campusone.app.data.local.entity.ExamEntity
+import `in`.campusone.app.domain.model.NoticeItem
 import `in`.campusone.app.ui.components.AnimatedAttendanceRing
 import `in`.campusone.app.ui.theme.EdgeAmber
 import `in`.campusone.app.ui.viewmodel.CoreUiState
@@ -47,13 +50,15 @@ fun HomeScreen(
     onOpenNotices: () -> Unit,
     onOpenStudyHub: () -> Unit = {}
 ) {
+    val topNotice = uiState.notices.firstOrNull { it.isPinned } ?: uiState.notices.firstOrNull()
+    val hasGlance = nextThreeDeadlines.isNotEmpty() || nextUpcomingExam != null || topNotice != null
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Greeting & Language Switcher Header
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -86,7 +91,6 @@ fun HomeScreen(
             }
         }
 
-        // Phase 1: Next Class Hero Card
         item {
             ElevatedCard(
                 onClick = onOpenTimetable,
@@ -120,7 +124,11 @@ fun HomeScreen(
                         }
                         uiState.nextClass?.let { next ->
                             Text(
-                                text = if (next.isOngoing) "Now" else "in ${next.minutesUntilStart}m",
+                                text = if (next.isOngoing) {
+                                    stringResource(R.string.now_label)
+                                } else {
+                                    stringResource(R.string.starts_in_min, next.minutesUntilStart)
+                                },
                                 style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
@@ -157,7 +165,6 @@ fun HomeScreen(
             }
         }
 
-        // Phase 1: Attendance Health Summary Card
         item {
             ElevatedCard(
                 onClick = onOpenAttendance,
@@ -190,157 +197,191 @@ fun HomeScreen(
             }
         }
 
-        // Phase 2: Next 3 Assignment Deadlines on Home Screen
-        if (nextThreeDeadlines.isNotEmpty()) {
+        if (hasGlance) {
             item {
-                ElevatedCard(
-                    onClick = onOpenStudyHub,
-                    modifier = Modifier.fillMaxWidth()
+                AtAGlanceCard(
+                    deadlines = nextThreeDeadlines,
+                    exam = nextUpcomingExam,
+                    notice = topNotice,
+                    onOpenStudyHub = onOpenStudyHub,
+                    onOpenNotices = onOpenNotices
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AtAGlanceCard(
+    deadlines: List<AssignmentEntity>,
+    exam: ExamEntity?,
+    notice: NoticeItem?,
+    onOpenStudyHub: () -> Unit,
+    onOpenNotices: () -> Unit
+) {
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+            Text(
+                text = stringResource(R.string.home_at_a_glance),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+
+            if (deadlines.isNotEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onOpenStudyHub)
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.AssignmentLate,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.AssignmentLate,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.home_upcoming_deadlines),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                    deadlines.forEach { task ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = task.title,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1
+                                )
+                                Text(
+                                    text = "${task.subjectTag} • ${task.dueDateFormatted}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = stringResource(R.string.home_upcoming_deadlines),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        nextThreeDeadlines.forEach { task ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = task.title,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.SemiBold,
-                                        maxLines = 1
-                                    )
-                                    Text(
-                                        text = "${task.subjectTag} • ${task.dueDateFormatted}",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                                text = task.priority,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = when (task.priority) {
+                                    "HIGH" -> MaterialTheme.colorScheme.error
+                                    "LOW" -> MaterialTheme.colorScheme.onSurfaceVariant
+                                    else -> EdgeAmber
                                 }
-                                Text(
-                                    text = task.priority,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = when (task.priority) {
-                                        "HIGH" -> MaterialTheme.colorScheme.error
-                                        "LOW" -> MaterialTheme.colorScheme.onSurfaceVariant
-                                        else -> EdgeAmber
-                                    }
-                                )
-                            }
+                            )
                         }
                     }
                 }
-            }
-        }
-
-        // Phase 2: Upcoming Exam Countdown on Home Screen
-        if (nextUpcomingExam != null) {
-            item {
-                val daysLeft = ((nextUpcomingExam.examDateEpochMillis - System.currentTimeMillis()) / 86_400_000L).coerceAtLeast(0L)
-                ElevatedCard(
-                    onClick = onOpenStudyHub,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                if (exam != null || notice != null) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        color = MaterialTheme.colorScheme.outline
                     )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.CalendarMonth,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = stringResource(R.string.home_exam_countdown),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "${nextUpcomingExam.subjectCode}: ${nextUpcomingExam.subjectName}",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                            Text(
-                                text = "${nextUpcomingExam.examDateFormatted} • ${nextUpcomingExam.roomOrCenter}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        }
-                        Text(
-                            text = "In $daysLeft days",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    }
                 }
             }
-        }
 
-        // Phase 1: Latest Pinned Notice Card
-        item {
-            val topNotice = uiState.notices.firstOrNull()
-            if (topNotice != null) {
-                ElevatedCard(
-                    onClick = onOpenNotices,
-                    modifier = Modifier.fillMaxWidth()
+            if (exam != null) {
+                val daysLeft = ((exam.examDateEpochMillis - System.currentTimeMillis()) / 86_400_000L)
+                    .coerceAtLeast(0L)
+                val countdown = when {
+                    daysLeft == 0L -> stringResource(R.string.due_today)
+                    daysLeft == 1L -> stringResource(R.string.due_tomorrow)
+                    else -> stringResource(R.string.in_days, daysLeft.toInt())
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onOpenStudyHub)
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = Icons.Default.Campaign,
+                                imageVector = Icons.Default.CalendarMonth,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = stringResource(R.string.notices_pinned),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.primary
+                                text = stringResource(R.string.home_exam_countdown),
+                                style = MaterialTheme.typography.titleMedium
                             )
                         }
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = topNotice.title,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = topNotice.body,
-                            maxLines = 2,
+                            text = "${exam.subjectCode}: ${exam.subjectName}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "${exam.examDateFormatted} • ${exam.roomOrCenter}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = countdown,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                if (notice != null) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
+            }
+
+            if (notice != null) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onOpenNotices)
+                        .padding(horizontal = 16.dp, vertical = 10.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Campaign,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (notice.isPinned) {
+                                stringResource(R.string.notices_pinned)
+                            } else {
+                                stringResource(R.string.latest_notice)
+                            },
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = notice.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = notice.body,
+                        maxLines = 2,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
