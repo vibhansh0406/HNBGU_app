@@ -730,7 +730,7 @@ fun C1SkeletonRows(
  * selection and an optional count badge.
  */
 @Composable
-fun C1NavItem(
+fun RowScope.C1NavItem(
     selected: Boolean,
     onClick: () -> Unit,
     selectedIcon: ImageVector,

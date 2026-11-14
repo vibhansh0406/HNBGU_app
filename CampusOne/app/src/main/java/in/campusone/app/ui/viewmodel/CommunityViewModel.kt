@@ -11,6 +11,7 @@ import `in`.campusone.app.domain.model.CommunityComment
 import `in`.campusone.app.domain.model.CommunityPost
 import `in`.campusone.app.domain.model.CommunitySort
 import `in`.campusone.app.domain.model.UserProfile
+import `in`.campusone.app.domain.usecase.CommunityFilter
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -275,25 +276,13 @@ class CommunityViewModel @Inject constructor(
     }
 
     private fun CommunityUiState.withVisiblePosts(): CommunityUiState {
-        val filtered = posts.filter { post ->
-            val categoryMatch = when {
-                category != null -> post.category == category
-                mode == CommunityMode.DISCUSSIONS -> post.category != CommunityCategory.ANNOUNCEMENT
-                else -> true
-            }
-            val queryMatch = query.isBlank() ||
-                post.title.contains(query, ignoreCase = true) ||
-                post.body.contains(query, ignoreCase = true) ||
-                post.authorName.contains(query, ignoreCase = true)
-            categoryMatch && queryMatch
-        }
-        val sorted = when (sort) {
-            CommunitySort.RELEVANT -> filtered.sortedWith(
-                compareByDescending<CommunityPost> { it.likeCount }
-                    .thenByDescending { it.createdAtMillis }
-            )
-            CommunitySort.LATEST -> filtered.sortedByDescending { it.createdAtMillis }
-        }
+        val sorted = CommunityFilter.apply(
+            posts = posts,
+            query = query,
+            category = category,
+            discussionsOnly = mode == CommunityMode.DISCUSSIONS,
+            sort = sort
+        )
         return copy(visiblePosts = sorted)
     }
 

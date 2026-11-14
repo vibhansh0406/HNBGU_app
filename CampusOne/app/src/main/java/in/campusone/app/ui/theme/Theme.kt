@@ -11,11 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -113,33 +111,20 @@ val ExpressiveShapes = Shapes(
 // Hindi never renders in an unknown system face.
 // ---------------------------------------------------------------------------
 
-@OptIn(ExperimentalTextApi::class)
-private fun variableFont(resId: Int, weight: Int): Font = Font(
-    resId = resId,
-    weight = FontWeight(weight),
-    variationSettings = FontVariation.Settings(FontVariation.weight(weight))
-)
-
 /** Display voice: hero numbers, screen titles, section headings. */
 val CampusOneDisplayFamily = FontFamily(
-    variableFont(R.font.manrope_variable, 400),
-    variableFont(R.font.manrope_variable, 500),
-    variableFont(R.font.manrope_variable, 600),
-    variableFont(R.font.manrope_variable, 700)
+    Font(R.font.manrope_family, FontWeight.Normal),
+    Font(R.font.manrope_family, FontWeight.Medium),
+    Font(R.font.manrope_family, FontWeight.SemiBold),
+    Font(R.font.manrope_family, FontWeight.Bold)
 )
 
 /** Text voice: body copy, navigation, buttons, labels, forms. */
 val CampusOneTextFamily = FontFamily(
-    variableFont(R.font.inter_variable, 400),
-    variableFont(R.font.inter_variable, 500),
-    variableFont(R.font.inter_variable, 600),
-    variableFont(R.font.inter_variable, 700)
-)
-
-private val DevanagariFallback = listOf(
-    variableFont(R.font.noto_sans_devanagari_variable, 400),
-    variableFont(R.font.noto_sans_devanagari_variable, 500),
-    variableFont(R.font.noto_sans_devanagari_variable, 700)
+    Font(R.font.inter_family, FontWeight.Normal),
+    Font(R.font.inter_family, FontWeight.Medium),
+    Font(R.font.inter_family, FontWeight.SemiBold),
+    Font(R.font.inter_family, FontWeight.Bold)
 )
 
 private fun campusType(
@@ -150,7 +135,6 @@ private fun campusType(
     tracking: Double = 0.0
 ): TextStyle = TextStyle(
     fontFamily = family,
-    fontFamilyFallback = DevanagariFallback,
     fontWeight = weight,
     fontSize = size.sp,
     lineHeight = lineHeight.sp,
