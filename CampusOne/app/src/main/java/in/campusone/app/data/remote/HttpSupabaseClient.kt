@@ -319,9 +319,15 @@ private class HttpSupabaseAuth(
             ByteArray(0)
         }
         if (code !in 200..299) {
-            throw IllegalStateException(
-                "Auth failed ($code): ${String(body, StandardCharsets.UTF_8).take(180)}"
-            )
+            val raw = String(body, StandardCharsets.UTF_8)
+            val detail = try {
+                val obj = JSONObject(raw)
+                listOf("error_description", "msg", "message", "error")
+                    .firstNotNullOfOrNull { key -> obj.optString(key).takeIf { it.isNotBlank() } }
+            } catch (_: Exception) {
+                null
+            }
+            throw IllegalStateException("Auth failed ($code): ${detail ?: raw.take(120)}")
         }
         return try {
             val obj = JSONObject(String(body, StandardCharsets.UTF_8))
