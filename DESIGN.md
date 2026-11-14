@@ -38,6 +38,24 @@ colors:
   night-danger: "#FF8A7A"
   night-info: "#8FC3D9"
 typography:
+  display-large:
+    fontFamily: "System Sans (Roboto)"
+    fontSize: "44sp"
+    fontWeight: 700
+    lineHeight: "50sp"
+    letterSpacing: "-1sp"
+  display-medium:
+    fontFamily: "System Sans (Roboto)"
+    fontSize: "38sp"
+    fontWeight: 700
+    lineHeight: "44sp"
+    letterSpacing: "-0.8sp"
+  display-small:
+    fontFamily: "System Sans (Roboto)"
+    fontSize: "34sp"
+    fontWeight: 700
+    lineHeight: "40sp"
+    letterSpacing: "-0.6sp"
   headline-large:
     fontFamily: "System Sans (Roboto)"
     fontSize: "32sp"
@@ -68,6 +86,12 @@ typography:
     fontWeight: 600
     lineHeight: "22sp"
     letterSpacing: "-0.1sp"
+  title-small:
+    fontFamily: "System Sans (Roboto)"
+    fontSize: "14sp"
+    fontWeight: 600
+    lineHeight: "20sp"
+    letterSpacing: "-0.1sp"
   body-large:
     fontFamily: "System Sans (Roboto)"
     fontSize: "16sp"
@@ -80,6 +104,12 @@ typography:
     fontWeight: 400
     lineHeight: "20sp"
     letterSpacing: "-0.05sp"
+  body-small:
+    fontFamily: "System Sans (Roboto)"
+    fontSize: "13sp"
+    fontWeight: 400
+    lineHeight: "18sp"
+    letterSpacing: "0sp"
   label-large:
     fontFamily: "System Sans (Roboto)"
     fontSize: "14sp"
@@ -223,6 +253,8 @@ Shared primitives live in `ui/components/CoreComponents.kt` and are the **only**
 - **C1SectionHeader** — bold forest title with optional trailing action.
 - **C1StatTile** — label/value row on `surfaceContainerLow`.
 - **C1EmptyState** — tonal icon circle + title + message.
+- **C1LoadingState** — centered progress indicator with optional label.
+- **C1ErrorState** — error tone icon circle, title, message, optional retry button.
 - **AnimatedAttendanceRing** — the attendance hero component; colors come from `extendedColors`.
 
 Icons: Material filled set, 24dp standard / 18dp inline / 26dp in empty-state circles, tinted `onSurfaceVariant` unless they carry status meaning.

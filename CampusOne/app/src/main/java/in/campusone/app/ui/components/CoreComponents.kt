@@ -14,8 +14,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -330,6 +333,85 @@ fun C1Banner(
                 text = text,
                 style = MaterialTheme.typography.bodyMedium,
                 color = fg
+            )
+        }
+    }
+}
+
+/** Centered loading state for full-screen or section-level waits. */
+@Composable
+fun C1LoadingState(
+    modifier: Modifier = Modifier,
+    label: String? = null
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(C1Spacing.xxl),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(28.dp),
+            strokeWidth = 2.5.dp,
+            color = MaterialTheme.colorScheme.primary
+        )
+        if (label != null) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+/** Consistent error state with an optional retry action. */
+@Composable
+fun C1ErrorState(
+    title: String,
+    message: String,
+    modifier: Modifier = Modifier,
+    retryLabel: String? = "Retry",
+    onRetry: (() -> Unit)? = null
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(C1Spacing.xxl),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(56.dp)
+                .background(MaterialTheme.colorScheme.errorContainer, CircleShape)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.ErrorOutline,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onErrorContainer,
+                modifier = Modifier.size(26.dp)
+            )
+        }
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = C1Spacing.lg)
+        )
+        if (retryLabel != null && onRetry != null) {
+            C1Button(
+                text = retryLabel,
+                onClick = onRetry,
+                intent = C1ButtonIntent.TONAL
             )
         }
     }

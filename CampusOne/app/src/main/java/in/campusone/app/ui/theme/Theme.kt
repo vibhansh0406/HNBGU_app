@@ -102,6 +102,27 @@ val ExpressiveShapes = Shapes(
 
 // SF-inspired type scale: heavy confident titles, calm body, tight tracking
 val ExpressiveTypography = Typography(
+    displayLarge = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Bold,
+        fontSize = 44.sp,
+        lineHeight = 50.sp,
+        letterSpacing = (-1.0).sp
+    ),
+    displayMedium = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Bold,
+        fontSize = 38.sp,
+        lineHeight = 44.sp,
+        letterSpacing = (-0.8).sp
+    ),
+    displaySmall = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Bold,
+        fontSize = 34.sp,
+        lineHeight = 40.sp,
+        letterSpacing = (-0.6).sp
+    ),
     headlineLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Bold,
@@ -137,6 +158,13 @@ val ExpressiveTypography = Typography(
         lineHeight = 22.sp,
         letterSpacing = (-0.1).sp
     ),
+    titleSmall = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = (-0.1).sp
+    ),
     bodyLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Normal,
@@ -151,11 +179,19 @@ val ExpressiveTypography = Typography(
         lineHeight = 20.sp,
         letterSpacing = (-0.05).sp
     ),
+    bodySmall = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Normal,
+        fontSize = 13.sp,
+        lineHeight = 18.sp,
+        letterSpacing = (0.0).sp
+    ),
     labelLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.SemiBold,
         fontSize = 14.sp,
-        lineHeight = 20.sp
+        lineHeight = 20.sp,
+        letterSpacing = (0.0).sp
     ),
     labelMedium = TextStyle(
         fontFamily = FontFamily.SansSerif,
