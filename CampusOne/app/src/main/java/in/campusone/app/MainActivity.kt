@@ -339,7 +339,9 @@ fun CampusOneRoot(
                     uiState = coreState,
                     onMarkNoticeRead = coreViewModel::markNoticeRead,
                     onMarkAllRead = coreViewModel::markAllNoticesRead,
-                    onPostNotice = coreViewModel::postNotice
+                    onPostNotice = coreViewModel::postNotice,
+                    dataRefreshError = noticesSyncError,
+                    onRetryRefresh = coreViewModel::refreshNotices
                 )
                 BottomNavTab.MORE -> MoreHubScreen(
                     uiState = studyCampusState,

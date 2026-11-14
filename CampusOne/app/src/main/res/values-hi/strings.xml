@@ -44,6 +44,13 @@
     <string name="history_monthly">30 दिन</string>
     <string name="saved_on_device">इस डिवाइस पर सहेजा गया</string>
     <string name="synced_to_cloud">क्लाउड से सिंक</string>
+    <string name="attendance_total_lectures">कुल व्याख्यान</string>
+    <string name="attendance_subjects">विषयवार उपस्थिति</string>
+    <string name="attendance_below_target">आपके %1$d%% लक्ष्य से नीचे</string>
+    <string name="attendance_cancelled_short">%1$d रद्द</string>
+    <string name="attendance_window_summary">%1$d उपस्थित • %2$d अनुपस्थित • %3$d रद्द</string>
+    <string name="attendance_attended_of">%2$d में से %1$d व्याख्यान उपस्थित</string>
+    <string name="attendance_history_hint">नई उपस्थिति प्रविष्टियाँ यहाँ दिखाई देंगी।</string>
 
     <!-- Timetable & Widget -->
     <string name="timetable_today">आज की समय-सारणी</string>
@@ -57,6 +64,21 @@
     <string name="no_more_classes_today">आज के लिए कोई और कक्षा शेष नहीं है।</string>
     <string name="starts_in_min">%1$d मिनट में</string>
     <string name="now_label">अभी</string>
+    <string name="timetable_no_classes_day">इस दिन कोई कक्षा निर्धारित नहीं है।</string>
+    <string name="timetable_empty_hint">आपके CR द्वारा जोड़ी गई कक्षाएँ यहाँ दिखाई देंगी।</string>
+    <string name="timetable_classes_today">आज %1$d कक्षाएँ</string>
+    <string name="timetable_completed">पूर्ण</string>
+    <string name="timetable_minutes_left">%1$d मिनट शेष</string>
+    <string name="timetable_reminder_before">%1$d मिनट पहले</string>
+    <string name="timetable_starts_in">शुरू होने में %1$d मिनट</string>
+    <string name="timetable_subject_code">विषय कोड</string>
+    <string name="timetable_subject_name">विषय का नाम</string>
+    <string name="timetable_faculty">शिक्षक का नाम</string>
+    <string name="timetable_room">कक्ष / लैब</string>
+    <string name="timetable_start">प्रारंभ (HH:mm)</string>
+    <string name="timetable_end">समाप्ति (HH:mm)</string>
+    <string name="action_cancel">रद्द करें</string>
+    <string name="action_publish">सेक्शन में प्रकाशित करें</string>
 
     <!-- Notices -->
     <string name="notices_title">सूचना पट्ट (Notice Board)</string>
@@ -67,6 +89,22 @@
     <string name="empty_notices_hint">आपके CR, शिक्षक और विश्वविद्यालय की सूचनाएं यहां दिखाई देंगी।</string>
     <string name="mark_all_read">सभी पढ़ी हुई करें</string>
     <string name="new_badge">नई</string>
+    <string name="notices_search_hint">सूचनाएं खोजें</string>
+    <string name="notices_filter_all">सभी</string>
+    <string name="notices_filter_unread">अपठित</string>
+    <string name="notices_none_match">आपके फ़िल्टर से कोई सूचना मेल नहीं खाती</string>
+    <string name="notices_none_match_hint">दूसरा शब्द आज़माएँ या फ़िल्टर हटाएँ।</string>
+    <string name="notice_details">सूचना विवरण</string>
+    <string name="notice_attachment">अनुलग्नक</string>
+    <string name="open_attachment">अनुलग्नक खोलें</string>
+    <string name="attachment_unavailable">यह अनुलग्नक खोलने के लिए कोई ऐप नहीं है।</string>
+    <string name="notices_sync_failed">सूचनाएँ सिंक नहीं हो सकीं। सहेजी गई सूचनाएँ दिखाई जा रही हैं।</string>
+    <string name="notice_composer_title">सूचना का शीर्षक</string>
+    <string name="notice_composer_body">विवरण / निर्देश</string>
+    <string name="notice_composer_attachment">वैकल्पिक PDF / Drive / छवि URL</string>
+    <string name="notice_composer_pin">सूचना को शीर्ष पर पिन करें</string>
+    <string name="notice_publish">प्रकाशित करें</string>
+    <string name="action_back">वापस</string>
 
     <!-- Phase 2: Study Hub -->
     <string name="study_hub">अध्ययन केंद्र (Study Hub)</string>
@@ -87,6 +125,28 @@
     <string name="group_by_subject">विषय के अनुसार समूहित करें</string>
     <string name="add_to_my_list">मेरी सूची में जोड़ें</string>
     <string name="shared_by_section">साझा सेक्शन असाइनमेंट</string>
+    <string name="assignments_empty_title">यहाँ कोई असाइनमेंट नहीं</string>
+    <string name="assignments_empty_hint">जोड़ने के लिए + दबाएँ या दूसरा टैब खोलें।</string>
+    <string name="assignment_pending">लंबित</string>
+    <string name="assignment_urgent">तत्काल</string>
+    <string name="assignment_due">देय</string>
+    <string name="add_assignment">असाइनमेंट जोड़ें</string>
+    <string name="delete_assignment">असाइनमेंट हटाएँ</string>
+    <string name="assignment_reminders_note">1 दिन और 2 घंटे पहले रिमाइंडर</string>
+    <string name="assignment_due_in_days">%1$d दिन</string>
+    <string name="assignment_tomorrow">कल</string>
+    <string name="assignment_next_week">अगले सप्ताह</string>
+    <string name="assignment_subject_tag">विषय टैग</string>
+    <string name="assignment_title">असाइनमेंट का शीर्षक</string>
+    <string name="assignment_notes">नोट्स / निर्देश</string>
+    <string name="assignment_due_date">देय तिथि</string>
+    <string name="assignment_remind_1d">1 दिन पहले याद दिलाएँ</string>
+    <string name="assignment_remind_2h">2 घंटे पहले याद दिलाएँ</string>
+    <string name="assignment_share">साझा सेक्शन असाइनमेंट के रूप में प्रकाशित करें</string>
+    <string name="assignment_save">सहेजें</string>
+    <string name="priority_high">उच्च</string>
+    <string name="priority_medium">मध्यम</string>
+    <string name="priority_low">निम्न</string>
     <string name="home_upcoming_deadlines">अगली 3 समय-सीमाएं (Deadlines)</string>
     <string name="exams_syllabus">परीक्षा कैलेंडर और सिलेबस ट्रैकर</string>
     <string name="home_exam_countdown">आगामी परीक्षा उलटी गिनती</string>

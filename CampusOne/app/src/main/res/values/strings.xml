@@ -44,6 +44,13 @@
     <string name="history_monthly">30 Days</string>
     <string name="saved_on_device">Saved on this device</string>
     <string name="synced_to_cloud">Synced to cloud</string>
+    <string name="attendance_total_lectures">Total lectures</string>
+    <string name="attendance_subjects">Subject-wise attendance</string>
+    <string name="attendance_below_target">Below your %1$d%% target</string>
+    <string name="attendance_cancelled_short">%1$d cancelled</string>
+    <string name="attendance_window_summary">%1$d present • %2$d absent • %3$d cancelled</string>
+    <string name="attendance_attended_of">Attended %1$d of %2$d lectures</string>
+    <string name="attendance_history_hint">New attendance entries will appear here.</string>
 
     <!-- Timetable & Widget -->
     <string name="timetable_today">Today\u2019s Schedule</string>
@@ -57,6 +64,21 @@
     <string name="no_more_classes_today">No more classes scheduled for today.</string>
     <string name="starts_in_min">in %1$d min</string>
     <string name="now_label">Now</string>
+    <string name="timetable_no_classes_day">No classes scheduled on this day.</string>
+    <string name="timetable_empty_hint">Classes added by your CR will appear here.</string>
+    <string name="timetable_classes_today">%1$d classes today</string>
+    <string name="timetable_completed">Completed</string>
+    <string name="timetable_minutes_left">%1$d min left</string>
+    <string name="timetable_reminder_before">%1$d min before</string>
+    <string name="timetable_starts_in">%1$d min to start</string>
+    <string name="timetable_subject_code">Subject code</string>
+    <string name="timetable_subject_name">Subject name</string>
+    <string name="timetable_faculty">Faculty name</string>
+    <string name="timetable_room">Room / lab</string>
+    <string name="timetable_start">Start (HH:mm)</string>
+    <string name="timetable_end">End (HH:mm)</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_publish">Publish to section</string>
 
     <!-- Notices -->
     <string name="notices_title">Notice Board</string>
@@ -67,6 +89,22 @@
     <string name="empty_notices_hint">Announcements from your CR, faculty and the university will appear here.</string>
     <string name="mark_all_read">Mark all read</string>
     <string name="new_badge">NEW</string>
+    <string name="notices_search_hint">Search notices</string>
+    <string name="notices_filter_all">All</string>
+    <string name="notices_filter_unread">Unread</string>
+    <string name="notices_none_match">No notices match your filters</string>
+    <string name="notices_none_match_hint">Try a different keyword or clear the filters.</string>
+    <string name="notice_details">Notice details</string>
+    <string name="notice_attachment">Attachment</string>
+    <string name="open_attachment">Open attachment</string>
+    <string name="attachment_unavailable">No app can open this attachment.</string>
+    <string name="notices_sync_failed">Couldn\u2019t sync notices. Showing saved announcements.</string>
+    <string name="notice_composer_title">Announcement title</string>
+    <string name="notice_composer_body">Details / instructions</string>
+    <string name="notice_composer_attachment">Optional PDF / Drive / image URL</string>
+    <string name="notice_composer_pin">Pin announcement to top</string>
+    <string name="notice_publish">Publish</string>
+    <string name="action_back">Back</string>
 
     <!-- Phase 2: Study Hub -->
     <string name="study_hub">Study Hub</string>
@@ -87,6 +125,28 @@
     <string name="group_by_subject">Group by Subject</string>
     <string name="add_to_my_list">Add to My List</string>
     <string name="shared_by_section">Shared Section Task</string>
+    <string name="assignments_empty_title">No assignments here</string>
+    <string name="assignments_empty_hint">Tap + to add one, or switch to another tab.</string>
+    <string name="assignment_pending">Pending</string>
+    <string name="assignment_urgent">Urgent</string>
+    <string name="assignment_due">Due</string>
+    <string name="add_assignment">Add assignment</string>
+    <string name="delete_assignment">Delete assignment</string>
+    <string name="assignment_reminders_note">Reminders 1 day &amp; 2 hours before</string>
+    <string name="assignment_due_in_days">%1$d days</string>
+    <string name="assignment_tomorrow">Tomorrow</string>
+    <string name="assignment_next_week">Next week</string>
+    <string name="assignment_subject_tag">Subject tag</string>
+    <string name="assignment_title">Assignment title</string>
+    <string name="assignment_notes">Notes / instructions</string>
+    <string name="assignment_due_date">Due date</string>
+    <string name="assignment_remind_1d">Remind 1 day before</string>
+    <string name="assignment_remind_2h">Remind 2 hours before</string>
+    <string name="assignment_share">Publish as shared section assignment</string>
+    <string name="assignment_save">Save</string>
+    <string name="priority_high">High</string>
+    <string name="priority_medium">Medium</string>
+    <string name="priority_low">Low</string>
     <string name="home_upcoming_deadlines">Next 3 Deadlines</string>
     <string name="exams_syllabus">Exam Calendar &amp; Syllabus Tracker</string>
     <string name="home_exam_countdown">Upcoming Exam Countdown</string>

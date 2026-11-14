@@ -1,9 +1,8 @@
 package `in`.campusone.app.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,45 +12,50 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.Button
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.R
 import `in`.campusone.app.domain.model.AttendanceStatus
 import `in`.campusone.app.domain.usecase.AttendanceHealth
 import `in`.campusone.app.domain.usecase.AttendanceInsight
 import `in`.campusone.app.ui.components.AnimatedAttendanceRing
-import `in`.campusone.app.ui.theme.DangerRed
-import `in`.campusone.app.ui.theme.EdgeAmber
-import `in`.campusone.app.ui.theme.SafeGreen
+import `in`.campusone.app.ui.components.C1Banner
+import `in`.campusone.app.ui.components.C1Button
+import `in`.campusone.app.ui.components.C1ButtonIntent
+import `in`.campusone.app.ui.components.C1EmptyState
+import `in`.campusone.app.ui.components.C1SectionHeader
+import `in`.campusone.app.ui.components.C1StatusChip
+import `in`.campusone.app.ui.components.C1Tone
+import `in`.campusone.app.ui.theme.C1Radius
+import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.viewmodel.CoreUiState
 import `in`.campusone.app.ui.viewmodel.SubjectWithInsight
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @Composable
 fun AttendanceScreen(
@@ -60,114 +64,74 @@ fun AttendanceScreen(
     onTargetPctChange: (Int) -> Unit
 ) {
     val haptics = LocalHapticFeedback.current
-    var historyWindowDays by rememberSaveable { mutableStateOf(7) } // 7 = Weekly, 30 = Monthly
+    var historyWindowDays by rememberSaveable { mutableIntStateOf(7) }
     val subjectNames = uiState.subjectInsights.associate { it.summary.subjectId to it.summary.subjectName }
+    val cutoffEpochDay = LocalDate.now().minusDays(historyWindowDays.toLong()).toEpochDay()
+    val filteredLogs = uiState.recentAttendanceLogs.filter { it.dateEpochDay >= cutoffEpochDay }
+    val presentCount = filteredLogs.count { it.status == AttendanceStatus.PRESENT }
+    val absentCount = filteredLogs.count { it.status == AttendanceStatus.ABSENT }
+    val cancelledCount = filteredLogs.count { it.status == AttendanceStatus.CANCELLED }
 
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            start = C1Spacing.lg,
+            end = C1Spacing.lg,
+            top = C1Spacing.lg,
+            bottom = C1Spacing.xxl
+        ),
+        verticalArrangement = Arrangement.spacedBy(C1Spacing.lg)
     ) {
         item {
-            Spacer(modifier = Modifier.height(4.dp))
-            // Personal tracker disclaimer banner
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Info,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    text = stringResource(R.string.attendance_disclaimer),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
-        }
-
-        // Overall Attendance Summary + Configurable Target Slider
-        item {
-            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.attendance_overall),
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "${uiState.overallInsight.attended} / ${uiState.overallInsight.totalConducted} classes attended (${uiState.overallInsight.cancelled} cancelled)",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            SmartCalculatorBanner(insight = uiState.overallInsight)
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        AnimatedAttendanceRing(
-                            percentage = uiState.overallInsight.currentPercentage,
-                            health = uiState.overallInsight.health,
-                            size = 92.dp,
-                            strokeWidth = 10.dp
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Text(
-                        text = stringResource(
-                            R.string.attendance_target,
-                            uiState.profile.targetAttendancePct
-                        ),
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                    Slider(
-                        value = uiState.profile.targetAttendancePct.toFloat(),
-                        onValueChange = { onTargetPctChange(it.toInt()) },
-                        valueRange = 60f..90f,
-                        steps = 5
-                    )
-                }
-            }
-        }
-
-        // Per-Subject Cards with Present / Absent / Cancelled buttons
-        items(uiState.subjectInsights, key = { it.summary.subjectId }) { item ->
-            SubjectAttendanceCard(
-                item = item,
-                onMark = { status ->
-                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onMarkAttendance(item.summary.subjectId, status)
-                }
+            C1Banner(
+                text = stringResource(R.string.attendance_disclaimer),
+                tone = C1Tone.INFO,
+                icon = Icons.Default.Info
             )
         }
 
-        // Weekly / Monthly History Section
         item {
-            Spacer(modifier = Modifier.height(8.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.History, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(R.string.attendance_history),
-                        style = MaterialTheme.typography.titleMedium
+            OverallAttendanceCard(
+                insight = uiState.overallInsight,
+                targetPct = uiState.profile.targetAttendancePct,
+                onTargetPctChange = onTargetPctChange
+            )
+        }
+
+        item {
+            C1SectionHeader(title = stringResource(R.string.attendance_subjects))
+        }
+
+        if (uiState.subjectInsights.isEmpty()) {
+            item {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = C1Radius.md,
+                    color = MaterialTheme.colorScheme.surfaceContainerLow
+                ) {
+                    C1EmptyState(
+                        icon = Icons.Default.Info,
+                        title = stringResource(R.string.no_classes_recorded),
+                        message = stringResource(R.string.attendance_disclaimer)
                     )
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            }
+        } else {
+            items(uiState.subjectInsights, key = { it.summary.subjectId }) { item ->
+                SubjectAttendanceCard(
+                    item = item,
+                    onMark = { status ->
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onMarkAttendance(item.summary.subjectId, status)
+                    }
+                )
+            }
+        }
+
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                C1SectionHeader(title = stringResource(R.string.attendance_history))
+                Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                     FilterChip(
                         selected = historyWindowDays == 7,
                         onClick = { historyWindowDays = 7 },
@@ -179,151 +143,333 @@ fun AttendanceScreen(
                         label = { Text(stringResource(R.string.history_monthly)) }
                     )
                 }
+                Text(
+                    text = stringResource(
+                        R.string.attendance_window_summary,
+                        presentCount,
+                        absentCount,
+                        cancelledCount
+                    ),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
-
-        val cutoffEpochDay = LocalDate.now().minusDays(historyWindowDays.toLong()).toEpochDay()
-        val filteredLogs = uiState.recentAttendanceLogs.filter { it.dateEpochDay >= cutoffEpochDay }
 
         if (filteredLogs.isEmpty()) {
             item {
-                Text(
-                    text = stringResource(R.string.no_classes_recorded),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = 12.dp)
-                )
-            }
-        } else {
-            items(filteredLogs.take(20), key = { it.id }) { log ->
-                ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = subjectNames[log.subjectId] ?: log.subjectId,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Text(
-                                text = log.dateIso,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
-                                text = if (log.isSynced) {
-                                    stringResource(R.string.synced_to_cloud)
-                                } else {
-                                    stringResource(R.string.saved_on_device)
-                                },
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        AttendanceStatusBadge(status = log.status)
-                    }
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = C1Radius.md,
+                    color = MaterialTheme.colorScheme.surfaceContainerLow
+                ) {
+                    C1EmptyState(
+                        icon = Icons.Default.History,
+                        title = stringResource(R.string.no_classes_recorded),
+                        message = stringResource(R.string.attendance_history_hint)
+                    )
                 }
             }
+        } else {
+            items(filteredLogs.take(30), key = { it.id }) { log ->
+                AttendanceLogRow(
+                    subjectName = subjectNames[log.subjectId] ?: log.subjectId,
+                    dateIso = log.dateIso,
+                    isSynced = log.isSynced,
+                    status = log.status
+                )
+            }
         }
-
-        item { Spacer(modifier = Modifier.height(28.dp)) }
     }
 }
 
 @Composable
-fun SubjectAttendanceCard(
+private fun OverallAttendanceCard(
+    insight: AttendanceInsight,
+    targetPct: Int,
+    onTargetPctChange: (Int) -> Unit
+) {
+    val extended = extendedColors
+    val absentCount = (insight.totalConducted - insight.attended).coerceAtLeast(0)
+    val belowTarget = insight.health == AttendanceHealth.WARNING || insight.health == AttendanceHealth.CRITICAL
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = C1Radius.lg,
+        color = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Column(modifier = Modifier.padding(C1Spacing.xl)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.attendance_overall),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(C1Spacing.xs))
+                    Text(
+                        text = stringResource(
+                            R.string.attendance_attended_of,
+                            insight.attended,
+                            insight.totalConducted
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(C1Spacing.sm))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        C1StatusChip(
+                            text = stringResource(R.string.attendance_target, targetPct),
+                            tone = C1Tone.NEUTRAL
+                        )
+                        if (belowTarget) {
+                            C1StatusChip(
+                                text = stringResource(R.string.attendance_below_target, targetPct),
+                                tone = if (insight.health == AttendanceHealth.CRITICAL) C1Tone.DANGER else C1Tone.WARNING
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.width(C1Spacing.lg))
+                AnimatedAttendanceRing(
+                    percentage = insight.currentPercentage,
+                    health = insight.health,
+                    size = 92.dp,
+                    strokeWidth = 10.dp
+                )
+            }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = C1Spacing.lg),
+                color = extended.hairline
+            )
+
+            Row(modifier = Modifier.fillMaxWidth()) {
+                AttendanceStat(
+                    value = insight.attended,
+                    label = stringResource(R.string.mark_present),
+                    valueColor = extended.success,
+                    modifier = Modifier.weight(1f)
+                )
+                AttendanceStat(
+                    value = absentCount,
+                    label = stringResource(R.string.mark_absent),
+                    valueColor = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.weight(1f)
+                )
+                AttendanceStat(
+                    value = insight.cancelled,
+                    label = stringResource(R.string.mark_cancelled),
+                    valueColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
+                )
+                AttendanceStat(
+                    value = insight.totalConducted,
+                    label = stringResource(R.string.attendance_total_lectures),
+                    valueColor = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(C1Spacing.md))
+            SmartCalculatorBanner(insight = insight)
+
+            Spacer(modifier = Modifier.height(C1Spacing.md))
+            Slider(
+                value = targetPct.toFloat(),
+                onValueChange = { onTargetPctChange(it.toInt()) },
+                valueRange = 60f..90f,
+                steps = 5
+            )
+        }
+    }
+}
+
+@Composable
+private fun AttendanceStat(
+    value: Int,
+    label: String,
+    valueColor: Color,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        Text(
+            text = value.toString(),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = valueColor
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 2,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+private fun SubjectAttendanceCard(
     item: SubjectWithInsight,
     onMark: (AttendanceStatus) -> Unit
 ) {
     val summary = item.summary
     val insight = item.insight
+    val extended = extendedColors
+    val belowTarget = insight.health == AttendanceHealth.WARNING || insight.health == AttendanceHealth.CRITICAL
 
-    ElevatedCard(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.elevatedCardColors()
+        shape = C1Radius.md,
+        color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(C1Spacing.lg)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = summary.subjectName,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "${summary.subjectCode} • Attended: ${summary.attendedCount}/${summary.totalClasses} (Cancelled: ${summary.cancelledCount})",
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = summary.subjectCode,
+                        style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    SmartCalculatorBanner(insight = insight)
+                    Spacer(modifier = Modifier.height(C1Spacing.xs))
+                    Text(
+                        text = stringResource(
+                            R.string.attendance_attended_of,
+                            summary.attendedCount,
+                            summary.totalClasses
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(C1Spacing.md))
                 AnimatedAttendanceRing(
                     percentage = insight.currentPercentage,
                     health = insight.health,
-                    size = 72.dp,
-                    strokeWidth = 8.dp
+                    size = 64.dp,
+                    strokeWidth = 7.dp
                 )
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(C1Spacing.sm))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (belowTarget) {
+                    C1StatusChip(
+                        text = stringResource(R.string.attendance_below_target, insight.targetPercentage),
+                        tone = if (insight.health == AttendanceHealth.CRITICAL) C1Tone.DANGER else C1Tone.WARNING
+                    )
+                }
+                if (summary.cancelledCount > 0) {
+                    C1StatusChip(
+                        text = stringResource(R.string.attendance_cancelled_short, summary.cancelledCount),
+                        tone = C1Tone.NEUTRAL
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(C1Spacing.xs))
+            SmartCalculatorBanner(insight = insight)
+
+            Spacer(modifier = Modifier.height(C1Spacing.md))
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
             ) {
-                Button(
+                C1Button(
+                    text = stringResource(R.string.mark_present),
                     onClick = { onMark(AttendanceStatus.PRESENT) },
+                    intent = C1ButtonIntent.PRIMARY,
                     modifier = Modifier.weight(1f)
-                ) {
-                    Text(stringResource(R.string.mark_present))
-                }
-                OutlinedButton(
+                )
+                C1Button(
+                    text = stringResource(R.string.mark_absent),
                     onClick = { onMark(AttendanceStatus.ABSENT) },
+                    intent = C1ButtonIntent.OUTLINED,
                     modifier = Modifier.weight(1f)
-                ) {
-                    Text(stringResource(R.string.mark_absent))
-                }
-                TextButton(
+                )
+                C1Button(
+                    text = stringResource(R.string.mark_cancelled),
                     onClick = { onMark(AttendanceStatus.CANCELLED) },
+                    intent = C1ButtonIntent.GHOST,
                     modifier = Modifier.weight(1f)
-                ) {
-                    Text(stringResource(R.string.mark_cancelled))
-                }
+                )
             }
         }
     }
 }
 
 @Composable
-private fun AttendanceStatusBadge(status: AttendanceStatus) {
-    val (label, color) = when (status) {
-        AttendanceStatus.PRESENT -> stringResource(R.string.mark_present) to SafeGreen
-        AttendanceStatus.ABSENT -> stringResource(R.string.mark_absent) to DangerRed
-        AttendanceStatus.CANCELLED ->
-            stringResource(R.string.mark_cancelled) to MaterialTheme.colorScheme.onSurfaceVariant
+private fun AttendanceLogRow(
+    subjectName: String,
+    dateIso: String,
+    isSynced: Boolean,
+    status: AttendanceStatus
+) {
+    val formatter = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM) }
+    val displayDate = remember(dateIso) {
+        runCatching { LocalDate.parse(dateIso).format(formatter) }.getOrDefault(dateIso)
     }
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .background(color.copy(alpha = 0.12f))
-            .padding(horizontal = 10.dp, vertical = 4.dp)
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = C1Radius.sm,
+        color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = color
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = C1Spacing.lg, vertical = C1Spacing.md),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = subjectName,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1
+                )
+                Text(
+                    text = displayDate,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (!isSynced) {
+                    Text(
+                        text = stringResource(R.string.saved_on_device),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(C1Spacing.sm))
+            C1StatusChip(
+                text = stringResource(statusLabelRes(status)),
+                tone = statusTone(status)
+            )
+        }
     }
 }
 
@@ -357,4 +503,16 @@ fun SmartCalculatorBanner(insight: AttendanceInsight) {
         fontWeight = FontWeight.SemiBold,
         color = color
     )
+}
+
+private fun statusLabelRes(status: AttendanceStatus): Int = when (status) {
+    AttendanceStatus.PRESENT -> R.string.mark_present
+    AttendanceStatus.ABSENT -> R.string.mark_absent
+    AttendanceStatus.CANCELLED -> R.string.mark_cancelled
+}
+
+private fun statusTone(status: AttendanceStatus): C1Tone = when (status) {
+    AttendanceStatus.PRESENT -> C1Tone.SUCCESS
+    AttendanceStatus.ABSENT -> C1Tone.DANGER
+    AttendanceStatus.CANCELLED -> C1Tone.NEUTRAL
 }

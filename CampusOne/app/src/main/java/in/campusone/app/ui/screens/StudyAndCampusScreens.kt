@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,7 +27,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -73,6 +76,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -105,12 +109,25 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.R
+import `in`.campusone.app.data.local.entity.AssignmentEntity
 import `in`.campusone.app.data.local.entity.StudyResourceEntity
 import `in`.campusone.app.domain.model.UserRole
 import `in`.campusone.app.domain.usecase.GradingScaleType
 import `in`.campusone.app.domain.usecase.SemesterGpaRecord
+import `in`.campusone.app.ui.components.C1Button
+import `in`.campusone.app.ui.components.C1ButtonIntent
+import `in`.campusone.app.ui.components.C1EmptyState
+import `in`.campusone.app.ui.components.C1SectionHeader
+import `in`.campusone.app.ui.components.C1StatTile
+import `in`.campusone.app.ui.components.C1StatusChip
+import `in`.campusone.app.ui.components.C1TextField
+import `in`.campusone.app.ui.components.C1Tone
+import `in`.campusone.app.ui.theme.C1Radius
+import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.viewmodel.StudyAndCampusUiState
 import `in`.campusone.app.ui.viewmodel.StudyAndCampusViewModel
 import `in`.campusone.app.ui.screens.admin.AdminAssignmentsScreen
@@ -136,6 +153,8 @@ import `in`.campusone.app.ui.screens.admin.SuperAdminSettingsScreen
 import `in`.campusone.app.ui.screens.admin.SuperAdminUsersScreen
 import `in`.campusone.app.ui.viewmodel.ModeratorViewModel
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 enum class MoreSubScreen {
@@ -1226,7 +1245,7 @@ fun AssignmentsScreen(
     uiState: StudyAndCampusUiState,
     viewModel: StudyAndCampusViewModel
 ) {
-    var selectedTab by rememberSaveable { mutableIntStateOf(0) } // 0=Today, 1=Upcoming, 2=Overdue, 3=Completed
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var groupBySubject by rememberSaveable { mutableStateOf(false) }
     var showAddDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -1236,6 +1255,9 @@ fun AssignmentsScreen(
 
     val sharedNotAdded = uiState.assignments.filter { it.isSharedByCrOrTeacher && !it.isAddedToPersonalList }
     val personalTasks = uiState.assignments.filter { it.isAddedToPersonalList }
+    val pendingCount = personalTasks.count { !it.isCompleted }
+    val overdueCount = personalTasks.count { !it.isCompleted && it.dueDateEpochMillis < now }
+    val completedCount = personalTasks.count { it.isCompleted }
 
     val filteredTasks = when (selectedTab) {
         0 -> personalTasks.filter { !it.isCompleted && it.dueDateEpochMillis in now..endOfToday }
@@ -1247,7 +1269,7 @@ fun AssignmentsScreen(
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Assignment")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_assignment))
             }
         }
     ) { pad ->
@@ -1264,15 +1286,35 @@ fun AssignmentsScreen(
             }
 
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(C1Spacing.lg),
+                verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
             ) {
+                item {
+                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                        C1StatTile(
+                            label = stringResource(R.string.assignment_pending),
+                            value = pendingCount.toString(),
+                            modifier = Modifier.weight(1f)
+                        )
+                        C1StatTile(
+                            label = stringResource(R.string.tab_overdue),
+                            value = overdueCount.toString(),
+                            modifier = Modifier.weight(1f),
+                            valueColor = MaterialTheme.colorScheme.error
+                        )
+                        C1StatTile(
+                            label = stringResource(R.string.tab_completed),
+                            value = completedCount.toString(),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         FilterChip(
@@ -1280,69 +1322,36 @@ fun AssignmentsScreen(
                             onClick = { groupBySubject = !groupBySubject },
                             label = { Text(stringResource(R.string.group_by_subject)) }
                         )
+                        Spacer(modifier = Modifier.weight(1f))
                         Text(
-                            text = "Reminders: 1d & 2h before (Reboot-safe)",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = stringResource(R.string.assignment_reminders_note),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.End
                         )
                     }
                 }
 
-                // Shared Section Assignments Banner (1-Tap Add to Personal List)
                 if (sharedNotAdded.isNotEmpty()) {
                     item {
-                        ElevatedCard(
-                            colors = CardDefaults.elevatedCardColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    text = stringResource(R.string.shared_by_section),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(modifier = Modifier.height(6.dp))
-                                sharedNotAdded.forEach { shared ->
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 6.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Column(modifier = Modifier.weight(1f)) {
-                                            Text(shared.title, fontWeight = FontWeight.SemiBold)
-                                            Text(
-                                                text = "${shared.subjectTag} • Due: ${shared.dueDateFormatted} • By ${shared.authorName}",
-                                                style = MaterialTheme.typography.bodyMedium
-                                            )
-                                        }
-                                        Button(onClick = { viewModel.addSharedAssignmentToMyList(shared.id) }) {
-                                            Text(stringResource(R.string.add_to_my_list))
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        SharedAssignmentsCard(
+                            shared = sharedNotAdded,
+                            onAdd = { id -> viewModel.addSharedAssignmentToMyList(id) }
+                        )
                     }
                 }
 
-                if (groupBySubject) {
-                    val grouped = filteredTasks.groupBy { it.subjectTag }
-                    grouped.forEach { (subjectHeader, tasksInSubject) ->
+                if (filteredTasks.isEmpty()) {
+                    item { AssignmentsEmptyState() }
+                } else if (groupBySubject) {
+                    filteredTasks.groupBy { it.subjectTag }.forEach { (subjectHeader, tasksInSubject) ->
                         item {
-                            Text(
-                                text = subjectHeader,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
-                            )
+                            C1SectionHeader(title = subjectHeader)
                         }
                         items(tasksInSubject, key = { it.id }) { task ->
                             AssignmentItemCard(
                                 task = task,
+                                now = now,
                                 onToggleComplete = { viewModel.toggleAssignment(task.id, it) },
                                 onDelete = { viewModel.deleteAssignment(task.id) }
                             )
@@ -1352,6 +1361,7 @@ fun AssignmentsScreen(
                     items(filteredTasks, key = { it.id }) { task ->
                         AssignmentItemCard(
                             task = task,
+                            now = now,
                             onToggleComplete = { viewModel.toggleAssignment(task.id, it) },
                             onDelete = { viewModel.deleteAssignment(task.id) }
                         )
@@ -1362,126 +1372,352 @@ fun AssignmentsScreen(
     }
 
     if (showAddDialog) {
-        var subjectTag by rememberSaveable { mutableStateOf("OS • CS302") }
-        var title by rememberSaveable { mutableStateOf("") }
-        var desc by rememberSaveable { mutableStateOf("") }
-        var priority by rememberSaveable { mutableStateOf("HIGH") }
-        var dueOffsetDays by rememberSaveable { mutableIntStateOf(2) }
-        var dueFormatted by rememberSaveable { mutableStateOf("In 2 days • 05:00 PM") }
-        var remind1Day by rememberSaveable { mutableStateOf(true) }
-        var remind2Hours by rememberSaveable { mutableStateOf(true) }
-        var postToWholeSection by rememberSaveable { mutableStateOf(false) }
-
-        AlertDialog(
-            onDismissRequest = { showAddDialog = false },
-            title = { Text("Add Assignment / Deadline") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = subjectTag, onValueChange = { subjectTag = it }, label = { Text("Subject Tag") })
-                    OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Assignment Title") })
-                    OutlinedTextField(value = desc, onValueChange = { desc = it }, label = { Text("Notes / Instructions") })
-                    OutlinedTextField(value = dueFormatted, onValueChange = { dueFormatted = it }, label = { Text("Due Date & Time") })
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf("HIGH", "MEDIUM", "LOW").forEach { p ->
-                            FilterChip(
-                                selected = priority == p,
-                                onClick = { priority = p },
-                                label = { Text("Priority: $p") }
-                            )
-                        }
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = remind1Day, onCheckedChange = { remind1Day = it })
-                        Text("Remind 1 day before")
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = remind2Hours, onCheckedChange = { remind2Hours = it })
-                        Text("Remind 2 hours before")
-                    }
-                    if (isCrOrTeacher) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(checked = postToWholeSection, onCheckedChange = { postToWholeSection = it })
-                            Text("Publish as Shared Section Assignment")
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    enabled = title.isNotBlank(),
-                    onClick = {
-                        viewModel.saveAssignment(
-                            subjectId = subjectTag.substringAfterLast("•").trim(),
-                            subjectTag = subjectTag,
-                            title = title,
-                            description = desc,
-                            priority = priority,
-                            dueOffsetDays = dueOffsetDays,
-                            dueDateFormatted = dueFormatted,
-                            remind1Day = remind1Day,
-                            remind2Hours = remind2Hours,
-                            postToSection = postToWholeSection
-                        )
-                        showAddDialog = false
-                    }
-                ) { Text("Save") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showAddDialog = false }) { Text("Cancel") }
+        AddAssignmentDialog(
+            isCrOrTeacher = isCrOrTeacher,
+            onDismiss = { showAddDialog = false },
+            onSave = { subjectId, subjectTag, title, description, priority, dueOffsetDays, dueDateFormatted, remind1Day, remind2Hours, postToSection ->
+                viewModel.saveAssignment(
+                    subjectId = subjectId,
+                    subjectTag = subjectTag,
+                    title = title,
+                    description = description,
+                    priority = priority,
+                    dueOffsetDays = dueOffsetDays,
+                    dueDateFormatted = dueDateFormatted,
+                    remind1Day = remind1Day,
+                    remind2Hours = remind2Hours,
+                    postToSection = postToSection
+                )
+                showAddDialog = false
             }
         )
     }
 }
 
 @Composable
+private fun AssignmentsEmptyState() {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = C1Radius.md,
+        color = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        C1EmptyState(
+            icon = Icons.Default.Assignment,
+            title = stringResource(R.string.assignments_empty_title),
+            message = stringResource(R.string.assignments_empty_hint)
+        )
+    }
+}
+
+@Composable
+private fun SharedAssignmentsCard(
+    shared: List<AssignmentEntity>,
+    onAdd: (String) -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = C1Radius.md,
+        color = MaterialTheme.colorScheme.secondaryContainer
+    ) {
+        Column(modifier = Modifier.padding(C1Spacing.lg)) {
+            Text(
+                text = stringResource(R.string.shared_by_section),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            shared.forEach { task ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = C1Spacing.md),
+                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = task.title,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "${task.subjectTag} • ${task.dueDateFormatted} • ${task.authorName}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    C1Button(
+                        text = stringResource(R.string.add_to_my_list),
+                        onClick = { onAdd(task.id) },
+                        intent = C1ButtonIntent.PRIMARY
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
 private fun AssignmentItemCard(
-    task: `in`.campusone.app.data.local.entity.AssignmentEntity,
+    task: AssignmentEntity,
+    now: Long,
     onToggleComplete: (Boolean) -> Unit,
     onDelete: () -> Unit
 ) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+    val overdue = !task.isCompleted && task.dueDateEpochMillis < now
+    val dueSoon = !task.isCompleted && !overdue && task.dueDateEpochMillis - now <= 86_400_000L
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = C1Radius.md,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = if (overdue) {
+            androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
+        } else {
+            null
+        }
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp),
+                .padding(C1Spacing.md),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Checkbox(
                 checked = task.isCompleted,
                 onCheckedChange = onToggleComplete
             )
-            Spacer(modifier = Modifier.width(8.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "${task.subjectTag} • ${task.dueDateFormatted}",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = "[${task.priority}]",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = if (task.priority == "HIGH") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary
-                    )
-                }
+                Text(
+                    text = task.subjectTag,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
                 Text(
                     text = task.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    textDecoration = if (task.isCompleted) TextDecoration.LineThrough else null,
+                    color = if (task.isCompleted) {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    }
                 )
                 if (task.description.isNotBlank()) {
                     Text(
                         text = task.description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
+                Spacer(modifier = Modifier.height(C1Spacing.xs))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                    if (task.isCompleted) {
+                        C1StatusChip(
+                            text = stringResource(R.string.tab_completed),
+                            tone = C1Tone.SUCCESS
+                        )
+                    } else {
+                        if (overdue) {
+                            C1StatusChip(
+                                text = stringResource(R.string.tab_overdue),
+                                tone = C1Tone.DANGER
+                            )
+                        } else if (task.priority == "HIGH") {
+                            C1StatusChip(
+                                text = stringResource(R.string.assignment_urgent),
+                                tone = C1Tone.DANGER
+                            )
+                        } else {
+                            C1StatusChip(
+                                text = stringResource(priorityLabelRes(task.priority)),
+                                tone = priorityTone(task.priority)
+                            )
+                        }
+                        if (dueSoon) {
+                            C1StatusChip(
+                                text = stringResource(R.string.assignment_due),
+                                tone = C1Tone.WARNING
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(C1Spacing.xs))
+                Text(
+                    text = stringResource(R.string.assignment_due_date) + ": " + task.dueDateFormatted,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete Assignment")
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = stringResource(R.string.delete_assignment)
+                )
             }
         }
     }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AddAssignmentDialog(
+    isCrOrTeacher: Boolean,
+    onDismiss: () -> Unit,
+    onSave: (
+        subjectId: String,
+        subjectTag: String,
+        title: String,
+        description: String,
+        priority: String,
+        dueOffsetDays: Int,
+        dueDateFormatted: String,
+        remind1Day: Boolean,
+        remind2Hours: Boolean,
+        postToSection: Boolean
+    ) -> Unit
+) {
+    var subjectTag by rememberSaveable { mutableStateOf("OS • CS302") }
+    var title by rememberSaveable { mutableStateOf("") }
+    var desc by rememberSaveable { mutableStateOf("") }
+    var priority by rememberSaveable { mutableStateOf("HIGH") }
+    var dueOffsetDays by rememberSaveable { mutableIntStateOf(2) }
+    var remind1Day by rememberSaveable { mutableStateOf(true) }
+    var remind2Hours by rememberSaveable { mutableStateOf(true) }
+    var postToWholeSection by rememberSaveable { mutableStateOf(false) }
+
+    val dueMillis = remember(dueOffsetDays) { System.currentTimeMillis() + dueOffsetDays * 86_400_000L }
+    val dueFormatted = remember(dueMillis) {
+        SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault()).format(Date(dueMillis))
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.add_assignment)) },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+            ) {
+                C1TextField(
+                    value = subjectTag,
+                    onValueChange = { subjectTag = it },
+                    label = stringResource(R.string.assignment_subject_tag)
+                )
+                C1TextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = stringResource(R.string.assignment_title)
+                )
+                C1TextField(
+                    value = desc,
+                    onValueChange = { desc = it },
+                    label = stringResource(R.string.assignment_notes),
+                    singleLine = false
+                )
+                Text(
+                    text = stringResource(R.string.assignment_due_date),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                    listOf(0, 1, 2, 7).forEach { offset ->
+                        FilterChip(
+                            selected = dueOffsetDays == offset,
+                            onClick = { dueOffsetDays = offset },
+                            label = {
+                                Text(
+                                    when (offset) {
+                                        0 -> stringResource(R.string.tab_today)
+                                        1 -> stringResource(R.string.assignment_tomorrow)
+                                        7 -> stringResource(R.string.assignment_next_week)
+                                        else -> stringResource(R.string.assignment_due_in_days, offset)
+                                    }
+                                )
+                            }
+                        )
+                    }
+                }
+                Text(
+                    text = dueFormatted,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                    listOf("HIGH", "MEDIUM", "LOW").forEach { p ->
+                        FilterChip(
+                            selected = priority == p,
+                            onClick = { priority = p },
+                            label = { Text(stringResource(priorityLabelRes(p))) }
+                        )
+                    }
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = remind1Day, onCheckedChange = { remind1Day = it })
+                    Spacer(modifier = Modifier.width(C1Spacing.xs))
+                    Text(stringResource(R.string.assignment_remind_1d))
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = remind2Hours, onCheckedChange = { remind2Hours = it })
+                    Spacer(modifier = Modifier.width(C1Spacing.xs))
+                    Text(stringResource(R.string.assignment_remind_2h))
+                }
+                if (isCrOrTeacher) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = postToWholeSection, onCheckedChange = { postToWholeSection = it })
+                        Spacer(modifier = Modifier.width(C1Spacing.xs))
+                        Text(stringResource(R.string.assignment_share))
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            C1Button(
+                text = stringResource(R.string.assignment_save),
+                onClick = {
+                    onSave(
+                        subjectTag.substringAfterLast("•").trim(),
+                        subjectTag,
+                        title,
+                        desc,
+                        priority,
+                        dueOffsetDays,
+                        dueFormatted,
+                        remind1Day,
+                        remind2Hours,
+                        postToWholeSection
+                    )
+                },
+                enabled = title.isNotBlank()
+            )
+        },
+        dismissButton = {
+            C1Button(
+                text = stringResource(R.string.action_cancel),
+                onClick = onDismiss,
+                intent = C1ButtonIntent.GHOST
+            )
+        }
+    )
+}
+
+private fun priorityLabelRes(priority: String): Int = when (priority) {
+    "HIGH" -> R.string.priority_high
+    "LOW" -> R.string.priority_low
+    else -> R.string.priority_medium
+}
+
+private fun priorityTone(priority: String): C1Tone = when (priority) {
+    "HIGH" -> C1Tone.DANGER
+    "LOW" -> C1Tone.NEUTRAL
+    else -> C1Tone.WARNING
 }
 
 // =========================================================================
