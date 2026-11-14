@@ -15,58 +15,68 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// Semantic Attendance Health Colors
-val SafeGreen = Color(0xFF1B8755)
-val SafeGreenContainer = Color(0xFFD3F9E3)
-val EdgeAmber = Color(0xFFD97706)
-val EdgeAmberContainer = Color(0xFFFEF3C7)
-val DangerRed = Color(0xFFDC2626)
-val DangerRedContainer = Color(0xFFFEE2E2)
+// Semantic attendance health colors (forest-harmonized)
+val SafeGreen = Color(0xFF2E7D5B)
+val SafeGreenContainer = Color(0xFFDDEBE2)
+val EdgeAmber = Color(0xFFB45309)
+val EdgeAmberContainer = Color(0xFFF7ECD9)
+val DangerRed = Color(0xFFB42318)
+val DangerRedContainer = Color(0xFFFBE5E2)
 
+// Forest & Ivory — light
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF0E6B4F),
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFFCDEEDF),
-    onPrimaryContainer = Color(0xFF06281D),
-    secondary = Color(0xFF3E5F90),
-    onSecondary = Color.White,
-    secondaryContainer = Color(0xFFDCE7F7),
-    onSecondaryContainer = Color(0xFF10233F),
-    tertiary = Color(0xFF7D5260),
-    background = Color(0xFFF5F5F7),
-    onBackground = Color(0xFF17181A),
+    primary = Color(0xFF183D32),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFDCE7DF),
+    onPrimaryContainer = Color(0xFF102D25),
+    secondary = Color(0xFF315C4B),
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = Color(0xFFE2EAE4),
+    onSecondaryContainer = Color(0xFF102D25),
+    tertiary = Color(0xFF7A5C50),
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = Color(0xFFF0E4DE),
+    onTertiaryContainer = Color(0xFF2E1B14),
+    background = Color(0xFFF7F6F0),
+    onBackground = Color(0xFF202923),
     surface = Color(0xFFFFFFFF),
-    onSurface = Color(0xFF17181A),
-    surfaceVariant = Color(0xFFEDEEF0),
-    onSurfaceVariant = Color(0xFF6E7278),
-    outline = Color(0xFFC7C9CD),
-    error = Color(0xFFDC2626),
-    errorContainer = Color(0xFFFEE2E2),
-    onError = Color.White,
-    onErrorContainer = Color(0xFF410E0B)
+    onSurface = Color(0xFF202923),
+    surfaceVariant = Color(0xFFEFEEE6),
+    onSurfaceVariant = Color(0xFF777E76),
+    outline = Color(0xFFE6E6DC),
+    outlineVariant = Color(0xFFD8D8CC),
+    error = Color(0xFFB42318),
+    errorContainer = Color(0xFFFBE5E2),
+    onError = Color(0xFFFFFFFF),
+    onErrorContainer = Color(0xFF4A0E08)
 )
 
+// Forest & Ivory — dark
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF5BD6A8),
-    onPrimary = Color(0xFF003824),
-    primaryContainer = Color(0xFF0E4A36),
-    onPrimaryContainer = Color(0xFFB9EBD6),
-    secondary = Color(0xFFA8C8FF),
-    onSecondary = Color(0xFF04305F),
-    secondaryContainer = Color(0xFF244777),
-    onSecondaryContainer = Color(0xFFD6E3FF),
-    tertiary = Color(0xFFEFB8C8),
-    background = Color(0xFF000000),
-    onBackground = Color(0xFFF2F2F7),
-    surface = Color(0xFF1C1C1E),
-    onSurface = Color(0xFFF2F2F7),
-    surfaceVariant = Color(0xFF2C2C2E),
-    onSurfaceVariant = Color(0xFF9E9EA5),
-    outline = Color(0xFF48484A),
-    error = Color(0xFFFF6B60),
-    errorContainer = Color(0xFF3A0B08),
-    onError = Color(0xFF2B0503),
-    onErrorContainer = Color(0xFFFEE2E2)
+    primary = Color(0xFF83A995),
+    onPrimary = Color(0xFF102D25),
+    primaryContainer = Color(0xFF24443A),
+    onPrimaryContainer = Color(0xFFC9DCD1),
+    secondary = Color(0xFF9DB8AA),
+    onSecondary = Color(0xFF102D25),
+    secondaryContainer = Color(0xFF2A463B),
+    onSecondaryContainer = Color(0xFFD5E4DB),
+    tertiary = Color(0xFFD3B8AC),
+    onTertiary = Color(0xFF2E1B14),
+    tertiaryContainer = Color(0xFF4A352C),
+    onTertiaryContainer = Color(0xFFF0E4DE),
+    background = Color(0xFF101B17),
+    onBackground = Color(0xFFF1F2EA),
+    surface = Color(0xFF182720),
+    onSurface = Color(0xFFF1F2EA),
+    surfaceVariant = Color(0xFF20332A),
+    onSurfaceVariant = Color(0xFFA6B0A7),
+    outline = Color(0xFF2B3C32),
+    outlineVariant = Color(0xFF24352C),
+    error = Color(0xFFFF8A7A),
+    errorContainer = Color(0xFF4A1510),
+    onError = Color(0xFF3B0A05),
+    onErrorContainer = Color(0xFFFBE5E2)
 )
 
 // iOS-adjacent continuous-feeling corner radii

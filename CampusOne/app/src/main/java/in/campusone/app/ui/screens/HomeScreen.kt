@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -16,13 +17,12 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Translate
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +33,7 @@ import `in`.campusone.app.R
 import `in`.campusone.app.data.local.entity.AssignmentEntity
 import `in`.campusone.app.data.local.entity.ExamEntity
 import `in`.campusone.app.ui.components.AnimatedAttendanceRing
+import `in`.campusone.app.ui.theme.EdgeAmber
 import `in`.campusone.app.ui.viewmodel.CoreUiState
 
 @Composable
@@ -70,10 +71,17 @@ fun HomeScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                OutlinedButton(onClick = onToggleLanguage) {
-                    Icon(Icons.Default.Translate, contentDescription = null)
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(if (uiState.languageTag == "hi") "EN" else "हिन्दी")
+                TextButton(onClick = onToggleLanguage) {
+                    Icon(
+                        Icons.Default.Translate,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        if (uiState.languageTag == "hi") "EN" else "हिन्दी",
+                        style = MaterialTheme.typography.labelLarge
+                    )
                 }
             }
         }
@@ -111,13 +119,10 @@ fun HomeScreen(
                             )
                         }
                         uiState.nextClass?.let { next ->
-                            AssistChip(
-                                onClick = onOpenTimetable,
-                                label = {
-                                    Text(
-                                        if (next.isOngoing) "Now" else "in ${next.minutesUntilStart}m"
-                                    )
-                                }
+                            Text(
+                                text = if (next.isOngoing) "Now" else "in ${next.minutesUntilStart}m",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                     }
@@ -228,9 +233,14 @@ fun HomeScreen(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
-                                AssistChip(
-                                    onClick = onOpenStudyHub,
-                                    label = { Text(task.priority) }
+                                Text(
+                                    text = task.priority,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = when (task.priority) {
+                                        "HIGH" -> MaterialTheme.colorScheme.error
+                                        "LOW" -> MaterialTheme.colorScheme.onSurfaceVariant
+                                        else -> EdgeAmber
+                                    }
                                 )
                             }
                         }
@@ -284,9 +294,11 @@ fun HomeScreen(
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                         }
-                        AssistChip(
-                            onClick = onOpenStudyHub,
-                            label = { Text("In $daysLeft days") }
+                        Text(
+                            text = "In $daysLeft days",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     }
                 }
