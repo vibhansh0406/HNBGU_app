@@ -54,3 +54,12 @@
 - Don't delete files or overwrite working settings without explicit instruction.
 - No paid APIs, no new provider config, no key creation.
 - Commit only when asked. Prefer `git status`/`git diff` review before any commit.
+
+## Skill routing (project-level, `.opencode/skills/`)
+Load skills on demand, one per task — never bulk-load. Preference order when several cover a task:
+- **Design critique / visual polish / DESIGN.md**: `impeccable` (dedicated design authority).
+- **Jetpack Compose specifics** (state/effects, performance, animations, component design, UI testing): `compose-*` skills (chrisbanes) first, then `android-production-ultimate` Compose sections.
+- **Official platform APIs / workflows** (edge-to-edge, adaptive, Navigation 3, AGP upgrades, ANR, R8, security/permissions, Glance, CameraX, profiling): Google `android/skills` set.
+- **Production architecture, security hardening, Play policy, release readiness, anti-AI-slop design taste**: `android-production-ultimate` (routed slices via its references/INDEX.md — do not load whole corpus).
+- **Lifecycle/process workflows** (spec, plan, TDD, review, ship, debugging, git workflow): `agent-skills-android` set (`spec-driven-development`, `test-driven-development`, `code-review-and-quality`, `debugging-and-error-recovery`, ...).
+- **Kotlin language design** (API design, coroutines/Flow, control flow): `kotlin-*` skills (chrisbanes).
