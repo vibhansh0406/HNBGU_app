@@ -21,9 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.domain.usecase.AttendanceHealth
-import `in`.campusone.app.ui.theme.DangerRed
-import `in`.campusone.app.ui.theme.EdgeAmber
-import `in`.campusone.app.ui.theme.SafeGreen
+import `in`.campusone.app.ui.theme.extendedColors
 import java.util.Locale
 
 @Composable
@@ -41,10 +39,11 @@ fun AnimatedAttendanceRing(
         label = "attendanceRingSweep"
     )
 
+    val extended = extendedColors
     val ringColor = when (health) {
-        AttendanceHealth.SAFE -> SafeGreen
-        AttendanceHealth.ON_EDGE, AttendanceHealth.WARNING -> EdgeAmber
-        AttendanceHealth.CRITICAL -> DangerRed
+        AttendanceHealth.SAFE -> extended.success
+        AttendanceHealth.ON_EDGE, AttendanceHealth.WARNING -> extended.warning
+        AttendanceHealth.CRITICAL -> MaterialTheme.colorScheme.error
         AttendanceHealth.NO_DATA -> MaterialTheme.colorScheme.outline
     }
     val trackColor = MaterialTheme.colorScheme.surfaceVariant

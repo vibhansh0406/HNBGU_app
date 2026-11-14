@@ -8,6 +8,8 @@ import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -43,6 +45,11 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Color(0xFF202923),
     surfaceVariant = Color(0xFFEFEEE6),
     onSurfaceVariant = Color(0xFF5E665E),
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceContainerLow = Color(0xFFF2F1E9),
+    surfaceContainer = Color(0xFFEDECE3),
+    surfaceContainerHigh = Color(0xFFE7E6DC),
+    surfaceContainerHighest = Color(0xFFE1E0D5),
     outline = Color(0xFFE6E6DC),
     outlineVariant = Color(0xFFD8D8CC),
     error = Color(0xFFB42318),
@@ -71,6 +78,11 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = Color(0xFFF1F2EA),
     surfaceVariant = Color(0xFF20332A),
     onSurfaceVariant = Color(0xFFA6B0A7),
+    surfaceContainerLowest = Color(0xFF0D1713),
+    surfaceContainerLow = Color(0xFF14211B),
+    surfaceContainer = Color(0xFF192720),
+    surfaceContainerHigh = Color(0xFF1E2F27),
+    surfaceContainerHighest = Color(0xFF243630),
     outline = Color(0xFF2B3C32),
     outlineVariant = Color(0xFF24352C),
     error = Color(0xFFFF8A7A),
@@ -167,11 +179,21 @@ fun CampusOneTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val extended = if (darkTheme) DarkExtendedColors else LightExtendedColors
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = ExpressiveTypography,
-        shapes = ExpressiveShapes,
-        content = content
-    )
+    CompositionLocalProvider(LocalExtendedColors provides extended) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = ExpressiveTypography,
+            shapes = ExpressiveShapes,
+            content = content
+        )
+    }
 }
+
+/** Theme-aware semantic colors: success/warning/info pairs and the hairline. */
+val LocalExtendedColors = staticCompositionLocalOf { LightExtendedColors }
+
+/** Convenience accessor for semantic colors inside composables. */
+val extendedColors: ExtendedColors
+    @Composable get() = LocalExtendedColors.current
