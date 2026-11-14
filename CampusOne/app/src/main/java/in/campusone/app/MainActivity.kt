@@ -80,6 +80,7 @@ import `in`.campusone.app.data.repository.CoreCampusRepository
 import `in`.campusone.app.ui.screens.AttendanceScreen
 import `in`.campusone.app.ui.screens.HomeScreen
 import `in`.campusone.app.ui.screens.MoreHubScreen
+import `in`.campusone.app.ui.screens.MoreSubScreen
 import `in`.campusone.app.ui.screens.NoticeBoardScreen
 import `in`.campusone.app.ui.screens.OnboardingScreen
 import `in`.campusone.app.ui.screens.TimetableScreen
@@ -203,6 +204,8 @@ fun CampusOneRoot(
     val studyCampusState by studyCampusViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var currentTab by rememberSaveable { mutableStateOf(BottomNavTab.HOME) }
+    var pendingMoreScreen by rememberSaveable { mutableStateOf<MoreSubScreen?>(null) }
+    val noticesSyncError by coreViewModel.noticesSyncError.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         coreViewModel.uiMessages.collect { msg ->
@@ -303,11 +306,24 @@ fun CampusOneRoot(
                     uiState = coreState,
                     nextThreeDeadlines = studyCampusState.nextThreeDeadlines,
                     nextUpcomingExam = studyCampusState.nextUpcomingExam,
+                    dataRefreshError = noticesSyncError,
                     onToggleLanguage = coreViewModel::toggleLanguage,
+                    onOpenProfile = {
+                        pendingMoreScreen = MoreSubScreen.HUB
+                        currentTab = BottomNavTab.MORE
+                    },
                     onOpenAttendance = { currentTab = BottomNavTab.ATTENDANCE },
                     onOpenTimetable = { currentTab = BottomNavTab.TIMETABLE },
                     onOpenNotices = { currentTab = BottomNavTab.NOTICES },
-                    onOpenStudyHub = { currentTab = BottomNavTab.MORE }
+                    onOpenNotice = { noticeId ->
+                        coreViewModel.markNoticeRead(noticeId)
+                        currentTab = BottomNavTab.NOTICES
+                    },
+                    onOpenMore = { screen ->
+                        pendingMoreScreen = screen
+                        currentTab = BottomNavTab.MORE
+                    },
+                    onRetryRefresh = coreViewModel::refreshNotices
                 )
                 BottomNavTab.ATTENDANCE -> AttendanceScreen(
                     uiState = coreState,
@@ -331,7 +347,9 @@ fun CampusOneRoot(
                     onSignOut = {
                         onSignOut()
                         currentTab = BottomNavTab.HOME
-                    }
+                    },
+                    deepLink = pendingMoreScreen,
+                    onDeepLinkConsumed = { pendingMoreScreen = null }
                 )
             }
         }

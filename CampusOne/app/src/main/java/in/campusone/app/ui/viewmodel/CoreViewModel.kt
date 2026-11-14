@@ -21,9 +21,11 @@ import `in`.campusone.app.domain.usecase.TimetableEngine
 import `in`.campusone.app.domain.usecase.EvaluatedSlot
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -63,6 +65,9 @@ class CoreViewModel @Inject constructor(
 
     private val _uiMessages = MutableSharedFlow<String>()
     val uiMessages = _uiMessages.asSharedFlow()
+
+    private val _noticesSyncError = MutableStateFlow(false)
+    val noticesSyncError: StateFlow<Boolean> = _noticesSyncError.asStateFlow()
 
     val introSeen: StateFlow<Boolean?> = prefs.hasSeenIntro
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
@@ -135,7 +140,7 @@ class CoreViewModel @Inject constructor(
         Triple(onboarded, profile, lang)
     }.flatMapLatest { (onboarded, profile, lang) ->
         viewModelScope.launch {
-            repository.ensureSeededForSection(profile.sectionKey)
+            _noticesSyncError.value = repository.ensureSeededForSection(profile.sectionKey).isFailure
         }
         combine(
             repository.observeSubjectAttendanceSummaries(profile.sectionKey),
@@ -313,6 +318,13 @@ class CoreViewModel @Inject constructor(
     fun markAllNoticesRead() {
         viewModelScope.launch {
             repository.markAllNoticesRead(uiState.value.profile.sectionKey)
+        }
+    }
+
+    fun refreshNotices() {
+        viewModelScope.launch {
+            val sectionKey = prefs.userProfile.first().sectionKey
+            _noticesSyncError.value = repository.ensureSeededForSection(sectionKey).isFailure
         }
     }
 }

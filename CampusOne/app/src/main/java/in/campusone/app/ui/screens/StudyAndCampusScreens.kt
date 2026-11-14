@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
@@ -180,6 +181,8 @@ fun MoreHubScreen(
     uiState: StudyAndCampusUiState,
     viewModel: StudyAndCampusViewModel,
     onSignOut: () -> Unit = {},
+    deepLink: MoreSubScreen? = null,
+    onDeepLinkConsumed: () -> Unit = {},
     adminViewModel: `in`.campusone.app.ui.viewmodel.AdminViewModel = hiltViewModel(),
     moderatorViewModel: `in`.campusone.app.ui.viewmodel.ModeratorViewModel = hiltViewModel()
 ) {
@@ -187,6 +190,18 @@ fun MoreHubScreen(
     var showRoleRequest by rememberSaveable { mutableStateOf(false) }
     var requestedRole by rememberSaveable { mutableStateOf(UserRole.CR.name) }
     var roleRequestNote by rememberSaveable { mutableStateOf("") }
+
+    LaunchedEffect(deepLink) {
+        if (deepLink != null) {
+            activeScreen = deepLink
+            onDeepLinkConsumed()
+        }
+    }
+
+    BackHandler(enabled = activeScreen != MoreSubScreen.HUB) {
+        activeScreen = MoreSubScreen.HUB
+    }
+
     val isAdmin = uiState.profile.role == `in`.campusone.app.domain.model.UserRole.ADMIN ||
         uiState.profile.email.equals(
             `in`.campusone.app.data.repository.CoreCampusRepository.OWNER_EMAIL,

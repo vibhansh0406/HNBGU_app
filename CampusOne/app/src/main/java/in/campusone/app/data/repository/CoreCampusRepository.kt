@@ -109,7 +109,10 @@ class CoreCampusRepository @Inject constructor(
         )
     }
 
-    suspend fun ensureSeededForSection(sectionKey: String) {
+    suspend fun ensureSeededForSection(sectionKey: String): Result<Unit> =
+        runCatching { seedSectionData(sectionKey) }
+
+    private suspend fun seedSectionData(sectionKey: String) {
         val profile = prefs.userProfile.first()
         // Seeding/initialization is allowed for everyone; the scope check only
         // applies to moderator/admin write actions, not to local bootstrap.
@@ -126,6 +129,8 @@ class CoreCampusRepository @Inject constructor(
             attendanceDao.upsertSubjects(HnbguSeedData.defaultSubjects(sectionKey))
             timetableDao.upsertSlots(HnbguSeedData.defaultTimetable(sectionKey))
         }
+
+        restoreAttendanceFromCloud()
 
         // Sync with Supabase if user is signed in (permanent backend)
         if (supabaseSync.isSyncedEnabled()) {
@@ -174,7 +179,6 @@ class CoreCampusRepository @Inject constructor(
                 })
             }
         }
-        restoreAttendanceFromCloud()
     }
 
     private suspend fun restoreAttendanceFromCloud() {

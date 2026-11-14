@@ -272,6 +272,7 @@ class SupabaseSyncRepository @Inject constructor(
             .eq("section_key", sectionKey)
             .order("created_at", ascending = false)
             .execute()
+        result.error?.let { throw IllegalStateException(it) }
         return result.data as? List<Map<String, Any>> ?: emptyList()
     }
 

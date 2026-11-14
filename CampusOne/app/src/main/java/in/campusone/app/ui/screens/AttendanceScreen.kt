@@ -48,6 +48,7 @@ import `in`.campusone.app.ui.components.AnimatedAttendanceRing
 import `in`.campusone.app.ui.theme.DangerRed
 import `in`.campusone.app.ui.theme.EdgeAmber
 import `in`.campusone.app.ui.theme.SafeGreen
+import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.viewmodel.CoreUiState
 import `in`.campusone.app.ui.viewmodel.SubjectWithInsight
 import java.time.LocalDate
@@ -328,6 +329,7 @@ private fun AttendanceStatusBadge(status: AttendanceStatus) {
 
 @Composable
 fun SmartCalculatorBanner(insight: AttendanceInsight) {
+    val extended = extendedColors
     val (text, color) = when (insight.health) {
         AttendanceHealth.NO_DATA ->
             stringResource(R.string.no_classes_recorded) to MaterialTheme.colorScheme.onSurfaceVariant
@@ -336,18 +338,18 @@ fun SmartCalculatorBanner(insight: AttendanceInsight) {
                 R.string.bunk_safe,
                 insight.classesCanMissSafely,
                 insight.targetPercentage
-            ) to SafeGreen
+            ) to extended.success
         AttendanceHealth.ON_EDGE ->
             stringResource(
                 R.string.bunk_on_edge,
                 insight.targetPercentage
-            ) to EdgeAmber
+            ) to extended.warning
         AttendanceHealth.WARNING, AttendanceHealth.CRITICAL ->
             stringResource(
                 R.string.bunk_recover,
                 insight.classesMustAttendToRecover,
                 insight.targetPercentage
-            ) to DangerRed
+            ) to MaterialTheme.colorScheme.error
     }
     Text(
         text = text,
