@@ -40,6 +40,8 @@ data class AdminUserRecord(
     val courseName: String,
     val semester: Int,
     val section: String,
+    val isSuspended: Boolean,
+    val createdAtMillis: Long,
     val updatedAtMillis: Long
 )
 
@@ -60,7 +62,7 @@ data class UserAttendanceRow(
     val cancelled: Int
 )
 
-enum class FlaggedKind { RESOURCE, CLUB, EVENT }
+enum class FlaggedKind { RESOURCE, CLUB, EVENT, LOST_FOUND }
 
 data class FlaggedItem(
     val id: String,
@@ -68,6 +70,88 @@ data class FlaggedItem(
     val subtitle: String,
     val kind: FlaggedKind
 )
+
+data class AuditEntry(
+    val id: String,
+    val actorEmail: String,
+    val action: String,
+    val targetType: String,
+    val targetId: String,
+    val detail: String,
+    val result: String,
+    val createdAtMillis: Long
+)
+
+data class ContentReportRecord(
+    val id: String,
+    val targetType: String,
+    val targetId: String,
+    val reason: String,
+    val reporterEmail: String,
+    val status: String,
+    val createdAtMillis: Long
+)
+
+data class PlatformSettings(
+    val maintenanceMode: Boolean = false,
+    val maintenanceMessage: String = "",
+    val announcementBanner: String = "",
+    val announcementEnabled: Boolean = false,
+    val registrationEnabled: Boolean = true,
+    val resourceUploadsEnabled: Boolean = true,
+    val featureNotices: Boolean = true,
+    val featureResources: Boolean = true,
+    val featureAssignments: Boolean = true,
+    val featureEvents: Boolean = true,
+    val featureAttendance: Boolean = true
+) {
+    fun toMap(): Map<String, Any> = mapOf(
+        "maintenance_mode" to maintenanceMode,
+        "maintenance_message" to maintenanceMessage,
+        "announcement_banner" to announcementBanner,
+        "announcement_enabled" to announcementEnabled,
+        "registration_enabled" to registrationEnabled,
+        "resource_uploads_enabled" to resourceUploadsEnabled,
+        "feature_notices" to featureNotices,
+        "feature_resources" to featureResources,
+        "feature_assignments" to featureAssignments,
+        "feature_events" to featureEvents,
+        "feature_attendance" to featureAttendance
+    )
+
+    companion object {
+        fun from(map: Map<String, Any>?): PlatformSettings {
+            if (map == null) return PlatformSettings()
+            fun bool(key: String, default: Boolean): Boolean = when (val v = map[key]) {
+                is Boolean -> v
+                is String -> v.equals("true", ignoreCase = true)
+                else -> default
+            }
+            fun str(key: String): String = map[key] as? String ?: ""
+            return PlatformSettings(
+                maintenanceMode = bool("maintenance_mode", false),
+                maintenanceMessage = str("maintenance_message"),
+                announcementBanner = str("announcement_banner"),
+                announcementEnabled = bool("announcement_enabled", false),
+                registrationEnabled = bool("registration_enabled", true),
+                resourceUploadsEnabled = bool("resource_uploads_enabled", true),
+                featureNotices = bool("feature_notices", true),
+                featureResources = bool("feature_resources", true),
+                featureAssignments = bool("feature_assignments", true),
+                featureEvents = bool("feature_events", true),
+                featureAttendance = bool("feature_attendance", true)
+            )
+        }
+    }
+}
+
+/** Result of a privileged admin operation. */
+data class AdminActionResult(
+    val success: Boolean,
+    val message: String
+)
+
+private val ASSIGNABLE_ROLE_NAMES = setOf("STUDENT", "CR", "TEACHER", "CLUB_ADMIN", "MODERATOR", "ADMIN")
 
 @Singleton
 class AdminRepository @Inject constructor(
@@ -92,10 +176,18 @@ class AdminRepository @Inject constructor(
         prefs.saveUserProfile(profile, markOnboarded = true)
     }
 
-    suspend fun updateProfileRole(uid: String, role: UserRole) {
-        // Re-encode the current profile with the new role
-        val current = prefs.userProfile.first()
-        prefs.saveUserProfile(current.copy(role = role), markOnboarded = true)
+    /**
+     * Reads the caller's authoritative identity from the database. The result is
+     * never persisted: a cached role would survive revocation.
+     */
+    suspend fun loadIdentity(): AdminIdentity {
+        val state = supabaseSync.fetchAdminState() ?: return AdminIdentity.Anonymous
+        return AdminIdentity(
+            role = state.role,
+            isOwner = state.isOwner,
+            isSuspended = state.isSuspended,
+            permissions = state.permissions.mapNotNull { AdminPermission.from(it) }.toSet()
+        )
     }
 
     suspend fun loadAllUsers(): List<AdminUserRecord> =
@@ -110,14 +202,29 @@ class AdminRepository @Inject constructor(
                 courseName = map["course_name"] as? String ?: "",
                 semester = (map["semester"] as? Number)?.toInt() ?: 1,
                 section = map["section"] as? String ?: "A",
+                isSuspended = map["is_suspended"] == true,
+                createdAtMillis = (map["created_at"] as? Number)?.toLong() ?: 0L,
                 updatedAtMillis = (map["updated_at"] as? Number)?.toLong() ?: 0L
             )
         }
 
-    suspend fun updateUserRole(uid: String, role: UserRole): Boolean =
-        supabaseSync.updateProfileRole(uid, role.name)
+    suspend fun updateUserRole(uid: String, role: UserRole): AdminActionResult {
+        if (role.name !in ASSIGNABLE_ROLE_NAMES) {
+            return AdminActionResult(false, "Unsupported role")
+        }
+        val ok = supabaseSync.adminSetRole(uid, role.name)
+        return AdminActionResult(ok, if (ok) "Role updated" else "Role change rejected by server")
+    }
 
-    suspend fun removeUser(uid: String): Boolean = supabaseSync.deleteProfile(uid)
+    suspend fun setUserSuspended(uid: String, suspended: Boolean): AdminActionResult {
+        val ok = supabaseSync.adminSetSuspended(uid, suspended)
+        return AdminActionResult(ok, if (ok) "Account updated" else "Account update rejected by server")
+    }
+
+    suspend fun removeUser(uid: String): AdminActionResult {
+        val ok = supabaseSync.adminDeleteUser(uid)
+        return AdminActionResult(ok, if (ok) "User removed" else "Removal rejected by server")
+    }
 
     suspend fun loadRoleRequests(): List<RoleRequestRecord> =
         supabaseSync.downloadRoleRequests().mapNotNull { map ->
@@ -133,18 +240,15 @@ class AdminRepository @Inject constructor(
             )
         }
 
-    suspend fun approveRoleRequest(
-        requestId: String,
-        uid: String,
-        role: UserRole,
-        reviewer: String
-    ): Boolean {
-        if (!supabaseSync.updateProfileRole(uid, role.name)) return false
-        return supabaseSync.updateRoleRequestStatus(requestId, "APPROVED", reviewer)
+    suspend fun approveRoleRequest(request: RoleRequestRecord): AdminActionResult {
+        val ok = supabaseSync.adminApproveRoleRequest(request.id)
+        return AdminActionResult(ok, if (ok) "Request approved" else "Approval rejected by server")
     }
 
-    suspend fun rejectRoleRequest(requestId: String, reviewer: String): Boolean =
-        supabaseSync.updateRoleRequestStatus(requestId, "REJECTED", reviewer)
+    suspend fun rejectRoleRequest(request: RoleRequestRecord): AdminActionResult {
+        val ok = supabaseSync.adminRejectRoleRequest(request.id)
+        return AdminActionResult(ok, if (ok) "Request rejected" else "Could not reject request")
+    }
 
     suspend fun loadUserAttendance(uid: String): List<UserAttendanceRow> =
         supabaseSync.downloadAttendanceLogs(uid)
@@ -188,15 +292,72 @@ class AdminRepository @Inject constructor(
                 kind = FlaggedKind.EVENT
             )
         }
-        return resources + clubs + events
+        val lostFound = supabaseSync.downloadFlaggedLostFound().mapNotNull { map ->
+            val id = map["id"] as? String ?: return@mapNotNull null
+            val reports = (map["report_count"] as? Number)?.toInt() ?: 0
+            FlaggedItem(
+                id = id,
+                title = map["title"] as? String ?: "Lost & Found item",
+                subtitle = "${map["location"] as? String ?: "Campus"} • $reports reports",
+                kind = FlaggedKind.LOST_FOUND
+            )
+        }
+        return resources + clubs + events + lostFound
     }
 
-    suspend fun moderateFlagged(item: FlaggedItem, hide: Boolean) {
-        when (item.kind) {
-            FlaggedKind.RESOURCE -> supabaseSync.setResourceHidden(item.id, hide)
-            FlaggedKind.CLUB -> supabaseSync.setClubModeration(item.id, approved = !hide, flagged = false)
-            FlaggedKind.EVENT -> supabaseSync.setEventModeration(item.id, approved = !hide, flagged = false)
+    suspend fun moderateFlagged(item: FlaggedItem, action: String): AdminActionResult {
+        val targetType = when (item.kind) {
+            FlaggedKind.RESOURCE -> "RESOURCE"
+            FlaggedKind.CLUB -> "CLUB"
+            FlaggedKind.EVENT -> "EVENT"
+            FlaggedKind.LOST_FOUND -> "LOST_FOUND"
         }
+        val ok = supabaseSync.adminModerateContent(targetType, item.id, action)
+        return AdminActionResult(ok, if (ok) "Moderation applied" else "Moderation rejected by server")
+    }
+
+    suspend fun loadContentReports(): List<ContentReportRecord> =
+        supabaseSync.downloadContentReports().mapNotNull { map ->
+            val id = map["id"] as? String ?: return@mapNotNull null
+            ContentReportRecord(
+                id = id,
+                targetType = map["target_type"] as? String ?: "",
+                targetId = map["target_id"] as? String ?: "",
+                reason = map["reason"] as? String ?: "",
+                reporterEmail = map["reporter_email"] as? String ?: "",
+                status = map["status"] as? String ?: "PENDING",
+                createdAtMillis = (map["created_at"] as? Number)?.toLong() ?: 0L
+            )
+        }
+
+    suspend fun loadAuditLogs(): List<AuditEntry> =
+        supabaseSync.downloadAuditLogs().mapNotNull { map ->
+            val id = map["id"] as? String ?: return@mapNotNull null
+            AuditEntry(
+                id = id,
+                actorEmail = map["actor_email"] as? String ?: "",
+                action = map["action"] as? String ?: "",
+                targetType = map["target_type"] as? String ?: "",
+                targetId = map["target_id"] as? String ?: "",
+                detail = (map["detail"] as? Map<String, Any>)?.entries?.joinToString(", ") { (k, v) ->
+                    "$k=$v"
+                } ?: "",
+                result = map["result"] as? String ?: "SUCCESS",
+                createdAtMillis = (map["created_at"] as? Number)?.toLong() ?: 0L
+            )
+        }
+
+    suspend fun loadPlatformSettings(): PlatformSettings =
+        PlatformSettings.from(supabaseSync.downloadPlatformSettings())
+
+    suspend fun savePlatformSettings(settings: PlatformSettings): AdminActionResult {
+        val ok = supabaseSync.adminUpdateSettings(settings.toMap())
+        return AdminActionResult(ok, if (ok) "Settings saved" else "Settings change rejected by server")
+    }
+
+    suspend fun recoverOwnerAccess(): AdminActionResult {
+        val ok = supabaseSync.ownerRecoverAdmin()
+        return AdminActionResult(ok, if (ok) "Owner access restored" else "Recovery refused")
     }
 
     private fun roleOf(name: String?): UserRole =

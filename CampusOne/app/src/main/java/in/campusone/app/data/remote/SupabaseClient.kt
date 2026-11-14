@@ -6,6 +6,9 @@ interface SupabaseClient {
 
     fun from(table: String): SupabaseQueryBuilder
 
+    /** Call a Postgres function (Supabase RPC). */
+    suspend fun rpc(function: String, params: Map<String, Any> = emptyMap()): SupabaseResponse
+
     val auth: SupabaseAuth
 
     /** Observable session so the UI reacts to sign-in/sign-out. */
@@ -15,8 +18,11 @@ interface SupabaseClient {
 interface SupabaseQueryBuilder {
     fun select(columns: String): SupabaseQueryBuilder
     fun eq(column: String, value: Any): SupabaseQueryBuilder
+    fun neq(column: String, value: Any): SupabaseQueryBuilder
+    fun inArray(column: String, values: List<String>): SupabaseQueryBuilder
     fun or(filter: String): SupabaseQueryBuilder
     fun order(column: String, ascending: Boolean): SupabaseQueryBuilder
+    fun limit(count: Int): SupabaseQueryBuilder
     fun single(): SupabaseQueryBuilder
     suspend fun upsert(data: Map<String, Any>): SupabaseResponse
     suspend fun upsert(data: List<Map<String, Any>>): SupabaseResponse
@@ -38,6 +44,8 @@ data class SupabaseResponse(
 interface SupabaseAuth {
     suspend fun signInWithIdToken(provider: String, token: String): SupabaseSession?
     suspend fun signOut()
+    /** Exchanges a refresh token for a new access token. False when revoked. */
+    suspend fun refreshSession(refreshToken: String): Boolean
     val currentSession: SupabaseSession?
     val currentUser: SupabaseUser?
     fun authStateChanges(callback: (SupabaseSession?) -> Unit): Unit

@@ -18,6 +18,21 @@ class SupabaseSyncRepository @Inject constructor(
     /** Check if Supabase is configured and user is signed in. */
     fun isSyncedEnabled(): Boolean = currentUserId != null
 
+    companion object {
+        /** Upper bound on rows pulled for any admin listing. */
+        const val ADMIN_PAGE_LIMIT = 500
+    }
+
+    /** Authoritative identity/permission snapshot returned by the database. */
+    data class AdminState(
+        val role: String,
+        val isOwner: Boolean,
+        val isSuspended: Boolean,
+        val permissions: Set<String>
+    ) {
+        fun can(permission: String): Boolean = isOwner || permission in permissions
+    }
+
     // =========================================================================
     // PROFILES SYNC
     // =========================================================================
@@ -59,27 +74,125 @@ class SupabaseSyncRepository @Inject constructor(
         return (result.data as? List<Map<String, Any>>)?.firstOrNull()
     }
 
+    // =========================================================================
+    // SERVER-VERIFIED ADMIN OPERATIONS
+    // Every privileged mutation goes through a SECURITY DEFINER function that
+    // checks the caller's permission server-side and writes an audit row.
+    // =========================================================================
+
+    /** Reads the caller's authoritative role/permission set from the database. */
+    suspend fun fetchAdminState(): AdminState? {
+        if (!isSyncedEnabled()) return null
+        val response = supabaseClient.rpc("campusone_my_admin_state")
+        if (!response.isSuccess) return null
+        val map = response.data as? Map<String, Any> ?: return null
+        if (map["signedIn"] != true) return null
+        val permissions = (map["permissions"] as? List<*>)?.mapNotNull { it as? String }?.toSet()
+            ?: emptySet()
+        return AdminState(
+            role = map["role"] as? String ?: "STUDENT",
+            isOwner = map["isOwner"] == true,
+            isSuspended = map["isSuspended"] == true,
+            permissions = permissions
+        )
+    }
+
+    suspend fun bootstrapProfile(name: String, email: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val response = supabaseClient.rpc(
+            "campusone_bootstrap_profile",
+            mapOf("p_name" to name, "p_email" to email)
+        )
+        return response.isSuccess && (response.data as? Map<String, Any>)?.get("ok") == true
+    }
+
+    suspend fun adminSetRole(uid: String, role: String): Boolean =
+        callAdmin("admin_set_role", mapOf("p_uid" to uid, "p_role" to role))
+
+    suspend fun adminApproveRoleRequest(requestId: String): Boolean =
+        callAdmin("admin_approve_role_request", mapOf("p_request" to requestId))
+
+    suspend fun adminRejectRoleRequest(requestId: String): Boolean =
+        callAdmin("admin_reject_role_request", mapOf("p_request" to requestId))
+
+    suspend fun adminSetSuspended(uid: String, suspended: Boolean): Boolean =
+        callAdmin("admin_set_suspended", mapOf("p_uid" to uid, "p_suspended" to suspended))
+
+    suspend fun adminDeleteUser(uid: String): Boolean =
+        callAdmin("admin_delete_user", mapOf("p_uid" to uid))
+
+    suspend fun adminModerateContent(targetType: String, targetId: String, action: String): Boolean =
+        callAdmin(
+            "admin_moderate_content",
+            mapOf("p_target_type" to targetType, "p_target_id" to targetId, "p_action" to action)
+        )
+
+    suspend fun adminUpdateSettings(settings: Map<String, Any>): Boolean =
+        callAdmin("admin_update_settings", mapOf("p_settings" to settings))
+
+    suspend fun ownerRecoverAdmin(): Boolean =
+        callAdmin("owner_recover_admin")
+
+    private suspend fun callAdmin(function: String, params: Map<String, Any> = emptyMap()): Boolean {
+        if (!isSyncedEnabled()) return false
+        val response = supabaseClient.rpc(function, params)
+        if (!response.isSuccess) return false
+        return (response.data as? Map<String, Any>)?.get("ok") == true
+    }
+
+    suspend fun downloadAuditLogs(limit: Int = 200): List<Map<String, Any>> {
+        if (!isSyncedEnabled()) return emptyList()
+        val result = supabaseClient.from("audit_logs")
+            .select("*")
+            .order("created_at", ascending = false)
+            .limit(limit)
+            .execute()
+        return result.data as? List<Map<String, Any>> ?: emptyList()
+    }
+
+    suspend fun downloadContentReports(): List<Map<String, Any>> {
+        if (!isSyncedEnabled()) return emptyList()
+        val result = supabaseClient.from("content_reports")
+            .select("*")
+            .order("created_at", ascending = false)
+            .limit(ADMIN_PAGE_LIMIT)
+            .execute()
+        return result.data as? List<Map<String, Any>> ?: emptyList()
+    }
+
+    /** Files a report against a content item in the central moderation queue. */
+    suspend fun submitContentReport(targetType: String, targetId: String, reason: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val uid = currentUserId ?: return false
+        val result = supabaseClient.from("content_reports").insert(mapOf(
+            "target_type" to targetType,
+            "target_id" to targetId,
+            "reason" to reason,
+            "reporter_id" to uid,
+            "reporter_email" to (authManager.currentUserEmail() ?: ""),
+            "status" to "PENDING",
+            "created_at" to System.currentTimeMillis()
+        ))
+        return result.isSuccess
+    }
+
+    suspend fun downloadPlatformSettings(): Map<String, Any>? {
+        if (!isSyncedEnabled()) return null
+        val result = supabaseClient.from("platform_settings")
+            .select("*")
+            .eq("id", "global")
+            .execute()
+        return (result.data as? List<Map<String, Any>>)?.firstOrNull()
+    }
+
     suspend fun downloadAllProfiles(): List<Map<String, Any>> {
         if (!isSyncedEnabled()) return emptyList()
         val result = supabaseClient.from("profiles")
             .select("*")
             .order("updated_at", ascending = false)
+            .limit(ADMIN_PAGE_LIMIT)
             .execute()
         return result.data as? List<Map<String, Any>> ?: emptyList()
-    }
-
-    suspend fun updateProfileRole(uid: String, role: String): Boolean {
-        if (!isSyncedEnabled()) return false
-        val result = supabaseClient.from("profiles")
-            .eq("id", uid)
-            .update(mapOf("role" to role, "updated_at" to System.currentTimeMillis()))
-        return result.isSuccess
-    }
-
-    suspend fun deleteProfile(uid: String): Boolean {
-        if (!isSyncedEnabled()) return false
-        val result = supabaseClient.from("profiles").eq("id", uid).delete()
-        return result.isSuccess
     }
 
     suspend fun downloadRoleRequests(): List<Map<String, Any>> {
@@ -87,33 +200,9 @@ class SupabaseSyncRepository @Inject constructor(
         val result = supabaseClient.from("role_requests")
             .select("*")
             .order("created_at", ascending = false)
+            .limit(ADMIN_PAGE_LIMIT)
             .execute()
         return result.data as? List<Map<String, Any>> ?: emptyList()
-    }
-
-    suspend fun submitRoleRequest(uid: String, email: String, role: String, note: String): Boolean {
-        if (!isSyncedEnabled()) return false
-        val result = supabaseClient.from("role_requests").insert(mapOf(
-            "user_id" to uid,
-            "email" to email,
-            "requested_role" to role,
-            "note" to note,
-            "status" to "PENDING",
-            "created_at" to System.currentTimeMillis()
-        ))
-        return result.isSuccess
-    }
-
-    suspend fun updateRoleRequestStatus(id: String, status: String, reviewer: String): Boolean {
-        if (!isSyncedEnabled()) return false
-        val result = supabaseClient.from("role_requests")
-            .eq("id", id)
-            .update(mapOf(
-                "status" to status,
-                "reviewed_by" to reviewer,
-                "reviewed_at" to System.currentTimeMillis()
-            ))
-        return result.isSuccess
     }
 
     suspend fun downloadFlaggedResources(): List<Map<String, Any>> {
@@ -126,14 +215,6 @@ class SupabaseSyncRepository @Inject constructor(
         return result.data as? List<Map<String, Any>> ?: emptyList()
     }
 
-    suspend fun setResourceHidden(id: String, hidden: Boolean): Boolean {
-        if (!isSyncedEnabled()) return false
-        val result = supabaseClient.from("study_resources")
-            .eq("id", id)
-            .update(mapOf("is_hidden" to hidden, "updated_at" to System.currentTimeMillis()))
-        return result.isSuccess
-    }
-
     suspend fun downloadFlaggedClubs(): List<Map<String, Any>> {
         if (!isSyncedEnabled()) return emptyList()
         val result = supabaseClient.from("clubs")
@@ -141,18 +222,6 @@ class SupabaseSyncRepository @Inject constructor(
             .eq("is_flagged", true)
             .execute()
         return result.data as? List<Map<String, Any>> ?: emptyList()
-    }
-
-    suspend fun setClubModeration(id: String, approved: Boolean, flagged: Boolean): Boolean {
-        if (!isSyncedEnabled()) return false
-        val result = supabaseClient.from("clubs")
-            .eq("id", id)
-            .update(mapOf(
-                "is_approved" to approved,
-                "is_flagged" to flagged,
-                "updated_at" to System.currentTimeMillis()
-            ))
-        return result.isSuccess
     }
 
     suspend fun downloadFlaggedEvents(): List<Map<String, Any>> {
@@ -164,16 +233,14 @@ class SupabaseSyncRepository @Inject constructor(
         return result.data as? List<Map<String, Any>> ?: emptyList()
     }
 
-    suspend fun setEventModeration(id: String, approved: Boolean, flagged: Boolean): Boolean {
-        if (!isSyncedEnabled()) return false
-        val result = supabaseClient.from("campus_events")
-            .eq("id", id)
-            .update(mapOf(
-                "is_approved" to approved,
-                "is_flagged" to flagged,
-                "updated_at" to System.currentTimeMillis()
-            ))
-        return result.isSuccess
+    suspend fun downloadFlaggedLostFound(): List<Map<String, Any>> {
+        if (!isSyncedEnabled()) return emptyList()
+        val result = supabaseClient.from("lost_found_items")
+            .select("*")
+            .or("is_hidden.eq.true,report_count.gt.0")
+            .order("report_count", ascending = false)
+            .execute()
+        return result.data as? List<Map<String, Any>> ?: emptyList()
     }
 
     // =========================================================================

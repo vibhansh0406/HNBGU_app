@@ -98,17 +98,31 @@ class AuthManager @Inject constructor(
         role: String = "STUDENT"
     ): Result<Unit> {
         return try {
-            val response = supabaseClient.from("profiles").upsert(mapOf(
-                "id" to uid,
-                "email" to (email ?: ""),
-                "full_name" to (name ?: ""),
-                "role" to role,
-                "updated_at" to System.currentTimeMillis()
-            ))
-            if (response.isSuccess) Result.success(Unit)
+            // The row is created through a SECURITY DEFINER function so the
+            // server decides the role; the client value is only a hint.
+            val response = supabaseClient.rpc(
+                "campusone_bootstrap_profile",
+                mapOf("p_name" to (name ?: ""), "p_email" to (email ?: ""))
+            )
+            val ok = (response.data as? Map<String, Any>)?.get("ok") == true
+            if (ok) Result.success(Unit)
             else Result.failure(Exception(response.error ?: "Failed to save profile"))
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    /**
+     * Refreshes the access token when it is close to expiry. A revoked or
+     * expired session cannot be refreshed, so the caller learns about it and can
+     * drop privileged access immediately.
+     */
+    suspend fun ensureFreshToken(): Boolean {
+        val session = supabaseClient.auth.currentSession ?: return false
+        val expiresAt = session.expiresAt
+        val refreshToken = session.refreshToken
+        if (refreshToken.isNullOrBlank()) return false
+        if (expiresAt > 0L && System.currentTimeMillis() < expiresAt - 60_000L) return true
+        return supabaseClient.auth.refreshSession(refreshToken)
     }
 }

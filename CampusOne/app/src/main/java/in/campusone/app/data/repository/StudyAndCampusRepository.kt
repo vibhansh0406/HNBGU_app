@@ -400,7 +400,13 @@ class StudyAndCampusRepository @Inject constructor(
     )
 
     suspend fun upvoteResource(id: String) = studyDao.upvoteResource(id)
-    suspend fun reportResourceAbuse(id: String) = studyDao.reportResourceAbuse(id)
+
+    /** Records the abuse report locally and files it in the central moderation queue. */
+    suspend fun reportResourceAbuse(id: String) {
+        studyDao.reportResourceAbuse(id)
+        runCatching { supabaseSync.submitContentReport("RESOURCE", id, "") }
+    }
+
     suspend fun moderateHideResource(id: String, hidden: Boolean) = studyDao.setResourceHiddenByCr(id, hidden)
     suspend fun moderateDeleteResource(id: String) = studyDao.deleteResourceByCr(id)
     suspend fun moderateDismissReport(id: String) = studyDao.dismissReportByCr(id)

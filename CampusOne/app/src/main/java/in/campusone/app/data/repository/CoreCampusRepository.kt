@@ -44,11 +44,14 @@ class CoreCampusRepository @Inject constructor(
      * HNB Garhwal University default section timetable, subjects, and notices are seeded.
      */
     companion object {
-        const val OWNER_EMAIL = "vvibhaansh@gmail.com"
+        const val OWNER_EMAIL = "vvibhansh@gmail.com"
     }
 
     suspend fun syncProfileToCloud(profile: UserProfile) {
         if (!supabaseSync.isSyncedEnabled()) return
+        // The row must exist before it can be updated: a plain UPDATE on a
+        // missing row silently matches nothing.
+        supabaseSync.bootstrapProfile(profile.name, profile.email)
         supabaseSync.uploadProfile(
             uid = profile.uid,
             name = profile.name,
@@ -85,10 +88,10 @@ class CoreCampusRepository @Inject constructor(
         if (courseId.isBlank()) return null
         val remoteRole = remote["role"] as? String ?: ""
         val isOwner = (remote["email"] as? String)?.equals(OWNER_EMAIL, ignoreCase = true) == true
-        val role = if (isOwner) {
-            UserRole.ADMIN
-        } else {
-            UserRole.entries.firstOrNull { it.name == remoteRole } ?: UserRole.STUDENT
+        val role = when {
+            isOwner -> UserRole.ADMIN
+            remoteRole == "SUPER_ADMIN" -> UserRole.ADMIN
+            else -> UserRole.entries.firstOrNull { it.name == remoteRole } ?: UserRole.STUDENT
         }
         return UserProfile(
             uid = uid,

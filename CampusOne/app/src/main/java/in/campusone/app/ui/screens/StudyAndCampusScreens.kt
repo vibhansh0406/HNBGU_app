@@ -48,6 +48,7 @@ import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -121,11 +122,17 @@ import `in`.campusone.app.ui.screens.admin.AdminExamsScreen
 import `in`.campusone.app.ui.screens.admin.AdminHubScreen
 import `in`.campusone.app.ui.screens.admin.AdminLostFoundScreen
 import `in`.campusone.app.ui.screens.admin.AdminNoticesScreen
-import `in`.campusone.app.ui.screens.admin.AdminReviewScreen
 import `in`.campusone.app.ui.screens.admin.AdminSubjectsScreen
 import `in`.campusone.app.ui.screens.admin.AdminTimetableScreen
-import `in`.campusone.app.ui.screens.admin.AdminUsersScreen
 import `in`.campusone.app.ui.screens.admin.ModeratorManagementScreen
+import `in`.campusone.app.ui.screens.admin.SuperAdminAuditScreen
+import `in`.campusone.app.ui.screens.admin.SuperAdminContentScreen
+import `in`.campusone.app.ui.screens.admin.SuperAdminModerationScreen
+import `in`.campusone.app.ui.screens.admin.SuperAdminPanelScreen
+import `in`.campusone.app.ui.screens.admin.SuperAdminRolesScreen
+import `in`.campusone.app.ui.screens.admin.SuperAdminSection
+import `in`.campusone.app.ui.screens.admin.SuperAdminSettingsScreen
+import `in`.campusone.app.ui.screens.admin.SuperAdminUsersScreen
 import `in`.campusone.app.ui.viewmodel.ModeratorViewModel
 import java.io.File
 import java.util.Locale
@@ -151,8 +158,13 @@ enum class MoreSubScreen {
     ADMIN_EVENTS,
     ADMIN_LOST_FOUND,
     ADMIN_DIRECTORY,
-    ADMIN_USERS,
-    ADMIN_REVIEW
+    SUPER_ADMIN,
+    SUPER_ADMIN_USERS,
+    SUPER_ADMIN_ROLES,
+    SUPER_ADMIN_CONTENT,
+    SUPER_ADMIN_MODERATION,
+    SUPER_ADMIN_SETTINGS,
+    SUPER_ADMIN_AUDIT
 }
 
 private val requestableRoles = listOf(
@@ -184,6 +196,8 @@ fun MoreHubScreen(
         uiState.profile.role == `in`.campusone.app.domain.model.UserRole.TEACHER ||
         uiState.profile.role == `in`.campusone.app.domain.model.UserRole.CR
     val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
+    val isSuperAdmin = adminState.identity.isOwner ||
+        adminState.identity.can(`in`.campusone.app.data.repository.AdminPermission.VIEW_USERS)
 
     androidx.compose.runtime.LaunchedEffect(uiState.profile) {
         adminViewModel.init(uiState.profile)
@@ -271,6 +285,19 @@ fun MoreHubScreen(
                     icon = Icons.Default.Call,
                     onClick = { activeScreen = MoreSubScreen.DIRECTORY }
                 )
+            }
+            if (isSuperAdmin) {
+                item {
+                    FeatureHubCard(
+                        title = "Super Admin",
+                        subtitle = "Owner console • users, roles, content, moderation, audit",
+                        icon = Icons.Default.Shield,
+                        onClick = {
+                            adminViewModel.init(uiState.profile)
+                            activeScreen = MoreSubScreen.SUPER_ADMIN
+                        }
+                    )
+                }
             }
             if (isAdminOrStaff) {
                 item {
@@ -399,8 +426,8 @@ fun MoreHubScreen(
                                 "EVENTS" -> MoreSubScreen.ADMIN_EVENTS
                                 "LOST_FOUND" -> MoreSubScreen.ADMIN_LOST_FOUND
                                 "DIRECTORY" -> MoreSubScreen.ADMIN_DIRECTORY
-                                "USERS" -> MoreSubScreen.ADMIN_USERS
-                                "REVIEW" -> MoreSubScreen.ADMIN_REVIEW
+                                "USERS" -> MoreSubScreen.SUPER_ADMIN_USERS
+                                "REVIEW" -> MoreSubScreen.SUPER_ADMIN_MODERATION
                                 else -> MoreSubScreen.ADMIN_PANEL
                             }
                         }
@@ -437,11 +464,39 @@ fun MoreHubScreen(
                     MoreSubScreen.ADMIN_DIRECTORY -> AdminDirectoryScreen(
                         adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
                     )
-                    MoreSubScreen.ADMIN_USERS -> AdminUsersScreen(
-                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
+                    MoreSubScreen.SUPER_ADMIN -> SuperAdminPanelScreen(
+                        uiState = adminViewModel.uiState,
+                        viewModel = adminViewModel,
+                        onBack = { activeScreen = MoreSubScreen.HUB },
+                        onOpenSection = { section ->
+                            activeScreen = when (section) {
+                                SuperAdminSection.USERS -> MoreSubScreen.SUPER_ADMIN_USERS
+                                SuperAdminSection.ROLES -> MoreSubScreen.SUPER_ADMIN_ROLES
+                                SuperAdminSection.CONTENT -> MoreSubScreen.SUPER_ADMIN_CONTENT
+                                SuperAdminSection.MODERATION -> MoreSubScreen.SUPER_ADMIN_MODERATION
+                                SuperAdminSection.SETTINGS -> MoreSubScreen.SUPER_ADMIN_SETTINGS
+                                SuperAdminSection.AUDIT -> MoreSubScreen.SUPER_ADMIN_AUDIT
+                                SuperAdminSection.OVERVIEW -> MoreSubScreen.SUPER_ADMIN
+                            }
+                        }
                     )
-                    MoreSubScreen.ADMIN_REVIEW -> AdminReviewScreen(
-                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
+                    MoreSubScreen.SUPER_ADMIN_USERS -> SuperAdminUsersScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.SUPER_ADMIN }
+                    )
+                    MoreSubScreen.SUPER_ADMIN_ROLES -> SuperAdminRolesScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.SUPER_ADMIN }
+                    )
+                    MoreSubScreen.SUPER_ADMIN_CONTENT -> SuperAdminContentScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.SUPER_ADMIN }
+                    )
+                    MoreSubScreen.SUPER_ADMIN_MODERATION -> SuperAdminModerationScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.SUPER_ADMIN }
+                    )
+                    MoreSubScreen.SUPER_ADMIN_SETTINGS -> SuperAdminSettingsScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.SUPER_ADMIN }
+                    )
+                    MoreSubScreen.SUPER_ADMIN_AUDIT -> SuperAdminAuditScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.SUPER_ADMIN }
                     )
                     MoreSubScreen.HUB -> Unit
                 }

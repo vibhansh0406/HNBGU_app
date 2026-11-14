@@ -78,6 +78,29 @@ class HttpSupabaseClient @Inject constructor(
     override fun from(table: String): SupabaseQueryBuilder =
         HttpSupabaseQueryBuilder(baseUrl, table, config, sessionStore)
 
+    override suspend fun rpc(function: String, params: Map<String, Any>): SupabaseResponse =
+        withContext(Dispatchers.IO) {
+            val conn = URL("$baseUrl/rpc/$function").openConnection() as HttpURLConnection
+            try {
+                conn.requestMethod = "POST"
+                conn.setRequestProperty("apikey", config.anonKey)
+                conn.setRequestProperty(
+                    "Authorization",
+                    "Bearer " + (sessionStore.session.value?.accessToken?.takeIf { it.isNotBlank() } ?: config.anonKey)
+                )
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.setRequestProperty("Prefer", "return=representation")
+                conn.connectTimeout = 15000
+                conn.readTimeout = 15000
+                conn.doOutput = true
+                val body = if (params.isEmpty()) "{}" else JSONObject(params).toString()
+                conn.outputStream.use { it.write(body.toByteArray(StandardCharsets.UTF_8)) }
+                readResponse(conn)
+            } finally {
+                conn.disconnect()
+            }
+        }
+
     internal fun authHeaders(): Map<String, String> {
         val token = sessionStore.session.value?.accessToken?.takeIf { it.isNotBlank() }
             ?: config.anonKey
@@ -86,6 +109,47 @@ class HttpSupabaseClient @Inject constructor(
             "Authorization" to "Bearer $token",
             "Content-Type" to "application/json"
         )
+    }
+
+    private fun readResponse(conn: HttpURLConnection): SupabaseResponse {
+        val code = try {
+            conn.responseCode
+        } catch (e: Exception) {
+            return SupabaseResponse(null, e.message ?: e.javaClass.simpleName, -1)
+        }
+        val body = try {
+            val stream = if (code in 200..299) conn.inputStream else conn.errorStream
+            stream?.use { it.readBytes() } ?: ByteArray(0)
+        } catch (e: Exception) {
+            return SupabaseResponse(null, e.message ?: e.javaClass.simpleName, code)
+        }
+        val json = String(body, StandardCharsets.UTF_8)
+        return if (code in 200..299) {
+            SupabaseResponse(parseRpcJson(json), null, code)
+        } else {
+            val message = runCatching {
+                JSONObject(json).optString("message").takeIf { it.isNotBlank() }
+                    ?: JSONObject(json).optString("error").takeIf { it.isNotBlank() }
+            }.getOrNull()
+            SupabaseResponse(null, message ?: "HTTP $code ${json.take(300)}", code)
+        }
+    }
+
+    private fun parseRpcJson(json: String): Any? {
+        if (json.isBlank()) return null
+        return try {
+            JSONObject(json).let { obj ->
+                val map = mutableMapOf<String, Any?>()
+                val keys = obj.keys()
+                while (keys.hasNext()) {
+                    val key = keys.next()
+                    map[key] = obj.opt(key)?.let { if (it === JSONObject.NULL) null else it }
+                }
+                map
+            }
+        } catch (_: Exception) {
+            json
+        }
     }
 }
 
@@ -100,6 +164,7 @@ private class HttpSupabaseQueryBuilder(
     private val filters: MutableList<String> = mutableListOf()
     private val orders: MutableList<String> = mutableListOf()
     private var isSingle: Boolean = false
+    private var maxRows: Int? = null
 
     override fun select(columns: String): SupabaseQueryBuilder {
         selectColumns = columns
@@ -111,6 +176,21 @@ private class HttpSupabaseQueryBuilder(
         return this
     }
 
+    override fun neq(column: String, value: Any): SupabaseQueryBuilder {
+        filters.add("${encode(column)}=neq.${encode(value.toString())}")
+        return this
+    }
+
+    override fun inArray(column: String, values: List<String>): SupabaseQueryBuilder {
+        if (values.isNotEmpty()) {
+            val joined = values.joinToString(",") { item ->
+                "\"${item.replace("\"", "\\\"")}\""
+            }
+            filters.add("${encode(column)}=in.($joined)")
+        }
+        return this
+    }
+
     override fun or(filter: String): SupabaseQueryBuilder {
         filters.add("or=(${encode(filter)})")
         return this
@@ -118,6 +198,11 @@ private class HttpSupabaseQueryBuilder(
 
     override fun order(column: String, ascending: Boolean): SupabaseQueryBuilder {
         orders.add("${column}.${if (ascending) "asc" else "desc"}")
+        return this
+    }
+
+    override fun limit(count: Int): SupabaseQueryBuilder {
+        maxRows = count
         return this
     }
 
@@ -147,7 +232,8 @@ private class HttpSupabaseQueryBuilder(
         val params = mutableListOf("select=${encode(selectColumns)}")
         params.addAll(filters)
         params.addAll(orders)
-        if (isSingle) params.add("limit=1")
+        val rowLimit = maxRows ?: if (isSingle) 1 else null
+        if (rowLimit != null) params.add("limit=$rowLimit")
         return params.joinToString("&")
     }
 
@@ -335,6 +421,33 @@ private class HttpSupabaseAuth(
         }
         sessionStore.clear()
     }
+
+    override suspend fun refreshSession(refreshToken: String): Boolean =
+        withContext(Dispatchers.IO) {
+            val url = "$authBaseUrl/token?grant_type=refresh_token"
+            val safeToken = refreshToken.replace("\\", "\\\\").replace("\"", "\\\"")
+            val body = """{"refresh_token":"$safeToken"}"""
+            val conn = URL(url).openConnection() as HttpURLConnection
+            try {
+                conn.requestMethod = "POST"
+                conn.setRequestProperty("apikey", config.anonKey)
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.doOutput = true
+                conn.connectTimeout = 15000
+                conn.readTimeout = 15000
+                conn.outputStream.use { it.write(body.toByteArray(StandardCharsets.UTF_8)) }
+                val refreshed = readAuthSession(conn)
+                sessionStore.save(refreshed)
+                true
+            } catch (_: Exception) {
+                // Revoked or expired refresh token: drop the local session so
+                // privileged access disappears immediately.
+                sessionStore.clear()
+                false
+            } finally {
+                conn.disconnect()
+            }
+        }
 
     override val currentSession: SupabaseSession?
         get() = sessionStore.session.value

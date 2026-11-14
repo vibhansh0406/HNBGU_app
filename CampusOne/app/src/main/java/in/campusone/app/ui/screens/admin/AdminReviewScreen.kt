@@ -86,8 +86,8 @@ fun AdminReviewScreen(
                 items(uiState.flaggedContent, key = { "${it.kind}_${it.id}" }) { item ->
                     ReviewCard(
                         item = item,
-                        onKeep = { viewModel.moderateFlagged(item, hide = false) },
-                        onHide = { viewModel.moderateFlagged(item, hide = true) }
+                        onKeep = { viewModel.moderateFlagged(item, "RESTORE") },
+                        onHide = { viewModel.moderateFlagged(item, "HIDE") }
                     )
                 }
             }
