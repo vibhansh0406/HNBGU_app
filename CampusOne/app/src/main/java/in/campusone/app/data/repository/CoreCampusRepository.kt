@@ -43,6 +43,55 @@ class CoreCampusRepository @Inject constructor(
      * Ensures that if the database is empty (first install or offline pilot),
      * HNB Garhwal University default section timetable, subjects, and notices are seeded.
      */
+    companion object {
+        const val OWNER_EMAIL = "vvibhaansh@gmail.com"
+    }
+
+    suspend fun syncProfileToCloud(profile: UserProfile) {
+        if (!supabaseSync.isSyncedEnabled()) return
+        supabaseSync.uploadProfile(
+            uid = profile.uid,
+            name = profile.name,
+            email = profile.email,
+            role = profile.role.name,
+            collegeId = profile.collegeId,
+            collegeName = profile.collegeName,
+            courseId = profile.courseId,
+            courseName = profile.courseName,
+            semester = profile.semester,
+            section = profile.section,
+            moderatorScope = profile.moderatorScope,
+            isModeratorApproved = profile.role == UserRole.MODERATOR || profile.role == UserRole.ADMIN
+        )
+    }
+
+    suspend fun fetchRemoteProfile(uid: String): UserProfile? {
+        val remote = supabaseSync.downloadProfile(uid) ?: return null
+        val courseId = remote["course_id"] as? String ?: ""
+        if (courseId.isBlank()) return null
+        val remoteRole = remote["role"] as? String ?: ""
+        val role = UserRole.entries.firstOrNull { it.name == remoteRole }
+            ?: if ((remote["email"] as? String)?.equals(OWNER_EMAIL, ignoreCase = true) == true) {
+                UserRole.ADMIN
+            } else {
+                UserRole.STUDENT
+            }
+        return UserProfile(
+            uid = uid,
+            name = remote["full_name"] as? String ?: "",
+            email = remote["email"] as? String ?: "",
+            role = role,
+            verifiedRole = true,
+            collegeId = remote["college_id"] as? String ?: "hnbgu",
+            collegeName = remote["college_name"] as? String ?: "",
+            courseId = courseId,
+            courseName = remote["course_name"] as? String ?: "",
+            semester = (remote["semester"] as? Number)?.toInt() ?: 3,
+            section = remote["section"] as? String ?: "A",
+            moderatorScope = remote["moderator_scope"] as? String ?: ""
+        )
+    }
+
     suspend fun ensureSeededForSection(sectionKey: String) {
         val profile = prefs.userProfile.first()
         // Seeding/initialization is allowed for everyone; the scope check only

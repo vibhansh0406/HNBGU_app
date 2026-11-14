@@ -98,7 +98,7 @@ class AuthManager @Inject constructor(
                 "email" to (email ?: ""),
                 "full_name" to (name ?: ""),
                 "role" to role,
-                "updated_at" to java.time.Instant.now().toString()
+                "updated_at" to System.currentTimeMillis()
             ))
             if (response.isSuccess) Result.success(Unit)
             else Result.failure(Exception(response.error ?: "Failed to save profile"))

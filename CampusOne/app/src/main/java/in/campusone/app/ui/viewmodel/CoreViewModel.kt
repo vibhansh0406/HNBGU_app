@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -62,6 +63,17 @@ class CoreViewModel @Inject constructor(
 
     private val _uiMessages = MutableSharedFlow<String>()
     val uiMessages = _uiMessages.asSharedFlow()
+
+    init {
+        viewModelScope.launch {
+            val alreadyOnboarded = prefs.isOnboarded.first()
+            if (alreadyOnboarded) return@launch
+            val uid = authManager.currentUserId() ?: return@launch
+            val remote = repository.fetchRemoteProfile(uid) ?: return@launch
+            prefs.saveUserProfile(remote, markOnboarded = true)
+            repository.ensureSeededForSection(remote.sectionKey)
+        }
+    }
 
     val uiState: StateFlow<CoreUiState> = combine(
         prefs.isOnboarded,
@@ -139,11 +151,16 @@ class CoreViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             val uid = authManager.currentUserId() ?: "local_${email.hashCode().toUInt()}"
+            val effectiveRole = if (email.trim().equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true)) {
+                UserRole.ADMIN
+            } else {
+                role
+            }
             val profile = UserProfile(
                 uid = uid,
                 name = name.ifBlank { "HNBGU Student" },
                 email = email.ifBlank { "student@hnbgu.ac.in" },
-                role = role,
+                role = effectiveRole,
                 verifiedRole = true, // Pilot mode: enable immediate CR/Teacher publishing
                 collegeId = "hnbgu",
                 collegeName = collegeName,
@@ -158,8 +175,9 @@ class CoreViewModel @Inject constructor(
                 uid = uid,
                 email = email,
                 name = name,
-                role = role.name
+                role = effectiveRole.name
             )
+            repository.syncProfileToCloud(profile)
         }
     }
 

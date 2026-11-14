@@ -49,7 +49,7 @@ class SupabaseSyncRepository @Inject constructor(
             "section" to section,
             "moderator_scope" to moderatorScope,
             "is_moderator_approved" to isModeratorApproved,
-            "updated_at" to java.time.Instant.now().toString()
+            "updated_at" to System.currentTimeMillis()
         ))
     }
 

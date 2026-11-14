@@ -111,7 +111,9 @@ class MainActivity : AppCompatActivity() {
                                             uid = uid,
                                             email = account.email,
                                             name = account.displayName,
-                                            role = "STUDENT"
+                                            role = if (account.email?.trim()
+                                                    .equals("vvibhaansh@gmail.com", ignoreCase = true)
+                                            ) "ADMIN" else "STUDENT"
                                         )
                                         if (!profileResult.isSuccess) {
                                             android.widget.Toast.makeText(
