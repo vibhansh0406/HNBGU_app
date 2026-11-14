@@ -73,36 +73,57 @@ class CoreViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val uid = authManager.currentUserId() ?: return@launch
-            val isOwner = authManager.currentUserEmail()
-                ?.equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true) == true
-            val alreadyOnboarded = prefs.isOnboarded.first()
-            val remote = repository.fetchRemoteProfile(uid)
-            if (remote == null) {
-                if (isOwner && alreadyOnboarded) {
-                    val local = prefs.userProfile.first()
-                    if (local.role != UserRole.ADMIN) {
-                        prefs.saveUserProfile(
-                            local.copy(role = UserRole.ADMIN),
-                            markOnboarded = true
+            authManager.session.collect { session ->
+                if (session != null) {
+                    runCatching {
+                        syncProfileOnSignIn(
+                            uid = session.user?.id,
+                            sessionEmail = session.user?.email
                         )
                     }
                 }
-                return@launch
             }
-            val remoteRole = if (isOwner) UserRole.ADMIN else remote.role
-            if (!alreadyOnboarded) {
-                prefs.saveUserProfile(remote.copy(role = remoteRole), markOnboarded = true)
-                repository.ensureSeededForSection(remote.sectionKey)
-                return@launch
-            }
-            val local = prefs.userProfile.first()
-            if (local.role != remoteRole || local.name != remote.name) {
-                prefs.saveUserProfile(
-                    local.copy(role = remoteRole, name = remote.name),
-                    markOnboarded = true
+        }
+    }
+
+    private suspend fun syncProfileOnSignIn(uid: String?, sessionEmail: String?) {
+        val resolvedUid = uid ?: authManager.currentUserId() ?: return
+        val email = sessionEmail ?: authManager.currentUserEmail()
+        val isOwner = email?.equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true) == true
+        val alreadyOnboarded = prefs.isOnboarded.first()
+        val remote = runCatching { repository.fetchRemoteProfile(resolvedUid) }.getOrNull()
+        if (remote == null) {
+            if (isOwner && alreadyOnboarded) {
+                val local = prefs.userProfile.first()
+                val resolvedEmail = email?.takeIf { it.isNotBlank() } ?: local.email
+                if (local.role != UserRole.ADMIN || local.email != resolvedEmail) {
+                    prefs.saveUserProfile(
+                        local.copy(role = UserRole.ADMIN, email = resolvedEmail),
+                        markOnboarded = true
+                    )
+                }
+                authManager.ensureUserProfile(
+                    uid = resolvedUid,
+                    email = resolvedEmail,
+                    name = local.name,
+                    role = UserRole.ADMIN.name
                 )
             }
+            return
+        }
+        val remoteRole = if (isOwner) UserRole.ADMIN else remote.role
+        if (!alreadyOnboarded) {
+            prefs.saveUserProfile(remote.copy(role = remoteRole), markOnboarded = true)
+            repository.ensureSeededForSection(remote.sectionKey)
+            return
+        }
+        val local = prefs.userProfile.first()
+        val resolvedEmail = email?.takeIf { it.isNotBlank() } ?: local.email
+        if (local.role != remoteRole || local.name != remote.name || local.email != resolvedEmail) {
+            prefs.saveUserProfile(
+                local.copy(role = remoteRole, name = remote.name, email = resolvedEmail),
+                markOnboarded = true
+            )
         }
     }
 

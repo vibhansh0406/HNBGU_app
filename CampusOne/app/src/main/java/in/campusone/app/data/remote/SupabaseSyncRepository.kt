@@ -55,8 +55,8 @@ class SupabaseSyncRepository @Inject constructor(
 
     suspend fun downloadProfile(uid: String): Map<String, Any>? {
         if (!isSyncedEnabled()) return null
-        val result = supabaseClient.from("profiles").select("*").eq("id", uid).single().execute()
-        return result.data as? Map<String, Any>
+        val result = supabaseClient.from("profiles").select("*").eq("id", uid).execute()
+        return (result.data as? List<Map<String, Any>>)?.firstOrNull()
     }
 
     // =========================================================================
