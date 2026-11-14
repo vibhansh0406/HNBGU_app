@@ -18,16 +18,13 @@ jobs:
       - uses: gradle/actions/setup-gradle@v3
       - name: Prepare stable debug keystore
         run: |
-          mkdir -p ~/.android
-          if [ -f ci/debug.keystore ]; then
-            cp ci/debug.keystore ~/.android/debug.keystore
-          elif [ ! -f ~/.android/debug.keystore ]; then
-            keytool -genkeypair -keystore ~/.android/debug.keystore \
-              -alias androiddebugkey -storepass android -keypass android \
-              -keyalg RSA -keysize 2048 -validity 10000 \
-              -dname "CN=Android Debug,O=Android,C=US"
-          fi
-          SHA1=$(keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android | grep SHA1: | head -1)
+          for d in "$ANDROID_USER_HOME" "$HOME/.config/.android" "$HOME/.android"; do
+            if [ -n "$d" ]; then
+              mkdir -p "$d"
+              cp ci/debug.keystore "$d/debug.keystore"
+            fi
+          done
+          SHA1=$(keytool -list -v -keystore ci/debug.keystore -alias androiddebugkey -storepass android | grep SHA1: | head -1)
           echo "=== DEBUG SHA-1 (register this in Google Cloud console) ==="
           echo "$SHA1"
           echo "::notice title=Debug SHA-1::$SHA1"
