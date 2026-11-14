@@ -106,10 +106,12 @@ fun CommunityHubScreen(
         viewModel.closePost()
     }
 
+    val selectedPost = uiState.selectedPost
+
     Box(modifier = Modifier.fillMaxSize()) {
-        if (uiState.selectedPost != null) {
+        if (selectedPost != null) {
             CommunityPostDetail(
-                post = uiState.selectedPost,
+                post = selectedPost,
                 comments = uiState.comments,
                 currentUid = uiState.profile.uid,
                 onBack = viewModel::closePost,
