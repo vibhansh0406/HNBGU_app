@@ -283,4 +283,5 @@
     <string name="notice_composer_official">आधिकारिक घोषणा (केवल व्यवस्थापक)</string>
     <string name="more_campus_community">कैंपस और समुदाय</string>
     <string name="community_posts_count">%1$d पोस्ट</string>
+    <string name="home_greeting">नमस्ते, %1$s</string>
 </resources>

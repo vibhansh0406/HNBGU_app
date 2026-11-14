@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -33,19 +34,29 @@ import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.outlined.Campaign
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.MenuBook
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.School
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -55,9 +66,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -77,6 +90,7 @@ import javax.inject.Inject
 import `in`.campusone.app.data.remote.AuthManager
 import `in`.campusone.app.data.remote.SupabaseSession
 import `in`.campusone.app.data.repository.CoreCampusRepository
+import `in`.campusone.app.ui.components.C1NavItem
 import `in`.campusone.app.ui.screens.AttendanceScreen
 import `in`.campusone.app.ui.screens.HomeScreen
 import `in`.campusone.app.ui.screens.MoreHubScreen
@@ -84,6 +98,7 @@ import `in`.campusone.app.ui.screens.MoreSubScreen
 import `in`.campusone.app.ui.screens.NoticeBoardScreen
 import `in`.campusone.app.ui.screens.OnboardingScreen
 import `in`.campusone.app.ui.screens.TimetableScreen
+import `in`.campusone.app.ui.theme.C1Motion
 import `in`.campusone.app.ui.theme.CampusOneTheme
 import `in`.campusone.app.ui.viewmodel.CommunityViewModel
 import `in`.campusone.app.ui.viewmodel.CoreViewModel
@@ -205,13 +220,19 @@ fun CampusOneRoot(
     val introSeen by coreViewModel.introSeen.collectAsStateWithLifecycle()
     val studyCampusState by studyCampusViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val stateHolder = rememberSaveableStateHolder()
     var currentTab by rememberSaveable { mutableStateOf(BottomNavTab.HOME) }
     var pendingMoreScreen by rememberSaveable { mutableStateOf<MoreSubScreen?>(null) }
     var pendingNoticeId by rememberSaveable { mutableStateOf<String?>(null) }
     var pendingCommunityPostId by rememberSaveable { mutableStateOf<String?>(null) }
     var pendingAssignmentId by rememberSaveable { mutableStateOf<String?>(null) }
+    var lastNotificationNavAt by remember { mutableLongStateOf(0L) }
     val noticesSyncError by coreViewModel.noticesSyncError.collectAsStateWithLifecycle()
     val unreadNotifications by communityViewModel.unreadNotificationCount.collectAsStateWithLifecycle()
+
+    BackHandler(enabled = currentTab != BottomNavTab.HOME) {
+        currentTab = BottomNavTab.HOME
+    }
 
     LaunchedEffect(Unit) {
         coreViewModel.uiMessages.collect { msg ->
@@ -262,144 +283,153 @@ fun CampusOneRoot(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            NavigationBar {
-                NavigationBarItem(
-                    selected = currentTab == BottomNavTab.HOME,
-                    onClick = { currentTab = BottomNavTab.HOME },
-                    icon = { Icon(Icons.Default.Home, contentDescription = null) },
-                    label = { Text(stringResource(R.string.nav_home)) }
-                )
-                NavigationBarItem(
-                    selected = currentTab == BottomNavTab.ATTENDANCE,
-                    onClick = { currentTab = BottomNavTab.ATTENDANCE },
-                    icon = { Icon(Icons.Default.CheckCircle, contentDescription = null) },
-                    label = { Text(stringResource(R.string.nav_attendance)) }
-                )
-                NavigationBarItem(
-                    selected = currentTab == BottomNavTab.TIMETABLE,
-                    onClick = { currentTab = BottomNavTab.TIMETABLE },
-                    icon = { Icon(Icons.Default.Schedule, contentDescription = null) },
-                    label = { Text(stringResource(R.string.nav_timetable)) }
-                )
-                NavigationBarItem(
-                    selected = currentTab == BottomNavTab.NOTICES,
-                    onClick = { currentTab = BottomNavTab.NOTICES },
-                    icon = {
-                        BadgedBox(
-                            badge = {
-                                if (coreState.unreadNoticeCount > 0) {
-                                    Badge { Text(coreState.unreadNoticeCount.toString()) }
-                                }
-                            }
-                        ) {
-                            Icon(Icons.Default.Campaign, contentDescription = null)
-                        }
-                    },
-                    label = { Text(stringResource(R.string.nav_notices)) }
-                )
-                NavigationBarItem(
-                    selected = currentTab == BottomNavTab.MORE,
-                    onClick = { currentTab = BottomNavTab.MORE },
-                    icon = {
-                        BadgedBox(
-                            badge = {
-                                if (unreadNotifications > 0) {
-                                    Badge { Text(unreadNotifications.toString()) }
-                                }
-                            }
-                        ) {
-                            Icon(Icons.Default.MenuBook, contentDescription = null)
-                        }
-                    },
-                    label = { Text(stringResource(R.string.nav_more)) }
-                )
+            Column {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 0.dp
+                ) {
+                    C1NavItem(
+                        selected = currentTab == BottomNavTab.HOME,
+                        onClick = { currentTab = BottomNavTab.HOME },
+                        selectedIcon = Icons.Default.Home,
+                        unselectedIcon = Icons.Outlined.Home,
+                        label = stringResource(R.string.nav_home)
+                    )
+                    C1NavItem(
+                        selected = currentTab == BottomNavTab.ATTENDANCE,
+                        onClick = { currentTab = BottomNavTab.ATTENDANCE },
+                        selectedIcon = Icons.Default.CheckCircle,
+                        unselectedIcon = Icons.Outlined.CheckCircle,
+                        label = stringResource(R.string.nav_attendance)
+                    )
+                    C1NavItem(
+                        selected = currentTab == BottomNavTab.TIMETABLE,
+                        onClick = { currentTab = BottomNavTab.TIMETABLE },
+                        selectedIcon = Icons.Default.Schedule,
+                        unselectedIcon = Icons.Outlined.Schedule,
+                        label = stringResource(R.string.nav_timetable)
+                    )
+                    C1NavItem(
+                        selected = currentTab == BottomNavTab.NOTICES,
+                        onClick = { currentTab = BottomNavTab.NOTICES },
+                        selectedIcon = Icons.Default.Campaign,
+                        unselectedIcon = Icons.Outlined.Campaign,
+                        label = stringResource(R.string.nav_notices),
+                        badgeCount = coreState.unreadNoticeCount
+                    )
+                    C1NavItem(
+                        selected = currentTab == BottomNavTab.MORE,
+                        onClick = { currentTab = BottomNavTab.MORE },
+                        selectedIcon = Icons.Default.MenuBook,
+                        unselectedIcon = Icons.Outlined.MenuBook,
+                        label = stringResource(R.string.nav_more),
+                        badgeCount = unreadNotifications
+                    )
+                }
             }
         }
     ) { innerPadding ->
         androidx.compose.foundation.layout.Box(modifier = Modifier.padding(innerPadding)) {
-            when (currentTab) {
-                BottomNavTab.HOME -> HomeScreen(
-                    uiState = coreState,
-                    nextThreeDeadlines = studyCampusState.nextThreeDeadlines,
-                    nextUpcomingExam = studyCampusState.nextUpcomingExam,
-                    dataRefreshError = noticesSyncError,
-                    onToggleLanguage = coreViewModel::toggleLanguage,
-                    onOpenProfile = {
-                        pendingMoreScreen = MoreSubScreen.PROFILE
-                        currentTab = BottomNavTab.MORE
-                    },
-                    onOpenAttendance = { currentTab = BottomNavTab.ATTENDANCE },
-                    onOpenTimetable = { currentTab = BottomNavTab.TIMETABLE },
-                    onOpenNotices = { currentTab = BottomNavTab.NOTICES },
-                    onOpenNotice = { noticeId ->
-                        coreViewModel.markNoticeRead(noticeId)
-                        currentTab = BottomNavTab.NOTICES
-                    },
-                    onOpenMore = { screen ->
-                        pendingMoreScreen = screen
-                        currentTab = BottomNavTab.MORE
-                    },
-                    onRetryRefresh = coreViewModel::refreshNotices
-                )
-                BottomNavTab.ATTENDANCE -> AttendanceScreen(
-                    uiState = coreState,
-                    onMarkAttendance = coreViewModel::markAttendance,
-                    onTargetPctChange = coreViewModel::updateTargetPercentage
-                )
-                BottomNavTab.TIMETABLE -> TimetableScreen(
-                    uiState = coreState,
-                    onUpdateReminderMinutes = coreViewModel::updateReminderLeadMinutes,
-                    onPublishSlot = coreViewModel::publishTimetableSlot
-                )
-                BottomNavTab.NOTICES -> NoticeBoardScreen(
-                    uiState = coreState,
-                    onMarkNoticeRead = coreViewModel::markNoticeRead,
-                    onMarkAllRead = coreViewModel::markAllNoticesRead,
-                    onPostNotice = coreViewModel::postNotice,
-                    dataRefreshError = noticesSyncError,
-                    onRetryRefresh = coreViewModel::refreshNotices,
-                    focusNoticeId = pendingNoticeId,
-                    onFocusConsumed = { pendingNoticeId = null }
-                )
-                BottomNavTab.MORE -> MoreHubScreen(
-                    uiState = studyCampusState,
-                    viewModel = studyCampusViewModel,
-                    onSignOut = {
-                        onSignOut()
-                        currentTab = BottomNavTab.HOME
-                    },
-                    deepLink = pendingMoreScreen,
-                    onDeepLinkConsumed = { pendingMoreScreen = null },
-                    communityViewModel = communityViewModel,
-                    coreViewModel = coreViewModel,
-                    onNotificationNavigate = { targetType, targetId ->
-                        when (targetType) {
-                            "NOTICE" -> {
-                                pendingNoticeId = targetId
-                                coreViewModel.refreshNotices()
-                                currentTab = BottomNavTab.NOTICES
+            AnimatedContent(
+                targetState = currentTab,
+                transitionSpec = {
+                    val forward = targetState.ordinal > initialState.ordinal
+                    val offset = if (forward) 1 else -1
+                    (fadeIn(animationSpec = tween(C1Motion.normalMillis)) +
+                        slideInHorizontally(
+                            animationSpec = tween(C1Motion.normalMillis, easing = C1Motion.emphasizedEasing)
+                        ) { width -> offset * width / 12 })
+                        .togetherWith(fadeOut(animationSpec = tween(C1Motion.fastMillis)))
+                },
+                label = "bottomTabTransition"
+            ) { tab ->
+                stateHolder.SaveableStateProvider(tab.name) {
+                    when (tab) {
+                        BottomNavTab.HOME -> HomeScreen(
+                        uiState = coreState,
+                        nextThreeDeadlines = studyCampusState.nextThreeDeadlines,
+                        nextUpcomingExam = studyCampusState.nextUpcomingExam,
+                        dataRefreshError = noticesSyncError,
+                        onToggleLanguage = coreViewModel::toggleLanguage,
+                        onOpenProfile = {
+                            pendingMoreScreen = MoreSubScreen.PROFILE
+                            currentTab = BottomNavTab.MORE
+                        },
+                        onOpenAttendance = { currentTab = BottomNavTab.ATTENDANCE },
+                        onOpenTimetable = { currentTab = BottomNavTab.TIMETABLE },
+                        onOpenNotices = { currentTab = BottomNavTab.NOTICES },
+                        onOpenNotice = { noticeId ->
+                            coreViewModel.markNoticeRead(noticeId)
+                            currentTab = BottomNavTab.NOTICES
+                        },
+                        onOpenMore = { screen ->
+                            pendingMoreScreen = screen
+                            currentTab = BottomNavTab.MORE
+                        },
+                        onRetryRefresh = coreViewModel::refreshNotices
+                    )
+                        BottomNavTab.ATTENDANCE -> AttendanceScreen(
+                        uiState = coreState,
+                        onMarkAttendance = coreViewModel::markAttendance,
+                        onTargetPctChange = coreViewModel::updateTargetPercentage
+                        )
+                        BottomNavTab.TIMETABLE -> TimetableScreen(
+                        uiState = coreState,
+                        onUpdateReminderMinutes = coreViewModel::updateReminderLeadMinutes,
+                        onPublishSlot = coreViewModel::publishTimetableSlot
+                        )
+                        BottomNavTab.NOTICES -> NoticeBoardScreen(
+                        uiState = coreState,
+                        onMarkNoticeRead = coreViewModel::markNoticeRead,
+                        onMarkAllRead = coreViewModel::markAllNoticesRead,
+                        onPostNotice = coreViewModel::postNotice,
+                        dataRefreshError = noticesSyncError,
+                        onRetryRefresh = coreViewModel::refreshNotices,
+                        focusNoticeId = pendingNoticeId,
+                        onFocusConsumed = { pendingNoticeId = null }
+                        )
+                        BottomNavTab.MORE -> MoreHubScreen(
+                        uiState = studyCampusState,
+                        viewModel = studyCampusViewModel,
+                        onSignOut = {
+                            onSignOut()
+                            currentTab = BottomNavTab.HOME
+                        },
+                        deepLink = pendingMoreScreen,
+                        onDeepLinkConsumed = { pendingMoreScreen = null },
+                        communityViewModel = communityViewModel,
+                        coreViewModel = coreViewModel,
+                        onNotificationNavigate = { targetType, targetId ->
+                            when (targetType) {
+                                "NOTICE" -> {
+                                    pendingNoticeId = targetId
+                                    coreViewModel.refreshNotices()
+                                    currentTab = BottomNavTab.NOTICES
+                                }
+                                "ASSIGNMENT" -> {
+                                    pendingAssignmentId = targetId
+                                    pendingMoreScreen = MoreSubScreen.ASSIGNMENTS
+                                    currentTab = BottomNavTab.MORE
+                                }
+                                "POST" -> {
+                                    pendingCommunityPostId = targetId
+                                    pendingMoreScreen = MoreSubScreen.COMMUNITY
+                                    currentTab = BottomNavTab.MORE
+                                }
+                                "ADMIN" -> {
+                                    pendingMoreScreen = MoreSubScreen.SUPER_ADMIN_MODERATION
+                                    currentTab = BottomNavTab.MORE
+                                }
                             }
-                            "ASSIGNMENT" -> {
-                                pendingAssignmentId = targetId
-                                pendingMoreScreen = MoreSubScreen.ASSIGNMENTS
-                                currentTab = BottomNavTab.MORE
-                            }
-                            "POST" -> {
-                                pendingCommunityPostId = targetId
-                                pendingMoreScreen = MoreSubScreen.COMMUNITY
-                                currentTab = BottomNavTab.MORE
-                            }
-                            "ADMIN" -> {
-                                pendingMoreScreen = MoreSubScreen.SUPER_ADMIN_MODERATION
-                                currentTab = BottomNavTab.MORE
-                            }
-                        }
-                    },
-                    focusPostId = pendingCommunityPostId,
-                    onFocusPostConsumed = { pendingCommunityPostId = null },
-                    focusAssignmentId = pendingAssignmentId,
-                    onFocusAssignmentConsumed = { pendingAssignmentId = null }
-                )
+                        },
+                        focusPostId = pendingCommunityPostId,
+                        onFocusPostConsumed = { pendingCommunityPostId = null },
+                        focusAssignmentId = pendingAssignmentId,
+                        onFocusAssignmentConsumed = { pendingAssignmentId = null }
+                    )
+                    }
+                }
             }
         }
     }

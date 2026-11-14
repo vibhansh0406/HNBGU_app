@@ -31,10 +31,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.Button
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -719,4 +723,59 @@ fun C1SkeletonRows(
             }
         }
     }
+}
+
+/**
+ * Bottom navigation item with a filled/outlined icon swap, a subtle scale on
+ * selection and an optional count badge.
+ */
+@Composable
+fun C1NavItem(
+    selected: Boolean,
+    onClick: () -> Unit,
+    selectedIcon: ImageVector,
+    unselectedIcon: ImageVector,
+    label: String,
+    modifier: Modifier = Modifier,
+    badgeCount: Int = 0
+) {
+    val iconScale by animateFloatAsState(
+        targetValue = if (selected) 1f else 0.92f,
+        animationSpec = tween(durationMillis = C1Motion.fastMillis),
+        label = "navIconScale"
+    )
+    NavigationBarItem(
+        selected = selected,
+        onClick = onClick,
+        modifier = modifier,
+        icon = {
+            BadgedBox(
+                badge = {
+                    if (badgeCount > 0) {
+                        Badge {
+                            Text(if (badgeCount > 9) "9+" else badgeCount.toString())
+                        }
+                    }
+                }
+            ) {
+                Icon(
+                    imageVector = if (selected) selectedIcon else unselectedIcon,
+                    contentDescription = null,
+                    modifier = Modifier.graphicsLayer {
+                        scaleX = iconScale
+                        scaleY = iconScale
+                    }
+                )
+            }
+        },
+        label = { Text(label, style = MaterialTheme.typography.labelMedium) },
+        alwaysShowLabel = true,
+        colors = NavigationBarItemDefaults.colors(
+            selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            selectedTextColor = MaterialTheme.colorScheme.onSurface,
+            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    )
 }

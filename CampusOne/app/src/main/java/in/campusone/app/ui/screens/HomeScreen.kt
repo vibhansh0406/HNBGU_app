@@ -65,7 +65,7 @@ import `in`.campusone.app.ui.components.AnimatedAttendanceRing
 import `in`.campusone.app.ui.components.C1Banner
 import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1ErrorState
-import `in`.campusone.app.ui.components.C1LoadingState
+import `in`.campusone.app.ui.components.C1SkeletonRows
 import `in`.campusone.app.ui.components.C1SectionHeader
 import `in`.campusone.app.ui.components.C1StatusChip
 import `in`.campusone.app.ui.components.C1Tone
@@ -170,7 +170,7 @@ private fun HomeHeader(
         Spacer(modifier = Modifier.width(C1Spacing.md))
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = "Namaste, $firstName",
+                text = stringResource(R.string.home_greeting, firstName),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
@@ -528,7 +528,10 @@ private fun AnnouncementsSection(
                 shape = C1Radius.md,
                 color = MaterialTheme.colorScheme.surfaceContainerLow
             ) {
-                C1LoadingState(label = stringResource(R.string.home_loading_announcements))
+                C1SkeletonRows(
+                    modifier = Modifier.padding(C1Spacing.lg),
+                    rows = 3
+                )
             }
 
             dataRefreshError && visibleNotices.isEmpty() -> Surface(
@@ -605,7 +608,8 @@ private fun NoticePreview(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onOpenNotice(notice.id) }
-            .padding(C1Spacing.lg),
+            .padding(C1Spacing.lg)
+            .semantics(mergeDescendants = true) {},
         verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)
     ) {
         Row(

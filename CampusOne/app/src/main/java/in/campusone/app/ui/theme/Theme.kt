@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -112,6 +113,7 @@ val ExpressiveShapes = Shapes(
 // Hindi never renders in an unknown system face.
 // ---------------------------------------------------------------------------
 
+@OptIn(ExperimentalTextApi::class)
 private fun variableFont(resId: Int, weight: Int): Font = Font(
     resId = resId,
     weight = FontWeight(weight),
