@@ -121,6 +121,10 @@ fun SuperAdminPanelScreen(
             return@Scaffold
         }
 
+        val primary = MaterialTheme.colorScheme.primary
+        val secondary = MaterialTheme.colorScheme.secondary
+        val tertiary = MaterialTheme.colorScheme.tertiary
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -140,7 +144,7 @@ fun SuperAdminPanelScreen(
                 )
             }
 
-            items(overviewStats(state), key = { it.title }) { stat ->
+            items(overviewStats(state, primary, secondary, tertiary), key = { it.title }) { stat ->
                 StatRow(stat.title, stat.value, stat.icon, stat.tint)
             }
 
@@ -265,12 +269,13 @@ private data class StatItem(
     val tint: Color
 )
 
-@Composable
-private fun overviewStats(state: AdminUiState): List<StatItem> {
+private fun overviewStats(
+    state: AdminUiState,
+    primary: Color,
+    secondary: Color,
+    tertiary: Color
+): List<StatItem> {
     val users = state.users
-    val primary = MaterialTheme.colorScheme.primary
-    val secondary = MaterialTheme.colorScheme.secondary
-    val tertiary = MaterialTheme.colorScheme.tertiary
     return listOf(
         StatItem("Total users", users.size.toString(), Icons.Default.People, primary),
         StatItem(
