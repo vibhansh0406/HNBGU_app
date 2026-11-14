@@ -332,12 +332,12 @@ private fun SlotStateChip(evaluated: EvaluatedSlot) {
     when (evaluated.state) {
         SlotLiveState.ONGOING -> C1StatusChip(
             text = "${stringResource(R.string.ongoing_class_badge)} · " +
-                stringResource(R.string.timetable_minutes_left, evaluated.minutesRemaining),
+                stringResource(R.string.timetable_minutes_left, evaluated.minutesRemaining?.toInt() ?: 0),
             tone = C1Tone.SUCCESS
         )
         SlotLiveState.UP_NEXT -> C1StatusChip(
             text = "${stringResource(R.string.next_class_badge)} · " +
-                stringResource(R.string.timetable_starts_in, evaluated.minutesUntilStart),
+                stringResource(R.string.timetable_starts_in, evaluated.minutesUntilStart?.toInt() ?: 0),
             tone = C1Tone.WARNING
         )
         SlotLiveState.COMPLETED -> C1StatusChip(
@@ -345,7 +345,7 @@ private fun SlotStateChip(evaluated: EvaluatedSlot) {
             tone = C1Tone.NEUTRAL
         )
         SlotLiveState.UPCOMING_LATER -> C1StatusChip(
-            text = stringResource(R.string.timetable_starts_in, evaluated.minutesUntilStart),
+            text = stringResource(R.string.timetable_starts_in, evaluated.minutesUntilStart?.toInt() ?: 0),
             tone = C1Tone.INFO
         )
     }
