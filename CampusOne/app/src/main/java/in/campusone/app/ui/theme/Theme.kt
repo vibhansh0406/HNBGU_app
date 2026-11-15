@@ -113,18 +113,18 @@ val ExpressiveShapes = Shapes(
 
 /** Display voice: hero numbers, screen titles, section headings. */
 val CampusOneDisplayFamily = FontFamily(
-    Font(R.font.manrope_family, FontWeight.Normal),
-    Font(R.font.manrope_family, FontWeight.Medium),
-    Font(R.font.manrope_family, FontWeight.SemiBold),
-    Font(R.font.manrope_family, FontWeight.Bold)
+    Font(R.font.manrope_variable, FontWeight.Normal),
+    Font(R.font.manrope_variable, FontWeight.Medium),
+    Font(R.font.manrope_variable, FontWeight.SemiBold),
+    Font(R.font.manrope_variable, FontWeight.Bold)
 )
 
 /** Text voice: body copy, navigation, buttons, labels, forms. */
 val CampusOneTextFamily = FontFamily(
-    Font(R.font.inter_family, FontWeight.Normal),
-    Font(R.font.inter_family, FontWeight.Medium),
-    Font(R.font.inter_family, FontWeight.SemiBold),
-    Font(R.font.inter_family, FontWeight.Bold)
+    Font(R.font.inter_variable, FontWeight.Normal),
+    Font(R.font.inter_variable, FontWeight.Medium),
+    Font(R.font.inter_variable, FontWeight.SemiBold),
+    Font(R.font.inter_variable, FontWeight.Bold)
 )
 
 private fun campusType(
