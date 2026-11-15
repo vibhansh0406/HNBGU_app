@@ -118,6 +118,8 @@ class MainActivity : AppCompatActivity() {
 
     private val googleSignInLauncher: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            // Always reset the in-flight flag so a subsequent sign-in attempt is allowed.
+            isSigningIn = false
             result.data?.let { data ->
                 val task = GoogleSignIn.getSignedInAccountFromIntent(data)
                 if (task.isSuccessful) {
@@ -176,6 +178,8 @@ class MainActivity : AppCompatActivity() {
             CampusOneTheme {
                 CampusOneRoot(
                     onGoogleSignIn = {
+                        if (isSigningIn) return@onGoogleSignIn
+                        isSigningIn = true
                         googleSignInLauncher.launch(authManager.getSignInIntent())
                     },
                     authSession = authManager.session,
@@ -227,6 +231,7 @@ fun CampusOneRoot(
     var pendingCommunityPostId by rememberSaveable { mutableStateOf<String?>(null) }
     var pendingAssignmentId by rememberSaveable { mutableStateOf<String?>(null) }
     var lastNotificationNavAt by remember { mutableLongStateOf(0L) }
+    var isSigningIn by remember { mutableStateOf(false) }
     val noticesSyncError by coreViewModel.noticesSyncError.collectAsStateWithLifecycle()
     val unreadNotifications by communityViewModel.unreadNotificationCount.collectAsStateWithLifecycle()
 
@@ -260,7 +265,10 @@ fun CampusOneRoot(
 
     // If not signed in to Supabase/Google, show sign-in screen
     if (authSessionState == null) {
-        SignInScreen(onGoogleSignIn = onGoogleSignIn)
+        SignInScreen(
+            onGoogleSignIn = onGoogleSignIn,
+            isSigningIn = isSigningIn
+        )
         return
     }
 
@@ -436,7 +444,7 @@ fun CampusOneRoot(
 }
 
 @Composable
-fun SignInScreen(onGoogleSignIn: () -> Unit) {
+fun SignInScreen(onGoogleSignIn: () -> Unit, isSigningIn: Boolean) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -487,10 +495,11 @@ fun SignInScreen(onGoogleSignIn: () -> Unit) {
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                ),
+                enabled = !isSigningIn
             ) {
                 Text(
-                    text = stringResource(`in`.campusone.app.R.string.sign_in_google),
+                    text = if (isSigningIn) "Signing in..." else stringResource(`in`.campusone.app.R.string.sign_in_google),
                     style = MaterialTheme.typography.titleMedium
                 )
             }
