@@ -4,7 +4,6 @@ import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
-import `in`.campusone.app.util.StartupDiagnostics
 import `in`.campusone.app.worker.CampusSyncAndReminderWorker
 import javax.inject.Inject
 
@@ -21,9 +20,6 @@ class CampusOneApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
-        if (BuildConfig.DEBUG) {
-            StartupDiagnostics.run(this)
-        }
         CampusSyncAndReminderWorker.schedule(this)
     }
 }
