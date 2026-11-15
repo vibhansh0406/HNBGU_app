@@ -118,8 +118,6 @@ class MainActivity : AppCompatActivity() {
 
     private val googleSignInLauncher: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            // Always reset the in-flight flag so a subsequent sign-in attempt is allowed.
-            isSigningIn = false
             result.data?.let { data ->
                 val task = GoogleSignIn.getSignedInAccountFromIntent(data)
                 if (task.isSuccessful) {
@@ -177,11 +175,7 @@ class MainActivity : AppCompatActivity() {
             NotificationPermissionRequest()
             CampusOneTheme {
                 CampusOneRoot(
-                    onGoogleSignIn = {
-                        if (isSigningIn) return@onGoogleSignIn
-                        isSigningIn = true
-                        googleSignInLauncher.launch(authManager.getSignInIntent())
-                    },
+                    onGoogleSignIn = onGoogleSignIn,
                     authSession = authManager.session,
                     onSignOut = {
                         lifecycleScope.launch { authManager.signOut() }
@@ -265,8 +259,13 @@ fun CampusOneRoot(
 
     // If not signed in to Supabase/Google, show sign-in screen
     if (authSessionState == null) {
+        val onGoogleSignInWithGuard = {
+            if (isSigningIn) return@onGoogleSignInWithGuard
+            isSigningIn = true
+            onGoogleSignIn()
+        }
         SignInScreen(
-            onGoogleSignIn = onGoogleSignIn,
+            onGoogleSignIn = onGoogleSignInWithGuard,
             isSigningIn = isSigningIn
         )
         return
