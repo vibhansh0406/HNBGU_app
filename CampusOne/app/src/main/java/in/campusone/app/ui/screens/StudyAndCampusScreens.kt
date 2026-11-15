@@ -2441,7 +2441,7 @@ private fun SemesterTrendChart(
                 val x = padding + (index / (trend.size - 1).coerceAtLeast(1)) * chartWidth
                 val normalizedY = (record.sgpa - minSgpa) / range
                 val y = padding + chartHeight - normalizedY * chartHeight
-                Offset(x, y)
+                androidx.compose.ui.geometry.Offset(x, y)
             }
 
             // Draw line

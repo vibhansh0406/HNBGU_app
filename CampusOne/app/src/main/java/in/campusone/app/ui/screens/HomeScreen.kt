@@ -824,35 +824,3 @@ private fun priorityTone(priority: String): C1Tone = when (priority.uppercase(Lo
 private fun dayShort(slot: TimetableSlot): String =
     DayOfWeek.of(slot.dayOfWeek.coerceIn(1, 7))
         .getDisplayName(TextStyle.SHORT, Locale.getDefault())
-
-@Composable
-fun SmartCalculatorBanner(insight: AttendanceInsight) {
-    val extended = extendedColors
-    val (text, color) = when (insight.health) {
-        AttendanceHealth.NO_DATA ->
-            stringResource(R.string.no_classes_recorded) to MaterialTheme.colorScheme.onSurfaceVariant
-        AttendanceHealth.SAFE ->
-            stringResource(
-                R.string.bunk_safe,
-                insight.classesCanMissSafely,
-                insight.targetPercentage
-            ) to extended.success
-        AttendanceHealth.ON_EDGE ->
-            stringResource(
-                R.string.bunk_on_edge,
-                insight.targetPercentage
-            ) to extended.warning
-        AttendanceHealth.WARNING, AttendanceHealth.CRITICAL ->
-            stringResource(
-                R.string.bunk_recover,
-                insight.classesMustAttendToRecover,
-                insight.targetPercentage
-            ) to MaterialTheme.colorScheme.error
-    }
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodyMedium,
-        fontWeight = FontWeight.SemiBold,
-        color = color
-    )
-}

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.clip
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -33,6 +34,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -45,6 +48,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -55,6 +59,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import `in`.campusone.app.R
 import `in`.campusone.app.ui.theme.C1Border
 import `in`.campusone.app.ui.theme.C1Height
@@ -910,8 +915,8 @@ fun C1Skeleton(
     val compColors = componentColors
     val brush = Brush.linearGradient(
         colors = listOf(compColors.skeletonBase, compColors.skeletonHighlight, compColors.skeletonBase),
-        start = androidx.compose.ui.geometry.Offset(progress * 400f - 200f, 0f),
-        end = androidx.compose.ui.geometry.Offset(progress * 400f + 200f, 0f)
+        start = Offset(progress * 400f - 200f, 0f),
+        end = Offset(progress * 400f + 200f, 0f)
     )
     Box(modifier = modifier.background(brush, shape))
 }
@@ -964,7 +969,7 @@ fun RowScope.C1NavItem(
         animationSpec = tween(durationMillis = C1Motion.fastMillis),
         label = "navIconScale"
     )
-    androidx.compose.material3.NavigationBarItem(
+    NavigationBarItem(
         selected = selected,
         onClick = onClick,
         modifier = modifier,
@@ -990,7 +995,7 @@ fun RowScope.C1NavItem(
         },
         label = { Text(label, style = MaterialTheme.typography.labelMedium) },
         alwaysShowLabel = true,
-        colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
+        colors = NavigationBarItemDefaults.colors(
             selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
             selectedTextColor = MaterialTheme.colorScheme.onSurface,
             indicatorColor = MaterialTheme.colorScheme.primaryContainer,
