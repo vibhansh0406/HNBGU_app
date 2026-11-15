@@ -160,7 +160,11 @@ fun NoticeBoardScreen(
     Scaffold(
         floatingActionButton = {
             if (canPost) {
-                FloatingActionButton(onClick = { showComposer = true }) {
+                FloatingActionButton(
+                    onClick = { showComposer = true },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ) {
                     Icon(Icons.Default.Add, contentDescription = stringResource(R.string.post_notice))
                 }
             }
@@ -169,6 +173,7 @@ fun NoticeBoardScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding),
             contentPadding = PaddingValues(
                 start = C1Spacing.lg,
@@ -193,13 +198,17 @@ fun NoticeBoardScreen(
                         )
                         if (uiState.unreadNoticeCount > 0) {
                             TextButton(onClick = onMarkAllRead) {
-                                Icon(
-                                    imageVector = Icons.Default.DoneAll,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(C1Spacing.xs))
-                                Text(stringResource(R.string.mark_all_read))
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.DoneAll,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Text(stringResource(R.string.mark_all_read))
+                                }
                             }
                         }
                     }
@@ -207,9 +216,11 @@ fun NoticeBoardScreen(
                     C1TextField(
                         value = query,
                         onValueChange = { query = it },
-                        label = stringResource(R.string.notices_search_hint)
+                        label = stringResource(R.string.notices_search_hint),
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) }
                     )
 
+                    // Filter chips
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                         item {
                             FilterChip(
@@ -250,6 +261,7 @@ fun NoticeBoardScreen(
                         }
                     }
 
+                    // Category chips
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                         item {
                             FilterChip(
@@ -336,7 +348,7 @@ private fun NoticeEmptyState(
 ) {
     C1SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         C1EmptyState(icon = icon, title = title, message = message)
     }
@@ -345,15 +357,14 @@ private fun NoticeEmptyState(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun NoticeListCard(notice: NoticeItem, onClick: () -> Unit) {
-    Surface(
+    C1SurfaceCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        shape = C1Radius.md,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = if (!notice.isRead) {
-            BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+        containerColor = MaterialTheme.colorScheme.surface,
+        borderColor = if (!notice.isRead) {
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
         } else {
-            null
+            MaterialTheme.colorScheme.outlineVariant
         }
     ) {
         Column(modifier = Modifier.padding(C1Spacing.lg)) {
@@ -474,24 +485,29 @@ private fun NoticeDetail(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding),
             contentPadding = PaddingValues(
                 start = C1Spacing.lg,
                 end = C1Spacing.lg,
                 top = C1Spacing.sm,
-                bottom = C1Spacing.xxl
+                bottom = C1Spacing.xxxl
             ),
             verticalArrangement = Arrangement.spacedBy(C1Spacing.lg)
         ) {
             item {
                 TextButton(onClick = onBack) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(C1Spacing.xs))
-                    Text(stringResource(R.string.action_back))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(stringResource(R.string.action_back))
+                    }
                 }
             }
 
@@ -554,15 +570,13 @@ private fun NoticeDetail(
 
             if (!notice.attachmentUrl.isNullOrBlank()) {
                 item {
-                    Surface(
+                    C1SurfaceCard(
                         onClick = {
                             if (!openUrl(context, notice.attachmentUrl)) {
                                 scope.launch { snackbarHostState.showSnackbar(unavailableMessage) }
                             }
                         },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = C1Radius.md,
-                        color = MaterialTheme.colorScheme.surfaceContainerLow
+                        containerColor = MaterialTheme.colorScheme.surface
                     ) {
                         Row(
                             modifier = Modifier.padding(C1Spacing.lg),

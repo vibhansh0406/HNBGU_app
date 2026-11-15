@@ -63,3 +63,26 @@ Load skills on demand, one per task — never bulk-load. Preference order when s
 - **Production architecture, security hardening, Play policy, release readiness, anti-AI-slop design taste**: `android-production-ultimate` (routed slices via its references/INDEX.md — do not load whole corpus).
 - **Lifecycle/process workflows** (spec, plan, TDD, review, ship, debugging, git workflow): `agent-skills-android` set (`spec-driven-development`, `test-driven-development`, `code-review-and-quality`, `debugging-and-error-recovery`, ...).
 - **Kotlin language design** (API design, coroutines/Flow, control flow): `kotlin-*` skills (chrisbanes).
+
+## Installed Android engineering skills (`.agent/skills/`)
+
+The project ships a curated, verbatim copy of open-source Android engineering skills in
+`.agent/skills/` (see `.agent/skills/README.md` for provenance and licenses):
+
+- `.agent/skills/google/` — Google `android/skills` (Apache-2.0): `jetpack-compose-performance`,
+  `adaptive`, `edge-to-edge`, `navigation-3`, `navigation-event`, `glance-*`, `android-cli`,
+  `android-profiler`, `anr-audit-and-fix`, `r8-analyzer`, `agp-9-upgrade`,
+  `android-intent-security`, `android-permissions-security`, `testing-setup`, `play-policy-insights`.
+- `.agent/skills/agent-skills-android/` — `GuillemRoca/agent-skills-android` (MIT):
+  `android-ui-engineering`, `android-architecture`, `android-accessibility`,
+  `android-background-work`, `android-data-persistence`, `android-device-testing`,
+  `android-e2e-verification` plus the process skills (`spec-driven-development`,
+  `test-driven-development`, `code-review-and-quality`, `debugging-and-error-recovery`,
+  `git-workflow-and-versioning`, `shipping-and-launch`, ...).
+
+**MANDATORY:** AndCode does not auto-discover `.agent/skills/`. Before any Android
+engineering task, explicitly read the relevant `SKILL.md` file(s) with the Read tool
+(e.g. `Read .agent/skills/google/jetpack-compose-performance/SKILL.md`) and follow them.
+Read only the skill(s) the task actually needs — never bulk-load the whole set.
+Keep each skill's `SKILL.md` and its `LICENSE`/`LICENSE.txt` unmodified when copying or
+re-installing it.

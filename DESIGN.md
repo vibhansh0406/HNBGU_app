@@ -39,9 +39,9 @@ colors:
   night-info: "#8FC3D9"
 typography:
   families:
-    display: "Manrope (bundled variable, OFL)"
-    text: "Inter (bundled variable, OFL)"
-    hindi-fallback: "Noto Sans Devanagari (bundled variable, OFL)"
+    display: "Manrope (bundled variable, OFL) via res/font/manrope_family.xml"
+    text: "Inter (bundled variable, OFL) via res/font/inter_family.xml"
+    hindi-fallback: "Noto Sans Devanagari (bundled variable, OFL) declared as a fallback entry inside both families"
   display-large:
     fontFamily: "Manrope"
     fontSize: "40sp"
@@ -232,6 +232,15 @@ Two bundled families, one clear job each:
 - **Noto Sans Devanagari** — bundled fallback for Hindi, so Devanagari never renders in an unknown system face.
 
 Both families are OFL-licensed variable fonts shipped in `res/font` (no runtime fetch). The scale runs 40sp display → 11sp label with an obvious step between display, headline, title, body and label roles. Body text never drops below 13sp; metadata uses `labelMedium` (12sp). Tracking tightens as size grows (-0.4sp at 26sp → 0 at 12sp). On dark surfaces body roles gain one point of leading so light-on-dark stays comfortable.
+
+## Navigation & Interaction
+
+- Bottom navigation is state-based (`BottomNavTab` + `MoreSubScreen`) and deliberately stays that way in this mission: no rewrite of the shipped navigation architecture.
+- Tab switches animate (fade + 8% horizontal slide, 250ms) and each tab keeps its own saved state through a `SaveableStateHolder`, so a search box or filter survives a tab round trip.
+- System back is predictable: inside a More sub-screen it returns to the hub; from any bottom tab it returns to Home; only Home exits the app.
+- Notification taps are de-duplicated inside a 400ms window so a double tap cannot open two screens.
+- Loading states are skeletons where the content shape is known (`C1SkeletonRows`), spinners only where the shape is unknown.
+- Press feedback is a 0.97 scale + ripple on cards and lists, 150ms; nothing bounces.
 
 ## Layout
 

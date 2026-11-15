@@ -45,9 +45,10 @@ import `in`.campusone.app.ui.components.C1Banner
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1EmptyState
-import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1SectionHeader
+import `in`.campusone.app.ui.components.C1StatTile
 import `in`.campusone.app.ui.components.C1StatusChip
+import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1Tone
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
@@ -74,14 +75,16 @@ fun AttendanceScreen(
     val cancelledCount = filteredLogs.count { it.status == AttendanceStatus.CANCELLED }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(
             start = C1Spacing.lg,
             end = C1Spacing.lg,
             top = C1Spacing.lg,
-            bottom = C1Spacing.xxl
+            bottom = C1Spacing.xxxl
         ),
-        verticalArrangement = Arrangement.spacedBy(C1Spacing.lg)
+        verticalArrangement = Arrangement.spacedBy(C1Spacing.xl)
     ) {
         item {
             C1Banner(
@@ -107,7 +110,7 @@ fun AttendanceScreen(
             item {
                 C1SurfaceCard(
                     modifier = Modifier.fillMaxWidth(),
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    containerColor = MaterialTheme.colorScheme.surface
                 ) {
                     C1EmptyState(
                         icon = Icons.Default.Info,
@@ -160,7 +163,7 @@ fun AttendanceScreen(
             item {
                 C1SurfaceCard(
                     modifier = Modifier.fillMaxWidth(),
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    containerColor = MaterialTheme.colorScheme.surface
                 ) {
                     C1EmptyState(
                         icon = Icons.Default.History,
@@ -195,7 +198,7 @@ private fun OverallAttendanceCard(
     C1SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(C1Spacing.lg),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         Column(modifier = Modifier.padding(C1Spacing.xl)) {
             Row(
@@ -239,8 +242,9 @@ private fun OverallAttendanceCard(
                 AnimatedAttendanceRing(
                     percentage = insight.currentPercentage,
                     health = insight.health,
-                    size = 92.dp,
-                    strokeWidth = 10.dp
+                    size = 100.dp,
+                    strokeWidth = 10.dp,
+                    label = "Overall"
                 )
             }
 
@@ -328,10 +332,9 @@ private fun SubjectAttendanceCard(
     val extended = extendedColors
     val belowTarget = insight.health == AttendanceHealth.WARNING || insight.health == AttendanceHealth.CRITICAL
 
-    Surface(
+    C1SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = C1Radius.md,
-        color = MaterialTheme.colorScheme.surfaceContainerLow
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         Column(modifier = Modifier.padding(C1Spacing.lg)) {
             Row(
@@ -364,7 +367,7 @@ private fun SubjectAttendanceCard(
                 AnimatedAttendanceRing(
                     percentage = insight.currentPercentage,
                     health = insight.health,
-                    size = 64.dp,
+                    size = 68.dp,
                     strokeWidth = 7.dp
                 )
             }
@@ -431,10 +434,9 @@ private fun AttendanceLogRow(
         runCatching { LocalDate.parse(dateIso).format(formatter) }.getOrDefault(dateIso)
     }
 
-    Surface(
+    C1SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = C1Radius.sm,
-        color = MaterialTheme.colorScheme.surfaceContainerLow
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         Row(
             modifier = Modifier
