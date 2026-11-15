@@ -4,8 +4,6 @@ import android.content.Context
 import android.util.Log
 import androidx.core.content.res.ResourcesCompat
 import `in`.campusone.app.R`
-import `in`.campusone.app.ui.theme.CampusOneDisplayFamily
-import `in`.campusone.app.ui.theme.CampusOneTextFamily
 
 /**
  * Debug-only startup probe.
@@ -36,16 +34,6 @@ object StartupDiagnostics {
             Log.i(TAG, "font resource inter_family loaded=${text != null}")
         }.onFailure {
             Log.e(TAG, "FONT FAILURE inter_family: ${it.javaClass.name}: ${it.message}", it)
-        }
-
-        runCatching {
-            Log.i(
-                TAG,
-                "typography families resolved: display=${CampusOneDisplayFamily.toString().take(40)} " +
-                    "text=${CampusOneTextFamily.toString().take(40)}"
-            )
-        }.onFailure {
-            Log.e(TAG, "TYPOGRAPHY FAILURE: ${it.javaClass.name}: ${it.message}", it)
         }
 
         runCatching { Log.i(TAG, "startup probe complete") }
