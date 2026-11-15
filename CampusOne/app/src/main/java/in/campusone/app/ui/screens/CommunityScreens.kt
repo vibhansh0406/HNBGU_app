@@ -70,10 +70,12 @@ import `in`.campusone.app.domain.model.UserRole
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1EmptyState
+import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1LoadingState
 import `in`.campusone.app.ui.components.C1StatusChip
 import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.components.C1Tone
+import androidx.compose.foundation.layout.PaddingValues
 import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.viewmodel.CommunityMode
 import `in`.campusone.app.ui.viewmodel.CommunityUiState
@@ -417,12 +419,11 @@ private fun CommunityPostCard(
     onToggleLike: () -> Unit,
     onReport: () -> Unit
 ) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainerLow
+    C1SurfaceCard(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(C1Spacing.lg),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(
             modifier = Modifier.padding(C1Spacing.lg),
@@ -928,12 +929,10 @@ fun NotificationsScreen(
 
 @Composable
 private fun NotificationRow(notification: AppNotification, onClick: () -> Unit) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = MaterialTheme.shapes.medium,
-        color = if (notification.isRead) {
+    C1SurfaceCard(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = if (notification.isRead) {
             MaterialTheme.colorScheme.surfaceContainerLow
         } else {
             MaterialTheme.colorScheme.secondaryContainer
