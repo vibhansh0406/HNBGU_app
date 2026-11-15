@@ -113,15 +113,6 @@ fun TimetableScreen(
                 TabRow(
                     selectedTabIndex = selectedTab,
                     modifier = Modifier.padding(horizontal = C1Spacing.lg),
-                    indicator = { tabPositions ->
-                        Box(
-                            modifier = Modifier
-                                .offset(x = tabPositions.getTabPosition(selectedTab))
-                                .height(3.dp)
-                                .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.primary, C1Radius.xs)
-                        )
-                    },
                     divider = { }
                 ) {
                     Tab(

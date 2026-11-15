@@ -217,8 +217,7 @@ fun NoticeBoardScreen(
                     C1TextField(
                         value = query,
                         onValueChange = { query = it },
-                        label = stringResource(R.string.notices_search_hint),
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) }
+                        label = stringResource(R.string.notices_search_hint)
                     )
 
                     // Filter chips

@@ -55,7 +55,6 @@ import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1FilterChip
-import `in`.campusone.app.ui.components.C1IconPosition
 import `in`.campusone.app.ui.components.C1SectionHeader
 import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.theme.C1Height
@@ -359,15 +358,13 @@ private fun OnboardingStepWelcome(
             C1TextField(
                 value = name,
                 onValueChange = onNameChange,
-                label = "Full Name",
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) }
+                label = "Full Name"
             )
             C1TextField(
                 value = email,
                 onValueChange = onEmailChange,
                 label = "Google / University Email",
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) },
-                keyboardType = KeyboardType.TextEmailAddress
+                keyboardType = KeyboardType.Text
             )
         }
     }

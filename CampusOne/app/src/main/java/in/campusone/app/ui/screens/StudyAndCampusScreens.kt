@@ -126,6 +126,7 @@ import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1SectionHeader
 import `in`.campusone.app.ui.components.C1StatTile
 import `in`.campusone.app.ui.components.C1StatusChip
+import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.components.C1Tone
 import `in`.campusone.app.ui.theme.C1Radius

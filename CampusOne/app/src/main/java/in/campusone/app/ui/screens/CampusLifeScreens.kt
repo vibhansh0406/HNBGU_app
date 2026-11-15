@@ -586,7 +586,6 @@ fun CampusDirectoryScreen(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
                     label = "Search name / department",
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth().padding(16.dp)
                 )
             }
@@ -635,7 +634,7 @@ fun CampusDirectoryScreen(
                                                 context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${contact.phone}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                                             } catch (_: Exception) { }
                                         },
-                                        icon = { Icon(Icons.Default.Call, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                                        intent = C1ButtonIntent.PRIMARY
                                     )
                                     C1Button(
                                         text = "Email",
@@ -645,8 +644,7 @@ fun CampusDirectoryScreen(
                                                 context.startActivity(intent)
                                             } catch (_: Exception) { }
                                         },
-                                        intent = C1ButtonIntent.OUTLINED,
-                                        icon = { Icon(Icons.Default.Email, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                                        intent = C1ButtonIntent.OUTLINED
                                     )
                                     C1Button(text = "Suggest fix", onClick = { correctionContact = contact }, intent = C1ButtonIntent.GHOST)
                                 }

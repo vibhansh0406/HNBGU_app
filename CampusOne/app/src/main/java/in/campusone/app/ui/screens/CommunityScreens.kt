@@ -316,8 +316,7 @@ private fun CommunityFeed(
             value = uiState.query,
             onValueChange = onQueryChange,
             label = stringResource(R.string.community_search_hint),
-            modifier = Modifier.padding(horizontal = C1Spacing.lg, vertical = C1Spacing.sm),
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) }
+            modifier = Modifier.padding(horizontal = C1Spacing.lg, vertical = C1Spacing.sm)
         )
 
         // Category filter
@@ -578,8 +577,7 @@ private fun CommunityPostDetail(
                             C1Button(
                                 text = post.likeCount.toString(),
                                 onClick = { onToggleLike(post) },
-                                intent = if (post.isLiked) C1ButtonIntent.TONAL else C1ButtonIntent.OUTLINED,
-                                icon = { Icon(if (post.isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                                intent = if (post.isLiked) C1ButtonIntent.TONAL else C1ButtonIntent.OUTLINED
                             )
                             if (post.authorUid == currentUid) {
                                 IconButton(onClick = { onEditPost(post) }) {
