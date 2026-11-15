@@ -45,6 +45,7 @@ import `in`.campusone.app.ui.components.C1Banner
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1EmptyState
+import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1SectionHeader
 import `in`.campusone.app.ui.components.C1StatusChip
 import `in`.campusone.app.ui.components.C1Tone
@@ -104,10 +105,9 @@ fun AttendanceScreen(
 
         if (uiState.subjectInsights.isEmpty()) {
             item {
-                Surface(
+                C1SurfaceCard(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = C1Radius.md,
-                    color = MaterialTheme.colorScheme.surfaceContainerLow
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                 ) {
                     C1EmptyState(
                         icon = Icons.Default.Info,
@@ -158,10 +158,9 @@ fun AttendanceScreen(
 
         if (filteredLogs.isEmpty()) {
             item {
-                Surface(
+                C1SurfaceCard(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = C1Radius.md,
-                    color = MaterialTheme.colorScheme.surfaceContainerLow
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                 ) {
                     C1EmptyState(
                         icon = Icons.Default.History,
@@ -193,10 +192,10 @@ private fun OverallAttendanceCard(
     val absentCount = (insight.totalConducted - insight.attended).coerceAtLeast(0)
     val belowTarget = insight.health == AttendanceHealth.WARNING || insight.health == AttendanceHealth.CRITICAL
 
-    Surface(
+    C1SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = C1Radius.lg,
-        color = MaterialTheme.colorScheme.surfaceContainerLow
+        contentPadding = PaddingValues(C1Spacing.lg),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(modifier = Modifier.padding(C1Spacing.xl)) {
             Row(

@@ -53,6 +53,7 @@ import `in`.campusone.app.domain.usecase.SlotLiveState
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1EmptyState
+import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1StatusChip
 import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.components.C1Tone
@@ -210,10 +211,10 @@ private fun ReminderLeadTimeCard(
     reminderLeadMinutes: Int,
     onUpdateReminderMinutes: (Int) -> Unit
 ) {
-    Surface(
+    C1SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = C1Radius.md,
-        color = MaterialTheme.colorScheme.surfaceContainerLow
+        contentPadding = PaddingValues(C1Spacing.lg),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(modifier = Modifier.padding(C1Spacing.lg)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -246,10 +247,9 @@ private fun ReminderLeadTimeCard(
 
 @Composable
 private fun EmptySchedule(title: String, message: String) {
-    Surface(
+    C1SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = C1Radius.md,
-        color = MaterialTheme.colorScheme.surfaceContainerLow
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         C1EmptyState(
             icon = Icons.Default.Schedule,
