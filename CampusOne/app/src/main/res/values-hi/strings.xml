@@ -284,4 +284,17 @@
     <string name="more_campus_community">कैंपस और समुदाय</string>
     <string name="community_posts_count">%1$d पोस्ट</string>
     <string name="home_greeting">नमस्ते, %1$s</string>
+    <string name="hub_resources_sub">%1$d पीडीएफ़ और इमेज • ऐप में देखें, ऑफ़लाइन बुकमार्क, CR मॉडरेशन</string>
+    <string name="hub_assignments_sub">%1$d लंबित कार्य • आज, आगामी, अतिदेय, पूर्ण और साझा कार्य</string>
+    <string name="hub_exams_sub">%1$d निर्धारित परीक्षाएँ • %2$d/%3$d पाठ्यक्रम विषय पूर्ण</string>
+    <string name="hub_gpa_sub">SGPA %1$s • CGPA %2$s (%3$s) • ट्रेंड चार्ट और PDF निर्यात</string>
+    <string name="hub_events_sub">%1$d आगामी कैंपस इवेंट और क्लब मीटअप</string>
+    <string name="hub_lostfound_sub">कैंपस पर %1$d सक्रिय खोया-पाया रिपोर्ट</string>
+    <string name="hub_directory_sub">HoD, परीक्षा नियंत्रक, प्रोक्टर और आपातकालीन नंबर</string>
+    <string name="hub_superadmin_sub">मालिक कंसोल • उपयोगकर्ता, भूमिकाएँ, सामग्री, मॉडरेशन, ऑडिट</string>
+    <string name="hub_admin_sub">ऐप डेटा, उपयोगकर्ता, सूचनाएँ, टाइमटेबल और अधिक प्रबंधित करें</string>
+    <string name="hub_role_sub">CR, शिक्षक, मॉडरेशनर या क्लब एडमिन पहुँच — एडमिन द्वारा समीक्षित</string>
+    <string name="hub_privacy_sub">कोई विज्ञापन नहीं, कोई ट्रैकर नहीं, ऑफ़लाइन-फर्स्ट • MIT ओपन सोर्स</string>
+    <string name="hub_signout_sub">इस डिवाइस से Google और Supabase से साइन आउट करें</string>
+    <string name="hub_community_sub">%1$d पोस्ट • कैंपस फ़ीड और चर्चाएँ</string>
 </resources>

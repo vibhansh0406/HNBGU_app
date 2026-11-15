@@ -312,7 +312,7 @@ fun MoreHubScreen(
             item {
                 FeatureHubCard(
                     title = stringResource(R.string.notes_pyq),
-                    subtitle = "${uiState.resources.size} PDFs & Images • In-App Zoom Viewer, Offline Bookmarks & CR Moderation",
+                    subtitle = stringResource(R.string.hub_resources_sub, uiState.resources.size),
                     icon = Icons.Default.Description,
                     onClick = { activeScreen = MoreSubScreen.NOTES_PYQ }
                 )
@@ -321,7 +321,7 @@ fun MoreHubScreen(
                 val pendingCount = uiState.assignments.count { !it.isCompleted && it.isAddedToPersonalList }
                 FeatureHubCard(
                     title = stringResource(R.string.assignments_title),
-                    subtitle = "$pendingCount pending tasks • Today, Upcoming, Overdue, Completed & Shared Section Tasks",
+                    subtitle = stringResource(R.string.hub_assignments_sub, pendingCount),
                     icon = Icons.Default.Assignment,
                     onClick = { activeScreen = MoreSubScreen.ASSIGNMENTS }
                 )
@@ -331,7 +331,7 @@ fun MoreHubScreen(
                 val totalTopics = uiState.syllabusTopics.size
                 FeatureHubCard(
                     title = stringResource(R.string.exams_syllabus),
-                    subtitle = "${uiState.exams.size} scheduled exams • $doneTopics/$totalTopics syllabus topics completed",
+                    subtitle = stringResource(R.string.hub_exams_sub, uiState.exams.size, doneTopics, totalTopics),
                     icon = Icons.Default.CalendarMonth,
                     onClick = { activeScreen = MoreSubScreen.EXAMS_SYLLABUS }
                 )
@@ -339,7 +339,7 @@ fun MoreHubScreen(
             item {
                 FeatureHubCard(
                     title = stringResource(R.string.gpa_calculator),
-                    subtitle = "SGPA: ${uiState.gpaResult.formattedSgpa} • CGPA: ${uiState.gpaResult.formattedCgpa} (${uiState.gpaResult.formattedPercentage}) • Trend Chart & PDF Export",
+                    subtitle = stringResource(R.string.hub_gpa_sub, uiState.gpaResult.formattedSgpa, uiState.gpaResult.formattedCgpa, uiState.gpaResult.formattedPercentage),
                     icon = Icons.Default.Calculate,
                     onClick = { activeScreen = MoreSubScreen.GPA_CALCULATOR }
                 )
@@ -356,7 +356,7 @@ fun MoreHubScreen(
             item {
                 FeatureHubCard(
                     title = stringResource(R.string.community_title),
-                    subtitle = "${stringResource(R.string.community_posts_count, communityState.posts.size)} • ${stringResource(R.string.community_subtitle)}",
+                    subtitle = stringResource(R.string.hub_community_sub, communityState.posts.size),
                     icon = Icons.Default.Forum,
                     onClick = { activeScreen = MoreSubScreen.COMMUNITY }
                 )
@@ -392,7 +392,7 @@ fun MoreHubScreen(
             item {
                 FeatureHubCard(
                     title = stringResource(R.string.events_clubs),
-                    subtitle = "${uiState.events.size} upcoming campus events & club meetups",
+                    subtitle = stringResource(R.string.hub_events_sub, uiState.events.size),
                     icon = Icons.Default.Event,
                     onClick = { activeScreen = MoreSubScreen.EVENTS_CLUBS }
                 )
@@ -400,7 +400,7 @@ fun MoreHubScreen(
             item {
                 FeatureHubCard(
                     title = stringResource(R.string.lost_found),
-                    subtitle = "${uiState.lostFoundItems.count { !it.isResolved }} active lost/found reports on campus",
+                    subtitle = stringResource(R.string.hub_lostfound_sub, uiState.lostFoundItems.count { !it.isResolved }),
                     icon = Icons.Default.FindInPage,
                     onClick = { activeScreen = MoreSubScreen.LOST_FOUND }
                 )
@@ -408,7 +408,7 @@ fun MoreHubScreen(
             item {
                 FeatureHubCard(
                     title = stringResource(R.string.campus_directory),
-                    subtitle = "HoDs, Controller of Exams, Proctor & Emergency helplines",
+                    subtitle = stringResource(R.string.hub_directory_sub),
                     icon = Icons.Default.Call,
                     onClick = { activeScreen = MoreSubScreen.DIRECTORY }
                 )
@@ -417,7 +417,7 @@ fun MoreHubScreen(
                 item {
                     FeatureHubCard(
                         title = "Super Admin",
-                        subtitle = "Owner console • users, roles, content, moderation, audit",
+                        subtitle = stringResource(R.string.hub_superadmin_sub),
                         icon = Icons.Default.Shield,
                         onClick = {
                             adminViewModel.init(uiState.profile)
@@ -430,7 +430,7 @@ fun MoreHubScreen(
                 item {
                     FeatureHubCard(
                         title = "Admin Panel",
-                        subtitle = "Manage app data, users, notices, timetable & more",
+                        subtitle = stringResource(R.string.hub_admin_sub),
                         icon = Icons.Default.School,
                         onClick = {
                             adminViewModel.init(uiState.profile)
@@ -443,7 +443,7 @@ fun MoreHubScreen(
                 item {
                     FeatureHubCard(
                         title = "Request a Role",
-                        subtitle = "CR, Teacher, Moderator or Club Admin access — reviewed by the admin",
+                        subtitle = stringResource(R.string.hub_role_sub),
                         icon = Icons.Default.AccountCircle,
                         onClick = { showRoleRequest = true }
                     )
@@ -452,7 +452,7 @@ fun MoreHubScreen(
             item {
                 FeatureHubCard(
                     title = stringResource(R.string.privacy_policy),
-                    subtitle = "Zero ads, zero trackers, offline-first • MIT Open Source",
+                    subtitle = stringResource(R.string.hub_privacy_sub),
                     icon = Icons.Default.PrivacyTip,
                     onClick = { activeScreen = MoreSubScreen.PRIVACY_POLICY }
                 )
@@ -460,7 +460,7 @@ fun MoreHubScreen(
             item {
                 FeatureHubCard(
                     title = "Sign Out",
-                    subtitle = "Sign out of Google & Supabase on this device",
+                    subtitle = stringResource(R.string.hub_signout_sub),
                     icon = Icons.Default.AccountCircle,
                     onClick = onSignOut
                 )

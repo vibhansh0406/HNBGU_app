@@ -312,4 +312,17 @@
     <string name="more_campus_community">Campus &amp; Community</string>
     <string name="community_posts_count">%1$d posts</string>
     <string name="home_greeting">Namaste, %1$s</string>
+    <string name="hub_resources_sub">%1$d PDFs &amp; images • in-app viewer, offline bookmarks, CR moderation</string>
+    <string name="hub_assignments_sub">%1$d pending tasks • today, upcoming, overdue, completed &amp; shared</string>
+    <string name="hub_exams_sub">%1$d scheduled exams • %2$d/%3$d syllabus topics completed</string>
+    <string name="hub_gpa_sub">SGPA %1$s • CGPA %2$s (%3$s) • trend chart &amp; PDF export</string>
+    <string name="hub_events_sub">%1$d upcoming campus events &amp; club meetups</string>
+    <string name="hub_lostfound_sub">%1$d active lost/found reports on campus</string>
+    <string name="hub_directory_sub">HoDs, controller of exams, proctor &amp; emergency helplines</string>
+    <string name="hub_superadmin_sub">Owner console • users, roles, content, moderation, audit</string>
+    <string name="hub_admin_sub">Manage app data, users, notices, timetable &amp; more</string>
+    <string name="hub_role_sub">CR, teacher, moderator or club admin access — reviewed by the admin</string>
+    <string name="hub_privacy_sub">Zero ads, zero trackers, offline-first • MIT open source</string>
+    <string name="hub_signout_sub">Sign out of Google &amp; Supabase on this device</string>
+    <string name="hub_community_sub">%1$d posts • campus feed and discussions</string>
 </resources>
