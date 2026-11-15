@@ -171,6 +171,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         authManager.initGoogleSignIn()
+        val onGoogleSignIn = {
+            googleSignInLauncher.launch(authManager.getSignInIntent())
+        }
         setContent {
             NotificationPermissionRequest()
             CampusOneTheme {
@@ -260,7 +263,7 @@ fun CampusOneRoot(
     // If not signed in to Supabase/Google, show sign-in screen
     if (authSessionState == null) {
         val onGoogleSignInWithGuard = {
-            if (isSigningIn) return@onGoogleSignInWithGuard
+            if (isSigningIn) return
             isSigningIn = true
             onGoogleSignIn()
         }
