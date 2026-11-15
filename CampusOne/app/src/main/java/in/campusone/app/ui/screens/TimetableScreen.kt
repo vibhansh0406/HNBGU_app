@@ -115,7 +115,7 @@ fun TimetableScreen(
                     indicator = { tabPositions ->
                         Box(
                             modifier = Modifier
-                                .tabIndicatorOffset(tabPositions[selectedTab])
+                                .offset(x = tabPositions.getTabPosition(selectedTab))
                                 .height(3.dp)
                                 .fillMaxWidth()
                                 .background(MaterialTheme.colorScheme.primary, C1Radius.xs)
