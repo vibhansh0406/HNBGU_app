@@ -263,9 +263,10 @@ fun CampusOneRoot(
     // If not signed in to Supabase/Google, show sign-in screen
     if (authSessionState == null) {
         val onGoogleSignInWithGuard = {
-            if (isSigningIn) return
-            isSigningIn = true
-            onGoogleSignIn()
+            if (!isSigningIn) {
+                isSigningIn = true
+                onGoogleSignIn()
+            }
         }
         SignInScreen(
             onGoogleSignIn = onGoogleSignInWithGuard,
