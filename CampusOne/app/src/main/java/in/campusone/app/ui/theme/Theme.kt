@@ -85,7 +85,14 @@ private val DarkColorScheme = darkColorScheme(
     surfaceTint = Color(0xFF8FD6A8),
 )
 
-// iOS-adjacent continuous-feeling corner radii
+// Semantic attendance health colors (forest-harmonized)
+val SafeGreen = Color(0xFF2E7D5B)
+val SafeGreenContainer = Color(0xFFDDEBE2)
+val EdgeAmber = Color(0xFFB45309)
+val EdgeAmberContainer = Color(0xFFF7ECD9)
+val DangerRed = Color(0xFFB42318)
+val DangerRedContainer = Color(0xFFFBE5E2)
+
 val ExpressiveShapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp),
     small = RoundedCornerShape(12.dp),
