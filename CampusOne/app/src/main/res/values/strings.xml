@@ -330,6 +330,6 @@
     <string name="onboarding_admin_access">Admin access</string>
     <string name="onboarding_signed_in_as_owner">Signed in as the app owner. The admin panel will be enabled automatically.</string>
     <string name="onboarding_cr_teacher_access">CR, Teacher, Moderator and Club Admin access is granted after admin approval. A request is sent automatically.</string>
-    <string name="hub_campus_life">Campus Life & Utilities</string>
+    <string name="hub_campus_life">Campus Life &amp; Utilities</string>
     <string name="hub_request_sent">Your request is sent to the admin. Access is granted only after approval.</string>
 </resources>
