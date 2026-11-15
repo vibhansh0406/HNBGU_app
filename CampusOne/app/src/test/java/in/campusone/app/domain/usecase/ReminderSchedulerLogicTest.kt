@@ -25,11 +25,11 @@ class ReminderSchedulerLogicTest {
 
     @Test
     fun `reminder due inside the 15-minute window is scheduled`() {
-        // due in 1 hour, reminder 1 hour before -> fires now
-        val specs = spec(due = now + 60 * 60_000L, offsets = listOf(60))
+        // due in 1 hour 1 min, reminder 1 hour before -> fires in 1 min (inside window)
+        val specs = spec(due = now + 61 * 60_000L, offsets = listOf(60))
         assertEquals(1, specs.size)
         assertEquals(60, specs.first().leadOffsetMinutes)
-        assertEquals(0L, specs.first().initialDelayMillis)
+        assertEquals(60_000L, specs.first().initialDelayMillis)
     }
 
     @Test
@@ -41,32 +41,33 @@ class ReminderSchedulerLogicTest {
 
     @Test
     fun `multiple offsets each produce their own spec`() {
-        val specs = spec(due = now + 2 * 60 * 60_000L, offsets = listOf(120, 60))
+        // due in 16 min, offsets 15 and 1 min -> fire in 1 min and 15 min (both in window)
+        val specs = spec(due = now + 16 * 60_000L, offsets = listOf(15, 1))
         assertEquals(2, specs.size)
-        assertEquals(listOf(120, 60), specs.map { it.leadOffsetMinutes })
+        assertEquals(listOf(15, 1), specs.map { it.leadOffsetMinutes })
     }
 
     @Test
     fun `completed reminders are never scheduled`() {
-        val specs = spec(due = now + 60 * 60_000L, offsets = listOf(60), completed = true)
+        val specs = spec(due = now + 61 * 60_000L, offsets = listOf(60), completed = true)
         assertTrue(specs.isEmpty())
     }
 
     @Test
     fun `disabled reminders are never scheduled`() {
-        val specs = spec(due = now + 60 * 60_000L, offsets = listOf(60), enabled = false)
+        val specs = spec(due = now + 61 * 60_000L, offsets = listOf(60), enabled = false)
         assertTrue(specs.isEmpty())
     }
 
     @Test
     fun `unique work name encodes target and offset`() {
-        val specs = spec(due = now + 60 * 60_000L, offsets = listOf(60))
+        val specs = spec(due = now + 61 * 60_000L, offsets = listOf(60))
         assertEquals("reminder_t1_60m", specs.first().uniqueWorkName)
     }
 
     @Test
     fun `initial delay is non-negative when due inside window`() {
-        val specs = spec(due = now + 30 * 60_000L, offsets = listOf(30))
+        val specs = spec(due = now + 31 * 60_000L, offsets = listOf(30))
         assertEquals(1, specs.size)
         assertTrue(specs.first().initialDelayMillis >= 0L)
     }
