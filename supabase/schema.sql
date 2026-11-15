@@ -1836,3 +1836,242 @@ revoke execute on function public.admin_moderate_community(text, text, text)
   from public, anon;
 grant execute on function public.admin_moderate_community(text, text, text)
   to authenticated;
+
+-- =========================================================================
+-- MISSION 6 — WRITE SCOPE HARDENING (deny-by-default for students)
+--
+-- The legacy bootstrap granted every authenticated account full write access
+-- to the academic and administrative tables ("campusone_write_<table>" with
+-- using (true) / with check (true)). The app hides those surfaces in the UI,
+-- but the REST API accepted the writes anyway. This block replaces the blanket
+-- policies with role-scoped ones so authorization is enforced by Postgres.
+--
+-- Rules
+--   * Staff = owner, ADMIN, TEACHER, CR, MODERATOR (server-derived role).
+--   * Students keep the writes the product actually offers them: uploading a
+--     study resource, submitting a directory suggestion, requesting the
+--     owner of a lost-and-found item, marking their own attendance, posting
+--     community content and reporting content.
+--   * Everything else (exams, timetable slots, assignments, notices, clubs,
+--     events, directory, map, moderator roster) is staff-only.
+--   * Students can never edit or delete rows they did not create, and can
+--     never flip moderation flags (approval, hidden, flagged, upvotes).
+--
+-- Rollback: re-run the legacy bootstrap block that recreates
+-- "campusone_write_<table>" policies with using (true) / with check (true).
+-- =========================================================================
+
+create or replace function public.campusone_is_staff()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select public.campusone_is_owner()
+      or public.campusone_caller_role() in ('ADMIN', 'TEACHER', 'CR', 'MODERATOR');
+$$;
+
+create or replace function public.campusone_is_catalog_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select public.campusone_is_owner()
+      or public.campusone_caller_role() = 'ADMIN';
+$$;
+
+create or replace function public.campusone_own_section_key()
+returns text
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select p.college_id || '_' || p.course_id || '_sem' || p.semester || '_sec' || p.section
+    from public.profiles p
+   where p.id = auth.uid();
+$$;
+
+-- Drop the legacy blanket write policies.
+do $$
+declare t text;
+begin
+  foreach t in array array[
+    'subjects','timetable_slots','notices','assignments','exams',
+    'study_resources','syllabus_topics','clubs','campus_events',
+    'lost_found_items','lost_found_contact_requests','directory_contacts',
+    'directory_suggestions','campus_map_places','moderators'
+  ]
+  loop
+    execute format('drop policy if exists "campusone_write_%1$I" on public.%1$I', t);
+  end loop;
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- Staff-only surfaces
+-- ---------------------------------------------------------------------------
+do $$
+declare t text;
+begin
+  foreach t in array array[
+    'subjects','syllabus_topics','timetable_slots','notices','assignments',
+    'clubs','campus_events','lost_found_items','directory_contacts',
+    'campus_map_places'
+  ]
+  loop
+    execute format('drop policy if exists "campusone_staff_write_%1$I" on public.%1$I', t);
+    execute format(
+      'create policy "campusone_staff_write_%1$I" on public.%1$I
+         for all to authenticated
+         using (public.campusone_is_staff())
+         with check (public.campusone_is_staff())', t);
+  end loop;
+end $$;
+
+-- Exams and the moderator roster are administrator-only.
+drop policy if exists "campusone_staff_write_exams" on public.exams;
+create policy "campusone_staff_write_exams" on public.exams
+  for all to authenticated
+  using (public.campusone_is_catalog_admin())
+  with check (public.campusone_is_catalog_admin());
+
+drop policy if exists "campusone_staff_write_moderators" on public.moderators;
+create policy "campusone_staff_write_moderators" on public.moderators
+  for all to authenticated
+  using (public.campusone_is_catalog_admin())
+  with check (public.campusone_is_catalog_admin());
+
+-- ---------------------------------------------------------------------------
+-- Study resources: students may upload, but only touch their own rows and
+-- can never approve, hide, flag or upvote their own content.
+-- ---------------------------------------------------------------------------
+drop policy if exists "campusone_write_study_resources" on public.study_resources;
+create policy "campusone_write_study_resources" on public.study_resources
+  for insert to authenticated
+  with check (
+    public.campusone_is_staff()
+    or uploader_uid = auth.uid()::text
+  );
+
+drop policy if exists "campusone_update_study_resources" on public.study_resources;
+create policy "campusone_update_study_resources" on public.study_resources
+  for update to authenticated
+  using (
+    public.campusone_is_staff()
+    or uploader_uid = auth.uid()::text
+  )
+  with check (
+    public.campusone_is_staff()
+    or uploader_uid = auth.uid()::text
+  );
+
+drop policy if exists "campusone_delete_study_resources" on public.study_resources;
+create policy "campusone_delete_study_resources" on public.study_resources
+  for delete to authenticated
+  using (
+    public.campusone_is_staff()
+    or uploader_uid = auth.uid()::text
+  );
+
+create or replace function public.campusone_guard_study_resource()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.campusone_is_staff() then
+    new.uploader_uid := old.uploader_uid;
+    new.uploader_name := old.uploader_name;
+    new.is_approved_by_cr := old.is_approved_by_cr;
+    new.is_hidden := old.is_hidden;
+    new.is_flagged := old.is_flagged;
+    new.upvotes := old.upvotes;
+    new.report_count := old.report_count;
+    new.upload_status := old.upload_status;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists study_resources_guard on public.study_resources;
+create trigger study_resources_guard
+  before update on public.study_resources
+  for each row execute function public.campusone_guard_study_resource();
+
+-- ---------------------------------------------------------------------------
+-- Student-submitted rows: the student may create and manage only their own.
+-- ---------------------------------------------------------------------------
+drop policy if exists "campusone_write_lost_found_contact_requests" on public.lost_found_contact_requests;
+create policy "campusone_write_lost_found_contact_requests" on public.lost_found_contact_requests
+  for insert to authenticated
+  with check (requester_uid = auth.uid()::text);
+
+drop policy if exists "campusone_update_lost_found_contact_requests" on public.lost_found_contact_requests;
+create policy "campusone_update_lost_found_contact_requests" on public.lost_found_contact_requests
+  for update to authenticated
+  using (requester_uid = auth.uid()::text)
+  with check (requester_uid = auth.uid()::text);
+
+drop policy if exists "campusone_delete_lost_found_contact_requests" on public.lost_found_contact_requests;
+create policy "campusone_delete_lost_found_contact_requests" on public.lost_found_contact_requests
+  for delete to authenticated
+  using (requester_uid = auth.uid()::text);
+
+drop policy if exists "campusone_write_directory_suggestions" on public.directory_suggestions;
+create policy "campusone_write_directory_suggestions" on public.directory_suggestions
+  for insert to authenticated
+  with check (submitted_by = auth.uid()::text);
+
+drop policy if exists "campusone_update_directory_suggestions" on public.directory_suggestions;
+create policy "campusone_update_directory_suggestions" on public.directory_suggestions
+  for update to authenticated
+  using (submitted_by = auth.uid()::text)
+  with check (submitted_by = auth.uid()::text);
+
+drop policy if exists "campusone_delete_directory_suggestions" on public.directory_suggestions;
+create policy "campusone_delete_directory_suggestions" on public.directory_suggestions
+  for delete to authenticated
+  using (submitted_by = auth.uid()::text);
+
+-- ---------------------------------------------------------------------------
+-- Grants follow the policies: the anon key still only reaches what RLS allows.
+-- ---------------------------------------------------------------------------
+grant select, insert, update, delete on public.study_resources to authenticated;
+grant select, insert, update, delete on public.directory_suggestions to authenticated;
+grant select, insert, update, delete on public.lost_found_contact_requests to authenticated;
+
+revoke execute on function public.campusone_is_staff() from public, anon;
+revoke execute on function public.campusone_is_catalog_admin() from public, anon;
+revoke execute on function public.campusone_own_section_key() from public, anon;
+grant execute on function public.campusone_is_staff() to authenticated;
+grant execute on function public.campusone_is_catalog_admin() to authenticated;
+grant execute on function public.campusone_own_section_key() to authenticated;
+
+-- Student-owned rows keep a staff-controlled status (approved / reviewed).
+create or replace function public.campusone_guard_status_only_staff()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.campusone_is_staff() then
+    new.status := old.status;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists directory_suggestions_guard on public.directory_suggestions;
+create trigger directory_suggestions_guard
+  before update on public.directory_suggestions
+  for each row execute function public.campusone_guard_status_only_staff();
+
+drop trigger if exists lost_found_contact_requests_guard on public.lost_found_contact_requests;
+create trigger lost_found_contact_requests_guard
+  before update on public.lost_found_contact_requests
+  for each row execute function public.campusone_guard_status_only_staff();
