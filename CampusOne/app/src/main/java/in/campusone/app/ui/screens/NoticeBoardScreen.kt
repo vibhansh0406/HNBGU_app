@@ -70,6 +70,7 @@ import `in`.campusone.app.ui.components.C1Banner
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1EmptyState
+import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1LoadingState
 import `in`.campusone.app.ui.components.C1StatusChip
 import `in`.campusone.app.ui.components.C1TextField
@@ -333,10 +334,9 @@ private fun NoticeEmptyState(
     title: String,
     message: String
 ) {
-    Surface(
+    C1SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = C1Radius.md,
-        color = MaterialTheme.colorScheme.surfaceContainerLow
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         C1EmptyState(icon = icon, title = title, message = message)
     }

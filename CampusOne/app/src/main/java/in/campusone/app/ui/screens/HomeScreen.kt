@@ -66,6 +66,7 @@ import `in`.campusone.app.ui.components.C1Banner
 import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1ErrorState
 import `in`.campusone.app.ui.components.C1SkeletonRows
+import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1SectionHeader
 import `in`.campusone.app.ui.components.C1StatusChip
 import `in`.campusone.app.ui.components.C1Tone
@@ -382,11 +383,11 @@ private fun AttendanceSummaryCard(
     insight: AttendanceInsight,
     onClick: () -> Unit
 ) {
-    Surface(
+    C1SurfaceCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        shape = C1Radius.lg,
-        color = MaterialTheme.colorScheme.surfaceContainerLow
+        contentPadding = PaddingValues(C1Spacing.xl),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Row(
             modifier = Modifier
@@ -460,11 +461,10 @@ private fun QuickActionTile(
     modifier: Modifier = Modifier,
     onOpenMore: (MoreSubScreen) -> Unit
 ) {
-    Surface(
+    C1SurfaceCard(
         onClick = { onOpenMore(action.screen) },
         modifier = modifier.heightIn(min = 92.dp),
-        shape = C1Radius.md,
-        color = MaterialTheme.colorScheme.surfaceContainerLow
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(
             modifier = Modifier
