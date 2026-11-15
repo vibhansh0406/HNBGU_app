@@ -426,7 +426,7 @@ private fun CommunityPostCard(
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(
-            modifier = Modifier.padding(C1Spacing.lg),
+            modifier = Modifier,
             verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
         ) {
             AuthorRow(post.authorName, post.authorRole, post.createdAtMillis, isOwn)
