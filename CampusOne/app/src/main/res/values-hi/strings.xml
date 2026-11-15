@@ -323,4 +323,11 @@
     <string name="security_action_blocked">क्रिया अवरुद्ध</string>
     <string name="security_input_required">इनपुट आवश्यक</string>
     <string name="security_invalid_email">अमान्य ईमेल</string>
+    <string name="onboarding_your_campus">आपका कैंपस</string>
+    <string name="onboarding_your_class">आपकी कक्षा</string>
+    <string name="onboarding_admin_access">एडमिन एक्सेस</string>
+    <string name="onboarding_signed_in_as_owner">आप ऐप के मालिक के रूप में साइन इन हैं। एडमिन पैनल स्वचालित रूप से सक्षम हो जाएगा।</string>
+    <string name="onboarding_cr_teacher_access">CR, शिक्षक, मॉडरेटर और क्लब एडमिन एक्सेस एडमिन मंजूरी के बाद दिया जाता है। एक अनुरोध स्वचालित रूप से भेजा जाता है।</string>
+    <string name="hub_campus_life">कैंपस लाइफ और उपयोगिताएं</string>
+    <string name="hub_request_sent">आपका अनुरोध एडमिन को भेज दिया गया है। एक्सेस केवल मंजूरी के बाद दिया जाता है।</string>
 </resources>
