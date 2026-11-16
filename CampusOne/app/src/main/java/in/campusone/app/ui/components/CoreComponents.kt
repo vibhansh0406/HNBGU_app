@@ -1147,3 +1147,605 @@ fun C1ListDivider(
         color = componentColors.dividerColor
     )
 }
+
+// =========================================================================
+// PREMIUM COMPONENTS — Flagship-level primitives for elevated UI
+// =========================================================================
+
+/**
+ * Hero card for prominent content: large imagery, headline, supporting text,
+ * and primary action. Used for onboarding, empty states, and feature highlights.
+ */
+@Composable
+fun C1HeroCard(
+    modifier: Modifier = Modifier,
+    imageVector: ImageVector? = null,
+    imagePainter: androidx.compose.ui.res.Painter? = null,
+    title: String,
+    subtitle: String? = null,
+    primaryAction: C1HeroAction? = null,
+    secondaryAction: C1HeroAction? = null,
+    backgroundColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
+    shape: androidx.compose.ui.graphics.Shape = C1Radius.xl,
+    imageSize: androidx.compose.ui.unit.Dp = 120.dp
+) {
+    val compColors = componentColors
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = C1Spacing.lg),
+        shape = shape,
+        color = backgroundColor,
+        shadowElevation = C1Elevation.level1
+    ) {
+        Column(
+            modifier = Modifier.padding(C1Spacing.xxxl),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.lg)
+        ) {
+            if (imageVector != null || imagePainter != null) {
+                Box(
+                    modifier = Modifier.size(imageSize),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (imageVector != null) {
+                        Icon(
+                            imageVector = imageVector,
+                            contentDescription = null,
+                            tint = contentColor.copy(alpha = 0.9f),
+                            modifier = Modifier.size(imageSize * 0.5f)
+                        )
+                    } else {
+                        androidx.compose.foundation.Image(
+                            painter = imagePainter!!,
+                            contentDescription = null,
+                            contentScale = androidx.compose.foundation.layout.ContentScale.Fit,
+                            modifier = Modifier.size(imageSize)
+                        )
+                    }
+                }
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = contentColor,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+            subtitle?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = contentColor.copy(alpha = 0.8f),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = C1Spacing.xl)
+                )
+            }
+            if (primaryAction != null || secondaryAction != null) {
+                Spacer(modifier = Modifier.height(C1Spacing.md))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    secondaryAction?.let { action ->
+                        C1Button(
+                            text = action.label,
+                            onClick = action.onClick,
+                            intent = C1ButtonIntent.OUTLINED,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(modifier = Modifier.width(C1Spacing.md))
+                    }
+                    primaryAction?.let { action ->
+                        C1Button(
+                            text = action.label,
+                            onClick = action.onClick,
+                            intent = C1ButtonIntent.PRIMARY,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+data class C1HeroAction(
+    val label: String,
+    val onClick: () -> Unit
+)
+
+/**
+ * Metric card for dashboard KPIs: large value, label, trend, and optional icon.
+ * Designed for glanceable data density.
+ */
+@Composable
+fun C1MetricCard(
+    modifier: Modifier = Modifier,
+    value: String,
+    label: String,
+    icon: ImageVector? = null,
+    valueColor: Color = MaterialTheme.colorScheme.primary,
+    trend: C1Trend? = null,
+    onClick: (() -> Unit)? = null,
+    subtitle: String? = null
+) {
+    val compColors = componentColors
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) C1Motion.pressScale else 1f,
+        animationSpec = tween(durationMillis = C1Motion.fastMillis),
+        label = "metricCardPress"
+    )
+    val base = modifier
+        .fillMaxWidth()
+        .semantics(mergeDescendants = true) {}
+    val clickable = if (onClick != null) {
+        base.clickable(
+            interactionSource = interactionSource,
+            indication = ripple(),
+            onClick = onClick
+        )
+    } else {
+        base
+    }
+    Surface(
+        modifier = clickable.graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        },
+        shape = C1Radius.lg,
+        color = compColors.cardBackground,
+        border = BorderStroke(C1Border.hairline, compColors.cardBorder),
+        shadowElevation = C1Elevation.flat
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(C1Spacing.xl),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(C1Spacing.xs))
+                    Text(
+                        text = value,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = valueColor
+                    )
+                    subtitle?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                    trend?.let { t ->
+                        Spacer(modifier = Modifier.height(C1Spacing.xs))
+                        C1StatusChip(
+                            text = t.label,
+                            tone = t.tone
+                        )
+                    }
+                }
+                icon?.let { iv ->
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(valueColor.copy(alpha = 0.12f), C1Radius.md),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = iv,
+                            contentDescription = null,
+                            tint = valueColor,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Action card for primary user actions: icon, title, description, and chevron.
+ * Used in grids and lists for navigable actions.
+ */
+@Composable
+fun C1ActionCard(
+    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    title: String,
+    description: String? = null,
+    iconColor: Color = MaterialTheme.colorScheme.primary,
+    iconBackground: Color = MaterialTheme.colorScheme.primaryContainer,
+    onClick: () -> Unit,
+    showChevron: Boolean = true
+) {
+    val compColors = componentColors
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) C1Motion.pressScale else 1f,
+        animationSpec = tween(durationMillis = C1Motion.fastMillis),
+        label = "actionCardPress"
+    )
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 100.dp)
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = ripple(),
+                onClick = onClick
+            )
+            .semantics(mergeDescendants = true) {},
+        shape = C1Radius.lg,
+        color = compColors.cardBackground,
+        border = BorderStroke(C1Border.hairline, compColors.cardBorder),
+        shadowElevation = C1Elevation.flat
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(C1Spacing.lg),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(C1Spacing.lg)
+        ) {
+            Box(
+                modifier = Modifier.size(48.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconColor,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                description?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            if (showChevron) {
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Avatar group for showing multiple users with overlap.
+ */
+@Composable
+fun C1AvatarGroup(
+    modifier: Modifier = Modifier,
+    names: List<String>,
+    maxVisible: Int = 4,
+    size: androidx.compose.ui.unit.Dp = 36.dp,
+    overlap: androidx.compose.ui.unit.Dp = 12.dp
+) {
+    val visibleNames = names.take(maxVisible)
+    val remainingCount = names.size - maxVisible
+    Row(modifier = modifier) {
+        visibleNames.forEachIndexed { index, name ->
+            val initial = name.trim().take(1).uppercase()
+            val containerColor = MaterialTheme.colorScheme.primaryContainer
+            val contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            Box(
+                modifier = Modifier
+                    .size(size)
+                    .background(containerColor, CircleShape)
+                    .offset(x = (-overlap * index).toPx()),
+                contentAlignment = Alignment.Center,
+                zIndex = (maxVisible - index).toFloat()
+            ) {
+                Text(
+                    text = initial,
+                    style = MaterialTheme.typography.labelMedium.copy(fontSize = (size.value * 0.4).dp),
+                    fontWeight = FontWeight.Bold,
+                    color = contentColor
+                )
+            }
+        }
+        if (remainingCount > 0) {
+            Box(
+                modifier = Modifier
+                    .size(size)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape)
+                    .offset(x = (-overlap * maxVisible).toPx()),
+                contentAlignment = Alignment.Center,
+                zIndex = 0f
+            ) {
+                Text(
+                    text = "+$remainingCount",
+                    style = MaterialTheme.typography.labelMedium.copy(fontSize = (size.value * 0.4).dp),
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Circular progress ring with animated sweep, configurable stroke, and center content.
+ * Used for attendance, completion rates, and radial metrics.
+ */
+@Composable
+fun C1ProgressRing(
+    modifier: Modifier = Modifier,
+    progress: Float, // 0..1
+    strokeWidth: androidx.compose.ui.unit.Dp = 8.dp,
+    size: androidx.compose.ui.unit.Dp = 80.dp,
+    trackColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    progressColor: Color = MaterialTheme.colorScheme.primary,
+    centerContent: (@Composable () -> Unit)? = null,
+    animate: Boolean = true,
+    gapDegrees: Float = 0f
+) {
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = if (animate) tween(durationMillis = C1Motion.normalMillis, easing = C1Motion.emphasizedEasing) else androidx.compose.animation.core.snap,
+        label = "progressRing"
+    )
+    Canvas(
+        modifier = modifier.size(size),
+        onDraw = {
+            val center = size.toPx() / 2f
+            val radius = center - strokeWidth.toPx() / 2f
+            val startAngle = -90f + gapDegrees / 2
+            val sweepAngle = (360f - gapDegrees) * animatedProgress
+            // Track
+            drawArc(
+                color = trackColor,
+                startAngle = -90f,
+                sweepAngle = 360f - gapDegrees,
+                useCenter = false,
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round)
+            )
+            // Progress
+            drawArc(
+                color = progressColor,
+                startAngle = startAngle,
+                sweepAngle = sweepAngle,
+                useCenter = false,
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round)
+            )
+            // Gap indicator (optional)
+            if (gapDegrees > 0) {
+                drawArc(
+                    color = trackColor,
+                    startAngle = startAngle + sweepAngle,
+                    sweepAngle = gapDegrees,
+                    useCenter = false,
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round)
+                )
+            }
+        }
+    ) {
+        centerContent?.invoke()
+    }
+}
+
+/**
+ * Tag/label component for categorization and metadata.
+ */
+@Composable
+fun C1Tag(
+    text: String,
+    modifier: Modifier = Modifier,
+    tone: C1Tone = C1Tone.NEUTRAL,
+    icon: (@Composable () -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+    dismissible: Boolean = false,
+    onDismiss: (() -> Unit)? = null
+) {
+    val extended = extendedColors
+    val (bg, fg) = when (tone) {
+        C1Tone.SUCCESS -> extended.successContainer to extended.onSuccessContainer
+        C1Tone.WARNING -> extended.warningContainer to extended.onWarningContainer
+        C1Tone.DANGER -> MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
+        C1Tone.INFO -> extended.infoContainer to extended.onInfoContainer
+        C1Tone.NEUTRAL -> MaterialTheme.colorScheme.surfaceContainerHigh to MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed && onClick != null) C1Motion.pressScale else 1f,
+        animationSpec = tween(durationMillis = C1Motion.fastMillis),
+        label = "tagPress"
+    )
+    val base = modifier
+        .heightIn(min = C1Height.chip)
+        .graphicsLayer { scaleX = scale; scaleY = scale }
+    val clickable = if (onClick != null) {
+        base.clickable(
+            interactionSource = interactionSource,
+            indication = ripple(),
+            onClick = onClick
+        )
+    } else {
+        base
+    }
+    Surface(
+        modifier = clickable,
+        shape = C1Radius.pill,
+        color = bg
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = C1Spacing.md, vertical = C1Spacing.xs)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
+        ) {
+            icon?.invoke()
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Medium,
+                color = fg
+            )
+            if (dismissible) {
+                IconButton(onClick = onDismiss!!) {
+                    Icon(Icons.Default.Close, contentDescription = "Remove", tint = fg, modifier = Modifier.size(16.dp))
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Bottom sheet with drag handle and optional scrollable content.
+ */
+@Composable
+fun C1BottomSheet(
+    modifier: Modifier = Modifier,
+    title: String,
+    subtitle: String? = null,
+    onDismiss: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    // Implementation would use ModalBottomSheetLayout
+    // Placeholder for now - full implementation requires ModalBottomSheetLayout
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(C1Spacing.lg)
+            .background(MaterialTheme.colorScheme.surface, C1Radius.xl)
+    ) {
+        // Drag handle
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(4.dp)
+                .padding(top = C1Spacing.sm, bottom = C1Spacing.md),
+            contentAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(40.dp)
+                    .height(4.dp)
+                    .background(MaterialTheme.colorScheme.outlineVariant, C1Radius.pill)
+            )
+        }
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        subtitle?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Spacer(modifier = Modifier.height(C1Spacing.lg))
+        content()
+    }
+}
+
+/**
+ * Custom dialog with consistent styling.
+ */
+@Composable
+fun C1Dialog(
+    onDismiss: () -> Unit,
+    title: String,
+    subtitle: String? = null,
+    confirmButton: C1HeroAction? = null,
+    dismissButton: C1HeroAction? = null,
+    content: @Composable () -> Unit
+) {
+    // Placeholder - full implementation would use Dialog composable
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(C1Spacing.lg)
+            .background(MaterialTheme.colorScheme.surface, C1Radius.xl)
+    ) {
+        Column(
+            modifier = Modifier.padding(C1Spacing.xl),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.lg)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+            subtitle?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
+            content()
+            if (confirmButton != null || dismissButton != null) {
+                Spacer(modifier = Modifier.height(C1Spacing.md))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    dismissButton?.let { action ->
+                        C1Button(
+                            text = action.label,
+                            onClick = { action.onClick(); onDismiss() },
+                            intent = C1ButtonIntent.OUTLINED,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(modifier = Modifier.width(C1Spacing.md))
+                    }
+                    confirmButton?.let { action ->
+                        C1Button(
+                            text = action.label,
+                            onClick = { action.onClick(); onDismiss() },
+                            intent = C1ButtonIntent.PRIMARY,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
