@@ -19,72 +19,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import `in`.campusone.app.R
 
-// Forest & Ivory — Light Color Scheme
-private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF1B4D3A),           // Deep Forest
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFFD6F0E0),  // Light Mint
-    onPrimaryContainer = Color(0xFF0A2D1E),
-    secondary = Color(0xFF3D5A4A),         // Forest Green
-    onSecondary = Color.White,
-    secondaryContainer = Color(0xFFE0EDE4), // Pale Sage
-    onSecondaryContainer = Color(0xFF1A3326),
-    tertiary = Color(0xFF7A5C4A),          // Warm Earth
-    onTertiary = Color.White,
-    tertiaryContainer = Color(0xFFF0E4D9),  // Warm Sand
-    onTertiaryContainer = Color(0xFF2E1E12),
-    error = Color(0xFFB82E1A),
-    errorContainer = Color(0xFFFFE8E4),
-    onError = Color.White,
-    onErrorContainer = Color(0xFF4A0E08),
-    background = Color(0xFFFAF9F6),        // Ivory White
-    onBackground = Color(0xFF1A1C1A),
-    surface = Color.White,
-    onSurface = Color(0xFF1A1C1A),
-    surfaceVariant = Color(0xFFF0EEE8),    // Warm Gray
-    onSurfaceVariant = Color(0xFF4A4844),
-    outline = Color(0xFFD8D6CE),
-    outlineVariant = Color(0xFFE8E6E0),
-    scrim = Color(0x99000000),
-    inverseSurface = Color(0xFF2A2C29),
-    inverseOnSurface = Color(0xFFF5F3ED),
-    inversePrimary = Color(0xFF8FD6A8),
-    surfaceTint = Color(0xFF1B4D3A),
-)
-
-// Forest & Ivory — Dark Color Scheme
-private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF8FD6A8),           // Light Mint
-    onPrimary = Color(0xFF052010),
-    primaryContainer = Color(0xFF1A3D28),
-    onPrimaryContainer = Color(0xFFC8E8D8),
-    secondary = Color(0xFFB8D6C4),         // Pale Sage
-    onSecondary = Color(0xFF0A2015),
-    secondaryContainer = Color(0xFF2A3D32),
-    onSecondaryContainer = Color(0xFFD8E8DC),
-    tertiary = Color(0xFFD6B89A),          // Warm Sand
-    onTertiary = Color(0xFF2E1E12),
-    tertiaryContainer = Color(0xFF3D2E22),
-    onTertiaryContainer = Color(0xFFF0E4D9),
-    error = Color(0xFFFF6B5A),
-    errorContainer = Color(0xFF4A1510),
-    onError = Color(0xFF3B0A05),
-    onErrorContainer = Color(0xFFFFE8E4),
-    background = Color(0xFF121412),        // Deep Charcoal
-    onBackground = Color(0xFFF5F3ED),
-    surface = Color(0xFF1A1C1A),
-    onSurface = Color(0xFFF5F3ED),
-    surfaceVariant = Color(0xFF2A2C29),
-    onSurfaceVariant = Color(0xFFB8B6B0),
-    outline = Color(0xFF3A3733),
-    outlineVariant = Color(0xFF2D2B28),
-    scrim = Color(0xCC000000),
-    inverseSurface = Color(0xFFF5F3ED),
-    inverseOnSurface = Color(0xFF1A1C1A),
-    inversePrimary = Color(0xFF1B4D3A),
-    surfaceTint = Color(0xFF8FD6A8),
-)
-
 // Semantic attendance health colors (forest-harmonized)
 val SafeGreen = Color(0xFF2E7D5B)
 val SafeGreenContainer = Color(0xFFDDEBE2)
@@ -93,12 +27,79 @@ val EdgeAmberContainer = Color(0xFFF7ECD9)
 val DangerRed = Color(0xFFB42318)
 val DangerRedContainer = Color(0xFFFBE5E2)
 
+// Forest & Ivory — light
+private val LightColorScheme = lightColorScheme(
+    primary = Color(0xFF183D32),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFDCE7DF),
+    onPrimaryContainer = Color(0xFF102D25),
+    secondary = Color(0xFF315C4B),
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = Color(0xFFE2EAE4),
+    onSecondaryContainer = Color(0xFF102D25),
+    tertiary = Color(0xFF7A5C50),
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = Color(0xFFF0E4DE),
+    onTertiaryContainer = Color(0xFF2E1B14),
+    background = Color(0xFFF7F6F0),
+    onBackground = Color(0xFF202923),
+    surface = Color(0xFFFFFFFF),
+    onSurface = Color(0xFF202923),
+    surfaceVariant = Color(0xFFEFEEE6),
+    onSurfaceVariant = Color(0xFF5E665E),
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceContainerLow = Color(0xFFF2F1E9),
+    surfaceContainer = Color(0xFFEDECE3),
+    surfaceContainerHigh = Color(0xFFE7E6DC),
+    surfaceContainerHighest = Color(0xFFE1E0D5),
+    outline = Color(0xFFE6E6DC),
+    outlineVariant = Color(0xFFD8D8CC),
+    error = Color(0xFFB42318),
+    errorContainer = Color(0xFFFBE5E2),
+    onError = Color(0xFFFFFFFF),
+    onErrorContainer = Color(0xFF4A0E08)
+)
+
+// Forest & Ivory — dark
+private val DarkColorScheme = darkColorScheme(
+    primary = Color(0xFF83A995),
+    onPrimary = Color(0xFF102D25),
+    primaryContainer = Color(0xFF24443A),
+    onPrimaryContainer = Color(0xFFC9DCD1),
+    secondary = Color(0xFF9DB8AA),
+    onSecondary = Color(0xFF102D25),
+    secondaryContainer = Color(0xFF2A463B),
+    onSecondaryContainer = Color(0xFFD5E4DB),
+    tertiary = Color(0xFFD3B8AC),
+    onTertiary = Color(0xFF2E1B14),
+    tertiaryContainer = Color(0xFF4A352C),
+    onTertiaryContainer = Color(0xFFF0E4DE),
+    background = Color(0xFF101B17),
+    onBackground = Color(0xFFF1F2EA),
+    surface = Color(0xFF182720),
+    onSurface = Color(0xFFF1F2EA),
+    surfaceVariant = Color(0xFF20332A),
+    onSurfaceVariant = Color(0xFFA6B0A7),
+    surfaceContainerLowest = Color(0xFF0D1713),
+    surfaceContainerLow = Color(0xFF14211B),
+    surfaceContainer = Color(0xFF192720),
+    surfaceContainerHigh = Color(0xFF1E2F27),
+    surfaceContainerHighest = Color(0xFF243630),
+    outline = Color(0xFF2B3C32),
+    outlineVariant = Color(0xFF24352C),
+    error = Color(0xFFFF8A7A),
+    errorContainer = Color(0xFF4A1510),
+    onError = Color(0xFF3B0A05),
+    onErrorContainer = Color(0xFFFBE5E2)
+)
+
+// iOS-adjacent continuous-feeling corner radii
 val ExpressiveShapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),
-    small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(20.dp),
-    extraLarge = RoundedCornerShape(28.dp)
+    extraSmall = RoundedCornerShape(10.dp),
+    small = RoundedCornerShape(14.dp),
+    medium = RoundedCornerShape(18.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(30.dp)
 )
 
 // ---------------------------------------------------------------------------
@@ -148,18 +149,18 @@ private fun campusTypography(dark: Boolean): Typography {
     val bodyLine = if (dark) 1 else 0
     val textWeight = if (dark) FontWeight.Normal else FontWeight.Normal
     return Typography(
-        displayLarge = campusType(CampusOneDisplayFamily, FontWeight.Bold, 57, 64, -1.5),
-        displayMedium = campusType(CampusOneDisplayFamily, FontWeight.Bold, 45, 52, -1.0),
-        displaySmall = campusType(CampusOneDisplayFamily, FontWeight.Bold, 36, 44, -0.8),
-        headlineLarge = campusType(CampusOneDisplayFamily, FontWeight.Bold, 32, 40, -0.6),
-        headlineMedium = campusType(CampusOneDisplayFamily, FontWeight.SemiBold, 28, 36, -0.4),
-        headlineSmall = campusType(CampusOneDisplayFamily, FontWeight.SemiBold, 24, 32, -0.3),
-        titleLarge = campusType(CampusOneDisplayFamily, FontWeight.SemiBold, 22, 28, -0.2),
-        titleMedium = campusType(CampusOneTextFamily, FontWeight.SemiBold, 16, 24, -0.1),
-        titleSmall = campusType(CampusOneTextFamily, FontWeight.SemiBold, 14, 20, -0.1),
+        displayLarge = campusType(CampusOneDisplayFamily, FontWeight.Bold, 40, 46 + bodyLine, -1.0),
+        displayMedium = campusType(CampusOneDisplayFamily, FontWeight.Bold, 34, 40 + bodyLine, -0.8),
+        displaySmall = campusType(CampusOneDisplayFamily, FontWeight.Bold, 30, 36 + bodyLine, -0.6),
+        headlineLarge = campusType(CampusOneDisplayFamily, FontWeight.Bold, 26, 32 + bodyLine, -0.4),
+        headlineMedium = campusType(CampusOneDisplayFamily, FontWeight.SemiBold, 22, 28 + bodyLine, -0.3),
+        headlineSmall = campusType(CampusOneDisplayFamily, FontWeight.SemiBold, 19, 25 + bodyLine, -0.2),
+        titleLarge = campusType(CampusOneDisplayFamily, FontWeight.SemiBold, 18, 24 + bodyLine, -0.2),
+        titleMedium = campusType(CampusOneTextFamily, FontWeight.SemiBold, 16, 22 + bodyLine, -0.1),
+        titleSmall = campusType(CampusOneTextFamily, FontWeight.SemiBold, 14, 20 + bodyLine, -0.1),
         bodyLarge = campusType(CampusOneTextFamily, textWeight, 16, 24 + bodyLine, -0.1),
         bodyMedium = campusType(CampusOneTextFamily, textWeight, 14, 21 + bodyLine, 0.0),
-        bodySmall = campusType(CampusOneTextFamily, textWeight, 12, 18 + bodyLine, 0.0),
+        bodySmall = campusType(CampusOneTextFamily, textWeight, 13, 19 + bodyLine, 0.0),
         labelLarge = campusType(CampusOneTextFamily, FontWeight.SemiBold, 14, 20, 0.0),
         labelMedium = campusType(CampusOneTextFamily, FontWeight.Medium, 12, 16, 0.1),
         labelSmall = campusType(CampusOneTextFamily, FontWeight.Medium, 11, 14, 0.2)
@@ -173,12 +174,8 @@ fun CampusOneTheme(
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     val extended = if (darkTheme) DarkExtendedColors else LightExtendedColors
-    val componentColors = if (darkTheme) DarkComponentColors else LightComponentColors
 
-    CompositionLocalProvider(
-        LocalExtendedColors provides extended,
-        LocalComponentColors provides componentColors
-    ) {
+    CompositionLocalProvider(LocalExtendedColors provides extended) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = campusTypography(darkTheme),
@@ -194,10 +191,3 @@ val LocalExtendedColors = staticCompositionLocalOf { LightExtendedColors }
 /** Convenience accessor for semantic colors inside composables. */
 val extendedColors: ExtendedColors
     @Composable get() = LocalExtendedColors.current
-
-/** Component-specific colors for consistent theming. */
-val LocalComponentColors = staticCompositionLocalOf { LightComponentColors }
-
-/** Convenience accessor for component colors inside composables. */
-val componentColors: ComponentColors
-    @Composable get() = LocalComponentColors.current

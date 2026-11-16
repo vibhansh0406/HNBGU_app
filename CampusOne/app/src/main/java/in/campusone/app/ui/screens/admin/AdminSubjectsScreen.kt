@@ -1,6 +1,5 @@
 package `in`.campusone.app.ui.screens.admin
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,7 +16,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,11 +38,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.R
 import `in`.campusone.app.data.local.entity.SubjectEntity
-import `in`.campusone.app.ui.components.C1Button
-import `in`.campusone.app.ui.components.C1ButtonIntent
-import `in`.campusone.app.ui.components.C1SectionHeader
-import `in`.campusone.app.ui.components.C1SurfaceCard
-import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
 
@@ -65,7 +59,7 @@ fun AdminSubjectsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Manage Subjects", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
+                title = { Text("Manage Subjects") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -88,18 +82,11 @@ fun AdminSubjectsScreen(
         }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(padding)
-                .padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(uiState.subjects, key = { it.subjectId }) { subject ->
-                C1SurfaceCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    containerColor = MaterialTheme.colorScheme.surface
-                ) {
+                ElevatedCard(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column {
@@ -181,29 +168,23 @@ private fun SubjectDialog(
         title = { Text("Subject") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                C1TextField(value = subjectName, onValueChange = onSubjectNameChange, label = "Subject Name", singleLine = true, modifier = Modifier.fillMaxWidth())
-                C1TextField(value = subjectCode, onValueChange = onSubjectCodeChange, label = "Subject Code", singleLine = true, modifier = Modifier.fillMaxWidth())
-                C1TextField(value = teacherName, onValueChange = onTeacherNameChange, label = "Teacher", singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = subjectName, onValueChange = onSubjectNameChange, label = { Text("Subject Name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = subjectCode, onValueChange = onSubjectCodeChange, label = { Text("Subject Code") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = teacherName, onValueChange = onTeacherNameChange, label = { Text("Teacher") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    C1TextField(value = credits.toString(), onValueChange = { onCreditsChange(it.toIntOrNull() ?: 4) }, label = "Credits", singleLine = true, modifier = Modifier.weight(1f))
-                    Checkbox(checked = isElective, onCheckedChange = onElectiveChange)
+                    OutlinedTextField(value = credits.toString(), onValueChange = { onCreditsChange(it.toIntOrNull() ?: 4) }, label = { Text("Credits") }, singleLine = true, modifier = Modifier.weight(1f))
+                    androidx.compose.material3.Checkbox(checked = isElective, onCheckedChange = onElectiveChange)
                     Text("Elective", style = MaterialTheme.typography.bodyMedium)
                 }
             }
         },
         confirmButton = {
-            C1Button(
-                text = "Save",
-                onClick = onSave,
-                enabled = subjectName.isNotBlank() && subjectCode.isNotBlank()
-            )
+            Button(onClick = onSave, enabled = subjectName.isNotBlank() && subjectCode.isNotBlank()) {
+                Text("Save")
+            }
         },
         dismissButton = {
-            C1Button(
-                text = "Cancel",
-                onClick = onDismiss,
-                intent = C1ButtonIntent.GHOST
-            )
+            TextButton(onClick = onDismiss) { Text("Cancel") }
         }
     )
 }

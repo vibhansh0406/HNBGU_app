@@ -1,6 +1,5 @@
 package `in`.campusone.app.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -46,10 +45,9 @@ import `in`.campusone.app.ui.components.C1Banner
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1EmptyState
-import `in`.campusone.app.ui.components.C1SectionHeader
-import `in`.campusone.app.ui.components.C1StatTile
-import `in`.campusone.app.ui.components.C1StatusChip
 import `in`.campusone.app.ui.components.C1SurfaceCard
+import `in`.campusone.app.ui.components.C1SectionHeader
+import `in`.campusone.app.ui.components.C1StatusChip
 import `in`.campusone.app.ui.components.C1Tone
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
@@ -76,16 +74,14 @@ fun AttendanceScreen(
     val cancelledCount = filteredLogs.count { it.status == AttendanceStatus.CANCELLED }
 
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             start = C1Spacing.lg,
             end = C1Spacing.lg,
             top = C1Spacing.lg,
-            bottom = C1Spacing.xxxl
+            bottom = C1Spacing.xxl
         ),
-        verticalArrangement = Arrangement.spacedBy(C1Spacing.xl)
+        verticalArrangement = Arrangement.spacedBy(C1Spacing.lg)
     ) {
         item {
             C1Banner(
@@ -111,7 +107,7 @@ fun AttendanceScreen(
             item {
                 C1SurfaceCard(
                     modifier = Modifier.fillMaxWidth(),
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                 ) {
                     C1EmptyState(
                         icon = Icons.Default.Info,
@@ -164,7 +160,7 @@ fun AttendanceScreen(
             item {
                 C1SurfaceCard(
                     modifier = Modifier.fillMaxWidth(),
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                 ) {
                     C1EmptyState(
                         icon = Icons.Default.History,
@@ -199,7 +195,7 @@ private fun OverallAttendanceCard(
     C1SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(C1Spacing.lg),
-        containerColor = MaterialTheme.colorScheme.surface
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(modifier = Modifier.padding(C1Spacing.xl)) {
             Row(
@@ -243,9 +239,8 @@ private fun OverallAttendanceCard(
                 AnimatedAttendanceRing(
                     percentage = insight.currentPercentage,
                     health = insight.health,
-                    size = 100.dp,
-                    strokeWidth = 10.dp,
-                    label = "Overall"
+                    size = 92.dp,
+                    strokeWidth = 10.dp
                 )
             }
 
@@ -333,9 +328,10 @@ private fun SubjectAttendanceCard(
     val extended = extendedColors
     val belowTarget = insight.health == AttendanceHealth.WARNING || insight.health == AttendanceHealth.CRITICAL
 
-    C1SurfaceCard(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        containerColor = MaterialTheme.colorScheme.surface
+        shape = C1Radius.md,
+        color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(modifier = Modifier.padding(C1Spacing.lg)) {
             Row(
@@ -368,7 +364,7 @@ private fun SubjectAttendanceCard(
                 AnimatedAttendanceRing(
                     percentage = insight.currentPercentage,
                     health = insight.health,
-                    size = 68.dp,
+                    size = 64.dp,
                     strokeWidth = 7.dp
                 )
             }
@@ -435,9 +431,10 @@ private fun AttendanceLogRow(
         runCatching { LocalDate.parse(dateIso).format(formatter) }.getOrDefault(dateIso)
     }
 
-    C1SurfaceCard(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        containerColor = MaterialTheme.colorScheme.surface
+        shape = C1Radius.sm,
+        color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Row(
             modifier = Modifier

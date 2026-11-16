@@ -231,11 +231,7 @@ private fun CommunityFeed(
     onReportPost: (CommunityPost) -> Unit,
     onCreatePost: () -> Unit
 ) {
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .background(MaterialTheme.colorScheme.background)
-    ) {
-        // Header
+    Column(modifier = Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -275,7 +271,6 @@ private fun CommunityFeed(
             }
         }
 
-        // Mode tabs
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = C1Spacing.lg),
@@ -311,7 +306,6 @@ private fun CommunityFeed(
             }
         }
 
-        // Search
         C1TextField(
             value = uiState.query,
             onValueChange = onQueryChange,
@@ -319,7 +313,6 @@ private fun CommunityFeed(
             modifier = Modifier.padding(horizontal = C1Spacing.lg, vertical = C1Spacing.sm)
         )
 
-        // Category filter
         LazyRow(
             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = C1Spacing.lg),
             horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
@@ -340,7 +333,6 @@ private fun CommunityFeed(
             }
         }
 
-        // Section header with new post button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -364,7 +356,6 @@ private fun CommunityFeed(
             )
         }
 
-        // Content
         when {
             uiState.isLoading -> C1LoadingState(label = stringResource(R.string.community_loading))
             uiState.visiblePosts.isEmpty() -> C1EmptyState(
@@ -390,7 +381,7 @@ private fun CommunityFeed(
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(
                         start = C1Spacing.lg,
                         end = C1Spacing.lg,
-                        bottom = C1Spacing.xxxl
+                        bottom = C1Spacing.xxl
                     ),
                     verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
                 ) {
@@ -432,7 +423,7 @@ private fun CommunityPostCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(C1Spacing.lg),
-        containerColor = MaterialTheme.colorScheme.surface
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(
             modifier = Modifier,
@@ -464,31 +455,22 @@ private fun CommunityPostCard(
                 horizontalArrangement = Arrangement.spacedBy(C1Spacing.lg)
             ) {
                 TextButton(onClick = onToggleLike) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
-                    ) {
-                        Icon(
-                            imageVector = if (post.isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                            tint = if (post.isLiked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(post.likeCount.toString())
-                    }
+                    Icon(
+                        imageVector = if (post.isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(C1Spacing.xs))
+                    Text(post.likeCount.toString())
                 }
                 TextButton(onClick = onClick) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ChatBubbleOutline,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Text(post.commentCount.toString())
-                    }
+                    Icon(
+                        imageVector = Icons.Default.ChatBubbleOutline,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(C1Spacing.xs))
+                    Text(post.commentCount.toString())
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 if (!isOwn) {
@@ -520,10 +502,7 @@ private fun CommunityPostDetail(
     onReportComment: (CommunityComment) -> Unit
 ) {
     var commentText by remember { mutableStateOf("") }
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .background(MaterialTheme.colorScheme.background)
-    ) {
+    Column(modifier = Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -550,8 +529,9 @@ private fun CommunityPostDetail(
             verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
         ) {
             item {
-                C1SurfaceCard(
-                    containerColor = MaterialTheme.colorScheme.surface
+                Surface(
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.surfaceContainerLow
                 ) {
                     Column(
                         modifier = Modifier.padding(C1Spacing.lg),
@@ -656,37 +636,35 @@ private fun CommentRow(
     onDelete: () -> Unit,
     onReport: () -> Unit
 ) {
-    C1SurfaceCard(
-        modifier = Modifier.fillMaxWidth(),
-        containerColor = MaterialTheme.colorScheme.surface
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceContainerLow, MaterialTheme.shapes.medium)
+            .padding(C1Spacing.md),
+        verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)
     ) {
-        Column(
-            modifier = Modifier.padding(C1Spacing.md),
-            verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                AuthorRow(comment.authorName, comment.authorRole, comment.createdAtMillis, isOwn)
-                Spacer(modifier = Modifier.weight(1f))
-                if (isOwn) {
-                    IconButton(onClick = onDelete) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = stringResource(R.string.community_delete),
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                } else {
-                    IconButton(onClick = onReport) {
-                        Icon(
-                            Icons.Default.Flag,
-                            contentDescription = stringResource(R.string.community_report),
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            AuthorRow(comment.authorName, comment.authorRole, comment.createdAtMillis, isOwn)
+            Spacer(modifier = Modifier.weight(1f))
+            if (isOwn) {
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = stringResource(R.string.community_delete),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            } else {
+                IconButton(onClick = onReport) {
+                    Icon(
+                        Icons.Default.Flag,
+                        contentDescription = stringResource(R.string.community_report),
+                        modifier = Modifier.size(18.dp)
+                    )
                 }
             }
-            Text(text = comment.body, style = MaterialTheme.typography.bodyMedium)
         }
+        Text(text = comment.body, style = MaterialTheme.typography.bodyMedium)
     }
 }
 
@@ -801,18 +779,17 @@ private fun PostComposerDialog(
             }
         },
         confirmButton = {
-            C1Button(
-                text = stringResource(if (existing == null) R.string.community_publish else R.string.community_save),
+            TextButton(
                 onClick = { onSubmit(title, body, category) },
                 enabled = title.isNotBlank() && body.isNotBlank() && !isSubmitting
-            )
+            ) {
+                Text(stringResource(if (existing == null) R.string.community_publish else R.string.community_save))
+            }
         },
         dismissButton = {
-            C1Button(
-                text = stringResource(R.string.community_cancel),
-                onClick = onDismiss,
-                intent = C1ButtonIntent.GHOST
-            )
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.community_cancel))
+            }
         }
     )
 }
@@ -832,17 +809,14 @@ private fun ReportDialog(onDismiss: () -> Unit, onSubmit: (String) -> Unit) {
             )
         },
         confirmButton = {
-            C1Button(
-                text = stringResource(R.string.community_report),
-                onClick = { onSubmit(reason.ifBlank { "Reported from community" }) }
-            )
+            TextButton(onClick = { onSubmit(reason.ifBlank { "Reported from community" }) }) {
+                Text(stringResource(R.string.community_report))
+            }
         },
         dismissButton = {
-            C1Button(
-                text = stringResource(R.string.community_cancel),
-                onClick = onDismiss,
-                intent = C1ButtonIntent.GHOST
-            )
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.community_cancel))
+            }
         }
     )
 }
@@ -860,18 +834,12 @@ private fun ConfirmDialog(
         title = { Text(title) },
         text = { Text(message) },
         confirmButton = {
-            C1Button(
-                text = confirmLabel,
-                onClick = onConfirm,
-                intent = C1ButtonIntent.DANGER
-            )
+            TextButton(onClick = onConfirm) { Text(confirmLabel) }
         },
         dismissButton = {
-            C1Button(
-                text = stringResource(R.string.community_cancel),
-                onClick = onDismiss,
-                intent = C1ButtonIntent.GHOST
-            )
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.community_cancel))
+            }
         }
     )
 }
@@ -889,10 +857,7 @@ fun NotificationsScreen(
     }
     LaunchedEffect(Unit) { viewModel.refreshNotifications() }
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(MaterialTheme.colorScheme.background)
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             Row(
                 modifier = Modifier
@@ -937,7 +902,7 @@ fun NotificationsScreen(
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(
                         start = C1Spacing.lg,
                         end = C1Spacing.lg,
-                        bottom = C1Spacing.xxxl
+                        bottom = C1Spacing.xxl
                     ),
                     verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
                 ) {
@@ -968,7 +933,7 @@ private fun NotificationRow(notification: AppNotification, onClick: () -> Unit) 
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         containerColor = if (notification.isRead) {
-            MaterialTheme.colorScheme.surface
+            MaterialTheme.colorScheme.surfaceContainerLow
         } else {
             MaterialTheme.colorScheme.secondaryContainer
         }
@@ -1018,7 +983,6 @@ fun StudentProfileScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .padding(C1Spacing.lg),
         verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
     ) {
@@ -1040,8 +1004,9 @@ fun StudentProfileScreen(
                 )
             }
         }
-        C1SurfaceCard(
-            containerColor = MaterialTheme.colorScheme.surface
+        Surface(
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surfaceContainerLow
         ) {
             Row(
                 modifier = Modifier
@@ -1098,8 +1063,9 @@ fun StudentProfileScreen(
             profile.semester.toString()
         )
         ProfileDetailRow(stringResource(R.string.profile_section), profile.section)
-        C1SurfaceCard(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.secondaryContainer
         ) {
             Text(
                 text = stringResource(R.string.profile_private_note),
@@ -1113,27 +1079,20 @@ fun StudentProfileScreen(
 
 @Composable
 private fun ProfileDetailRow(label: String, value: String) {
-    C1SurfaceCard(
+    Row(
         modifier = Modifier.fillMaxWidth(),
-        containerColor = MaterialTheme.colorScheme.surface
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = C1Spacing.lg, vertical = C1Spacing.md),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium
-            )
-        }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 
