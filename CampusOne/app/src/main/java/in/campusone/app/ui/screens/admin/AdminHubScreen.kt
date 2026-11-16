@@ -139,7 +139,11 @@ fun AdminHubScreen(
                 ),
                 key = { it.title }
             ) { card: StatCard ->
-                StatCardItem(title = card.title, count = card.count, icon = card.icon, color = card.color)
+                @Composable
+                fun ItemContent() {
+                    StatCardItem(title = card.title, count = card.count, icon = card.icon, color = card.color)
+                }
+                ItemContent()
             }
 
             item(span = { GridItemSpan(2) }) {
@@ -167,7 +171,11 @@ fun AdminHubScreen(
                 ),
                 key = { it.title }
             ) { card: ActionCard ->
-                ActionCardItem(title = card.title, icon = card.icon, color = MaterialTheme.colorScheme.primary, onClick = card.onClick)
+                @Composable
+                fun ItemContent() {
+                    ActionCardItem(title = card.title, icon = card.icon, color = MaterialTheme.colorScheme.primary, onClick = card.onClick)
+                }
+                ItemContent()
             }
 
             item(span = { GridItemSpan(2) }) {
