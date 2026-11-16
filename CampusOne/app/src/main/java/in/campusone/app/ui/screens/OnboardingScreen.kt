@@ -361,7 +361,7 @@ private fun OnboardingStepWelcome(
                 onValueChange = onEmailChange,
                 label = "Google / University Email",
                 leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) },
-                keyboardType = KeyboardType.TextEmailAddress
+                keyboardType = KeyboardType.Text
             )
         }
     }
