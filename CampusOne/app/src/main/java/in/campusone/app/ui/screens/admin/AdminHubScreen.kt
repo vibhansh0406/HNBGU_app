@@ -138,8 +138,8 @@ fun AdminHubScreen(
                     StatCard("Users", state.users.size.toString(), Icons.Default.People, MaterialTheme.colorScheme.secondary)
                 ),
                 key = { it.title }
-            ) { card: StatCard ->
-                StatCardItem(title = card.title, count = card.count, icon = card.icon, color = card.color)
+            ) { card ->
+                StatCardContent(card)
             }
 
             item(span = { GridItemSpan(2) }) {
@@ -166,8 +166,8 @@ fun AdminHubScreen(
                     ActionCard("Manage Moderators", Icons.Default.PersonAdd, onManageModerators)
                 ),
                 key = { it.title }
-            ) { card: ActionCard ->
-                ActionCardItem(title = card.title, icon = card.icon, color = MaterialTheme.colorScheme.primary, onClick = card.onClick)
+            ) { card ->
+                ActionCardContent(card)
             }
 
             item(span = { GridItemSpan(2) }) {
@@ -183,6 +183,22 @@ private data class StatCard(
     val icon: ImageVector,
     val color: Color
 )
+
+@Composable
+private fun StatCardContent(card: StatCard) {
+    StatCardItem(title = card.title, count = card.count, icon = card.icon, color = card.color)
+}
+
+private data class ActionCard(
+    val title: String,
+    val icon: ImageVector,
+    val onClick: () -> Unit
+)
+
+@Composable
+private fun ActionCardContent(card: ActionCard) {
+    ActionCardItem(title = card.title, icon = card.icon, color = MaterialTheme.colorScheme.primary, onClick = card.onClick)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

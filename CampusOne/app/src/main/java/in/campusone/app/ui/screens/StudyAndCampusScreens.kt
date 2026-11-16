@@ -2431,9 +2431,9 @@ private fun SemesterTrendChart(
             .background(MaterialTheme.colorScheme.surfaceVariant, C1Radius.md)
     ) {
         // Draw chart using Canvas
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val width = size.width
-            val height = size.height
+        Canvas(modifier = Modifier.fillMaxSize()) { drawScope ->
+            val width = drawScope.size.width
+            val height = drawScope.size.height
             val padding = 20.dp.toPx()
             val chartWidth = width - 2 * padding
             val chartHeight = height - 2 * padding
@@ -2448,10 +2448,10 @@ private fun SemesterTrendChart(
             // Draw line
             val path = Path().apply {
                 points.forEachIndexed { index, point ->
-                    if (index == 0) this.moveTo(point.x, point.y) else this.lineTo(point.x, point.y)
+                    if (index == 0) drawScope.moveTo(point.x, point.y) else drawScope.lineTo(point.x, point.y)
                 }
             }
-            this.drawPath(
+            drawScope.drawPath(
                 path,
                 color = MaterialTheme.colorScheme.primary,
                 style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
@@ -2459,7 +2459,7 @@ private fun SemesterTrendChart(
 
             // Draw points
             points.forEach { point ->
-                this.drawCircle(
+                drawScope.drawCircle(
                     color = MaterialTheme.colorScheme.primary,
                     center = androidx.compose.ui.geometry.Offset(point.x, point.y),
                     radius = 6.dp.toPx()
