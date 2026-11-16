@@ -138,7 +138,9 @@ fun AdminHubScreen(
                     StatCard("Users", state.users.size.toString(), Icons.Default.People, MaterialTheme.colorScheme.secondary)
                 ),
                 key = { it.title },
-                itemContent = ::StatCardContent
+                itemContent = { card ->
+                    StatCardContent(card)
+                }
             )
 
             item(span = { GridItemSpan(2) }) {
@@ -165,7 +167,9 @@ fun AdminHubScreen(
                     ActionCard("Manage Moderators", Icons.Default.PersonAdd, onManageModerators)
                 ),
                 key = { it.title },
-                itemContent = ::ActionCardContent
+                itemContent = { card ->
+                    ActionCardContent(card)
+                }
             )
 
             item(span = { GridItemSpan(2) }) {
