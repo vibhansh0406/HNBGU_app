@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -26,6 +28,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.Badge
@@ -52,9 +55,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.Painter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -1474,7 +1482,7 @@ fun C1AvatarGroup(
             ) {
                 Text(
                     text = initial,
-                    style = MaterialTheme.typography.labelMedium.copy(fontSize = (size.value * 0.4).dp),
+                    style = MaterialTheme.typography.labelMedium.copy(fontSize = (size.value * 0.4).sp),
                     fontWeight = FontWeight.Bold,
                     color = contentColor
                 )
@@ -1491,7 +1499,7 @@ fun C1AvatarGroup(
             ) {
                 Text(
                     text = "+$remainingCount",
-                    style = MaterialTheme.typography.labelMedium.copy(fontSize = (size.value * 0.4).dp),
+                    style = MaterialTheme.typography.labelMedium.copy(fontSize = (size.value * 0.4).sp),
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -1521,9 +1529,11 @@ fun C1ProgressRing(
         animationSpec = if (animate) tween(durationMillis = C1Motion.normalMillis, easing = C1Motion.emphasizedEasing) else androidx.compose.animation.core.snap,
         label = "progressRing"
     )
-    Canvas(
+    Box(
         modifier = modifier.size(size),
-        onDraw = {
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.size(size), onDraw = {
             val center = size.toPx() / 2f
             val radius = center - strokeWidth.toPx() / 2f
             val startAngle = -90f + gapDegrees / 2
@@ -1554,8 +1564,7 @@ fun C1ProgressRing(
                     style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round)
                 )
             }
-        }
-    ) {
+        })
         centerContent?.invoke()
     }
 }
