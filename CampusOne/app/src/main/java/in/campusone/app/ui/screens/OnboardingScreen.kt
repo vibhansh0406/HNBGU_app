@@ -37,7 +37,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -51,9 +50,7 @@ import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1FilterChip
-import `in`.campusone.app.ui.components.C1HeroCard
 import `in`.campusone.app.ui.components.C1IconPosition
-import `in`.campusone.app.ui.components.C1ProgressRing
 import `in`.campusone.app.ui.components.C1SectionHeader
 import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.theme.C1Height
@@ -193,48 +190,24 @@ fun OnboardingScreen(
             }
         }
 
-        // Progress indicator with C1ProgressRing
+        // Progress indicator
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = C1Spacing.lg, vertical = C1Spacing.sm)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(C1Spacing.md),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                C1ProgressRing(
-                    progress = animatedProgress,
-                    size = 48.dp,
-                    strokeWidth = 4.dp,
-                    trackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    progressColor = MaterialTheme.colorScheme.primary,
-                    gapDegrees = 0f
-                ) {
-                    Text(
-                        text = "${(animatedProgress * 100).toInt()}%",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)
-                ) {
-                    LinearProgressIndicator(
-                        progress = animatedProgress,
-                        modifier = Modifier.fillMaxWidth().height(4.dp).clip(C1Radius.xs),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                    )
-                    Text(
-                        text = "Step ${step + 1} of 3",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+            LinearProgressIndicator(
+                progress = animatedProgress,
+                modifier = Modifier.fillMaxWidth().height(4.dp).clip(C1Radius.xs),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            )
+            Spacer(modifier = Modifier.height(C1Spacing.xs))
+            Text(
+                text = "Step ${step + 1} of 3",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
 
         // Step content
@@ -334,15 +307,42 @@ private fun OnboardingStepWelcome(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(C1Spacing.xl)
     ) {
-        // Hero illustration with C1HeroCard
-        C1HeroCard(
-            imageVector = Icons.Default.School,
-            title = stringResource(R.string.welcome_title),
-            subtitle = stringResource(R.string.welcome_subtitle),
-            backgroundColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            imageSize = 100.dp
-        )
+        // Hero illustration area
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp)
+                .background(MaterialTheme.colorScheme.primaryContainer, C1Radius.xl),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.School,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(56.dp)
+            )
+        }
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.sm),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = stringResource(R.string.welcome_title),
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+            Text(
+                text = stringResource(R.string.welcome_subtitle),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier.padding(horizontal = C1Spacing.xl)
+            )
+        }
 
         // Form fields
         Column(
@@ -399,7 +399,7 @@ private fun OnboardingStepCampusCourse(
             )
         }
 
-        // Campus selection with C1FilterChip
+        // Campus selection
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm),

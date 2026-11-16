@@ -1,9 +1,5 @@
 package `in`.campusone.app.ui.components
 
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,8 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -22,27 +16,30 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material3.Button
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -55,34 +52,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.Painter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.toPx
 import `in`.campusone.app.R
 import `in`.campusone.app.ui.theme.C1Border
-import `in`.campusone.app.ui.theme.C1Elevation
 import `in`.campusone.app.ui.theme.C1Height
 import `in`.campusone.app.ui.theme.C1Motion
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
-import `in`.campusone.app.ui.theme.C1State
 import `in`.campusone.app.ui.theme.C1TouchTarget
-import `in`.campusone.app.ui.theme.componentColors
 import `in`.campusone.app.ui.theme.extendedColors
 
 /** Visual intent of a [C1Button]. */
@@ -98,116 +84,63 @@ fun C1Button(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     intent: C1ButtonIntent = C1ButtonIntent.PRIMARY,
-    enabled: Boolean = true,
-    icon: (@Composable () -> Unit)? = null,
-    iconPosition: C1IconPosition = C1IconPosition.START
+    enabled: Boolean = true
 ) {
     val colors = when (intent) {
         C1ButtonIntent.PRIMARY -> ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
-            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = C1State.disabledAlpha),
-            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = C1State.disabledAlpha)
+            contentColor = MaterialTheme.colorScheme.onPrimary
         )
         C1ButtonIntent.TONAL -> ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = C1State.disabledAlpha),
-            disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = C1State.disabledAlpha)
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
         )
         C1ButtonIntent.OUTLINED -> ButtonDefaults.outlinedButtonColors(
-            contentColor = MaterialTheme.colorScheme.primary,
-            disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = C1State.disabledAlpha)
+            contentColor = MaterialTheme.colorScheme.primary
         )
         C1ButtonIntent.DANGER -> ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.errorContainer,
-            contentColor = MaterialTheme.colorScheme.onErrorContainer,
-            disabledContainerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = C1State.disabledAlpha),
-            disabledContentColor = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = C1State.disabledAlpha)
+            contentColor = MaterialTheme.colorScheme.onErrorContainer
         )
         C1ButtonIntent.GHOST -> ButtonDefaults.textButtonColors(
-            contentColor = MaterialTheme.colorScheme.primary,
-            disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = C1State.disabledAlpha)
+            contentColor = MaterialTheme.colorScheme.primary
         )
     }
-
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (pressed && enabled) C1Motion.pressScale else 1f,
-        animationSpec = tween(durationMillis = C1Motion.fastMillis),
-        label = "buttonPress"
-    )
 
     when (intent) {
         C1ButtonIntent.OUTLINED -> OutlinedButton(
             onClick = onClick,
-            modifier = modifier
-                .heightIn(min = C1TouchTarget)
-                .graphicsLayer { scaleX = scale; scaleY = scale },
+            modifier = modifier.heightIn(min = C1TouchTarget),
             enabled = enabled,
             shape = C1Radius.sm,
             colors = colors,
-            border = BorderStroke(C1Border.thin, MaterialTheme.colorScheme.outlineVariant),
-            contentPadding = PaddingValues(horizontal = C1Spacing.xl, vertical = C1Spacing.md),
-            interactionSource = interactionSource
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            contentPadding = PaddingValues(horizontal = C1Spacing.xl, vertical = C1Spacing.md)
         ) {
-            if (icon != null && iconPosition == C1IconPosition.START) {
-                icon()
-                Spacer(modifier = Modifier.width(C1Spacing.sm))
-            }
             Text(text, style = MaterialTheme.typography.labelLarge)
-            if (icon != null && iconPosition == C1IconPosition.END) {
-                Spacer(modifier = Modifier.width(C1Spacing.sm))
-                icon()
-            }
         }
         C1ButtonIntent.GHOST -> TextButton(
             onClick = onClick,
-            modifier = modifier
-                .heightIn(min = C1TouchTarget)
-                .graphicsLayer { scaleX = scale; scaleY = scale },
+            modifier = modifier.heightIn(min = C1TouchTarget),
             enabled = enabled,
             shape = C1Radius.sm,
-            colors = colors,
-            interactionSource = interactionSource
+            colors = colors
         ) {
-            if (icon != null && iconPosition == C1IconPosition.START) {
-                icon()
-                Spacer(modifier = Modifier.width(C1Spacing.sm))
-            }
             Text(text, style = MaterialTheme.typography.labelLarge)
-            if (icon != null && iconPosition == C1IconPosition.END) {
-                Spacer(modifier = Modifier.width(C1Spacing.sm))
-                icon()
-            }
         }
         else -> Button(
             onClick = onClick,
-            modifier = modifier
-                .heightIn(min = C1TouchTarget)
-                .graphicsLayer { scaleX = scale; scaleY = scale },
+            modifier = modifier.heightIn(min = C1TouchTarget),
             enabled = enabled,
             shape = C1Radius.sm,
             colors = colors,
             elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
-            contentPadding = PaddingValues(horizontal = C1Spacing.xl, vertical = C1Spacing.md),
-            interactionSource = interactionSource
+            contentPadding = PaddingValues(horizontal = C1Spacing.xl, vertical = C1Spacing.md)
         ) {
-            if (icon != null && iconPosition == C1IconPosition.START) {
-                icon()
-                Spacer(modifier = Modifier.width(C1Spacing.sm))
-            }
             Text(text, style = MaterialTheme.typography.labelLarge)
-            if (icon != null && iconPosition == C1IconPosition.END) {
-                Spacer(modifier = Modifier.width(C1Spacing.sm))
-                icon()
-            }
         }
     }
 }
-
-enum class C1IconPosition { START, END }
 
 /**
  * Consistent outlined text input: pill-adjacent radius, theme-aware borders,
@@ -223,13 +156,9 @@ fun C1TextField(
     isError: Boolean = false,
     supportingText: String? = null,
     singleLine: Boolean = true,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    leadingIcon: (@Composable () -> Unit)? = null,
-    trailingIcon: (@Composable () -> Unit)? = null,
-    onTrailingIconClick: (() -> Unit)? = null
+    keyboardType: KeyboardType = KeyboardType.Text
 ) {
-    val compColors = componentColors
-    val extColors = extendedColors
+    val extended = extendedColors
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
@@ -240,20 +169,16 @@ fun C1TextField(
         singleLine = singleLine,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         shape = C1Radius.sm,
-        supportingText = supportingText?.let { { Text(it, style = MaterialTheme.typography.bodySmall) } },
-        leadingIcon = leadingIcon,
-        trailingIcon = trailingIcon?.let {
-            { IconButton(onClick = onTrailingIconClick ?: {}) { it() } }
-        },
+        supportingText = supportingText?.let { { Text(it) } },
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = compColors.inputBorder,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
             errorBorderColor = MaterialTheme.colorScheme.error,
             cursorColor = MaterialTheme.colorScheme.primary,
-            focusedContainerColor = compColors.inputBackground,
-            unfocusedContainerColor = compColors.inputBackground,
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
             disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            disabledBorderColor = extColors.hairline
+            disabledBorderColor = extended.hairline
         )
     )
 }
@@ -266,8 +191,7 @@ enum class C1Tone { SUCCESS, WARNING, DANGER, INFO, NEUTRAL }
 fun C1StatusChip(
     text: String,
     tone: C1Tone,
-    modifier: Modifier = Modifier,
-    icon: (@Composable () -> Unit)? = null
+    modifier: Modifier = Modifier
 ) {
     val extended = extendedColors
     val (bg, fg) = when (tone) {
@@ -282,19 +206,13 @@ fun C1StatusChip(
         shape = C1Radius.pill,
         color = bg
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = C1Spacing.md, vertical = C1Spacing.xs),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
-        ) {
-            icon?.invoke()
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = fg
-            )
-        }
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = fg,
+            modifier = Modifier.padding(horizontal = C1Spacing.md, vertical = C1Spacing.xs)
+        )
     }
 }
 
@@ -304,30 +222,20 @@ fun C1SectionHeader(
     title: String,
     modifier: Modifier = Modifier,
     actionLabel: String? = null,
-    onAction: (() -> Unit)? = null,
-    subtitle: String? = null
+    onAction: (() -> Unit)? = null
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Column {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.semantics { heading() }
-            )
-            subtitle?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.semantics { heading() }
+        )
         if (actionLabel != null && onAction != null) {
             TextButton(onClick = onAction) {
                 Text(actionLabel, style = MaterialTheme.typography.labelLarge)
@@ -342,33 +250,31 @@ fun C1EmptyState(
     icon: ImageVector,
     title: String,
     message: String,
-    modifier: Modifier = Modifier,
-    actionLabel: String? = null,
-    onAction: (() -> Unit)? = null
+    modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(C1Spacing.xxxl),
+            .padding(C1Spacing.xxl),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(C1Spacing.lg)
+        verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
     ) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
-                .size(64.dp)
+                .size(56.dp)
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape)
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(26.dp)
             )
         }
         Text(
             text = title,
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -376,16 +282,8 @@ fun C1EmptyState(
             text = message,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = C1Spacing.xl),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            modifier = Modifier.padding(horizontal = C1Spacing.lg)
         )
-        if (actionLabel != null && onAction != null) {
-            C1Button(
-                text = actionLabel,
-                onClick = onAction,
-                intent = C1ButtonIntent.PRIMARY
-            )
-        }
     }
 }
 
@@ -396,15 +294,12 @@ fun C1StatTile(
     value: String,
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
-    valueColor: Color = MaterialTheme.colorScheme.primary,
-    trend: C1Trend? = null
+    valueColor: Color = MaterialTheme.colorScheme.primary
 ) {
-    val compColors = componentColors
     Surface(
         modifier = modifier,
         shape = C1Radius.md,
-        color = compColors.cardBackground,
-        border = BorderStroke(C1Border.hairline, compColors.cardBorder)
+        color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Row(
             modifier = Modifier
@@ -413,49 +308,29 @@ fun C1StatTile(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (icon != null) {
-                Box(
-                    modifier = Modifier.size(40.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = valueColor,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.size(C1Spacing.md))
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = valueColor,
+                    modifier = Modifier.size(20.dp)
                 )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
-                ) {
-                    Text(
-                        text = value,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = valueColor
-                    )
-                    trend?.let { t ->
-                        C1StatusChip(
-                            text = t.label,
-                            tone = t.tone,
-                            modifier = Modifier.padding(top = C1Spacing.xs)
-                        )
-                    }
-                }
+                Spacer(Modifier.size(C1Spacing.md))
             }
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = valueColor
+            )
         }
     }
 }
-
-data class C1Trend(val label: String, val tone: C1Tone)
 
 /** Inline informational or warning banner strip. */
 @Composable
@@ -463,11 +338,7 @@ fun C1Banner(
     text: String,
     tone: C1Tone,
     modifier: Modifier = Modifier,
-    icon: ImageVector? = null,
-    actionLabel: String? = null,
-    onAction: (() -> Unit)? = null,
-    dismissible: Boolean = false,
-    onDismiss: (() -> Unit)? = null
+    icon: ImageVector? = null
 ) {
     val extended = extendedColors
     val (bg, fg) = when (tone) {
@@ -493,19 +364,8 @@ fun C1Banner(
             Text(
                 text = text,
                 style = MaterialTheme.typography.bodyMedium,
-                color = fg,
-                modifier = Modifier.weight(1f)
+                color = fg
             )
-            actionLabel?.let { label ->
-                TextButton(onClick = onAction!!) {
-                    Text(label, style = MaterialTheme.typography.labelLarge, color = fg)
-                }
-            }
-            if (dismissible) {
-                IconButton(onClick = onDismiss!!) {
-                    Icon(Icons.Default.Close, contentDescription = "Dismiss", tint = fg, modifier = Modifier.size(18.dp))
-                }
-            }
         }
     }
 }
@@ -514,18 +374,17 @@ fun C1Banner(
 @Composable
 fun C1LoadingState(
     modifier: Modifier = Modifier,
-    label: String? = null,
-    size: androidx.compose.ui.unit.Dp = 28.dp
+    label: String? = null
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(C1Spacing.xxxl),
+            .padding(C1Spacing.xxl),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
     ) {
         CircularProgressIndicator(
-            modifier = Modifier.size(size),
+            modifier = Modifier.size(28.dp),
             strokeWidth = 2.5.dp,
             color = MaterialTheme.colorScheme.primary
         )
@@ -551,26 +410,26 @@ fun C1ErrorState(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(C1Spacing.xxxl),
+            .padding(C1Spacing.xxl),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
     ) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
-                .size(64.dp)
+                .size(56.dp)
                 .background(MaterialTheme.colorScheme.errorContainer, CircleShape)
         ) {
             Icon(
                 imageVector = Icons.Filled.ErrorOutline,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onErrorContainer,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(26.dp)
             )
         }
         Text(
             text = title,
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -578,8 +437,7 @@ fun C1ErrorState(
             text = message,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = C1Spacing.xl),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            modifier = Modifier.padding(horizontal = C1Spacing.lg)
         )
         if (retryLabel != null && onRetry != null) {
             C1Button(
@@ -602,10 +460,8 @@ fun C1SurfaceCard(
     contentPadding: PaddingValues = PaddingValues(C1Spacing.lg),
     containerColor: Color = MaterialTheme.colorScheme.surface,
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
-    elevation: androidx.compose.ui.unit.Dp = 0.dp,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val compColors = componentColors
     val shape = C1Radius.md
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
@@ -633,51 +489,7 @@ fun C1SurfaceCard(
         },
         shape = shape,
         color = containerColor,
-        border = BorderStroke(C1Border.hairline, borderColor),
-        shadowElevation = elevation
-    ) {
-        Column(modifier = Modifier.padding(contentPadding), content = content)
-    }
-}
-
-/** Elevated card variant with subtle shadow for floating elements. */
-@Composable
-fun C1ElevatedCard(
-    modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null,
-    contentPadding: PaddingValues = PaddingValues(C1Spacing.lg),
-    containerColor: Color = MaterialTheme.colorScheme.surface,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    val compColors = componentColors
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (pressed) C1Motion.pressScale else 1f,
-        animationSpec = tween(durationMillis = C1Motion.fastMillis),
-        label = "elevatedCardPress"
-    )
-    val base = modifier
-        .fillMaxWidth()
-        .semantics(mergeDescendants = true) {}
-    val clickable = if (onClick != null) {
-        base.clickable(
-            interactionSource = interactionSource,
-            indication = ripple(),
-            onClick = onClick
-        )
-    } else {
-        base
-    }
-    Surface(
-        modifier = clickable.graphicsLayer {
-            scaleX = scale
-            scaleY = scale
-        },
-        shape = C1Radius.lg,
-        color = containerColor,
-        shadowElevation = C1Elevation.level2,
-        border = BorderStroke(C1Border.hairline, compColors.surfaceElevatedBorder)
+        border = BorderStroke(C1Border.hairline, borderColor)
     ) {
         Column(modifier = Modifier.padding(contentPadding), content = content)
     }
@@ -687,14 +499,11 @@ fun C1ElevatedCard(
 @Composable
 fun C1Divider(
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.outlineVariant,
-    insetStart: androidx.compose.ui.unit.Dp = 0.dp,
-    insetEnd: androidx.compose.ui.unit.Dp = 0.dp
+    color: Color = MaterialTheme.colorScheme.outlineVariant
 ) {
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = insetStart, end = insetEnd)
             .height(C1Border.hairline)
             .background(color)
     )
@@ -707,8 +516,7 @@ fun C1Avatar(
     modifier: Modifier = Modifier,
     size: androidx.compose.ui.unit.Dp = 40.dp,
     containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
-    contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
-    fontSize: Int = 16
+    contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer
 ) {
     val initial = name.trim().take(1).uppercase()
     Box(
@@ -719,7 +527,7 @@ fun C1Avatar(
     ) {
         Text(
             text = initial,
-            style = MaterialTheme.typography.titleMedium.copy(fontSize = fontSize.sp),
+            style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = contentColor
         )
@@ -737,10 +545,8 @@ fun C1ListRow(
     subtitle: String? = null,
     leading: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
-    onClick: (() -> Unit)? = null,
-    metadata: String? = null
+    onClick: (() -> Unit)? = null
 ) {
-    val compColors = componentColors
     val interactionSource = remember { MutableInteractionSource() }
     val base = modifier
         .fillMaxWidth()
@@ -755,44 +561,30 @@ fun C1ListRow(
     } else {
         base
     }
-    Surface(
-        modifier = row,
-        shape = C1Radius.sm,
-        color = compColors.cardBackground,
-        border = BorderStroke(C1Border.hairline, compColors.cardBorder)
+    Row(
+        modifier = row.padding(vertical = C1Spacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
     ) {
-        Row(
-            modifier = Modifier.padding(vertical = C1Spacing.md, horizontal = C1Spacing.md),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
-        ) {
-            if (leading != null) {
-                leading()
-            }
-            Column(modifier = Modifier.weight(1f)) {
+        if (leading != null) {
+            leading()
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            if (!subtitle.isNullOrBlank()) {
                 Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                if (!subtitle.isNullOrBlank()) {
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                metadata?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    )
-                }
             }
-            if (trailing != null) {
-                trailing()
-            }
+        }
+        if (trailing != null) {
+            trailing()
         }
     }
 }
@@ -803,41 +595,33 @@ fun C1FilterChip(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    leadingIcon: (@Composable () -> Unit)? = null,
-    trailingIcon: (@Composable () -> Unit)? = null
+    modifier: Modifier = Modifier
 ) {
-    val compColors = componentColors
     Surface(
-        modifier = modifier
-            .heightIn(min = C1Height.chip)
-            .fillMaxWidth(),
+        modifier = modifier.heightIn(min = C1Height.chip),
         shape = C1Radius.pill,
-        color = if (selected) compColors.chipBackgroundSelected else compColors.chipBackground,
+        color = if (selected) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.surfaceContainer
+        },
         border = BorderStroke(
             C1Border.hairline,
-            if (selected) compColors.chipBorderSelected else compColors.chipBorder
+            if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
         ),
         onClick = onClick
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = C1Spacing.md, vertical = C1Spacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
-        ) {
-            leadingIcon?.invoke()
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                color = if (selected) {
-                    MaterialTheme.colorScheme.onPrimary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                }
-            )
-            trailingIcon?.invoke()
-        }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+            color = if (selected) {
+                MaterialTheme.colorScheme.onPrimary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
+            modifier = Modifier.padding(horizontal = C1Spacing.md, vertical = C1Spacing.sm)
+        )
     }
 }
 
@@ -848,15 +632,14 @@ fun C1TopBar(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     onBack: (() -> Unit)? = null,
-    actions: (@Composable RowScope.() -> Unit)? = null,
-    centerTitle: Boolean = false
+    actions: (@Composable RowScope.() -> Unit)? = null
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = C1Spacing.lg, vertical = C1Spacing.md),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = if (centerTitle) Arrangement.Center else Arrangement.spacedBy(C1Spacing.md)
+        horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
     ) {
         if (onBack != null) {
             IconButton(onClick = onBack, modifier = Modifier.size(C1Height.touch)) {
@@ -866,42 +649,23 @@ fun C1TopBar(
                 )
             }
         }
-        if (!centerTitle) {
-            Column(modifier = Modifier.weight(1f)) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.semantics { heading() }
+            )
+            if (!subtitle.isNullOrBlank()) {
                 Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.semantics { heading() }
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                if (!subtitle.isNullOrBlank()) {
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
             }
         }
         if (actions != null) {
             actions()
-        }
-        if (centerTitle) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.semantics { heading() }
-                )
-                if (!subtitle.isNullOrBlank()) {
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
         }
     }
 }
@@ -912,19 +676,20 @@ fun C1Skeleton(
     modifier: Modifier = Modifier,
     shape: androidx.compose.ui.graphics.Shape = C1Radius.sm
 ) {
-    val transition = androidx.compose.animation.core.rememberInfiniteTransition(label = "skeleton")
+    val transition = rememberInfiniteTransition(label = "skeleton")
     val progress by transition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
-        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
-            animation = androidx.compose.animation.core.tween(durationMillis = 1200, easing = androidx.compose.animation.core.LinearEasing),
-            repeatMode = androidx.compose.animation.core.RepeatMode.Restart
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
         ),
         label = "skeletonProgress"
     )
-    val compColors = componentColors
+    val base = MaterialTheme.colorScheme.surfaceContainerHigh
+    val highlight = MaterialTheme.colorScheme.surfaceContainerLow
     val brush = Brush.linearGradient(
-        colors = listOf(compColors.skeletonBase, compColors.skeletonHighlight, compColors.skeletonBase),
+        colors = listOf(base, highlight, base),
         start = androidx.compose.ui.geometry.Offset(progress * 400f - 200f, 0f),
         end = androidx.compose.ui.geometry.Offset(progress * 400f + 200f, 0f)
     )
@@ -1013,751 +778,4 @@ fun RowScope.C1NavItem(
             unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
         )
     )
-}
-
-/** Icon button with consistent sizing and touch target. */
-@Composable
-fun C1IconButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    content: @Composable () -> Unit
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (pressed && enabled) C1Motion.pressScale else 1f,
-        animationSpec = tween(durationMillis = C1Motion.fastMillis),
-        label = "iconButtonPress"
-    )
-    IconButton(
-        onClick = onClick,
-        modifier = modifier
-            .size(C1Height.touch)
-            .graphicsLayer { scaleX = scale; scaleY = scale },
-        enabled = enabled,
-        interactionSource = interactionSource
-    ) {
-        content()
-    }
-}
-
-/** Toggle button with clear selected state. */
-@Composable
-fun C1ToggleButton(
-    text: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    icon: (@Composable () -> Unit)? = null
-) {
-    val compColors = componentColors
-    Surface(
-        modifier = modifier
-            .heightIn(min = C1Height.chip)
-            .fillMaxWidth(),
-        shape = C1Radius.pill,
-        color = if (selected) compColors.chipBackgroundSelected else compColors.chipBackground,
-        border = BorderStroke(
-            C1Border.hairline,
-            if (selected) compColors.chipBorderSelected else compColors.chipBorder
-        ),
-        onClick = onClick
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = C1Spacing.md, vertical = C1Spacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
-        ) {
-            icon?.invoke()
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                color = if (selected) {
-                    MaterialTheme.colorScheme.onPrimary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                }
-            )
-        }
-    }
-}
-
-/** Progress indicator with consistent styling. */
-@Composable
-fun C1LinearProgress(
-    progress: Float,
-    modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.primary,
-    trackColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
-) {
-    androidx.compose.material3.LinearProgressIndicator(
-        progress = progress,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(4.dp)
-            .clip(C1Radius.xs),
-        color = color,
-        trackColor = trackColor
-    )
-}
-
-/** Circular progress indicator with consistent styling. */
-@Composable
-fun C1CircularProgress(
-    progress: Float,
-    modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.primary,
-    strokeWidth: androidx.compose.ui.unit.Dp = 3.dp,
-    size: androidx.compose.ui.unit.Dp = 24.dp
-) {
-    androidx.compose.material3.CircularProgressIndicator(
-        progress = progress,
-        modifier = modifier.size(size),
-        strokeWidth = strokeWidth,
-        color = color
-    )
-}
-
-/** Badge for counts and notifications. */
-@Composable
-fun C1Badge(
-    count: Int,
-    modifier: Modifier = Modifier,
-    maxCount: Int = 99
-) {
-    if (count > 0) {
-        val displayText = if (count > maxCount) "$maxCount+" else count.toString()
-        Box(
-            modifier = modifier
-                .padding(start = -8.dp, top = -8.dp)
-                .background(MaterialTheme.colorScheme.error, CircleShape)
-                .padding(horizontal = 4.dp, vertical = 1.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = displayText,
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onError
-            )
-        }
-    }
-}
-
-/** Divider with consistent styling for lists. */
-@Composable
-fun C1ListDivider(
-    modifier: Modifier = Modifier,
-    insetStart: androidx.compose.ui.unit.Dp = C1Spacing.lg
-) {
-    C1Divider(
-        modifier = modifier.padding(start = insetStart),
-        color = componentColors.dividerColor
-    )
-}
-
-// =========================================================================
-// PREMIUM COMPONENTS — Flagship-level primitives for elevated UI
-// =========================================================================
-
-/**
- * Hero card for prominent content: large imagery, headline, supporting text,
- * and primary action. Used for onboarding, empty states, and feature highlights.
- */
-@Composable
-fun C1HeroCard(
-    modifier: Modifier = Modifier,
-    imageVector: ImageVector? = null,
-    imagePainter: androidx.compose.ui.res.Painter? = null,
-    title: String,
-    subtitle: String? = null,
-    primaryAction: C1HeroAction? = null,
-    secondaryAction: C1HeroAction? = null,
-    backgroundColor: Color = MaterialTheme.colorScheme.primaryContainer,
-    contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
-    shape: androidx.compose.ui.graphics.Shape = C1Radius.xl,
-    imageSize: androidx.compose.ui.unit.Dp = 120.dp
-) {
-    val compColors = componentColors
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = C1Spacing.lg),
-        shape = shape,
-        color = backgroundColor,
-        shadowElevation = C1Elevation.level1
-    ) {
-        Column(
-            modifier = Modifier.padding(C1Spacing.xxxl),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(C1Spacing.lg)
-        ) {
-            if (imageVector != null || imagePainter != null) {
-                Box(
-                    modifier = Modifier.size(imageSize),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (imageVector != null) {
-                        Icon(
-                            imageVector = imageVector,
-                            contentDescription = null,
-                            tint = contentColor.copy(alpha = 0.9f),
-                            modifier = Modifier.size(imageSize * 0.5f)
-                        )
-                    } else {
-                        androidx.compose.foundation.Image(
-                            painter = imagePainter!!,
-                            contentDescription = null,
-                            contentScale = androidx.compose.foundation.layout.ContentScale.Fit,
-                            modifier = Modifier.size(imageSize)
-                        )
-                    }
-                }
-            }
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = contentColor,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
-            subtitle?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = contentColor.copy(alpha = 0.8f),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = C1Spacing.xl)
-                )
-            }
-            if (primaryAction != null || secondaryAction != null) {
-                Spacer(modifier = Modifier.height(C1Spacing.md))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    secondaryAction?.let { action ->
-                        C1Button(
-                            text = action.label,
-                            onClick = action.onClick,
-                            intent = C1ButtonIntent.OUTLINED,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Spacer(modifier = Modifier.width(C1Spacing.md))
-                    }
-                    primaryAction?.let { action ->
-                        C1Button(
-                            text = action.label,
-                            onClick = action.onClick,
-                            intent = C1ButtonIntent.PRIMARY,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-data class C1HeroAction(
-    val label: String,
-    val onClick: () -> Unit
-)
-
-/**
- * Metric card for dashboard KPIs: large value, label, trend, and optional icon.
- * Designed for glanceable data density.
- */
-@Composable
-fun C1MetricCard(
-    modifier: Modifier = Modifier,
-    value: String,
-    label: String,
-    icon: ImageVector? = null,
-    valueColor: Color = MaterialTheme.colorScheme.primary,
-    trend: C1Trend? = null,
-    onClick: (() -> Unit)? = null,
-    subtitle: String? = null
-) {
-    val compColors = componentColors
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (pressed) C1Motion.pressScale else 1f,
-        animationSpec = tween(durationMillis = C1Motion.fastMillis),
-        label = "metricCardPress"
-    )
-    val base = modifier
-        .fillMaxWidth()
-        .semantics(mergeDescendants = true) {}
-    val clickable = if (onClick != null) {
-        base.clickable(
-            interactionSource = interactionSource,
-            indication = ripple(),
-            onClick = onClick
-        )
-    } else {
-        base
-    }
-    Surface(
-        modifier = clickable.graphicsLayer {
-            scaleX = scale
-            scaleY = scale
-        },
-        shape = C1Radius.lg,
-        color = compColors.cardBackground,
-        border = BorderStroke(C1Border.hairline, compColors.cardBorder),
-        shadowElevation = C1Elevation.flat
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(C1Spacing.xl),
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(C1Spacing.xs))
-                    Text(
-                        text = value,
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = valueColor
-                    )
-                    subtitle?.let {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                        )
-                    }
-                    trend?.let { t ->
-                        Spacer(modifier = Modifier.height(C1Spacing.xs))
-                        C1StatusChip(
-                            text = t.label,
-                            tone = t.tone
-                        )
-                    }
-                }
-                icon?.let { iv ->
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .background(valueColor.copy(alpha = 0.12f), C1Radius.md),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = iv,
-                            contentDescription = null,
-                            tint = valueColor,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-/**
- * Action card for primary user actions: icon, title, description, and chevron.
- * Used in grids and lists for navigable actions.
- */
-@Composable
-fun C1ActionCard(
-    modifier: Modifier = Modifier,
-    icon: ImageVector,
-    title: String,
-    description: String? = null,
-    iconColor: Color = MaterialTheme.colorScheme.primary,
-    iconBackground: Color = MaterialTheme.colorScheme.primaryContainer,
-    onClick: () -> Unit,
-    showChevron: Boolean = true
-) {
-    val compColors = componentColors
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (pressed) C1Motion.pressScale else 1f,
-        animationSpec = tween(durationMillis = C1Motion.fastMillis),
-        label = "actionCardPress"
-    )
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = 100.dp)
-            .graphicsLayer { scaleX = scale; scaleY = scale }
-            .clickable(
-                interactionSource = interactionSource,
-                indication = ripple(),
-                onClick = onClick
-            )
-            .semantics(mergeDescendants = true) {},
-        shape = C1Radius.lg,
-        color = compColors.cardBackground,
-        border = BorderStroke(C1Border.hairline, compColors.cardBorder),
-        shadowElevation = C1Elevation.flat
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(C1Spacing.lg),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(C1Spacing.lg)
-        ) {
-            Box(
-                modifier = Modifier.size(48.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = iconColor,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                description?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            if (showChevron) {
-                Icon(
-                    imageVector = Icons.Default.ChevronRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-    }
-}
-
-/**
- * Avatar group for showing multiple users with overlap.
- */
-@Composable
-fun C1AvatarGroup(
-    modifier: Modifier = Modifier,
-    names: List<String>,
-    maxVisible: Int = 4,
-    size: androidx.compose.ui.unit.Dp = 36.dp,
-    overlap: androidx.compose.ui.unit.Dp = 12.dp
-) {
-    val visibleNames = names.take(maxVisible)
-    val remainingCount = names.size - maxVisible
-    Row(modifier = modifier) {
-        visibleNames.forEachIndexed { index, name ->
-            val initial = name.trim().take(1).uppercase()
-            val containerColor = MaterialTheme.colorScheme.primaryContainer
-            val contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-            Box(
-                modifier = Modifier
-                    .size(size)
-                    .background(containerColor, CircleShape)
-                    .offset(x = (-overlap * index).toPx()),
-                contentAlignment = Alignment.Center,
-                zIndex = (maxVisible - index).toFloat()
-            ) {
-                Text(
-                    text = initial,
-                    style = MaterialTheme.typography.labelMedium.copy(fontSize = (size.value * 0.4).sp),
-                    fontWeight = FontWeight.Bold,
-                    color = contentColor
-                )
-            }
-        }
-        if (remainingCount > 0) {
-            Box(
-                modifier = Modifier
-                    .size(size)
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape)
-                    .offset(x = (-overlap * maxVisible).toPx()),
-                contentAlignment = Alignment.Center,
-                zIndex = 0f
-            ) {
-                Text(
-                    text = "+$remainingCount",
-                    style = MaterialTheme.typography.labelMedium.copy(fontSize = (size.value * 0.4).sp),
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
-
-/**
- * Circular progress ring with animated sweep, configurable stroke, and center content.
- * Used for attendance, completion rates, and radial metrics.
- */
-@Composable
-fun C1ProgressRing(
-    modifier: Modifier = Modifier,
-    progress: Float, // 0..1
-    strokeWidth: androidx.compose.ui.unit.Dp = 8.dp,
-    size: androidx.compose.ui.unit.Dp = 80.dp,
-    trackColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
-    progressColor: Color = MaterialTheme.colorScheme.primary,
-    centerContent: (@Composable () -> Unit)? = null,
-    animate: Boolean = true,
-    gapDegrees: Float = 0f
-) {
-    val animatedProgress by animateFloatAsState(
-        targetValue = progress,
-        animationSpec = if (animate) tween(durationMillis = C1Motion.normalMillis, easing = C1Motion.emphasizedEasing) else androidx.compose.animation.core.snap,
-        label = "progressRing"
-    )
-    Box(
-        modifier = modifier.size(size),
-        contentAlignment = Alignment.Center
-    ) {
-        Canvas(modifier = Modifier.size(size), onDraw = {
-            val center = size.toPx() / 2f
-            val radius = center - strokeWidth.toPx() / 2f
-            val startAngle = -90f + gapDegrees / 2
-            val sweepAngle = (360f - gapDegrees) * animatedProgress
-            // Track
-            drawArc(
-                color = trackColor,
-                startAngle = -90f,
-                sweepAngle = 360f - gapDegrees,
-                useCenter = false,
-                style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round)
-            )
-            // Progress
-            drawArc(
-                color = progressColor,
-                startAngle = startAngle,
-                sweepAngle = sweepAngle,
-                useCenter = false,
-                style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round)
-            )
-            // Gap indicator (optional)
-            if (gapDegrees > 0) {
-                drawArc(
-                    color = trackColor,
-                    startAngle = startAngle + sweepAngle,
-                    sweepAngle = gapDegrees,
-                    useCenter = false,
-                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round)
-                )
-            }
-        })
-        centerContent?.invoke()
-    }
-}
-
-/**
- * Tag/label component for categorization and metadata.
- */
-@Composable
-fun C1Tag(
-    text: String,
-    modifier: Modifier = Modifier,
-    tone: C1Tone = C1Tone.NEUTRAL,
-    icon: (@Composable () -> Unit)? = null,
-    onClick: (() -> Unit)? = null,
-    dismissible: Boolean = false,
-    onDismiss: (() -> Unit)? = null
-) {
-    val extended = extendedColors
-    val (bg, fg) = when (tone) {
-        C1Tone.SUCCESS -> extended.successContainer to extended.onSuccessContainer
-        C1Tone.WARNING -> extended.warningContainer to extended.onWarningContainer
-        C1Tone.DANGER -> MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
-        C1Tone.INFO -> extended.infoContainer to extended.onInfoContainer
-        C1Tone.NEUTRAL -> MaterialTheme.colorScheme.surfaceContainerHigh to MaterialTheme.colorScheme.onSurfaceVariant
-    }
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (pressed && onClick != null) C1Motion.pressScale else 1f,
-        animationSpec = tween(durationMillis = C1Motion.fastMillis),
-        label = "tagPress"
-    )
-    val base = modifier
-        .heightIn(min = C1Height.chip)
-        .graphicsLayer { scaleX = scale; scaleY = scale }
-    val clickable = if (onClick != null) {
-        base.clickable(
-            interactionSource = interactionSource,
-            indication = ripple(),
-            onClick = onClick
-        )
-    } else {
-        base
-    }
-    Surface(
-        modifier = clickable,
-        shape = C1Radius.pill,
-        color = bg
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = C1Spacing.md, vertical = C1Spacing.xs)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
-        ) {
-            icon?.invoke()
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Medium,
-                color = fg
-            )
-            if (dismissible) {
-                IconButton(onClick = onDismiss!!) {
-                    Icon(Icons.Default.Close, contentDescription = "Remove", tint = fg, modifier = Modifier.size(16.dp))
-                }
-            }
-        }
-    }
-}
-
-/**
- * Bottom sheet with drag handle and optional scrollable content.
- */
-@Composable
-fun C1BottomSheet(
-    modifier: Modifier = Modifier,
-    title: String,
-    subtitle: String? = null,
-    onDismiss: () -> Unit,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    // Implementation would use ModalBottomSheetLayout
-    // Placeholder for now - full implementation requires ModalBottomSheetLayout
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(C1Spacing.lg)
-            .background(MaterialTheme.colorScheme.surface, C1Radius.xl)
-    ) {
-        // Drag handle
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(4.dp)
-                .padding(top = C1Spacing.sm, bottom = C1Spacing.md),
-            contentAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(40.dp)
-                    .height(4.dp)
-                    .background(MaterialTheme.colorScheme.outlineVariant, C1Radius.pill)
-            )
-        }
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        subtitle?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        Spacer(modifier = Modifier.height(C1Spacing.lg))
-        content()
-    }
-}
-
-/**
- * Custom dialog with consistent styling.
- */
-@Composable
-fun C1Dialog(
-    onDismiss: () -> Unit,
-    title: String,
-    subtitle: String? = null,
-    confirmButton: C1HeroAction? = null,
-    dismissButton: C1HeroAction? = null,
-    content: @Composable () -> Unit
-) {
-    // Placeholder - full implementation would use Dialog composable
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(C1Spacing.lg)
-            .background(MaterialTheme.colorScheme.surface, C1Radius.xl)
-    ) {
-        Column(
-            modifier = Modifier.padding(C1Spacing.xl),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(C1Spacing.lg)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
-            subtitle?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-            }
-            content()
-            if (confirmButton != null || dismissButton != null) {
-                Spacer(modifier = Modifier.height(C1Spacing.md))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    dismissButton?.let { action ->
-                        C1Button(
-                            text = action.label,
-                            onClick = { action.onClick(); onDismiss() },
-                            intent = C1ButtonIntent.OUTLINED,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Spacer(modifier = Modifier.width(C1Spacing.md))
-                    }
-                    confirmButton?.let { action ->
-                        C1Button(
-                            text = action.label,
-                            onClick = { action.onClick(); onDismiss() },
-                            intent = C1ButtonIntent.PRIMARY,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
-        }
-    }
 }
