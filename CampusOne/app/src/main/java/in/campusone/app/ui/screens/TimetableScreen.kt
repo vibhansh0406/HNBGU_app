@@ -32,7 +32,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabDefaults
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -117,20 +116,12 @@ fun TimetableScreen(
                     Tab(
                         selected = selectedTab == 0,
                         onClick = { selectedTab = 0 },
-                        text = { Text(stringResource(R.string.timetable_today), style = MaterialTheme.typography.labelLarge) },
-                        colors = TabDefaults.colors(
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        text = { Text(stringResource(R.string.timetable_today), style = MaterialTheme.typography.labelLarge) }
                     )
                     Tab(
                         selected = selectedTab == 1,
                         onClick = { selectedTab = 1 },
-                        text = { Text(stringResource(R.string.timetable_weekly), style = MaterialTheme.typography.labelLarge) },
-                        colors = TabDefaults.colors(
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        text = { Text(stringResource(R.string.timetable_weekly), style = MaterialTheme.typography.labelLarge) }
                     )
                 }
             }
