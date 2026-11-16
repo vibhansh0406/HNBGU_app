@@ -127,7 +127,7 @@ fun AdminHubScreen(
             }
 
             // Stat Cards
-            items<StatCard>(
+            items(
                 listOf(
                     StatCard("Subjects", state.subjectCount.toString(), Icons.Default.School, MaterialTheme.colorScheme.primary),
                     StatCard("Notices", state.noticeCount.toString(), Icons.Default.Campaign, MaterialTheme.colorScheme.tertiary),
@@ -138,12 +138,8 @@ fun AdminHubScreen(
                     StatCard("Users", state.users.size.toString(), Icons.Default.People, MaterialTheme.colorScheme.secondary)
                 ),
                 key = { it.title }
-            ) { card: StatCard ->
-                @Composable
-                fun ItemContent() {
-                    StatCardItem(title = card.title, count = card.count, icon = card.icon, color = card.color)
-                }
-                ItemContent()
+            ) { card ->
+                StatCardItem(title = card.title, count = card.count, icon = card.icon, color = card.color)
             }
 
             item(span = { GridItemSpan(2) }) {
@@ -154,7 +150,7 @@ fun AdminHubScreen(
             item(span = { GridItemSpan(2) }) {
                 C1SectionHeader(title = "Quick Actions")
             }
-            items<ActionCard>(
+            items(
                 listOf(
                     ActionCard("Manage Subjects", Icons.Default.School, { onNavigate("SUBJECTS") }),
                     ActionCard("Manage Timetable", Icons.Default.Schedule, { onNavigate("TIMETABLE") }),
@@ -170,12 +166,8 @@ fun AdminHubScreen(
                     ActionCard("Manage Moderators", Icons.Default.PersonAdd, onManageModerators)
                 ),
                 key = { it.title }
-            ) { card: ActionCard ->
-                @Composable
-                fun ItemContent() {
-                    ActionCardItem(title = card.title, icon = card.icon, color = MaterialTheme.colorScheme.primary, onClick = card.onClick)
-                }
-                ItemContent()
+            ) { card ->
+                ActionCardItem(title = card.title, icon = card.icon, color = MaterialTheme.colorScheme.primary, onClick = card.onClick)
             }
 
             item(span = { GridItemSpan(2) }) {
