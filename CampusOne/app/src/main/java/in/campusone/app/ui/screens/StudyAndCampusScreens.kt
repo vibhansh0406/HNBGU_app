@@ -2447,7 +2447,7 @@ private fun SemesterTrendChart(
 
             // Draw line
             val path = Path().apply {
-                points.forEachIndexed { index, point ->
+                points.forEachIndexed { index, point: androidx.compose.ui.geometry.Offset ->
                     if (index == 0) moveTo(point) else lineTo(point)
                 }
             }
@@ -2458,7 +2458,7 @@ private fun SemesterTrendChart(
             )
 
             // Draw points
-            points.forEach { point ->
+            points.forEach { point: androidx.compose.ui.geometry.Offset ->
                 drawCircle(
                     color = MaterialTheme.colorScheme.primary,
                     center = point,
