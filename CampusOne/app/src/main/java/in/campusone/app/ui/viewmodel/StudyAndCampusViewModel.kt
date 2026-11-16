@@ -373,6 +373,22 @@ class StudyAndCampusViewModel @Inject constructor(
         }
     }
 
+    fun updateCourseCredits(index: Int, newCredits: Int) {
+        val current = _gpaCourses.value.toMutableList()
+        if (index in current.indices) {
+            current[index] = current[index].copy(credits = newCredits.coerceIn(1, 10))
+            _gpaCourses.value = current
+        }
+    }
+
+    fun removeGpaCourse(index: Int) {
+        val current = _gpaCourses.value.toMutableList()
+        if (index in current.indices) {
+            current.removeAt(index)
+            _gpaCourses.value = current
+        }
+    }
+
     fun addGpaCourse(code: String, name: String, credits: Int, gradePoint: Double) {
         val current = _gpaCourses.value.toMutableList()
         current.add(

@@ -231,7 +231,11 @@ private fun CommunityFeed(
     onReportPost: (CommunityPost) -> Unit,
     onCreatePost: () -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.background)
+    ) {
+        // Header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -271,6 +275,7 @@ private fun CommunityFeed(
             }
         }
 
+        // Mode tabs
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = C1Spacing.lg),
@@ -306,13 +311,16 @@ private fun CommunityFeed(
             }
         }
 
+        // Search
         C1TextField(
             value = uiState.query,
             onValueChange = onQueryChange,
             label = stringResource(R.string.community_search_hint),
-            modifier = Modifier.padding(horizontal = C1Spacing.lg, vertical = C1Spacing.sm)
+            modifier = Modifier.padding(horizontal = C1Spacing.lg, vertical = C1Spacing.sm),
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) }
         )
 
+        // Category filter
         LazyRow(
             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = C1Spacing.lg),
             horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
@@ -333,6 +341,7 @@ private fun CommunityFeed(
             }
         }
 
+        // Section header with new post button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -356,6 +365,7 @@ private fun CommunityFeed(
             )
         }
 
+        // Content
         when {
             uiState.isLoading -> C1LoadingState(label = stringResource(R.string.community_loading))
             uiState.visiblePosts.isEmpty() -> C1EmptyState(
@@ -381,7 +391,7 @@ private fun CommunityFeed(
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(
                         start = C1Spacing.lg,
                         end = C1Spacing.lg,
-                        bottom = C1Spacing.xxl
+                        bottom = C1Spacing.xxxl
                     ),
                     verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
                 ) {
@@ -423,7 +433,7 @@ private fun CommunityPostCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(C1Spacing.lg),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         Column(
             modifier = Modifier,
@@ -455,22 +465,31 @@ private fun CommunityPostCard(
                 horizontalArrangement = Arrangement.spacedBy(C1Spacing.lg)
             ) {
                 TextButton(onClick = onToggleLike) {
-                    Icon(
-                        imageVector = if (post.isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(C1Spacing.xs))
-                    Text(post.likeCount.toString())
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
+                    ) {
+                        Icon(
+                            imageVector = if (post.isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = if (post.isLiked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(post.likeCount.toString())
+                    }
                 }
                 TextButton(onClick = onClick) {
-                    Icon(
-                        imageVector = Icons.Default.ChatBubbleOutline,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(C1Spacing.xs))
-                    Text(post.commentCount.toString())
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ChatBubbleOutline,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(post.commentCount.toString())
+                    }
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 if (!isOwn) {
@@ -502,7 +521,10 @@ private fun CommunityPostDetail(
     onReportComment: (CommunityComment) -> Unit
 ) {
     var commentText by remember { mutableStateOf("") }
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.background)
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -529,9 +551,8 @@ private fun CommunityPostDetail(
             verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
         ) {
             item {
-                Surface(
-                    shape = MaterialTheme.shapes.large,
-                    color = MaterialTheme.colorScheme.surfaceContainerLow
+                C1SurfaceCard(
+                    containerColor = MaterialTheme.colorScheme.surface
                 ) {
                     Column(
                         modifier = Modifier.padding(C1Spacing.lg),
@@ -557,7 +578,8 @@ private fun CommunityPostDetail(
                             C1Button(
                                 text = post.likeCount.toString(),
                                 onClick = { onToggleLike(post) },
-                                intent = if (post.isLiked) C1ButtonIntent.TONAL else C1ButtonIntent.OUTLINED
+                                intent = if (post.isLiked) C1ButtonIntent.TONAL else C1ButtonIntent.OUTLINED,
+                                icon = { Icon(if (post.isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder, contentDescription = null, modifier = Modifier.size(16.dp)) }
                             )
                             if (post.authorUid == currentUid) {
                                 IconButton(onClick = { onEditPost(post) }) {
@@ -636,35 +658,37 @@ private fun CommentRow(
     onDelete: () -> Unit,
     onReport: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceContainerLow, MaterialTheme.shapes.medium)
-            .padding(C1Spacing.md),
-        verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)
+    C1SurfaceCard(
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            AuthorRow(comment.authorName, comment.authorRole, comment.createdAtMillis, isOwn)
-            Spacer(modifier = Modifier.weight(1f))
-            if (isOwn) {
-                IconButton(onClick = onDelete) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = stringResource(R.string.community_delete),
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            } else {
-                IconButton(onClick = onReport) {
-                    Icon(
-                        Icons.Default.Flag,
-                        contentDescription = stringResource(R.string.community_report),
-                        modifier = Modifier.size(18.dp)
-                    )
+        Column(
+            modifier = Modifier.padding(C1Spacing.md),
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AuthorRow(comment.authorName, comment.authorRole, comment.createdAtMillis, isOwn)
+                Spacer(modifier = Modifier.weight(1f))
+                if (isOwn) {
+                    IconButton(onClick = onDelete) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = stringResource(R.string.community_delete),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                } else {
+                    IconButton(onClick = onReport) {
+                        Icon(
+                            Icons.Default.Flag,
+                            contentDescription = stringResource(R.string.community_report),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
+            Text(text = comment.body, style = MaterialTheme.typography.bodyMedium)
         }
-        Text(text = comment.body, style = MaterialTheme.typography.bodyMedium)
     }
 }
 
@@ -779,17 +803,18 @@ private fun PostComposerDialog(
             }
         },
         confirmButton = {
-            TextButton(
+            C1Button(
+                text = stringResource(if (existing == null) R.string.community_publish else R.string.community_save),
                 onClick = { onSubmit(title, body, category) },
                 enabled = title.isNotBlank() && body.isNotBlank() && !isSubmitting
-            ) {
-                Text(stringResource(if (existing == null) R.string.community_publish else R.string.community_save))
-            }
+            )
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.community_cancel))
-            }
+            C1Button(
+                text = stringResource(R.string.community_cancel),
+                onClick = onDismiss,
+                intent = C1ButtonIntent.GHOST
+            )
         }
     )
 }
@@ -809,14 +834,17 @@ private fun ReportDialog(onDismiss: () -> Unit, onSubmit: (String) -> Unit) {
             )
         },
         confirmButton = {
-            TextButton(onClick = { onSubmit(reason.ifBlank { "Reported from community" }) }) {
-                Text(stringResource(R.string.community_report))
-            }
+            C1Button(
+                text = stringResource(R.string.community_report),
+                onClick = { onSubmit(reason.ifBlank { "Reported from community" }) }
+            )
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.community_cancel))
-            }
+            C1Button(
+                text = stringResource(R.string.community_cancel),
+                onClick = onDismiss,
+                intent = C1ButtonIntent.GHOST
+            )
         }
     )
 }
@@ -834,12 +862,18 @@ private fun ConfirmDialog(
         title = { Text(title) },
         text = { Text(message) },
         confirmButton = {
-            TextButton(onClick = onConfirm) { Text(confirmLabel) }
+            C1Button(
+                text = confirmLabel,
+                onClick = onConfirm,
+                intent = C1ButtonIntent.DANGER
+            )
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.community_cancel))
-            }
+            C1Button(
+                text = stringResource(R.string.community_cancel),
+                onClick = onDismiss,
+                intent = C1ButtonIntent.GHOST
+            )
         }
     )
 }
@@ -857,7 +891,10 @@ fun NotificationsScreen(
     }
     LaunchedEffect(Unit) { viewModel.refreshNotifications() }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.background)
+    ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Row(
                 modifier = Modifier
@@ -902,7 +939,7 @@ fun NotificationsScreen(
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(
                         start = C1Spacing.lg,
                         end = C1Spacing.lg,
-                        bottom = C1Spacing.xxl
+                        bottom = C1Spacing.xxxl
                     ),
                     verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
                 ) {
@@ -933,7 +970,7 @@ private fun NotificationRow(notification: AppNotification, onClick: () -> Unit) 
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         containerColor = if (notification.isRead) {
-            MaterialTheme.colorScheme.surfaceContainerLow
+            MaterialTheme.colorScheme.surface
         } else {
             MaterialTheme.colorScheme.secondaryContainer
         }
@@ -983,6 +1020,7 @@ fun StudentProfileScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(C1Spacing.lg),
         verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
     ) {
@@ -1004,9 +1042,8 @@ fun StudentProfileScreen(
                 )
             }
         }
-        Surface(
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surfaceContainerLow
+        C1SurfaceCard(
+            containerColor = MaterialTheme.colorScheme.surface
         ) {
             Row(
                 modifier = Modifier
@@ -1063,9 +1100,8 @@ fun StudentProfileScreen(
             profile.semester.toString()
         )
         ProfileDetailRow(stringResource(R.string.profile_section), profile.section)
-        Surface(
-            shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.secondaryContainer
+        C1SurfaceCard(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
         ) {
             Text(
                 text = stringResource(R.string.profile_private_note),
@@ -1079,20 +1115,27 @@ fun StudentProfileScreen(
 
 @Composable
 private fun ProfileDetailRow(label: String, value: String) {
-    Row(
+    C1SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = C1Spacing.lg, vertical = C1Spacing.md),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium
+            )
+        }
     }
 }
 

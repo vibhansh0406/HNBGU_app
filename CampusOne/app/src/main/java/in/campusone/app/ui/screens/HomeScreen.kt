@@ -46,6 +46,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -59,16 +60,20 @@ import `in`.campusone.app.data.local.entity.AssignmentEntity
 import `in`.campusone.app.data.local.entity.ExamEntity
 import `in`.campusone.app.domain.model.NoticeItem
 import `in`.campusone.app.domain.model.TimetableSlot
+import `in`.campusone.app.domain.usecase.AttendanceHealth
 import `in`.campusone.app.domain.usecase.AttendanceInsight
 import `in`.campusone.app.domain.usecase.SlotLiveState
 import `in`.campusone.app.ui.components.AnimatedAttendanceRing
 import `in`.campusone.app.ui.components.C1Banner
+import `in`.campusone.app.ui.components.C1Button
+import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1ErrorState
 import `in`.campusone.app.ui.components.C1SkeletonRows
-import `in`.campusone.app.ui.components.C1SurfaceCard
+import `in`.campusone.app.ui.components.C1StatTile
 import `in`.campusone.app.ui.components.C1SectionHeader
 import `in`.campusone.app.ui.components.C1StatusChip
+import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1Tone
 import `in`.campusone.app.ui.theme.C1Motion
 import `in`.campusone.app.ui.theme.C1Radius
@@ -98,9 +103,14 @@ fun HomeScreen(
     onRetryRefresh: () -> Unit
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = C1Spacing.lg, vertical = C1Spacing.lg),
-        verticalArrangement = Arrangement.spacedBy(C1Spacing.xl)
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        contentPadding = PaddingValues(
+            horizontal = C1Spacing.lg,
+            vertical = C1Spacing.lg
+        ),
+        verticalArrangement = Arrangement.spacedBy(C1Spacing.xxl)
     ) {
         item {
             HomeHeader(
@@ -151,13 +161,15 @@ private fun HomeHeader(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Profile avatar
         Surface(
             onClick = onOpenProfile,
             modifier = Modifier
-                .size(C1TouchTarget)
+                .size(48.dp)
                 .semantics { contentDescription = profileCd },
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.primaryContainer
+            color = MaterialTheme.colorScheme.primaryContainer,
+            shadowElevation = 0.dp
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Text(
@@ -185,6 +197,7 @@ private fun HomeHeader(
                 overflow = TextOverflow.Ellipsis
             )
         }
+        // Language toggle
         Surface(
             onClick = onToggleLanguage,
             modifier = Modifier
@@ -204,6 +217,7 @@ private fun HomeHeader(
                 )
             }
         }
+        // Notifications
         IconButton(onClick = onOpenNotices) {
             BadgedBox(
                 badge = {
@@ -218,7 +232,8 @@ private fun HomeHeader(
             ) {
                 Icon(
                     imageVector = Icons.Default.NotificationsNone,
-                    contentDescription = stringResource(R.string.nav_notices)
+                    contentDescription = stringResource(R.string.nav_notices),
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -239,11 +254,11 @@ private fun NextClassCard(
             .take(3)
     }
 
-    Surface(
+    C1SurfaceCard(
         onClick = onOpenTimetable,
         modifier = Modifier.fillMaxWidth(),
-        shape = C1Radius.lg,
-        color = MaterialTheme.colorScheme.primaryContainer
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
+        contentPadding = PaddingValues(C1Spacing.xl)
     ) {
         Column(
             modifier = Modifier
@@ -253,7 +268,6 @@ private fun NextClassCard(
                         easing = C1Motion.emphasizedEasing
                     )
                 )
-                .padding(C1Spacing.xl)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -387,12 +401,12 @@ private fun AttendanceSummaryCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(C1Spacing.xl),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(C1Spacing.xl),
+                .padding(C1Spacing.lg),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -408,8 +422,9 @@ private fun AttendanceSummaryCard(
             AnimatedAttendanceRing(
                 percentage = insight.currentPercentage,
                 health = insight.health,
-                size = 72.dp,
-                strokeWidth = 8.dp
+                size = 80.dp,
+                strokeWidth = 9.dp,
+                label = "Overall"
             )
         }
     }
@@ -418,19 +433,20 @@ private fun AttendanceSummaryCard(
 private data class HomeQuickAction(
     val icon: ImageVector,
     val labelRes: Int,
-    val screen: MoreSubScreen
+    val screen: MoreSubScreen,
+    val color: Color
 )
 
 @Composable
 private fun QuickActionsSection(onOpenMore: (MoreSubScreen) -> Unit) {
     val actions = remember {
         listOf(
-            HomeQuickAction(Icons.Default.Assignment, R.string.qa_assignments, MoreSubScreen.ASSIGNMENTS),
-            HomeQuickAction(Icons.Default.EventNote, R.string.qa_exams, MoreSubScreen.EXAMS_SYLLABUS),
-            HomeQuickAction(Icons.Default.MenuBook, R.string.qa_notes, MoreSubScreen.NOTES_PYQ),
-            HomeQuickAction(Icons.Default.Calculate, R.string.qa_gpa, MoreSubScreen.GPA_CALCULATOR),
-            HomeQuickAction(Icons.Default.Search, R.string.qa_lost_found, MoreSubScreen.LOST_FOUND),
-            HomeQuickAction(Icons.Default.ContactPhone, R.string.qa_directory, MoreSubScreen.DIRECTORY)
+            HomeQuickAction(Icons.Default.Assignment, R.string.qa_assignments, MoreSubScreen.ASSIGNMENTS, MaterialTheme.colorScheme.primary),
+            HomeQuickAction(Icons.Default.EventNote, R.string.qa_exams, MoreSubScreen.EXAMS_SYLLABUS, MaterialTheme.colorScheme.tertiary),
+            HomeQuickAction(Icons.Default.MenuBook, R.string.qa_notes, MoreSubScreen.NOTES_PYQ, MaterialTheme.colorScheme.secondary),
+            HomeQuickAction(Icons.Default.Calculate, R.string.qa_gpa, MoreSubScreen.GPA_CALCULATOR, Color(0xFF7A5C4A)),
+            HomeQuickAction(Icons.Default.Search, R.string.qa_lost_found, MoreSubScreen.LOST_FOUND, MaterialTheme.colorScheme.error),
+            HomeQuickAction(Icons.Default.ContactPhone, R.string.qa_directory, MoreSubScreen.DIRECTORY, Color(0xFF006E8A))
         )
     }
 
@@ -463,27 +479,27 @@ private fun QuickActionTile(
 ) {
     C1SurfaceCard(
         onClick = { onOpenMore(action.screen) },
-        modifier = modifier.heightIn(min = 92.dp),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        modifier = modifier.heightIn(min = 100.dp),
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = C1Spacing.md, horizontal = C1Spacing.sm),
+                .padding(vertical = C1Spacing.lg, horizontal = C1Spacing.md),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(C1Spacing.sm, Alignment.CenterVertically)
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.md, Alignment.CenterVertically)
         ) {
             Box(
                 modifier = Modifier
-                    .size(38.dp)
-                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                    .size(48.dp)
+                    .background(action.color.copy(alpha = 0.12f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = action.icon,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(20.dp)
+                    tint = action.color,
+                    modifier = Modifier.size(24.dp)
                 )
             }
             Text(
@@ -523,10 +539,9 @@ private fun AnnouncementsSection(
             onAction = onOpenNotices
         )
         when {
-            uiState.isLoading && visibleNotices.isEmpty() -> Surface(
+            uiState.isLoading && visibleNotices.isEmpty() -> C1SurfaceCard(
                 modifier = Modifier.fillMaxWidth(),
-                shape = C1Radius.md,
-                color = MaterialTheme.colorScheme.surfaceContainerLow
+                containerColor = MaterialTheme.colorScheme.surface
             ) {
                 C1SkeletonRows(
                     modifier = Modifier.padding(C1Spacing.lg),
@@ -534,10 +549,9 @@ private fun AnnouncementsSection(
                 )
             }
 
-            dataRefreshError && visibleNotices.isEmpty() -> Surface(
+            dataRefreshError && visibleNotices.isEmpty() -> C1SurfaceCard(
                 modifier = Modifier.fillMaxWidth(),
-                shape = C1Radius.md,
-                color = MaterialTheme.colorScheme.surfaceContainerLow
+                containerColor = MaterialTheme.colorScheme.surface
             ) {
                 C1ErrorState(
                     title = stringResource(R.string.home_announcements_error),
@@ -547,10 +561,9 @@ private fun AnnouncementsSection(
                 )
             }
 
-            visibleNotices.isEmpty() -> Surface(
+            visibleNotices.isEmpty() -> C1SurfaceCard(
                 modifier = Modifier.fillMaxWidth(),
-                shape = C1Radius.md,
-                color = MaterialTheme.colorScheme.surfaceContainerLow
+                containerColor = MaterialTheme.colorScheme.surface
             ) {
                 C1EmptyState(
                     icon = Icons.Default.Campaign,
@@ -575,10 +588,9 @@ private fun AnnouncementsSection(
                         }
                     }
                 }
-                Surface(
+                C1SurfaceCard(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = C1Radius.md,
-                    color = MaterialTheme.colorScheme.surfaceContainerLow
+                    containerColor = MaterialTheme.colorScheme.surface
                 ) {
                     Column {
                         visibleNotices.forEachIndexed { index, notice ->
@@ -684,11 +696,10 @@ private fun AtAGlanceSection(
         C1SectionHeader(title = stringResource(R.string.home_at_a_glance))
 
         if (deadlines.isNotEmpty()) {
-            Surface(
+            C1SurfaceCard(
                 onClick = { onOpenMore(MoreSubScreen.ASSIGNMENTS) },
                 modifier = Modifier.fillMaxWidth(),
-                shape = C1Radius.md,
-                color = MaterialTheme.colorScheme.surfaceContainerLow
+                containerColor = MaterialTheme.colorScheme.surface
             ) {
                 Column(
                     modifier = Modifier.padding(C1Spacing.lg),
@@ -751,11 +762,10 @@ private fun AtAGlanceSection(
                 daysLeft == 1L -> stringResource(R.string.due_tomorrow)
                 else -> stringResource(R.string.in_days, daysLeft.toInt())
             }
-            Surface(
+            C1SurfaceCard(
                 onClick = { onOpenMore(MoreSubScreen.EXAMS_SYLLABUS) },
                 modifier = Modifier.fillMaxWidth(),
-                shape = C1Radius.md,
-                color = MaterialTheme.colorScheme.surfaceContainerLow
+                containerColor = MaterialTheme.colorScheme.surface
             ) {
                 Row(
                     modifier = Modifier
@@ -816,3 +826,35 @@ private fun priorityTone(priority: String): C1Tone = when (priority.uppercase(Lo
 private fun dayShort(slot: TimetableSlot): String =
     DayOfWeek.of(slot.dayOfWeek.coerceIn(1, 7))
         .getDisplayName(TextStyle.SHORT, Locale.getDefault())
+
+@Composable
+fun SmartCalculatorBanner(insight: AttendanceInsight) {
+    val extended = extendedColors
+    val (text, color) = when (insight.health) {
+        AttendanceHealth.NO_DATA ->
+            stringResource(R.string.no_classes_recorded) to MaterialTheme.colorScheme.onSurfaceVariant
+        AttendanceHealth.SAFE ->
+            stringResource(
+                R.string.bunk_safe,
+                insight.classesCanMissSafely,
+                insight.targetPercentage
+            ) to extended.success
+        AttendanceHealth.ON_EDGE ->
+            stringResource(
+                R.string.bunk_on_edge,
+                insight.targetPercentage
+            ) to extended.warning
+        AttendanceHealth.WARNING, AttendanceHealth.CRITICAL ->
+            stringResource(
+                R.string.bunk_recover,
+                insight.classesMustAttendToRecover,
+                insight.targetPercentage
+            ) to MaterialTheme.colorScheme.error
+    }
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.SemiBold,
+        color = color
+    )
+}

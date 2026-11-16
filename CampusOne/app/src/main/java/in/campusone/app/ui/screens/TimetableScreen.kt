@@ -1,9 +1,10 @@
 package `in`.campusone.app.ui.screens
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -85,7 +86,11 @@ fun TimetableScreen(
     Scaffold(
         floatingActionButton = {
             if (canEditTimetable) {
-                FloatingActionButton(onClick = { showAddSlotDialog = true }) {
+                FloatingActionButton(
+                    onClick = { showAddSlotDialog = true },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ) {
                     Icon(Icons.Default.Add, contentDescription = stringResource(R.string.publish_timetable))
                 }
             }
@@ -94,24 +99,42 @@ fun TimetableScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
         ) {
-            TabRow(selectedTabIndex = selectedTab) {
-                Tab(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    text = { Text(stringResource(R.string.timetable_today)) }
-                )
-                Tab(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    text = { Text(stringResource(R.string.timetable_weekly)) }
-                )
+            // Tab row
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 0.dp
+            ) {
+                TabRow(
+                    selectedTabIndex = selectedTab,
+                    modifier = Modifier.padding(horizontal = C1Spacing.lg),
+                    divider = { }
+                ) {
+                    Tab(
+                        selected = selectedTab == 0,
+                        onClick = { selectedTab = 0 },
+                        text = { Text(stringResource(R.string.timetable_today), style = MaterialTheme.typography.labelLarge) },
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        selectedContentColor = MaterialTheme.colorScheme.primary
+                    )
+                    Tab(
+                        selected = selectedTab == 1,
+                        onClick = { selectedTab = 1 },
+                        text = { Text(stringResource(R.string.timetable_weekly), style = MaterialTheme.typography.labelLarge) },
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        selectedContentColor = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
 
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(C1Spacing.lg),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = C1Spacing.lg),
+                contentPadding = PaddingValues(top = C1Spacing.lg, bottom = C1Spacing.xxxl),
                 verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
             ) {
                 item {
@@ -214,7 +237,7 @@ private fun ReminderLeadTimeCard(
     C1SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(C1Spacing.lg),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         Column(modifier = Modifier.padding(C1Spacing.lg)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -249,7 +272,7 @@ private fun ReminderLeadTimeCard(
 private fun EmptySchedule(title: String, message: String) {
     C1SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         C1EmptyState(
             icon = Icons.Default.Schedule,
@@ -263,15 +286,14 @@ private fun EmptySchedule(title: String, message: String) {
 private fun TimetableSlotCard(slot: TimetableSlot, evaluated: EvaluatedSlot?) {
     val highlighted = evaluated?.state == SlotLiveState.ONGOING || evaluated?.state == SlotLiveState.UP_NEXT
 
-    Surface(
+    C1SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = C1Radius.md,
-        color = if (highlighted) {
+        containerColor = if (highlighted) {
             MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
         } else {
-            MaterialTheme.colorScheme.surfaceContainerLow
+            MaterialTheme.colorScheme.surface
         },
-        border = if (highlighted) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
+        borderColor = if (highlighted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
     ) {
         Column(modifier = Modifier.padding(C1Spacing.lg)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -332,12 +354,12 @@ private fun SlotStateChip(evaluated: EvaluatedSlot) {
     when (evaluated.state) {
         SlotLiveState.ONGOING -> C1StatusChip(
             text = "${stringResource(R.string.ongoing_class_badge)} · " +
-                stringResource(R.string.timetable_minutes_left, evaluated.minutesRemaining?.toInt() ?: 0),
+                    stringResource(R.string.timetable_minutes_left, evaluated.minutesRemaining?.toInt() ?: 0),
             tone = C1Tone.SUCCESS
         )
         SlotLiveState.UP_NEXT -> C1StatusChip(
             text = "${stringResource(R.string.next_class_badge)} · " +
-                stringResource(R.string.timetable_starts_in, evaluated.minutesUntilStart?.toInt() ?: 0),
+                    stringResource(R.string.timetable_starts_in, evaluated.minutesUntilStart?.toInt() ?: 0),
             tone = C1Tone.WARNING
         )
         SlotLiveState.COMPLETED -> C1StatusChip(

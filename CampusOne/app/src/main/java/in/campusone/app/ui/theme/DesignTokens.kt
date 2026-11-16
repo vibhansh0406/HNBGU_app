@@ -10,6 +10,8 @@ import androidx.compose.ui.unit.dp
 /**
  * CampusOne design tokens — "Forest & Ivory".
  *
+ * A premium, minimal, sophisticated visual language inspired by nature.
+ * Deep forest greens, warm ivory neutrals, and refined accent tones.
  * Spacing is a 4dp-based scale. Elevation is flat-first: surfaces are
  * separated by tone and hairlines, shadows are reserved for truly floating
  * elements. All values are theme-independent primitives; color pairs live in
@@ -23,66 +25,83 @@ object C1Spacing {
     val xl = 20.dp
     val xxl = 24.dp
     val xxxl = 32.dp
+    val xxxxl = 40.dp
+    val xxxxxl = 48.dp
 }
 
 object C1Radius {
-    val xs = RoundedCornerShape(10.dp)
-    val sm = RoundedCornerShape(14.dp)
-    val md = RoundedCornerShape(18.dp)
-    val lg = RoundedCornerShape(24.dp)
-    val xl = RoundedCornerShape(30.dp)
+    val xs = RoundedCornerShape(8.dp)
+    val sm = RoundedCornerShape(12.dp)
+    val md = RoundedCornerShape(16.dp)
+    val lg = RoundedCornerShape(20.dp)
+    val xl = RoundedCornerShape(28.dp)
+    val xxl = RoundedCornerShape(36.dp)
     val pill = RoundedCornerShape(50)
+    val circle = RoundedCornerShape(50)
 }
 
 object C1Elevation {
     val flat = 0.dp
-    val raised = 1.dp
-    val floating = 4.dp
+    val level1 = 1.dp
+    val level2 = 4.dp
+    val level3 = 8.dp
+    val level4 = 16.dp
+    val floating = 24.dp
 }
 
 object C1IconSize {
-    val inline = 18.dp
+    val inline = 16.dp
+    val small = 20.dp
     val standard = 24.dp
     val large = 32.dp
+    val xl = 40.dp
+    val xxl = 48.dp
 }
 
 object C1Motion {
+    val instantMillis = 80
     val fastMillis = 150
     val normalMillis = 250
     val slowMillis = 400
+    val slowerMillis = 600
     val emphasizedEasing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
     val standardEasing = CubicBezierEasing(0.2f, 0f, 0.2f, 1f)
+    val decelerateEasing = CubicBezierEasing(0f, 0f, 0.2f, 1f)
+    val accelerateEasing = CubicBezierEasing(0.4f, 0f, 1f, 1f)
 
     /** Subtle scale applied to pressable surfaces. */
-    val pressScale = 0.97f
+    val pressScale = 0.98f
+    val pressScaleStrong = 0.95f
 }
 
-/** Hairline and emphasis border widths. */
 object C1Border {
-    val hairline = 1.dp
+    val hairline = 0.5.dp
+    val thin = 1.dp
     val emphasis = 1.5.dp
     val focus = 2.dp
 }
 
-/** Fixed component heights so touch targets stay consistent across screens. */
 object C1Height {
     val touch = 48.dp
     val button = 48.dp
+    val buttonLarge = 56.dp
     val field = 56.dp
     val chip = 32.dp
     val listRow = 56.dp
+    val listRowCompact = 48.dp
     val navBar = 80.dp
+    val topBar = 64.dp
 }
 
-/** Interaction state opacities for pressed, selected and disabled surfaces. */
 object C1State {
-    const val pressedAlpha = 0.12f
+    const val pressedAlpha = 0.08f
     const val selectedAlpha = 0.10f
     const val disabledAlpha = 0.38f
+    const val hoverAlpha = 0.04f
+    const val focusAlpha = 0.12f
     const val pressedIconScale = 0.92f
 }
 
-/** Minimum interactive touch target. */
 val C1TouchTarget: Dp = 48.dp
 
 /**
@@ -103,37 +122,129 @@ data class ExtendedColors(
     val onInfo: Color,
     val infoContainer: Color,
     val onInfoContainer: Color,
-    val hairline: Color
+    val hairline: Color,
+    val divider: Color,
+    val scrim: Color,
+    val overlay: Color,
 )
 
+/** Forest & Ivory — Light Extended Colors */
 val LightExtendedColors = ExtendedColors(
-    success = SafeGreen,
+    success = Color(0xFF1B7A4A),
     onSuccess = Color.White,
-    successContainer = SafeGreenContainer,
-    onSuccessContainer = Color(0xFF0E3B27),
-    warning = EdgeAmber,
+    successContainer = Color(0xFFD6F0E0),
+    onSuccessContainer = Color(0xFF0A3D20),
+    warning = Color(0xFFB86B00),
     onWarning = Color.White,
-    warningContainer = EdgeAmberContainer,
-    onWarningContainer = Color(0xFF3F2405),
-    info = Color(0xFF2C6E8A),
+    warningContainer = Color(0xFFFFF0D9),
+    onWarningContainer = Color(0xFF3D2600),
+    info = Color(0xFF006E8A),
     onInfo = Color.White,
-    infoContainer = Color(0xFFDCEAF0),
-    onInfoContainer = Color(0xFF0E2E3B),
-    hairline = Color(0xFFE6E6DC)
+    infoContainer = Color(0xFFD6F0F7),
+    onInfoContainer = Color(0xFF002E3A),
+    hairline = Color(0xFFE8E6E0),
+    divider = Color(0xFFE0DDD6),
+    scrim = Color(0x99000000),
+    overlay = Color(0xCC000000),
 )
 
+/** Forest & Ivory — Dark Extended Colors */
 val DarkExtendedColors = ExtendedColors(
-    success = Color(0xFF8CC7A6),
-    onSuccess = Color(0xFF0E2A1E),
-    successContainer = Color(0xFF1E3B2E),
-    onSuccessContainer = Color(0xFFC9E8D6),
-    warning = Color(0xFFE5B36B),
-    onWarning = Color(0xFF2E1F05),
-    warningContainer = Color(0xFF3F2E14),
-    onWarningContainer = Color(0xFFF7E3C1),
-    info = Color(0xFF8FC3D9),
-    onInfo = Color(0xFF0E2A33),
-    infoContainer = Color(0xFF1C3A47),
-    onInfoContainer = Color(0xFFD3EAF2),
-    hairline = Color(0xFF2B3C32)
+    success = Color(0xFF6FD69A),
+    onSuccess = Color(0xFF052010),
+    successContainer = Color(0xFF1A3D28),
+    onSuccessContainer = Color(0xFFB8E8CE),
+    warning = Color(0xFFFFB84D),
+    onWarning = Color(0xFF2D1A00),
+    warningContainer = Color(0xFF3D2A0A),
+    onWarningContainer = Color(0xFFFFE8C0),
+    info = Color(0xFF6FD6E8),
+    onInfo = Color(0xFF002028),
+    infoContainer = Color(0xFF1A3A40),
+    onInfoContainer = Color(0xFFB8E8F0),
+    hairline = Color(0xFF2D2B28),
+    divider = Color(0xFF3A3733),
+    scrim = Color(0xCC000000),
+    overlay = Color(0xDD000000),
 )
+
+/** Component-specific color roles for consistent theming */
+@Immutable
+data class ComponentColors(
+    val cardBackground: Color,
+    val cardBorder: Color,
+    val cardHover: Color,
+    val cardPressed: Color,
+    val surfaceElevated: Color,
+    val surfaceElevatedBorder: Color,
+    val inputBackground: Color,
+    val inputBorder: Color,
+    val inputBorderFocused: Color,
+    val inputBorderError: Color,
+    val chipBackground: Color,
+    val chipBackgroundSelected: Color,
+    val chipBorder: Color,
+    val chipBorderSelected: Color,
+    val dividerColor: Color,
+    val skeletonBase: Color,
+    val skeletonHighlight: Color,
+)
+
+val LightComponentColors = ComponentColors(
+    cardBackground = Color.White,
+    cardBorder = Color(0xFFE8E6E0),
+    cardHover = Color(0xFFF5F3ED),
+    cardPressed = Color(0xFFEDEBE4),
+    surfaceElevated = Color.White,
+    surfaceElevatedBorder = Color(0xFFE0DDD6),
+    inputBackground = Color.White,
+    inputBorder = Color(0xFFD8D6CE),
+    inputBorderFocused = Color(0xFF1B4D3A),
+    inputBorderError = Color(0xFFB82E1A),
+    chipBackground = Color(0xFFF0EEE8),
+    chipBackgroundSelected = Color(0xFF1B4D3A),
+    chipBorder = Color(0xFFE0DDD6),
+    chipBorderSelected = Color(0xFF1B4D3A),
+    dividerColor = Color(0xFFE8E6E0),
+    skeletonBase = Color(0xFFF0EEE8),
+    skeletonHighlight = Color(0xFFFAF9F6),
+)
+
+val DarkComponentColors = ComponentColors(
+    cardBackground = Color(0xFF1A1C1A),
+    cardBorder = Color(0xFF2D2B28),
+    cardHover = Color(0xFF222421),
+    cardPressed = Color(0xFF2A2C29),
+    surfaceElevated = Color(0xFF1E201D),
+    surfaceElevatedBorder = Color(0xFF3A3733),
+    inputBackground = Color(0xFF1A1C1A),
+    inputBorder = Color(0xFF3A3733),
+    inputBorderFocused = Color(0xFF6FD69A),
+    inputBorderError = Color(0xFFFF6B5A),
+    chipBackground = Color(0xFF2A2C29),
+    chipBackgroundSelected = Color(0xFF6FD69A),
+    chipBorder = Color(0xFF3A3733),
+    chipBorderSelected = Color(0xFF6FD69A),
+    dividerColor = Color(0xFF2D2B28),
+    skeletonBase = Color(0xFF2A2C29),
+    skeletonHighlight = Color(0xFF323431),
+)
+
+/** Z-index layers for consistent layering */
+object C1ZIndex {
+    val base = 0
+    val content = 10
+    val dropdown = 100
+    val sticky = 200
+    val modal = 1000
+    val toast = 1100
+    val tooltip = 1200
+}
+
+/** Breakpoints for adaptive layouts */
+object C1Breakpoint {
+    val compact = 600.dp
+    val medium = 840.dp
+    val expanded = 1200.dp
+    val large = 1600.dp
+}

@@ -1,6 +1,8 @@
 package `in`.campusone.app.ui.screens.admin
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -28,8 +31,6 @@ import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -50,7 +51,13 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import `in`.campusone.app.ui.theme.SafeGreen
+import `in`.campusone.app.ui.components.C1Button
+import `in`.campusone.app.ui.components.C1ButtonIntent
+import `in`.campusone.app.ui.components.C1SectionHeader
+import `in`.campusone.app.ui.components.C1StatTile
+import `in`.campusone.app.ui.components.C1SurfaceCard
+import `in`.campusone.app.ui.theme.C1Radius
+import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
 import kotlinx.coroutines.flow.StateFlow
@@ -66,14 +73,11 @@ fun AdminHubScreen(
 ) {
     val state by uiState.collectAsStateWithLifecycle()
     val haptics = LocalHapticFeedback.current
-    val colorPrimary = MaterialTheme.colorScheme.primary
-    val colorSecondary = MaterialTheme.colorScheme.secondary
-    val colorTertiary = MaterialTheme.colorScheme.tertiary
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Admin Panel") },
+            androidx.compose.material3.TopAppBar(
+                title = { Text("Admin Panel", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 ),
@@ -86,7 +90,9 @@ fun AdminHubScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { haptics.performHapticFeedback(HapticFeedbackType.LongPress) }
+                onClick = { haptics.performHapticFeedback(HapticFeedbackType.LongPress) },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add new item")
             }
@@ -96,6 +102,7 @@ fun AdminHubScreen(
             columns = GridCells.Fixed(2),
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(padding)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -122,13 +129,13 @@ fun AdminHubScreen(
             // Stat Cards
             items(
                 listOf(
-                    StatCard("Subjects", state.subjectCount.toString(), Icons.Default.School, SafeGreen),
-                    StatCard("Notices", state.noticeCount.toString(), Icons.Default.Campaign, colorPrimary),
-                    StatCard("Assignments", state.assignmentCount.toString(), Icons.Default.Assignment, colorSecondary),
-                    StatCard("Exams", state.examCount.toString(), Icons.Default.CalendarMonth, colorTertiary),
-                    StatCard("Clubs", state.clubCount.toString(), Icons.Default.Group, colorPrimary),
-                    StatCard("Events", state.eventCount.toString(), Icons.Default.Event, colorSecondary),
-                    StatCard("Users", state.users.size.toString(), Icons.Default.People, colorTertiary)
+                    StatCard("Subjects", state.subjectCount.toString(), Icons.Default.School, MaterialTheme.colorScheme.primary),
+                    StatCard("Notices", state.noticeCount.toString(), Icons.Default.Campaign, MaterialTheme.colorScheme.tertiary),
+                    StatCard("Assignments", state.assignmentCount.toString(), Icons.Default.Assignment, MaterialTheme.colorScheme.secondary),
+                    StatCard("Exams", state.examCount.toString(), Icons.Default.CalendarMonth, Color(0xFF7A5C4A)),
+                    StatCard("Clubs", state.clubCount.toString(), Icons.Default.Group, MaterialTheme.colorScheme.primary),
+                    StatCard("Events", state.eventCount.toString(), Icons.Default.Event, MaterialTheme.colorScheme.tertiary),
+                    StatCard("Users", state.users.size.toString(), Icons.Default.People, MaterialTheme.colorScheme.secondary)
                 ),
                 key = { it.title }
             ) { (title, count, icon, color) ->
@@ -141,12 +148,7 @@ fun AdminHubScreen(
 
             // Quick Actions
             item(span = { GridItemSpan(2) }) {
-                Text(
-                    text = "Quick Actions",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                C1SectionHeader(title = "Quick Actions")
             }
             items(
                 listOf(
@@ -165,7 +167,7 @@ fun AdminHubScreen(
                 ),
                 key = { it.title }
             ) { (title, icon, onClick) ->
-                ActionCardItem(title = title, icon = icon, color = colorPrimary, onClick = onClick)
+                ActionCardItem(title = title, icon = icon, color = MaterialTheme.colorScheme.primary, onClick = onClick)
             }
 
             item(span = { GridItemSpan(2) }) {
@@ -185,9 +187,9 @@ private data class StatCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun StatCardItem(title: String, count: String, icon: ImageVector, color: Color) {
-    ElevatedCard(
+    C1SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.elevatedCardColors()
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         Column(
             modifier = Modifier
@@ -230,10 +232,10 @@ private data class ActionCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ActionCardItem(title: String, icon: ImageVector, color: Color, onClick: () -> Unit) {
-    ElevatedCard(
+    C1SurfaceCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.elevatedCardColors()
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         Row(
             modifier = Modifier
@@ -241,11 +243,16 @@ private fun ActionCardItem(title: String, icon: ImageVector, color: Color, onCli
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = color
-            )
+            Box(
+                modifier = Modifier.size(40.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = color
+                )
+            }
             Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text = title,
