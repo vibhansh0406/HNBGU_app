@@ -439,14 +439,21 @@ private data class HomeQuickAction(
 
 @Composable
 private fun QuickActionsSection(onOpenMore: (MoreSubScreen) -> Unit) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val tertiaryColor = MaterialTheme.colorScheme.tertiary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
+    val errorColor = MaterialTheme.colorScheme.error
+    val infoColor = Color(0xFF006E8A)
+    val oakColor = Color(0xFF7A5C4A)
+
     val actions = remember {
         listOf(
-            HomeQuickAction(Icons.Default.Assignment, R.string.qa_assignments, MoreSubScreen.ASSIGNMENTS, MaterialTheme.colorScheme.primary),
-            HomeQuickAction(Icons.Default.EventNote, R.string.qa_exams, MoreSubScreen.EXAMS_SYLLABUS, MaterialTheme.colorScheme.tertiary),
-            HomeQuickAction(Icons.Default.MenuBook, R.string.qa_notes, MoreSubScreen.NOTES_PYQ, MaterialTheme.colorScheme.secondary),
-            HomeQuickAction(Icons.Default.Calculate, R.string.qa_gpa, MoreSubScreen.GPA_CALCULATOR, Color(0xFF7A5C4A)),
-            HomeQuickAction(Icons.Default.Search, R.string.qa_lost_found, MoreSubScreen.LOST_FOUND, MaterialTheme.colorScheme.error),
-            HomeQuickAction(Icons.Default.ContactPhone, R.string.qa_directory, MoreSubScreen.DIRECTORY, Color(0xFF006E8A))
+            HomeQuickAction(Icons.Default.Assignment, R.string.qa_assignments, MoreSubScreen.ASSIGNMENTS, primaryColor),
+            HomeQuickAction(Icons.Default.EventNote, R.string.qa_exams, MoreSubScreen.EXAMS_SYLLABUS, tertiaryColor),
+            HomeQuickAction(Icons.Default.MenuBook, R.string.qa_notes, MoreSubScreen.NOTES_PYQ, secondaryColor),
+            HomeQuickAction(Icons.Default.Calculate, R.string.qa_gpa, MoreSubScreen.GPA_CALCULATOR, oakColor),
+            HomeQuickAction(Icons.Default.Search, R.string.qa_lost_found, MoreSubScreen.LOST_FOUND, errorColor),
+            HomeQuickAction(Icons.Default.ContactPhone, R.string.qa_directory, MoreSubScreen.DIRECTORY, infoColor)
         )
     }
 

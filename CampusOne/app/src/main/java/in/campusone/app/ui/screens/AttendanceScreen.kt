@@ -475,6 +475,12 @@ private fun AttendanceLogRow(
     }
 }
 
+private fun statusLabelRes(status: AttendanceStatus): Int = when (status) {
+    AttendanceStatus.PRESENT -> R.string.mark_present
+    AttendanceStatus.ABSENT -> R.string.mark_absent
+    AttendanceStatus.CANCELLED -> R.string.mark_cancelled
+}
+
 private fun statusTone(status: AttendanceStatus): C1Tone = when (status) {
     AttendanceStatus.PRESENT -> C1Tone.SUCCESS
     AttendanceStatus.ABSENT -> C1Tone.DANGER
