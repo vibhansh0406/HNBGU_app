@@ -2,6 +2,7 @@ package `in`.campusone.app.ui.screens
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,12 +14,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,6 +35,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -42,14 +48,18 @@ import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1FilterChip
+import `in`.campusone.app.ui.components.C1IconPosition
 import `in`.campusone.app.ui.components.C1SectionHeader
 import `in`.campusone.app.ui.components.C1TextField
+import `in`.campusone.app.ui.theme.C1Height
 import `in`.campusone.app.ui.theme.C1Motion
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.theme.C1TouchTarget
 
-@Composable
+private const val TOTAL_STEPS = 3
+
+@OptIn(ExperimentalLayoutApi::class)
 fun OnboardingScreen(
     onToggleLanguage: () -> Unit,
     initialEmail: String = "",

@@ -105,6 +105,7 @@
     <string name="notice_composer_pin">Pin announcement to top</string>
     <string name="notice_publish">Publish</string>
     <string name="action_back">Back</string>
+    <string name="action_next">Next</string>
 
     <!-- Phase 2: Study Hub -->
     <string name="study_hub">Study Hub</string>
