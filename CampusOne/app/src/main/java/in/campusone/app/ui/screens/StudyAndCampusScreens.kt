@@ -102,10 +102,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.drawCircle
-import androidx.compose.ui.graphics.drawscope.drawPath
-import androidx.compose.ui.graphics.drawscope.lineTo
-import androidx.compose.ui.graphics.drawscope.moveTo
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -2452,10 +2448,10 @@ private fun SemesterTrendChart(
             // Draw line
             val path = Path().apply {
                 points.forEachIndexed { index, point ->
-                    if (index == 0) moveTo(point.x, point.y) else lineTo(point.x, point.y)
+                    if (index == 0) this.moveTo(point.x, point.y) else this.lineTo(point.x, point.y)
                 }
             }
-            drawPath(
+            this.drawPath(
                 path,
                 color = MaterialTheme.colorScheme.primary,
                 style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
@@ -2463,7 +2459,7 @@ private fun SemesterTrendChart(
 
             // Draw points
             points.forEach { point ->
-                drawCircle(
+                this.drawCircle(
                     color = MaterialTheme.colorScheme.primary,
                     center = androidx.compose.ui.geometry.Offset(point.x, point.y),
                     radius = 6.dp.toPx()

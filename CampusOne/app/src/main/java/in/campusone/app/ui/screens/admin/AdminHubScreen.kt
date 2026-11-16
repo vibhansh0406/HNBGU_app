@@ -127,7 +127,7 @@ fun AdminHubScreen(
             }
 
             // Stat Cards
-            items(
+            items<StatCard>(
                 listOf(
                     StatCard("Subjects", state.subjectCount.toString(), Icons.Default.School, MaterialTheme.colorScheme.primary),
                     StatCard("Notices", state.noticeCount.toString(), Icons.Default.Campaign, MaterialTheme.colorScheme.tertiary),
@@ -138,7 +138,7 @@ fun AdminHubScreen(
                     StatCard("Users", state.users.size.toString(), Icons.Default.People, MaterialTheme.colorScheme.secondary)
                 ),
                 key = { it.title }
-            ) { card ->
+            ) { card: StatCard ->
                 StatCardItem(title = card.title, count = card.count, icon = card.icon, color = card.color)
             }
 
@@ -150,7 +150,7 @@ fun AdminHubScreen(
             item(span = { GridItemSpan(2) }) {
                 C1SectionHeader(title = "Quick Actions")
             }
-            items(
+            items<ActionCard>(
                 listOf(
                     ActionCard("Manage Subjects", Icons.Default.School, { onNavigate("SUBJECTS") }),
                     ActionCard("Manage Timetable", Icons.Default.Schedule, { onNavigate("TIMETABLE") }),
@@ -166,7 +166,7 @@ fun AdminHubScreen(
                     ActionCard("Manage Moderators", Icons.Default.PersonAdd, onManageModerators)
                 ),
                 key = { it.title }
-            ) { card ->
+            ) { card: ActionCard ->
                 ActionCardItem(title = card.title, icon = card.icon, color = MaterialTheme.colorScheme.primary, onClick = card.onClick)
             }
 
