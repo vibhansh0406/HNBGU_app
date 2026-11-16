@@ -127,18 +127,19 @@ fun AdminHubScreen(
             }
 
             // Stat Cards
-            listOf(
-                StatCard("Subjects", state.subjectCount.toString(), Icons.Default.School, MaterialTheme.colorScheme.primary),
-                StatCard("Notices", state.noticeCount.toString(), Icons.Default.Campaign, MaterialTheme.colorScheme.tertiary),
-                StatCard("Assignments", state.assignmentCount.toString(), Icons.Default.Assignment, MaterialTheme.colorScheme.secondary),
-                StatCard("Exams", state.examCount.toString(), Icons.Default.CalendarMonth, Color(0xFF7A5C4A)),
-                StatCard("Clubs", state.clubCount.toString(), Icons.Default.Group, MaterialTheme.colorScheme.primary),
-                StatCard("Events", state.eventCount.toString(), Icons.Default.Event, MaterialTheme.colorScheme.tertiary),
-                StatCard("Users", state.users.size.toString(), Icons.Default.People, MaterialTheme.colorScheme.secondary)
-            ).forEach { card ->
-                item(key = card.title) {
-                    StatCardItem(title = card.title, count = card.count, icon = card.icon, color = card.color)
-                }
+            items<StatCard>(
+                listOf(
+                    StatCard("Subjects", state.subjectCount.toString(), Icons.Default.School, MaterialTheme.colorScheme.primary),
+                    StatCard("Notices", state.noticeCount.toString(), Icons.Default.Campaign, MaterialTheme.colorScheme.tertiary),
+                    StatCard("Assignments", state.assignmentCount.toString(), Icons.Default.Assignment, MaterialTheme.colorScheme.secondary),
+                    StatCard("Exams", state.examCount.toString(), Icons.Default.CalendarMonth, Color(0xFF7A5C4A)),
+                    StatCard("Clubs", state.clubCount.toString(), Icons.Default.Group, MaterialTheme.colorScheme.primary),
+                    StatCard("Events", state.eventCount.toString(), Icons.Default.Event, MaterialTheme.colorScheme.tertiary),
+                    StatCard("Users", state.users.size.toString(), Icons.Default.People, MaterialTheme.colorScheme.secondary)
+                ),
+                key = { it.title }
+            ) { card: StatCard ->
+                StatCardItem(title = card.title, count = card.count, icon = card.icon, color = card.color)
             }
 
             item(span = { GridItemSpan(2) }) {
@@ -149,30 +150,24 @@ fun AdminHubScreen(
             item(span = { GridItemSpan(2) }) {
                 C1SectionHeader(title = "Quick Actions")
             }
-            // Quick Actions
-            item(span = { GridItemSpan(2) }) {
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-            item(span = { GridItemSpan(2) }) {
-                C1SectionHeader(title = "Quick Actions")
-            }
-            listOf(
-                ActionCard("Manage Subjects", Icons.Default.School, { onNavigate("SUBJECTS") }),
-                ActionCard("Manage Timetable", Icons.Default.Schedule, { onNavigate("TIMETABLE") }),
-                ActionCard("Manage Notices", Icons.Default.Campaign, { onNavigate("NOTICES") }),
-                ActionCard("Manage Assignments", Icons.Default.Assignment, { onNavigate("ASSIGNMENTS") }),
-                ActionCard("Manage Exams", Icons.Default.CalendarMonth, { onNavigate("EXAMS") }),
-                ActionCard("Manage Clubs", Icons.Default.Group, { onNavigate("CLUBS") }),
-                ActionCard("Manage Events", Icons.Default.Event, { onNavigate("EVENTS") }),
-                ActionCard("Lost & Found", Icons.Default.FindInPage, { onNavigate("LOST_FOUND") }),
-                ActionCard("Directory", Icons.Default.Info, { onNavigate("DIRECTORY") }),
-                ActionCard("Review Center", Icons.Default.Flag, { onNavigate("REVIEW") }),
-                ActionCard("Users & Roles", Icons.Default.Group, { onNavigate("USERS") }),
-                ActionCard("Manage Moderators", Icons.Default.PersonAdd, onManageModerators)
-            ).forEach { card ->
-                item(key = card.title) {
-                    ActionCardItem(title = card.title, icon = card.icon, color = MaterialTheme.colorScheme.primary, onClick = card.onClick)
-                }
+            items<ActionCard>(
+                listOf(
+                    ActionCard("Manage Subjects", Icons.Default.School, { onNavigate("SUBJECTS") }),
+                    ActionCard("Manage Timetable", Icons.Default.Schedule, { onNavigate("TIMETABLE") }),
+                    ActionCard("Manage Notices", Icons.Default.Campaign, { onNavigate("NOTICES") }),
+                    ActionCard("Manage Assignments", Icons.Default.Assignment, { onNavigate("ASSIGNMENTS") }),
+                    ActionCard("Manage Exams", Icons.Default.CalendarMonth, { onNavigate("EXAMS") }),
+                    ActionCard("Manage Clubs", Icons.Default.Group, { onNavigate("CLUBS") }),
+                    ActionCard("Manage Events", Icons.Default.Event, { onNavigate("EVENTS") }),
+                    ActionCard("Lost & Found", Icons.Default.FindInPage, { onNavigate("LOST_FOUND") }),
+                    ActionCard("Directory", Icons.Default.Info, { onNavigate("DIRECTORY") }),
+                    ActionCard("Review Center", Icons.Default.Flag, { onNavigate("REVIEW") }),
+                    ActionCard("Users & Roles", Icons.Default.Group, { onNavigate("USERS") }),
+                    ActionCard("Manage Moderators", Icons.Default.PersonAdd, onManageModerators)
+                ),
+                key = { it.title }
+            ) { card: ActionCard ->
+                ActionCardItem(title = card.title, icon = card.icon, color = MaterialTheme.colorScheme.primary, onClick = card.onClick)
             }
 
             item(span = { GridItemSpan(2) }) {
