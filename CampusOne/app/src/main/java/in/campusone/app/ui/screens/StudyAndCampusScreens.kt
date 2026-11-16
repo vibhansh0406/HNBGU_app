@@ -2438,7 +2438,7 @@ private fun SemesterTrendChart(
             val chartWidth = width - 2 * padding
             val chartHeight = height - 2 * padding
 
-            val points = trend.mapIndexed { index, record ->
+            val points: List<androidx.compose.ui.geometry.Offset> = trend.mapIndexed { index, record ->
                 val x: Float = padding + (index.toFloat() / (trend.size - 1).coerceAtLeast(1)) * chartWidth
                 val normalizedY = (record.sgpa - minSgpa) / range
                 val y: Float = (padding + chartHeight - normalizedY * chartHeight).toFloat()

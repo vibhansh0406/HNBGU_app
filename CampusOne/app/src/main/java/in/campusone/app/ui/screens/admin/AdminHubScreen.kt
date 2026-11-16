@@ -138,8 +138,8 @@ fun AdminHubScreen(
                     StatCard("Users", state.users.size.toString(), Icons.Default.People, MaterialTheme.colorScheme.secondary)
                 ),
                 key = { it.title }
-            ) { (title, count, icon, color) ->
-                StatCardItem(title = title, count = count, icon = icon, color = color)
+            ) { card ->
+                StatCardItem(title = card.title, count = card.count, icon = card.icon, color = card.color)
             }
 
             item(span = { GridItemSpan(2) }) {
@@ -166,8 +166,8 @@ fun AdminHubScreen(
                     ActionCard("Manage Moderators", Icons.Default.PersonAdd, onManageModerators)
                 ),
                 key = { it.title }
-            ) { (title, icon, onClick) ->
-                ActionCardItem(title = title, icon = icon, color = MaterialTheme.colorScheme.primary, onClick = onClick)
+            ) { card ->
+                ActionCardItem(title = card.title, icon = card.icon, color = MaterialTheme.colorScheme.primary, onClick = card.onClick)
             }
 
             item(span = { GridItemSpan(2) }) {
