@@ -367,6 +367,7 @@ private fun OnboardingStepWelcome(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun OnboardingStepCampusCourse(
     campuses: List<String>,
@@ -440,6 +441,7 @@ private fun OnboardingStepCampusCourse(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun OnboardingStepClass(
     selectedSemester: Int,

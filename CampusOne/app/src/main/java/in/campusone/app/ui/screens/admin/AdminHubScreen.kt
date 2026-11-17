@@ -140,7 +140,13 @@ fun AdminHubScreen(
                 ),
                 key = { it.title },
                 itemContent = { card ->
-                    StatCardContent(card)
+                    C1CompactStatCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        label = card.title,
+                        value = card.count,
+                        icon = card.icon,
+                        valueColor = card.color
+                    )
                 }
             )
 
@@ -169,7 +175,14 @@ fun AdminHubScreen(
                 ),
                 key = { it.title },
                 itemContent = { card ->
-                    ActionCardContent(card)
+                    C1FeatureCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        icon = card.icon,
+                        title = card.title,
+                        description = "",
+                        iconColor = MaterialTheme.colorScheme.primary,
+                        onClick = card.onClick
+                    )
                 }
             )
 
@@ -187,31 +200,8 @@ private data class StatCard(
     val color: Color
 )
 
-@Composable
-private fun StatCardContent(card: StatCard) {
-    C1CompactStatCard(
-        modifier = Modifier.fillMaxWidth(),
-        label = card.title,
-        value = card.count,
-        icon = card.icon,
-        valueColor = card.color
-    )
-}
-
 private data class ActionCard(
     val title: String,
     val icon: ImageVector,
     val onClick: () -> Unit
 )
-
-@Composable
-private fun ActionCardContent(card: ActionCard) {
-    C1FeatureCard(
-        modifier = Modifier.fillMaxWidth(),
-        icon = card.icon,
-        title = card.title,
-        description = "",
-        iconColor = MaterialTheme.colorScheme.primary,
-        onClick = card.onClick
-    )
-}

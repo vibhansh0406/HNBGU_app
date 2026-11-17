@@ -292,6 +292,7 @@ data class SemanticColors(
     val inverseOnSurface: Color,
     val inversePrimary: Color,
     val surfaceTint: Color,
+    val scrim: Color,
 )
 
 val LightSemanticColors = SemanticColors(
@@ -323,6 +324,7 @@ val LightSemanticColors = SemanticColors(
     inverseOnSurface = Color(0xFFF5F3ED),
     inversePrimary = Color(0xFF8FD6A8),
     surfaceTint = Color(0xFF1B4D3A),
+    scrim = Color(0x99000000),
 )
 
 val DarkSemanticColors = SemanticColors(
@@ -354,4 +356,5 @@ val DarkSemanticColors = SemanticColors(
     inverseOnSurface = Color(0xFF1A1C1A),
     inversePrimary = Color(0xFF1B4D3A),
     surfaceTint = Color(0xFF8FD6A8),
+    scrim = Color(0xCC000000),
 )

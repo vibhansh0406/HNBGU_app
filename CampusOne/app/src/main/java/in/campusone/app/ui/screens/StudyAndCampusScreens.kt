@@ -122,9 +122,11 @@ import `in`.campusone.app.domain.usecase.GradingScaleType
 import `in`.campusone.app.domain.usecase.SemesterGpaRecord
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
+import `in`.campusone.app.ui.components.C1CompactStatCard
 import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1FeatureCard
 import `in`.campusone.app.ui.components.C1SectionHeader
+import `in`.campusone.app.ui.components.C1StatTile
 import `in`.campusone.app.ui.components.C1StatusChip
 import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1TextField
