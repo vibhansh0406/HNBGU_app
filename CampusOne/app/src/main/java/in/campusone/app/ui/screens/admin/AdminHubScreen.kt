@@ -140,7 +140,7 @@ fun AdminHubScreen(
             items(
                 items = statCards,
                 key = { it.title },
-                itemContent = @Composable { card ->
+                itemContent = { card ->
                     StatCardItem(card = card)
                 }
             )
@@ -170,7 +170,7 @@ fun AdminHubScreen(
             items(
                 items = actionCards,
                 key = { it.title },
-                itemContent = @Composable { card ->
+                itemContent = { card ->
                     ActionCardItem(card = card)
                 }
             )

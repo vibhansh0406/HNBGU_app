@@ -2403,7 +2403,7 @@ private fun SemesterTrendChart(
             .background(MaterialTheme.colorScheme.surfaceVariant, C1Radius.md)
     ) {
         // Draw chart using Canvas
-        Canvas(modifier = Modifier.fillMaxSize()) { drawScope: androidx.compose.ui.graphics.drawscope.DrawScope ->
+        Canvas(modifier = Modifier.fillMaxSize()) { drawScope ->
             val width = drawScope.size.width
             val height = drawScope.size.height
             val padding = 20.dp.toPx()
