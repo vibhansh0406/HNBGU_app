@@ -128,25 +128,20 @@ fun AdminHubScreen(
             }
 
             // Stat Cards
+            val statCards = listOf(
+                StatCard("Subjects", state.subjectCount.toString(), Icons.Default.School, MaterialTheme.colorScheme.primary),
+                StatCard("Notices", state.noticeCount.toString(), Icons.Default.Campaign, MaterialTheme.colorScheme.tertiary),
+                StatCard("Assignments", state.assignmentCount.toString(), Icons.Default.Assignment, MaterialTheme.colorScheme.secondary),
+                StatCard("Exams", state.examCount.toString(), Icons.Default.CalendarMonth, Color(0xFF7A5C4A)),
+                StatCard("Clubs", state.clubCount.toString(), Icons.Default.Group, MaterialTheme.colorScheme.primary),
+                StatCard("Events", state.eventCount.toString(), Icons.Default.Event, MaterialTheme.colorScheme.tertiary),
+                StatCard("Users", state.users.size.toString(), Icons.Default.People, MaterialTheme.colorScheme.secondary)
+            )
             items(
-                items = listOf(
-                    StatCard("Subjects", state.subjectCount.toString(), Icons.Default.School, MaterialTheme.colorScheme.primary),
-                    StatCard("Notices", state.noticeCount.toString(), Icons.Default.Campaign, MaterialTheme.colorScheme.tertiary),
-                    StatCard("Assignments", state.assignmentCount.toString(), Icons.Default.Assignment, MaterialTheme.colorScheme.secondary),
-                    StatCard("Exams", state.examCount.toString(), Icons.Default.CalendarMonth, Color(0xFF7A5C4A)),
-                    StatCard("Clubs", state.clubCount.toString(), Icons.Default.Group, MaterialTheme.colorScheme.primary),
-                    StatCard("Events", state.eventCount.toString(), Icons.Default.Event, MaterialTheme.colorScheme.tertiary),
-                    StatCard("Users", state.users.size.toString(), Icons.Default.People, MaterialTheme.colorScheme.secondary)
-                ),
+                items = statCards,
                 key = { it.title },
-                itemContent = { card ->
-                    C1CompactStatCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        label = card.title,
-                        value = card.count,
-                        icon = card.icon,
-                        valueColor = card.color
-                    )
+                itemContent = @Composable { card ->
+                    StatCardItem(card = card)
                 }
             )
 
@@ -158,31 +153,25 @@ fun AdminHubScreen(
             item(span = { GridItemSpan(2) }) {
                 C1SectionHeader(title = "Quick Actions")
             }
+            val actionCards = listOf(
+                ActionCard("Manage Subjects", Icons.Default.School, { onNavigate("SUBJECTS") }),
+                ActionCard("Manage Timetable", Icons.Default.Schedule, { onNavigate("TIMETABLE") }),
+                ActionCard("Manage Notices", Icons.Default.Campaign, { onNavigate("NOTICES") }),
+                ActionCard("Manage Assignments", Icons.Default.Assignment, { onNavigate("ASSIGNMENTS") }),
+                ActionCard("Manage Exams", Icons.Default.CalendarMonth, { onNavigate("EXAMS") }),
+                ActionCard("Manage Clubs", Icons.Default.Group, { onNavigate("CLUBS") }),
+                ActionCard("Manage Events", Icons.Default.Event, { onNavigate("EVENTS") }),
+                ActionCard("Lost & Found", Icons.Default.FindInPage, { onNavigate("LOST_FOUND") }),
+                ActionCard("Directory", Icons.Default.Info, { onNavigate("DIRECTORY") }),
+                ActionCard("Review Center", Icons.Default.Flag, { onNavigate("REVIEW") }),
+                ActionCard("Users & Roles", Icons.Default.Group, { onNavigate("USERS") }),
+                ActionCard("Manage Moderators", Icons.Default.PersonAdd, onManageModerators)
+            )
             items(
-                items = listOf(
-                    ActionCard("Manage Subjects", Icons.Default.School, { onNavigate("SUBJECTS") }),
-                    ActionCard("Manage Timetable", Icons.Default.Schedule, { onNavigate("TIMETABLE") }),
-                    ActionCard("Manage Notices", Icons.Default.Campaign, { onNavigate("NOTICES") }),
-                    ActionCard("Manage Assignments", Icons.Default.Assignment, { onNavigate("ASSIGNMENTS") }),
-                    ActionCard("Manage Exams", Icons.Default.CalendarMonth, { onNavigate("EXAMS") }),
-                    ActionCard("Manage Clubs", Icons.Default.Group, { onNavigate("CLUBS") }),
-                    ActionCard("Manage Events", Icons.Default.Event, { onNavigate("EVENTS") }),
-                    ActionCard("Lost & Found", Icons.Default.FindInPage, { onNavigate("LOST_FOUND") }),
-                    ActionCard("Directory", Icons.Default.Info, { onNavigate("DIRECTORY") }),
-                    ActionCard("Review Center", Icons.Default.Flag, { onNavigate("REVIEW") }),
-                    ActionCard("Users & Roles", Icons.Default.Group, { onNavigate("USERS") }),
-                    ActionCard("Manage Moderators", Icons.Default.PersonAdd, onManageModerators)
-                ),
+                items = actionCards,
                 key = { it.title },
-                itemContent = { card ->
-                    C1FeatureCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        icon = card.icon,
-                        title = card.title,
-                        description = "",
-                        iconColor = MaterialTheme.colorScheme.primary,
-                        onClick = card.onClick
-                    )
+                itemContent = @Composable { card ->
+                    ActionCardItem(card = card)
                 }
             )
 
@@ -191,6 +180,29 @@ fun AdminHubScreen(
             }
         }
     }
+}
+
+@Composable
+private fun StatCardItem(card: StatCard) {
+    C1CompactStatCard(
+        modifier = Modifier.fillMaxWidth(),
+        label = card.title,
+        value = card.count,
+        icon = card.icon,
+        valueColor = card.color
+    )
+}
+
+@Composable
+private fun ActionCardItem(card: ActionCard) {
+    C1FeatureCard(
+        modifier = Modifier.fillMaxWidth(),
+        icon = card.icon,
+        title = card.title,
+        description = "",
+        iconColor = MaterialTheme.colorScheme.primary,
+        onClick = card.onClick
+    )
 }
 
 private data class StatCard(
