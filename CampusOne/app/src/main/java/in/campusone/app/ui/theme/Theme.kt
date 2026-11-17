@@ -19,70 +19,70 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import `in`.campusone.app.R
 
-// Forest & Ivory — Light Color Scheme
+// Forest & Ivory — Light Color Scheme (using semantic colors)
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF1B4D3A),           // Deep Forest
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFFD6F0E0),  // Light Mint
-    onPrimaryContainer = Color(0xFF0A2D1E),
-    secondary = Color(0xFF3D5A4A),         // Forest Green
-    onSecondary = Color.White,
-    secondaryContainer = Color(0xFFE0EDE4), // Pale Sage
-    onSecondaryContainer = Color(0xFF1A3326),
-    tertiary = Color(0xFF7A5C4A),          // Warm Earth
-    onTertiary = Color.White,
-    tertiaryContainer = Color(0xFFF0E4D9),  // Warm Sand
-    onTertiaryContainer = Color(0xFF2E1E12),
-    error = Color(0xFFB82E1A),
-    errorContainer = Color(0xFFFFE8E4),
-    onError = Color.White,
-    onErrorContainer = Color(0xFF4A0E08),
-    background = Color(0xFFFAF9F6),        // Ivory White
-    onBackground = Color(0xFF1A1C1A),
-    surface = Color.White,
-    onSurface = Color(0xFF1A1C1A),
-    surfaceVariant = Color(0xFFF0EEE8),    // Warm Gray
-    onSurfaceVariant = Color(0xFF4A4844),
-    outline = Color(0xFFD8D6CE),
-    outlineVariant = Color(0xFFE8E6E0),
-    scrim = Color(0x99000000),
-    inverseSurface = Color(0xFF2A2C29),
-    inverseOnSurface = Color(0xFFF5F3ED),
-    inversePrimary = Color(0xFF8FD6A8),
-    surfaceTint = Color(0xFF1B4D3A),
+    primary = LightSemanticColors.primary,
+    onPrimary = LightSemanticColors.onPrimary,
+    primaryContainer = LightSemanticColors.primaryContainer,
+    onPrimaryContainer = LightSemanticColors.onPrimaryContainer,
+    secondary = LightSemanticColors.secondary,
+    onSecondary = LightSemanticColors.onSecondary,
+    secondaryContainer = LightSemanticColors.secondaryContainer,
+    onSecondaryContainer = LightSemanticColors.onSecondaryContainer,
+    tertiary = LightSemanticColors.tertiary,
+    onTertiary = LightSemanticColors.onTertiary,
+    tertiaryContainer = LightSemanticColors.tertiaryContainer,
+    onTertiaryContainer = LightSemanticColors.onTertiaryContainer,
+    error = LightSemanticColors.error,
+    errorContainer = LightSemanticColors.errorContainer,
+    onError = LightSemanticColors.onError,
+    onErrorContainer = LightSemanticColors.onErrorContainer,
+    background = LightSemanticColors.background,
+    onBackground = LightSemanticColors.onBackground,
+    surface = LightSemanticColors.surface,
+    onSurface = LightSemanticColors.onSurface,
+    surfaceVariant = LightSemanticColors.surfaceVariant,
+    onSurfaceVariant = LightSemanticColors.onSurfaceVariant,
+    outline = LightSemanticColors.outline,
+    outlineVariant = LightSemanticColors.outlineVariant,
+    scrim = LightSemanticColors.scrim,
+    inverseSurface = LightSemanticColors.inverseSurface,
+    inverseOnSurface = LightSemanticColors.inverseOnSurface,
+    inversePrimary = LightSemanticColors.inversePrimary,
+    surfaceTint = LightSemanticColors.surfaceTint,
 )
 
-// Forest & Ivory — Dark Color Scheme
+// Forest & Ivory — Dark Color Scheme (using semantic colors)
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF8FD6A8),           // Light Mint
-    onPrimary = Color(0xFF052010),
-    primaryContainer = Color(0xFF1A3D28),
-    onPrimaryContainer = Color(0xFFC8E8D8),
-    secondary = Color(0xFFB8D6C4),         // Pale Sage
-    onSecondary = Color(0xFF0A2015),
-    secondaryContainer = Color(0xFF2A3D32),
-    onSecondaryContainer = Color(0xFFD8E8DC),
-    tertiary = Color(0xFFD6B89A),          // Warm Sand
-    onTertiary = Color(0xFF2E1E12),
-    tertiaryContainer = Color(0xFF3D2E22),
-    onTertiaryContainer = Color(0xFFF0E4D9),
-    error = Color(0xFFFF6B5A),
-    errorContainer = Color(0xFF4A1510),
-    onError = Color(0xFF3B0A05),
-    onErrorContainer = Color(0xFFFFE8E4),
-    background = Color(0xFF121412),        // Deep Charcoal
-    onBackground = Color(0xFFF5F3ED),
-    surface = Color(0xFF1A1C1A),
-    onSurface = Color(0xFFF5F3ED),
-    surfaceVariant = Color(0xFF2A2C29),
-    onSurfaceVariant = Color(0xFFB8B6B0),
-    outline = Color(0xFF3A3733),
-    outlineVariant = Color(0xFF2D2B28),
-    scrim = Color(0xCC000000),
-    inverseSurface = Color(0xFFF5F3ED),
-    inverseOnSurface = Color(0xFF1A1C1A),
-    inversePrimary = Color(0xFF1B4D3A),
-    surfaceTint = Color(0xFF8FD6A8),
+    primary = DarkSemanticColors.primary,
+    onPrimary = DarkSemanticColors.onPrimary,
+    primaryContainer = DarkSemanticColors.primaryContainer,
+    onPrimaryContainer = DarkSemanticColors.onPrimaryContainer,
+    secondary = DarkSemanticColors.secondary,
+    onSecondary = DarkSemanticColors.onSecondary,
+    secondaryContainer = DarkSemanticColors.secondaryContainer,
+    onSecondaryContainer = DarkSemanticColors.onSecondaryContainer,
+    tertiary = DarkSemanticColors.tertiary,
+    onTertiary = DarkSemanticColors.onTertiary,
+    tertiaryContainer = DarkSemanticColors.tertiaryContainer,
+    onTertiaryContainer = DarkSemanticColors.onTertiaryContainer,
+    error = DarkSemanticColors.error,
+    errorContainer = DarkSemanticColors.errorContainer,
+    onError = DarkSemanticColors.onError,
+    onErrorContainer = DarkSemanticColors.onErrorContainer,
+    background = DarkSemanticColors.background,
+    onBackground = DarkSemanticColors.onBackground,
+    surface = DarkSemanticColors.surface,
+    onSurface = DarkSemanticColors.onSurface,
+    surfaceVariant = DarkSemanticColors.surfaceVariant,
+    onSurfaceVariant = DarkSemanticColors.onSurfaceVariant,
+    outline = DarkSemanticColors.outline,
+    outlineVariant = DarkSemanticColors.outlineVariant,
+    scrim = DarkSemanticColors.scrim,
+    inverseSurface = DarkSemanticColors.inverseSurface,
+    inverseOnSurface = DarkSemanticColors.inverseOnSurface,
+    inversePrimary = DarkSemanticColors.inversePrimary,
+    surfaceTint = DarkSemanticColors.surfaceTint,
 )
 
 // iOS-adjacent continuous-feeling corner radii

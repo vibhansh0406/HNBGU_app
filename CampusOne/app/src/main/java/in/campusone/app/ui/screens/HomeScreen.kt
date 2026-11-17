@@ -67,10 +67,11 @@ import `in`.campusone.app.ui.components.AnimatedAttendanceRing
 import `in`.campusone.app.ui.components.C1Banner
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
+import `in`.campusone.app.ui.components.C1CompactStatCard
 import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1ErrorState
+import `in`.campusone.app.ui.components.C1FeatureCard
 import `in`.campusone.app.ui.components.C1SkeletonRows
-import `in`.campusone.app.ui.components.C1StatTile
 import `in`.campusone.app.ui.components.C1SectionHeader
 import `in`.campusone.app.ui.components.C1StatusChip
 import `in`.campusone.app.ui.components.C1SurfaceCard
@@ -484,41 +485,14 @@ private fun QuickActionTile(
     modifier: Modifier = Modifier,
     onOpenMore: (MoreSubScreen) -> Unit
 ) {
-    C1SurfaceCard(
-        onClick = { onOpenMore(action.screen) },
+    C1FeatureCard(
         modifier = modifier.heightIn(min = 100.dp),
-        containerColor = MaterialTheme.colorScheme.surface
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = C1Spacing.lg, horizontal = C1Spacing.md),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(C1Spacing.md, Alignment.CenterVertically)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(action.color.copy(alpha = 0.12f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = action.icon,
-                    contentDescription = null,
-                    tint = action.color,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            Text(
-                text = stringResource(action.labelRes),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
+        icon = action.icon,
+        title = stringResource(action.labelRes),
+        description = "",
+        iconColor = action.color,
+        onClick = { onOpenMore(action.screen) }
+    )
 }
 
 @Composable

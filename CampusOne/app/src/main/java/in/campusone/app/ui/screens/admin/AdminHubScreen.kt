@@ -53,8 +53,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
+import `in`.campusone.app.ui.components.C1CompactStatCard
+import `in`.campusone.app.ui.components.C1FeatureCard
 import `in`.campusone.app.ui.components.C1SectionHeader
-import `in`.campusone.app.ui.components.C1StatTile
 import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
@@ -188,7 +189,13 @@ private data class StatCard(
 
 @Composable
 private fun StatCardContent(card: StatCard) {
-    StatCardItem(title = card.title, count = card.count, icon = card.icon, color = card.color)
+    C1CompactStatCard(
+        modifier = Modifier.fillMaxWidth(),
+        label = card.title,
+        value = card.count,
+        icon = card.icon,
+        valueColor = card.color
+    )
 }
 
 private data class ActionCard(
@@ -199,85 +206,12 @@ private data class ActionCard(
 
 @Composable
 private fun ActionCardContent(card: ActionCard) {
-    ActionCardItem(title = card.title, icon = card.icon, color = MaterialTheme.colorScheme.primary, onClick = card.onClick)
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun StatCardItem(title: String, count: String, icon: ImageVector, color: Color) {
-    C1SurfaceCard(
+    C1FeatureCard(
         modifier = Modifier.fillMaxWidth(),
-        containerColor = MaterialTheme.colorScheme.surface
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = color
-                )
-                Text(
-                    text = count,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-private data class ActionCard(
-    val title: String,
-    val icon: ImageVector,
-    val onClick: () -> Unit
-)
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ActionCardItem(title: String, icon: ImageVector, color: Color, onClick: () -> Unit) {
-    C1SurfaceCard(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        containerColor = MaterialTheme.colorScheme.surface
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier.size(40.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = color
-                )
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-    }
+        icon = card.icon,
+        title = card.title,
+        description = "",
+        iconColor = MaterialTheme.colorScheme.primary,
+        onClick = card.onClick
+    )
 }

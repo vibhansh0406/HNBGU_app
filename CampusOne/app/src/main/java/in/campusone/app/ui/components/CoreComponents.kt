@@ -1148,3 +1148,225 @@ fun C1ListDivider(
         color = componentColors.dividerColor
     )
 }
+
+/** Hero card for featured content with image, title, and action. */
+@Composable
+fun C1HeroCard(
+    modifier: Modifier = Modifier,
+    imageVector: ImageVector? = null,
+    imageContentDescription: String? = null,
+    title: String,
+    subtitle: String? = null,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+    containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) C1Motion.pressScale else 1f,
+        animationSpec = tween(durationMillis = C1Motion.fastMillis),
+        label = "heroCardPress"
+    )
+    val base = modifier
+        .fillMaxWidth()
+        .semantics(mergeDescendants = true) {}
+    val clickable = if (onClick != null) {
+        base.clickable(
+            interactionSource = interactionSource,
+            indication = ripple(),
+            onClick = onClick
+        )
+    } else {
+        base
+    }
+    Surface(
+        modifier = clickable.graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        },
+        shape = C1Radius.xl,
+        color = containerColor,
+        border = BorderStroke(C1Border.hairline, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(C1Spacing.xxl),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.lg)
+        ) {
+            imageVector?.let {
+                Box(
+                    modifier = Modifier.size(80.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = it,
+                        contentDescription = imageContentDescription,
+                        tint = contentColor,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = contentColor,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+            subtitle?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = contentColor.copy(alpha = 0.8f),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
+            actionLabel?.let { label ->
+                C1Button(
+                    text = label,
+                    onClick = onAction!!,
+                    intent = C1ButtonIntent.OUTLINED,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+}
+
+/** Feature card for grid layouts with icon, title, and description. */
+@Composable
+fun C1FeatureCard(
+    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    title: String,
+    description: String,
+    iconColor: Color = MaterialTheme.colorScheme.primary,
+    onClick: (() -> Unit)? = null
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) C1Motion.pressScale else 1f,
+        animationSpec = tween(durationMillis = C1Motion.fastMillis),
+        label = "featureCardPress"
+    )
+    val base = modifier
+        .fillMaxWidth()
+        .semantics(mergeDescendants = true) {}
+    val clickable = if (onClick != null) {
+        base.clickable(
+            interactionSource = interactionSource,
+            indication = ripple(),
+            onClick = onClick
+        )
+    } else {
+        base
+    }
+    Surface(
+        modifier = clickable.graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        },
+        shape = C1Radius.lg,
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(C1Border.hairline, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(C1Spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
+        ) {
+            Box(
+                modifier = Modifier.size(48.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconColor,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+/** Compact stat card for dashboard grids. */
+@Composable
+fun C1CompactStatCard(
+    modifier: Modifier = Modifier,
+    label: String,
+    value: String,
+    icon: ImageVector? = null,
+    valueColor: Color = MaterialTheme.colorScheme.primary,
+    trend: C1Trend? = null
+) {
+    val compColors = componentColors
+    Surface(
+        modifier = modifier,
+        shape = C1Radius.md,
+        color = compColors.cardBackground,
+        border = BorderStroke(C1Border.hairline, compColors.cardBorder)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(C1Spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+        ) {
+            if (icon != null) {
+                Box(
+                    modifier = Modifier.size(40.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = valueColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
+            ) {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = valueColor
+                )
+                trend?.let { t ->
+                    C1StatusChip(
+                        text = t.label,
+                        tone = t.tone,
+                        modifier = Modifier.padding(top = C1Spacing.xs)
+                    )
+                }
+            }
+        }
+    }
+}

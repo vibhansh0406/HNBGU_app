@@ -123,8 +123,8 @@ import `in`.campusone.app.domain.usecase.SemesterGpaRecord
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1EmptyState
+import `in`.campusone.app.ui.components.C1FeatureCard
 import `in`.campusone.app.ui.components.C1SectionHeader
-import `in`.campusone.app.ui.components.C1StatTile
 import `in`.campusone.app.ui.components.C1StatusChip
 import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1TextField
@@ -655,44 +655,14 @@ private fun FeatureHubCard(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     onClick: () -> Unit
 ) {
-    C1SurfaceCard(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics { contentDescription = "$title: $subtitle" },
-        containerColor = MaterialTheme.colorScheme.surface
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier.size(48.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
+    C1FeatureCard(
+        modifier = Modifier.fillMaxWidth(),
+        icon = icon,
+        title = title,
+        description = subtitle,
+        iconColor = MaterialTheme.colorScheme.primary,
+        onClick = onClick
+    )
 }
 
 // =========================================================================

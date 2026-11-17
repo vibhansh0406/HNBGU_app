@@ -45,9 +45,9 @@ import `in`.campusone.app.ui.components.AnimatedAttendanceRing
 import `in`.campusone.app.ui.components.C1Banner
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
+import `in`.campusone.app.ui.components.C1CompactStatCard
 import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1SectionHeader
-import `in`.campusone.app.ui.components.C1StatTile
 import `in`.campusone.app.ui.components.C1StatusChip
 import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1Tone
@@ -255,29 +255,29 @@ private fun OverallAttendanceCard(
             )
 
             Row(modifier = Modifier.fillMaxWidth()) {
-                AttendanceStat(
-                    value = insight.attended,
+                C1CompactStatCard(
+                    modifier = Modifier.weight(1f),
                     label = stringResource(R.string.mark_present),
-                    valueColor = extended.success,
-                    modifier = Modifier.weight(1f)
+                    value = insight.attended.toString(),
+                    valueColor = extended.success
                 )
-                AttendanceStat(
-                    value = absentCount,
+                C1CompactStatCard(
+                    modifier = Modifier.weight(1f),
                     label = stringResource(R.string.mark_absent),
-                    valueColor = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.weight(1f)
+                    value = absentCount.toString(),
+                    valueColor = MaterialTheme.colorScheme.error
                 )
-                AttendanceStat(
-                    value = insight.cancelled,
+                C1CompactStatCard(
+                    modifier = Modifier.weight(1f),
                     label = stringResource(R.string.mark_cancelled),
-                    valueColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f)
+                    value = insight.cancelled.toString(),
+                    valueColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                AttendanceStat(
-                    value = insight.totalConducted,
+                C1CompactStatCard(
+                    modifier = Modifier.weight(1f),
                     label = stringResource(R.string.attendance_total_lectures),
-                    valueColor = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f)
+                    value = insight.totalConducted.toString(),
+                    valueColor = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -292,34 +292,6 @@ private fun OverallAttendanceCard(
                 steps = 5
             )
         }
-    }
-}
-
-@Composable
-private fun AttendanceStat(
-    value: Int,
-    label: String,
-    valueColor: Color,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(2.dp)
-    ) {
-        Text(
-            text = value.toString(),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = valueColor
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 2,
-            textAlign = TextAlign.Center
-        )
     }
 }
 

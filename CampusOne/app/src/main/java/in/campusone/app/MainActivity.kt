@@ -90,6 +90,7 @@ import javax.inject.Inject
 import `in`.campusone.app.data.remote.AuthManager
 import `in`.campusone.app.data.remote.SupabaseSession
 import `in`.campusone.app.data.repository.CoreCampusRepository
+import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1NavItem
 import `in`.campusone.app.ui.screens.AttendanceScreen
 import `in`.campusone.app.ui.screens.HomeScreen
@@ -98,6 +99,7 @@ import `in`.campusone.app.ui.screens.MoreSubScreen
 import `in`.campusone.app.ui.screens.NoticeBoardScreen
 import `in`.campusone.app.ui.screens.OnboardingScreen
 import `in`.campusone.app.ui.screens.TimetableScreen
+import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Motion
 import `in`.campusone.app.ui.theme.CampusOneTheme
 import `in`.campusone.app.ui.viewmodel.CommunityViewModel
@@ -463,7 +465,7 @@ fun SignInScreen(onGoogleSignIn: () -> Unit, isSigningIn: Boolean) {
             Box(
                 modifier = Modifier
                     .size(92.dp)
-                    .clip(RoundedCornerShape(26.dp))
+                    .clip(C1Radius.xl)
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
@@ -489,23 +491,14 @@ fun SignInScreen(onGoogleSignIn: () -> Unit, isSigningIn: Boolean) {
                 textAlign = TextAlign.Center
             )
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(44.dp))
-            Button(
+            C1Button(
+                text = if (isSigningIn) "Signing in..." else stringResource(`in`.campusone.app.R.string.sign_in_google),
                 onClick = onGoogleSignIn,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(54.dp),
-                shape = RoundedCornerShape(27.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ),
                 enabled = !isSigningIn
-            ) {
-                Text(
-                    text = if (isSigningIn) "Signing in..." else stringResource(`in`.campusone.app.R.string.sign_in_google),
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
+            )
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(28.dp))
             Text(
                 text = "Offline first. Synced only for you.",
@@ -576,7 +569,7 @@ fun IntroScreen(onFinish: () -> Unit) {
                     Box(
                         modifier = Modifier
                             .size(112.dp)
-                            .clip(RoundedCornerShape(32.dp))
+                            .clip(C1Radius.xxl)
                             .background(MaterialTheme.colorScheme.primaryContainer),
                         contentAlignment = Alignment.Center
                     ) {
@@ -615,7 +608,7 @@ fun IntroScreen(onFinish: () -> Unit) {
                         modifier = Modifier
                             .padding(horizontal = 4.dp)
                             .size(if (active) 22.dp else 8.dp, 8.dp)
-                            .clip(RoundedCornerShape(50))
+                            .clip(C1Radius.pill)
                             .background(
                                 if (active) MaterialTheme.colorScheme.primary
                                 else MaterialTheme.colorScheme.outline
@@ -623,7 +616,8 @@ fun IntroScreen(onFinish: () -> Unit) {
                     )
                 }
             }
-            Button(
+            C1Button(
+                text = if (pagerState.currentPage == pages.lastIndex) "Get started" else "Next",
                 onClick = {
                     if (pagerState.currentPage == pages.lastIndex) {
                         onFinish()
@@ -633,14 +627,8 @@ fun IntroScreen(onFinish: () -> Unit) {
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(54.dp),
-                shape = RoundedCornerShape(27.dp)
-            ) {
-                Text(
-                    text = if (pagerState.currentPage == pages.lastIndex) "Get started" else "Next",
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
+                    .height(54.dp)
+            )
         }
     }
 }

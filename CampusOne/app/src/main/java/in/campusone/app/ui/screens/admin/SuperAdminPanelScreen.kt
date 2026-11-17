@@ -54,6 +54,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import `in`.campusone.app.data.repository.AdminPermission
 import `in`.campusone.app.domain.model.UserRole
+import `in`.campusone.app.ui.components.C1CompactStatCard
+import `in`.campusone.app.ui.components.C1FeatureCard
+import `in`.campusone.app.ui.components.C1SectionHeader
+import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
 import kotlinx.coroutines.flow.StateFlow
@@ -390,69 +394,19 @@ private fun adminSections(state: AdminUiState): List<SectionItem> {
 }
 
 @Composable
-private fun StatTile(
-    title: String,
-    value: String,
-    icon: ImageVector,
-    tint: Color
-) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(imageVector = icon, contentDescription = null, tint = tint)
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.ExtraBold
-                )
-            }
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
 private fun StatRow(
     title: String,
     value: String,
     icon: ImageVector,
     tint: Color
 ) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(imageVector = icon, contentDescription = null, tint = tint)
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.weight(1f)
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = tint
-            )
-        }
-    }
+    C1CompactStatCard(
+        modifier = Modifier.fillMaxWidth(),
+        label = title,
+        value = value,
+        icon = icon,
+        valueColor = tint
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -463,30 +417,14 @@ private fun SectionCard(
     icon: ImageVector,
     onClick: () -> Unit
 ) {
-    ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
+    C1FeatureCard(
+        modifier = Modifier.fillMaxWidth(),
+        icon = icon,
+        title = title,
+        description = subtitle,
+        iconColor = MaterialTheme.colorScheme.primary,
+        onClick = onClick
+    )
 }
 
 @Composable

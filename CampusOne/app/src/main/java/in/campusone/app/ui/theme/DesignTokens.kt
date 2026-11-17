@@ -12,12 +12,13 @@ import androidx.compose.ui.unit.dp
  *
  * A premium, minimal, sophisticated visual language inspired by nature.
  * Deep forest greens, warm ivory neutrals, and refined accent tones.
- * Spacing is a 4dp-based scale. Elevation is flat-first: surfaces are
- * separated by tone and hairlines, shadows are reserved for truly floating
- * elements. All values are theme-independent primitives; color pairs live in
- * [ExtendedColors] so light and dark stay in sync.
+ * Spacing is a 4dp-based scale with 8dp rhythm. Elevation is flat-first:
+ * surfaces are separated by tone and hairlines, shadows reserved for truly
+ * floating elements. All values are theme-independent primitives; color pairs
+ * live in [ExtendedColors] so light and dark stay in sync.
  */
 object C1Spacing {
+    val none = 0.dp
     val xs = 4.dp
     val sm = 8.dp
     val md = 12.dp
@@ -27,9 +28,11 @@ object C1Spacing {
     val xxxl = 32.dp
     val xxxxl = 40.dp
     val xxxxxl = 48.dp
+    val xxxxxx = 64.dp
 }
 
 object C1Radius {
+    val none = RoundedCornerShape(0.dp)
     val xs = RoundedCornerShape(8.dp)
     val sm = RoundedCornerShape(12.dp)
     val md = RoundedCornerShape(16.dp)
@@ -126,6 +129,7 @@ data class ExtendedColors(
     val divider: Color,
     val scrim: Color,
     val overlay: Color,
+    val surfaceTint: Color,
 )
 
 /** Forest & Ivory — Light Extended Colors */
@@ -146,6 +150,7 @@ val LightExtendedColors = ExtendedColors(
     divider = Color(0xFFE0DDD6),
     scrim = Color(0x99000000),
     overlay = Color(0xCC000000),
+    surfaceTint = Color(0xFF1B4D3A),
 )
 
 /** Forest & Ivory — Dark Extended Colors */
@@ -166,6 +171,7 @@ val DarkExtendedColors = ExtendedColors(
     divider = Color(0xFF3A3733),
     scrim = Color(0xCC000000),
     overlay = Color(0xDD000000),
+    surfaceTint = Color(0xFF8FD6A8),
 )
 
 /** Component-specific color roles for consistent theming */
@@ -188,6 +194,8 @@ data class ComponentColors(
     val dividerColor: Color,
     val skeletonBase: Color,
     val skeletonHighlight: Color,
+    val badgeBackground: Color,
+    val badgeContent: Color,
 )
 
 val LightComponentColors = ComponentColors(
@@ -208,6 +216,8 @@ val LightComponentColors = ComponentColors(
     dividerColor = Color(0xFFE8E6E0),
     skeletonBase = Color(0xFFF0EEE8),
     skeletonHighlight = Color(0xFFFAF9F6),
+    badgeBackground = Color(0xFF1B4D3A),
+    badgeContent = Color.White,
 )
 
 val DarkComponentColors = ComponentColors(
@@ -228,6 +238,8 @@ val DarkComponentColors = ComponentColors(
     dividerColor = Color(0xFF2D2B28),
     skeletonBase = Color(0xFF2A2C29),
     skeletonHighlight = Color(0xFF323431),
+    badgeBackground = Color(0xFF8FD6A8),
+    badgeContent = Color(0xFF052010),
 )
 
 /** Z-index layers for consistent layering */
@@ -248,3 +260,98 @@ object C1Breakpoint {
     val expanded = 1200.dp
     val large = 1600.dp
 }
+
+/** Semantic color roles for data visualization and status */
+@Immutable
+data class SemanticColors(
+    val primary: Color,
+    val onPrimary: Color,
+    val primaryContainer: Color,
+    val onPrimaryContainer: Color,
+    val secondary: Color,
+    val onSecondary: Color,
+    val secondaryContainer: Color,
+    val onSecondaryContainer: Color,
+    val tertiary: Color,
+    val onTertiary: Color,
+    val tertiaryContainer: Color,
+    val onTertiaryContainer: Color,
+    val error: Color,
+    val onError: Color,
+    val errorContainer: Color,
+    val onErrorContainer: Color,
+    val background: Color,
+    val onBackground: Color,
+    val surface: Color,
+    val onSurface: Color,
+    val surfaceVariant: Color,
+    val onSurfaceVariant: Color,
+    val outline: Color,
+    val outlineVariant: Color,
+    val inverseSurface: Color,
+    val inverseOnSurface: Color,
+    val inversePrimary: Color,
+    val surfaceTint: Color,
+)
+
+val LightSemanticColors = SemanticColors(
+    primary = Color(0xFF1B4D3A),
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFFD6F0E0),
+    onPrimaryContainer = Color(0xFF0A2D1E),
+    secondary = Color(0xFF3D5A4A),
+    onSecondary = Color.White,
+    secondaryContainer = Color(0xFFE0EDE4),
+    onSecondaryContainer = Color(0xFF1A3326),
+    tertiary = Color(0xFF7A5C4A),
+    onTertiary = Color.White,
+    tertiaryContainer = Color(0xFFF0E4D9),
+    onTertiaryContainer = Color(0xFF2E1E12),
+    error = Color(0xFFB82E1A),
+    onError = Color.White,
+    errorContainer = Color(0xFFFFE8E4),
+    onErrorContainer = Color(0xFF4A0E08),
+    background = Color(0xFFFAF9F6),
+    onBackground = Color(0xFF1A1C1A),
+    surface = Color.White,
+    onSurface = Color(0xFF1A1C1A),
+    surfaceVariant = Color(0xFFF0EEE8),
+    onSurfaceVariant = Color(0xFF4A4844),
+    outline = Color(0xFFD8D6CE),
+    outlineVariant = Color(0xFFE8E6E0),
+    inverseSurface = Color(0xFF2A2C29),
+    inverseOnSurface = Color(0xFFF5F3ED),
+    inversePrimary = Color(0xFF8FD6A8),
+    surfaceTint = Color(0xFF1B4D3A),
+)
+
+val DarkSemanticColors = SemanticColors(
+    primary = Color(0xFF8FD6A8),
+    onPrimary = Color(0xFF052010),
+    primaryContainer = Color(0xFF1A3D28),
+    onPrimaryContainer = Color(0xFFC8E8D8),
+    secondary = Color(0xFFB8D6C4),
+    onSecondary = Color(0xFF0A2015),
+    secondaryContainer = Color(0xFF2A3D32),
+    onSecondaryContainer = Color(0xFFD8E8DC),
+    tertiary = Color(0xFFD6B89A),
+    onTertiary = Color(0xFF2E1E12),
+    tertiaryContainer = Color(0xFF3D2E22),
+    onTertiaryContainer = Color(0xFFF0E4D9),
+    error = Color(0xFFFF6B5A),
+    onError = Color(0xFF3B0A05),
+    errorContainer = Color(0xFF4A1510),
+    onErrorContainer = Color(0xFFFFE8E4),
+    background = Color(0xFF121412),
+    onBackground = Color(0xFFF5F3ED),
+    surface = Color(0xFF1A1C1A),
+    onSurface = Color(0xFFF5F3ED),
+    surfaceVariant = Color(0xFF2A2C29),
+    onSurfaceVariant = Color(0xFFB8B6B0),
+    outline = Color(0xFF3A3733),
+    outlineVariant = Color(0xFF2D2B28),
+    inverseSurface = Color(0xFFF5F3ED),
+    inverseOnSurface = Color(0xFF1A1C1A),
+    inversePrimary = Color(0xFF1B4D3A),
+    surfaceTint = Color(0xFF8FD6A8),
+)
