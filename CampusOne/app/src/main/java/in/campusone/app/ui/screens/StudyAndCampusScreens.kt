@@ -9,8 +9,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.ui.graphics.drawscope.drawPath
-import androidx.compose.ui.graphics.drawscope.drawCircle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -2405,9 +2403,9 @@ private fun SemesterTrendChart(
             .background(MaterialTheme.colorScheme.surfaceVariant, C1Radius.md)
     ) {
         // Draw chart using Canvas
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val width = size.width
-            val height = size.height
+        Canvas(modifier = Modifier.fillMaxSize()) { drawScope ->
+            val width = drawScope.size.width
+            val height = drawScope.size.height
             val padding = 20.dp.toPx()
             val chartWidth = width - 2 * padding
             val chartHeight = height - 2 * padding
@@ -2425,7 +2423,7 @@ private fun SemesterTrendChart(
                     if (index == 0) moveTo(point.x, point.y) else lineTo(point.x, point.y)
                 }
             }
-            drawPath(
+            drawScope.drawPath(
                 path,
                 color = MaterialTheme.colorScheme.primary,
                 style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
@@ -2433,7 +2431,7 @@ private fun SemesterTrendChart(
 
             // Draw points
             points.forEach { point ->
-                drawCircle(
+                drawScope.drawCircle(
                     color = MaterialTheme.colorScheme.primary,
                     center = androidx.compose.ui.geometry.Offset(point.x, point.y),
                     radius = 6.dp.toPx()
