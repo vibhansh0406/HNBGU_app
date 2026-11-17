@@ -9,6 +9,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.drawscope.drawPath
+import androidx.compose.ui.graphics.drawscope.drawCircle
+import androidx.compose.ui.graphics.drawscope.drawPath
+import androidx.compose.ui.graphics.drawscope.drawCircle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
