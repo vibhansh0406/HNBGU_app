@@ -9,6 +9,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.drawscope.drawPath
+import androidx.compose.ui.graphics.drawscope.drawCircle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -2423,7 +2425,7 @@ private fun SemesterTrendChart(
                     if (index == 0) moveTo(point.x, point.y) else lineTo(point.x, point.y)
                 }
             }
-            this.drawPath(
+            drawPath(
                 path,
                 color = MaterialTheme.colorScheme.primary,
                 style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
@@ -2431,7 +2433,7 @@ private fun SemesterTrendChart(
 
             // Draw points
             points.forEach { point ->
-                this.drawCircle(
+                drawCircle(
                     color = MaterialTheme.colorScheme.primary,
                     center = androidx.compose.ui.geometry.Offset(point.x, point.y),
                     radius = 6.dp.toPx()
