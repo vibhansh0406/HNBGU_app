@@ -1386,12 +1386,12 @@ fun C1Dialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { title?.let { Text(it, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) } },
+        title = { if (title != null) Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) },
         text = content,
         confirmButton = {
-            confirmLabel?.let { label ->
+            if (confirmLabel != null) {
                 C1Button(
-                    text = label,
+                    text = confirmLabel,
                     onClick = onConfirm ?: { },
                     intent = confirmIntent,
                     enabled = onConfirm != null,
@@ -1400,9 +1400,9 @@ fun C1Dialog(
             }
         },
         dismissButton = {
-            dismissLabel?.let { label ->
+            if (dismissLabel != null) {
                 C1Button(
-                    text = label,
+                    text = dismissLabel,
                     onClick = onDismiss,
                     intent = C1ButtonIntent.GHOST,
                     modifier = Modifier.fillMaxWidth()
@@ -1434,7 +1434,7 @@ fun C1AppBar(
         if (onBack != null) {
             IconButton(onClick = onBack, modifier = Modifier.size(C1Height.touch)) {
                 Icon(
-                    imageVector = androidx.compose.material.icons.automirrored.filled.ArrowBack,
+                    imageVector = ArrowBack,
                     contentDescription = stringResource(R.string.action_back)
                 )
             }
