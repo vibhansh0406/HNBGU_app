@@ -1,5 +1,6 @@
 package `in`.campusone.app.ui.components
 
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -956,7 +958,8 @@ fun C1TopBar(
         horizontalArrangement = if (centerTitle) Arrangement.Center else Arrangement.spacedBy(C1Spacing.md)
     ) {
         if (onBack != null) {
-            IconButton(onClick = { onBack() }, modifier = Modifier.size(C1Height.touch)) {
+            val onBackClick = onBack
+            IconButton(onClick = onBackClick, modifier = Modifier.size(C1Height.touch)) {
                 Icon(
                     imageVector = ArrowBack,
                     contentDescription = stringResource(R.string.action_back)
@@ -1525,7 +1528,8 @@ fun C1AppBar(
         horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
     ) {
         if (onBack != null) {
-            IconButton(onClick = { onBack() }, modifier = Modifier.size(C1Height.touch)) {
+            val onBackClick = onBack
+            IconButton(onClick = onBackClick, modifier = Modifier.size(C1Height.touch)) {
                 Text(
                     "<",
                     fontWeight = FontWeight.Bold,
