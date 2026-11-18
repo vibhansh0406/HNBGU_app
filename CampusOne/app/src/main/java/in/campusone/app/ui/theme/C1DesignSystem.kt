@@ -12,6 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import `in`.campusone.app.R
 
 /**
  * CampusOne Design System — "Forest & Ivy" 2.0
@@ -565,8 +566,6 @@ data class C1ZIndex(
     val tooltip: Int = 1200
 )
 
-val C1ZIndex = C1ZIndex()
-
 // ============================================================================
 // ADAPTIVE HELPERS
 // ============================================================================
@@ -576,8 +575,8 @@ val C1ZIndex = C1ZIndex()
  * Prevents content from stretching too wide on large screens.
  */
 fun C1MaxContentWidth(windowSize: C1WindowSize): Dp = when (windowSize) {
-    C1WindowSize.COMPACT -> Dp.MAX_VALUE
-    C1WindowSize.MEDIUM -> Dp.MAX_VALUE
+    C1WindowSize.COMPACT -> Dp(Float.MAX_VALUE)
+    C1WindowSize.MEDIUM -> Dp(Float.MAX_VALUE)
     C1WindowSize.LARGE -> 900.dp
     C1WindowSize.EXPANDED -> 1200.dp
 }
