@@ -56,6 +56,7 @@ import `in`.campusone.app.domain.model.UserRole
 import `in`.campusone.app.ui.components.C1AppBar
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
+import `in`.campusone.app.ui.components.C1Dialog
 import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1SectionHeader
 import `in`.campusone.app.ui.components.C1StatusChip
@@ -487,10 +488,16 @@ private fun AddLostFoundDialog(
     var location by remember { mutableStateOf("") }
     var contact by remember { mutableStateOf("") }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Report Item", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) },
-        text = {
+    C1Dialog(
+        title = "Report Item",
+        onDismiss = onDismiss,
+        confirmLabel = "Submit",
+        onConfirm = {
+            if (title.isNotBlank() && location.isNotBlank() && contact.isNotBlank()) {
+                onSubmit(type, category.uppercase(), title.trim(), desc.trim(), location.trim(), contact.trim())
+            }
+        },
+        content = {
             Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                     listOf("LOST", "FOUND").forEach { t ->
@@ -509,26 +516,6 @@ private fun AddLostFoundDialog(
                 C1TextField(value = contact, onValueChange = { contact = it }, label = "Preferred contact (kept private)", modifier = Modifier.fillMaxWidth())
                 Spacer(modifier = Modifier.height(C1Spacing.md))
             }
-        },
-        confirmButton = {
-            C1Button(
-                text = "Submit",
-                onClick = {
-                    if (title.isNotBlank() && location.isNotBlank() && contact.isNotBlank()) {
-                        onSubmit(type, category.uppercase(), title.trim(), desc.trim(), location.trim(), contact.trim())
-                    }
-                },
-                intent = C1ButtonIntent.PRIMARY,
-                modifier = Modifier.fillMaxWidth()
-            )
-        },
-        dismissButton = {
-            C1Button(
-                text = "Cancel",
-                onClick = onDismiss,
-                intent = C1ButtonIntent.GHOST,
-                modifier = Modifier.fillMaxWidth()
-            )
         }
     )
 }
@@ -541,10 +528,12 @@ private fun ClaimRequestDialog(
 ) {
     var message by remember { mutableStateOf("") }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Contact ${item.posterName}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) },
-        text = {
+    C1Dialog(
+        title = "Contact ${item.posterName}",
+        onDismiss = onDismiss,
+        confirmLabel = "Send request",
+        onConfirm = { if (message.isNotBlank()) onSubmit(message.trim()) },
+        content = {
             Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                 Text(
                     "Your contact details stay private until ${item.posterName} accepts your request.",
@@ -559,22 +548,6 @@ private fun ClaimRequestDialog(
                 )
                 Spacer(modifier = Modifier.height(C1Spacing.md))
             }
-        },
-        confirmButton = {
-            C1Button(
-                text = "Send request",
-                onClick = { if (message.isNotBlank()) onSubmit(message.trim()) },
-                intent = C1ButtonIntent.PRIMARY,
-                modifier = Modifier.fillMaxWidth()
-            )
-        },
-        dismissButton = {
-            C1Button(
-                text = "Cancel",
-                onClick = onDismiss,
-                intent = C1ButtonIntent.GHOST,
-                modifier = Modifier.fillMaxWidth()
-            )
         }
     )
 }
