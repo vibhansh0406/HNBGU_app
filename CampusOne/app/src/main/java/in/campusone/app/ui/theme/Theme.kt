@@ -19,60 +19,11 @@ import androidx.compose.ui.unit.sp
 import `in`.campusone.app.R
 
 // ============================================================================
-// MATERIAL3 COLOR SCHEME
+// MATERIAL3 COLOR SCHEME — Use defaults, custom colors via ExtendedColors
 // ============================================================================
 
-private val LightColorScheme = lightColorScheme(
-    primary = LightSemanticColors.primary,
-    onPrimary = LightSemanticColors.onPrimary,
-    primaryContainer = LightSemanticColors.primaryContainer,
-    onPrimaryContainer = LightSemanticColors.onPrimaryContainer,
-    secondary = LightSemanticColors.secondary,
-    onSecondary = LightSemanticColors.onSecondary,
-    secondaryContainer = LightSemanticColors.secondaryContainer,
-    onSecondaryContainer = LightSemanticColors.onSecondaryContainer,
-    tertiary = LightSemanticColors.tertiary,
-    onTertiary = LightSemanticColors.onTertiary,
-    tertiaryContainer = LightSemanticColors.tertiaryContainer,
-    onTertiaryContainer = LightSemanticColors.onTertiaryContainer,
-    error = LightSemanticColors.error,
-    onError = LightSemanticColors.onError,
-    errorContainer = LightSemanticColors.errorContainer,
-    onErrorContainer = LightSemanticColors.onErrorContainer,
-    background = LightSemanticColors.background,
-    onBackground = LightSemanticColors.onBackground,
-    surface = LightSemanticColors.surface,
-    onSurface = LightSemanticColors.onSurface,
-    surfaceVariant = LightSemanticColors.surfaceVariant,
-    onSurfaceVariant = LightSemanticColors.onSurfaceVariant,
-    outline = LightSemanticColors.outline
-)
-
-private val DarkColorScheme = darkColorScheme(
-    primary = DarkSemanticColors.primary,
-    onPrimary = DarkSemanticColors.onPrimary,
-    primaryContainer = DarkSemanticColors.primaryContainer,
-    onPrimaryContainer = DarkSemanticColors.onPrimaryContainer,
-    secondary = DarkSemanticColors.secondary,
-    onSecondary = DarkSemanticColors.onSecondary,
-    secondaryContainer = DarkSemanticColors.secondaryContainer,
-    onSecondaryContainer = DarkSemanticColors.onSecondaryContainer,
-    tertiary = DarkSemanticColors.tertiary,
-    onTertiary = DarkSemanticColors.onTertiary,
-    tertiaryContainer = DarkSemanticColors.tertiaryContainer,
-    onTertiaryContainer = DarkSemanticColors.onTertiaryContainer,
-    error = DarkSemanticColors.error,
-    onError = DarkSemanticColors.onError,
-    errorContainer = DarkSemanticColors.errorContainer,
-    onErrorContainer = DarkSemanticColors.onErrorContainer,
-    background = DarkSemanticColors.background,
-    onBackground = DarkSemanticColors.onBackground,
-    surface = DarkSemanticColors.surface,
-    onSurface = DarkSemanticColors.onSurface,
-    surfaceVariant = DarkSemanticColors.surfaceVariant,
-    onSurfaceVariant = DarkSemanticColors.onSurfaceVariant,
-    outline = DarkSemanticColors.outline
-)
+private val LightColorScheme = lightColorScheme()
+private val DarkColorScheme = darkColorScheme()
 
 // ============================================================================
 // SHAPES
