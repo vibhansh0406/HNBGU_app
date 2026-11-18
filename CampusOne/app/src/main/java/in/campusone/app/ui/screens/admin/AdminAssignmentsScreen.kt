@@ -41,6 +41,7 @@ import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1ElevatedCard
 import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.components.C1Tone
+import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
 
@@ -216,7 +217,7 @@ private fun AssignmentDialog(
                     value = description,
                     onValueChange = onDescriptionChange,
                     label = "Description",
-                    minLines = 2,
+                    singleLine = false,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
