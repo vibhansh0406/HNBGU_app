@@ -31,9 +31,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageVector
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.theme.C1Height
@@ -127,5 +125,5 @@ private val adminActions = listOf(
 private data class AdminAction(
     val route: String,
     val label: String,
-    val icon: ImageVector
+    val icon: androidx.compose.ui.graphics.ImageVector
 )
