@@ -556,7 +556,7 @@ fun MoreHubScreen(
                     MoreSubScreen.DIRECTORY -> CampusDirectoryScreen(uiState, viewModel)
                     MoreSubScreen.PRIVACY_POLICY -> PrivacyPolicyScreen()
                     MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
-                        uiState = adminViewModel.uiState,
+                        uiState = adminState,
                         viewModel = adminViewModel,
                         onBack = { activeScreen = MoreSubScreen.HUB },
                         onManageModerators = { activeScreen = MoreSubScreen.ADMIN_MODERATORS },
