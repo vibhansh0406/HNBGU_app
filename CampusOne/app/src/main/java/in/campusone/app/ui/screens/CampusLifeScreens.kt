@@ -711,10 +711,12 @@ private fun SuggestCorrectionDialog(
 ) {
     var change by remember { mutableStateOf("") }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Suggest correction", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) },
-        text = {
+    C1Dialog(
+        title = "Suggest correction",
+        onDismiss = onDismiss,
+        confirmLabel = "Submit",
+        onConfirm = { if (change.isNotBlank()) onSubmit(change.trim()) },
+        content = {
             Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                 Text("For: ${contact.name}", style = MaterialTheme.typography.bodySmall)
                 Spacer(modifier = Modifier.height(C1Spacing.md))
@@ -726,22 +728,6 @@ private fun SuggestCorrectionDialog(
                 )
                 Spacer(modifier = Modifier.height(C1Spacing.md))
             }
-        },
-        confirmButton = {
-            C1Button(
-                text = "Submit",
-                onClick = { if (change.isNotBlank()) onSubmit(change.trim()) },
-                intent = C1ButtonIntent.PRIMARY,
-                modifier = Modifier.fillMaxWidth()
-            )
-        },
-        dismissButton = {
-            C1Button(
-                text = "Cancel",
-                onClick = onDismiss,
-                intent = C1ButtonIntent.GHOST,
-                modifier = Modifier.fillMaxWidth()
-            )
         }
     )
 }

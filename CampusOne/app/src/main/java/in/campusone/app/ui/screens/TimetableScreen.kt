@@ -181,12 +181,8 @@ fun TimetableScreen(
                                 `in`.campusone.app.ui.components.C1FilterChip(
                                     selected = selectedDayOfWeek == dayNum,
                                     onClick = { selectedDayOfWeek = dayNum },
-                                    label = {
-                                        Text(
-                                            DayOfWeek.of(dayNum)
-                                                .getDisplayName(JavaTextStyle.SHORT, locale)
-                                        )
-                                    }
+                                    label = DayOfWeek.of(dayNum)
+                                        .getDisplayName(JavaTextStyle.SHORT, locale)
                                 )
                             }
                         }
@@ -255,7 +251,7 @@ private fun ReminderLeadTimeCard(
                     `in`.campusone.app.ui.components.C1FilterChip(
                         selected = reminderLeadMinutes == mins,
                         onClick = { onUpdateReminderMinutes(mins) },
-                        label = { Text(stringResource(R.string.timetable_reminder_before, mins)) }
+                        label = stringResource(R.string.timetable_reminder_before, mins)
                     )
                 }
             }
