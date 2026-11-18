@@ -1452,3 +1452,102 @@ fun C1CompactStatCard(
         }
     }
 }
+
+/**
+ * Consistent alert dialog: rounded surface, theme-aware buttons.
+ * Replaces ad-hoc AlertDialog usage across screens.
+ */
+@Composable
+fun C1Dialog(
+    title: String?,
+    onDismiss: () -> Unit,
+    confirmLabel: String?,
+    onConfirm: (() -> Unit)? = null,
+    confirmIntent: C1ButtonIntent = C1ButtonIntent.PRIMARY,
+    dismissLabel: String? = "Cancel",
+    content: @Composable () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        text = {
+            Column {
+                if (title != null) {
+                    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(C1Spacing.xs))
+                }
+                content()
+            }
+        },
+        confirmButton = {
+            if (confirmLabel != null) {
+                C1Button(
+                    text = confirmLabel,
+                    onClick = onConfirm ?: { },
+                    intent = confirmIntent,
+                    enabled = onConfirm != null,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        dismissButton = {
+            if (dismissLabel != null) {
+                C1Button(
+                    text = dismissLabel,
+                    onClick = onDismiss,
+                    intent = C1ButtonIntent.GHOST,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    )
+}
+
+/**
+ * Consistent screen header: title, optional subtitle, back affordance,
+ * and trailing actions. Replaces ad-hoc TopAppBar usage across screens.
+ */
+@Composable
+fun C1AppBar(
+    title: String,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+    onBack: (() -> Unit)? = null,
+    actions: (@Composable RowScope.() -> Unit)? = null
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = C1Spacing.lg, vertical = C1Spacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
+    ) {
+        if (onBack != null) {
+            IconButton(onClick = onBack, modifier = Modifier.size(C1Height.touch)) {
+                Text(
+                    "<",
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.semantics { heading() }
+            )
+            if (!subtitle.isNullOrBlank()) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        if (actions != null) {
+            actions()
+        }
+    }
+}
