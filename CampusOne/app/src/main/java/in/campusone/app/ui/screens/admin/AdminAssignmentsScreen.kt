@@ -229,7 +229,7 @@ private fun AssignmentDialog(
                             `in`.campusone.app.ui.components.C1FilterChip(
                                 selected = priority == p,
                                 onClick = { onPriorityChange(p) },
-                                label = { Text(p) }
+                                label = p
                             )
                         }
                     }
