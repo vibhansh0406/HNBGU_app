@@ -1386,8 +1386,15 @@ fun C1Dialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { if (title != null) Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) },
-        text = content,
+        text = {
+            Column {
+                if (title != null) {
+                    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(C1Spacing.xs))
+                }
+                content()
+            }
+        },
         confirmButton = {
             if (confirmLabel != null) {
                 C1Button(
@@ -1434,7 +1441,7 @@ fun C1AppBar(
         if (onBack != null) {
             IconButton(onClick = onBack, modifier = Modifier.size(C1Height.touch)) {
                 Icon(
-                    imageVector = ArrowBack,
+                    imageVector = androidx.compose.material.icons.automirrored.filled.ArrowBack,
                     contentDescription = stringResource(R.string.action_back)
                 )
             }
