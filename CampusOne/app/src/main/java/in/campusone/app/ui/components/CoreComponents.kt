@@ -850,7 +850,7 @@ fun C1TopBar(
         if (onBack != null) {
             IconButton(onClick = onBack, modifier = Modifier.size(C1Height.touch)) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    imageVector = Icons.Filled.ArrowBack,
                     contentDescription = stringResource(R.string.action_back)
                 )
             }
@@ -1441,7 +1441,7 @@ fun C1AppBar(
         if (onBack != null) {
             IconButton(onClick = onBack, modifier = Modifier.size(C1Height.touch)) {
                 Icon(
-                    imageVector = Icons.Default.ArrowBack,
+                    imageVector = Icons.Filled.ArrowBack,
                     contentDescription = stringResource(R.string.action_back)
                 )
             }
