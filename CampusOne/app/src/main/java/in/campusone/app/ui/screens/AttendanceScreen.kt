@@ -138,12 +138,12 @@ fun AttendanceScreen(
                     `in`.campusone.app.ui.components.C1FilterChip(
                         selected = historyWindowDays == 7,
                         onClick = { historyWindowDays = 7 },
-                        label = { Text(stringResource(R.string.history_weekly)) }
+                        label = stringResource(R.string.history_weekly)
                     )
                     `in`.campusone.app.ui.components.C1FilterChip(
                         selected = historyWindowDays == 30,
                         onClick = { historyWindowDays = 30 },
-                        label = { Text(stringResource(R.string.history_monthly)) }
+                        label = stringResource(R.string.history_monthly)
                     )
                 }
                 Text(
