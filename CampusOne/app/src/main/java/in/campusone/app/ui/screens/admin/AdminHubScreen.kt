@@ -47,7 +47,7 @@ fun AdminHubScreen(
     onManageModerators: () -> Unit,
     onNavigate: (String) -> Unit
 ) {
-    val state by uiState.collectAsStateWithLifecycle()
+    val state = uiState
 
     Scaffold(
         topBar = {
