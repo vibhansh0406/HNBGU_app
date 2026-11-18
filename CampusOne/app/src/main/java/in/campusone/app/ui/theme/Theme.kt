@@ -1,12 +1,11 @@
 package `in`.campusone.app.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -48,11 +47,8 @@ private val LightColorScheme = lightColorScheme(
     onSurfaceVariant = LightSemanticColors.onSurfaceVariant,
     outline = LightSemanticColors.outline,
     outlineVariant = LightSemanticColors.outlineVariant,
-    scrim = LightSemanticColors.scrim,
-    inverseSurface = LightSemanticColors.inverseSurface,
-    inverseOnSurface = LightSemanticColors.inverseOnSurface,
-    inversePrimary = LightSemanticColors.inversePrimary,
-    surfaceTint = LightSemanticColors.surfaceTint
+    surfaceTint = LightSemanticColors.surfaceTint,
+    scrim = LightSemanticColors.scrim
 )
 
 private val DarkColorScheme = darkColorScheme(
@@ -80,11 +76,8 @@ private val DarkColorScheme = darkColorScheme(
     onSurfaceVariant = DarkSemanticColors.onSurfaceVariant,
     outline = DarkSemanticColors.outline,
     outlineVariant = DarkSemanticColors.outlineVariant,
-    scrim = DarkSemanticColors.scrim,
-    inverseSurface = DarkSemanticColors.inverseSurface,
-    inverseOnSurface = DarkSemanticColors.inverseOnSurface,
-    inversePrimary = DarkSemanticColors.inversePrimary,
-    surfaceTint = DarkSemanticColors.surfaceTint
+    surfaceTint = DarkSemanticColors.surfaceTint,
+    scrim = DarkSemanticColors.scrim
 )
 
 // ============================================================================
