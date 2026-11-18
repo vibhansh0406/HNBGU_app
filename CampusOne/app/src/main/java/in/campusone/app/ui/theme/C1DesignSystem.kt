@@ -4,6 +4,11 @@ import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -475,11 +480,6 @@ data class C1Typography(
     val labelMedium: androidx.compose.ui.text.TextStyle,
     val labelSmall: androidx.compose.ui.text.TextStyle
 )
-
-import androidx.compose.ui.text.FontWeight
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.Font
 
 val CampusOneDisplayFamily = FontFamily(
     Font(R.font.manrope_variable, FontWeight.Normal),
