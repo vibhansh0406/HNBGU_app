@@ -16,13 +16,10 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,6 +35,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.R
 import `in`.campusone.app.data.local.entity.AssignmentEntity
+import `in`.campusone.app.ui.components.C1AppBar
+import `in`.campusone.app.ui.components.C1Button
+import `in`.campusone.app.ui.components.C1ButtonIntent
+import `in`.campusone.app.ui.components.C1ElevatedCard
+import `in`.campusone.app.ui.components.C1TextField
+import `in`.campusone.app.ui.components.C1Tone
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
 
@@ -58,13 +61,9 @@ fun AdminAssignmentsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Manage Assignments") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
+            C1AppBar(
+                title = "Manage Assignments",
+                onBack = onBack
             )
         },
         floatingActionButton = {
@@ -82,12 +81,23 @@ fun AdminAssignmentsScreen(
         }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = C1Spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
         ) {
             items(uiState.assignments, key = { it.id }) { assignment ->
-                ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                C1ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        editingAssignment = assignment
+                        subjectTag = assignment.subjectTag
+                        title = assignment.title
+                        description = assignment.description
+                        priority = assignment.priority
+                        dueDate = assignment.dueDateFormatted
+                        showDialog = true
+                    }
+                ) {
+                    Column(modifier = Modifier.padding(C1Spacing.lg)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column {
                                 Text(text = assignment.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -101,10 +111,10 @@ fun AdminAssignmentsScreen(
                             )
                         }
                         if (assignment.description.isNotBlank()) {
-                            Spacer(modifier = Modifier.height(6.dp))
+                            Spacer(modifier = Modifier.height(C1Spacing.xs))
                             Text(text = assignment.description, style = MaterialTheme.typography.bodyMedium, maxLines = 2)
                         }
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                             IconButton(onClick = {
                                 editingAssignment = assignment
                                 subjectTag = assignment.subjectTag
@@ -185,37 +195,70 @@ private fun AssignmentDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Assignment") },
+        title = { Text("Assignment", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = subjectTag, onValueChange = onSubjectTagChange, label = { Text("Subject Tag (e.g. OS • CS302)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = title, onValueChange = onTitleChange, label = { Text("Title") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = description, onValueChange = onDescriptionChange, label = { Text("Description") }, minLines = 2, modifier = Modifier.fillMaxWidth())
+            Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                C1TextField(
+                    value = subjectTag,
+                    onValueChange = onSubjectTagChange,
+                    label = "Subject Tag (e.g. OS • CS302)",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1TextField(
+                    value = title,
+                    onValueChange = onTitleChange,
+                    label = "Title",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1TextField(
+                    value = description,
+                    onValueChange = onDescriptionChange,
+                    label = "Description",
+                    minLines = 2,
+                    modifier = Modifier.fillMaxWidth()
+                )
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    androidx.compose.material3.DropdownMenu(
-                        expanded = true,
-                        onDismissRequest = { },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+                    Column {
+                        Text("Priority: $priority", style = MaterialTheme.typography.bodyMedium)
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
                         listOf("HIGH", "MEDIUM", "LOW").forEach { p ->
-                            androidx.compose.material3.DropdownMenuItem(
+                            `in`.campusone.app.ui.components.C1FilterChip(
+                                selected = priority == p,
                                 onClick = { onPriorityChange(p) },
-                                text = { Text(p) }
+                                label = { Text(p) }
                             )
                         }
                     }
-                    Text("Priority: $priority", style = MaterialTheme.typography.bodyMedium)
                 }
-                OutlinedTextField(value = dueDate, onValueChange = onDueDateChange, label = { Text("Due Date (e.g. In 3 days • 05:00 PM)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                C1TextField(
+                    value = dueDate,
+                    onValueChange = onDueDateChange,
+                    label = "Due Date (e.g. In 3 days • 05:00 PM)",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         },
         confirmButton = {
-            Button(onClick = onSave, enabled = title.isNotBlank() && subjectTag.isNotBlank()) {
-                Text("Save")
-            }
+            C1Button(
+                text = "Save",
+                onClick = onSave,
+                intent = C1ButtonIntent.PRIMARY,
+                enabled = title.isNotBlank() && subjectTag.isNotBlank(),
+                modifier = Modifier.fillMaxWidth()
+            )
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            C1Button(
+                text = "Cancel",
+                onClick = onDismiss,
+                intent = C1ButtonIntent.GHOST,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     )
 }

@@ -300,8 +300,8 @@ fun MoreHubScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(C1Spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
         ) {
             item {
                 Text(
@@ -348,7 +348,7 @@ fun MoreHubScreen(
             }
 
             item {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(C1Spacing.xs))
                 Text(
                     text = stringResource(R.string.more_campus_community),
                     style = MaterialTheme.typography.titleLarge,
@@ -384,7 +384,7 @@ fun MoreHubScreen(
                 )
             }
             item {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(C1Spacing.xs))
                 Text(
                     text = "Campus Life & Utilities",
                     style = MaterialTheme.typography.titleLarge,
@@ -467,7 +467,7 @@ fun MoreHubScreen(
                     onClick = onSignOut
                 )
             }
-            item { Spacer(modifier = Modifier.height(24.dp)) }
+            item { Spacer(modifier = Modifier.height(C1Spacing.md)) }
         }
         if (showRoleRequest) {
             AlertDialog(

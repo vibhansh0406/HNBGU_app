@@ -800,8 +800,7 @@ fun C1FilterChip(
     val compColors = componentColors
     Surface(
         modifier = modifier
-            .heightIn(min = C1Height.chip)
-            .fillMaxWidth(),
+            .heightIn(min = C1Height.chip),
         shape = C1Radius.pill,
         color = if (selected) compColors.chipBackgroundSelected else compColors.chipBackground,
         border = BorderStroke(
@@ -1045,8 +1044,7 @@ fun C1ToggleButton(
     val compColors = componentColors
     Surface(
         modifier = modifier
-            .heightIn(min = C1Height.chip)
-            .fillMaxWidth(),
+            .heightIn(min = C1Height.chip),
         shape = C1Radius.pill,
         color = if (selected) compColors.chipBackgroundSelected else compColors.chipBackground,
         border = BorderStroke(
@@ -1367,6 +1365,97 @@ fun C1CompactStatCard(
                     )
                 }
             }
+        }
+    }
+}
+
+/**
+ * Consistent alert dialog: rounded surface, hairline border, theme-aware
+ * buttons. Replaces ad-hoc AlertDialog and raw Dialog usage across screens.
+ */
+@Composable
+fun C1Dialog(
+    title: String?,
+    onDismiss: () -> Unit,
+    confirmLabel: String?,
+    onConfirm: (() -> Unit)? = null,
+    confirmIntent: C1ButtonIntent = C1ButtonIntent.PRIMARY,
+    dismissLabel: String? = "Cancel",
+    content: @Composable () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { title?.let { Text(it, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) } },
+        text = content,
+        confirmButton = {
+            confirmLabel?.let { label ->
+                C1Button(
+                    text = label,
+                    onClick = onConfirm ?: { },
+                    intent = confirmIntent,
+                    enabled = onConfirm != null,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        dismissButton = {
+            dismissLabel?.let { label ->
+                C1Button(
+                    text = label,
+                    onClick = onDismiss,
+                    intent = C1ButtonIntent.GHOST,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    )
+}
+
+/**
+ * Consistent screen header: title, optional subtitle, back affordance,
+ * and trailing actions. Replaces ad-hoc TopAppBar and Column headers.
+ */
+@Composable
+fun C1AppBar(
+    title: String,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+    onBack: (() -> Unit)? = null,
+    actions: (@Composable RowScope.() -> Unit)? = null
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = C1Spacing.lg, vertical = C1Spacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
+    ) {
+        if (onBack != null) {
+            IconButton(onClick = onBack, modifier = Modifier.size(C1Height.touch)) {
+                Icon(
+                    imageVector = androidx.compose.material.icons.automirrored.filled.ArrowBack,
+                    contentDescription = stringResource(R.string.action_back)
+                )
+            }
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.semantics { heading() }
+            )
+            if (!subtitle.isNullOrBlank()) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        if (actions != null) {
+            actions()
         }
     }
 }

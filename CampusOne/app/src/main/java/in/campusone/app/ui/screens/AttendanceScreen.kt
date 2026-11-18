@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -136,12 +135,12 @@ fun AttendanceScreen(
             Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                 C1SectionHeader(title = stringResource(R.string.attendance_history))
                 Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
-                    FilterChip(
+                    `in`.campusone.app.ui.components.C1FilterChip(
                         selected = historyWindowDays == 7,
                         onClick = { historyWindowDays = 7 },
                         label = { Text(stringResource(R.string.history_weekly)) }
                     )
-                    FilterChip(
+                    `in`.campusone.app.ui.components.C1FilterChip(
                         selected = historyWindowDays == 30,
                         onClick = { historyWindowDays = 30 },
                         label = { Text(stringResource(R.string.history_monthly)) }

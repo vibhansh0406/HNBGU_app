@@ -16,13 +16,10 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,8 +35,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.R
 import `in`.campusone.app.data.local.entity.ExamEntity
+import `in`.campusone.app.ui.components.C1AppBar
+import `in`.campusone.app.ui.components.C1Button
+import `in`.campusone.app.ui.components.C1ButtonIntent
+import `in`.campusone.app.ui.components.C1ElevatedCard
+import `in`.campusone.app.ui.components.C1TextField
+import `in`.campusone.app.ui.components.C1Tone
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,13 +65,9 @@ fun AdminExamsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Manage Exams") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
+            C1AppBar(
+                title = "Manage Exams",
+                onBack = onBack
             )
         },
         floatingActionButton = {
@@ -84,12 +86,24 @@ fun AdminExamsScreen(
         }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = C1Spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
         ) {
             items(uiState.exams, key = { it.id }) { exam ->
-                ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                C1ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        editingExam = exam
+                        subjectCode = exam.subjectCode
+                        subjectName = exam.subjectName
+                        examTitle = exam.examTitle
+                        examDate = exam.examDateIso
+                        examTime = exam.examTimeFormatted
+                        venue = exam.roomOrCenter
+                        showDialog = true
+                    }
+                ) {
+                    Column(modifier = Modifier.padding(C1Spacing.lg)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column {
                                 Text(text = "${exam.subjectCode} • ${exam.subjectName}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -98,7 +112,7 @@ fun AdminExamsScreen(
                             }
                             Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                         }
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                             IconButton(onClick = {
                                 editingExam = exam
                                 subjectCode = exam.subjectCode
@@ -179,24 +193,69 @@ private fun ExamDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Exam") },
+        title = { Text("Exam", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = subjectCode, onValueChange = onSubjectCodeChange, label = { Text("Subject Code") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = subjectName, onValueChange = onSubjectNameChange, label = { Text("Subject Name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = examTitle, onValueChange = onExamTitleChange, label = { Text("Exam Title") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = examDate, onValueChange = onExamDateChange, label = { Text("Date (YYYY-MM-DD)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = examTime, onValueChange = onExamTimeChange, label = { Text("Time") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = venue, onValueChange = onVenueChange, label = { Text("Venue / Hall") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                C1TextField(
+                    value = subjectCode,
+                    onValueChange = onSubjectCodeChange,
+                    label = "Subject Code",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1TextField(
+                    value = subjectName,
+                    onValueChange = onSubjectNameChange,
+                    label = "Subject Name",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1TextField(
+                    value = examTitle,
+                    onValueChange = onExamTitleChange,
+                    label = "Exam Title",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1TextField(
+                    value = examDate,
+                    onValueChange = onExamDateChange,
+                    label = "Date (YYYY-MM-DD)",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1TextField(
+                    value = examTime,
+                    onValueChange = onExamTimeChange,
+                    label = "Time",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1TextField(
+                    value = venue,
+                    onValueChange = onVenueChange,
+                    label = "Venue / Hall",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         },
         confirmButton = {
-            Button(onClick = onSave, enabled = subjectCode.isNotBlank() && subjectName.isNotBlank()) {
-                Text("Save")
-            }
+            C1Button(
+                text = "Save",
+                onClick = onSave,
+                intent = C1ButtonIntent.PRIMARY,
+                enabled = subjectCode.isNotBlank() && subjectName.isNotBlank(),
+                modifier = Modifier.fillMaxWidth()
+            )
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            C1Button(
+                text = "Cancel",
+                onClick = onDismiss,
+                intent = C1ButtonIntent.GHOST,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     )
 }

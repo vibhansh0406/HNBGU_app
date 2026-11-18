@@ -13,7 +13,6 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.FindInPage
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,6 +27,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.data.local.entity.LostFoundEntity
+import `in`.campusone.app.ui.components.C1AppBar
+import `in`.campusone.app.ui.components.C1Button
+import `in`.campusone.app.ui.components.C1ButtonIntent
+import `in`.campusone.app.ui.components.C1IconButton
+import `in`.campusone.app.ui.components.C1SurfaceCard
+import `in`.campusone.app.ui.components.C1Tone
+import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
 
@@ -40,13 +46,9 @@ fun AdminLostFoundScreen(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Lost & Found") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                }
+            C1AppBar(
+                title = "Lost & Found",
+                onBack = onBack
             )
         },
         floatingActionButton = {
@@ -56,12 +58,15 @@ fun AdminLostFoundScreen(
         }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = C1Spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
         ) {
             items(uiState.lostFound, key = { it.id }) { item ->
-                ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                C1SurfaceCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { }
+                ) {
+                    Column(modifier = Modifier.padding(C1Spacing.lg)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column {
                                 Text(text = "${if (item.type == "LOST") "🔍" else "📦"}  ${item.itemTitle}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -69,17 +74,22 @@ fun AdminLostFoundScreen(
                                 Text(text = item.location, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Text(text = item.dateFormatted, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                                 if (!item.isResolved) {
-                                    androidx.compose.material3.Button(onClick = { viewModel.resolveLostFound(item.id) }) {
-                                        Text("Resolve")
-                                    }
+                                    C1Button(
+                                        text = "Resolve",
+                                        onClick = { viewModel.resolveLostFound(item.id) },
+                                        intent = C1ButtonIntent.PRIMARY
+                                    )
                                 } else {
                                     Icon(Icons.Default.CheckCircle, contentDescription = "Resolved", tint = MaterialTheme.colorScheme.primary)
                                 }
-                                androidx.compose.material3.IconButton(onClick = { viewModel.hideLostFound(item.id) }) {
-                                    Icon(Icons.Default.FindInPage, contentDescription = "Hide")
-                                }
+                                C1IconButton(
+                                    onClick = { viewModel.hideLostFound(item.id) },
+                                    content = {
+                                        Icon(Icons.Default.FindInPage, contentDescription = "Hide")
+                                    }
+                                )
                             }
                         }
                     }

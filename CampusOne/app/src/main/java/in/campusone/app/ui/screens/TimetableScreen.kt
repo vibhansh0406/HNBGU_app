@@ -25,7 +25,6 @@ import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -179,7 +178,7 @@ fun TimetableScreen(
                     item {
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                             (1..6).forEach { dayNum ->
-                                FilterChip(
+                                `in`.campusone.app.ui.components.C1FilterChip(
                                     selected = selectedDayOfWeek == dayNum,
                                     onClick = { selectedDayOfWeek = dayNum },
                                     label = {
@@ -253,7 +252,7 @@ private fun ReminderLeadTimeCard(
             Spacer(modifier = Modifier.height(C1Spacing.sm))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                 listOf(5, 10, 15, 30).forEach { mins ->
-                    FilterChip(
+                    `in`.campusone.app.ui.components.C1FilterChip(
                         selected = reminderLeadMinutes == mins,
                         onClick = { onUpdateReminderMinutes(mins) },
                         label = { Text(stringResource(R.string.timetable_reminder_before, mins)) }

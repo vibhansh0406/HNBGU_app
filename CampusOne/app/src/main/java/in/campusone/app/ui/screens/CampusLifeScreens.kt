@@ -4,7 +4,6 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,15 +24,12 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -50,15 +46,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import `in`.campusone.app.data.local.entity.CampusEventEntity
 import `in`.campusone.app.data.local.entity.ClubEntity
 import `in`.campusone.app.data.local.entity.DirectoryContactEntity
 import `in`.campusone.app.data.local.entity.LostFoundEntity
 import `in`.campusone.app.domain.model.EventRsvpStatus
 import `in`.campusone.app.domain.model.UserRole
+import `in`.campusone.app.ui.components.C1AppBar
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1EmptyState
@@ -91,27 +86,10 @@ fun EventsAndClubsScreen(
 
     Scaffold(
         topBar = {
-            Column {
-                Text(
-                    text = "Events & Clubs",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp)
-                )
-                TabRow(selectedTabIndex = selectedTab) {
-                    Tab(
-                        selected = selectedTab == 0,
-                        onClick = { selectedTab = 0 },
-                        text = { Text("Events") }
-                    )
-                    Tab(
-                        selected = selectedTab == 1,
-                        onClick = { selectedTab = 1 },
-                        text = { Text("Clubs") }
-                    )
-                }
-            }
+            C1AppBar(
+                title = "Events & Clubs",
+                onBack = { }
+            )
         },
         floatingActionButton = {
             if (selectedTab == 0 && canCreateEvents) {
@@ -157,33 +135,37 @@ private fun EventsList(
     onRsvp: (CampusEventEntity, EventRsvpStatus) -> Unit
 ) {
     if (events.isEmpty()) {
-        C1EmptyState("No upcoming events", Icons.Default.Event)
+        C1EmptyState(
+            icon = Icons.Default.Event,
+            title = "No upcoming events",
+            message = "Events will appear here once published."
+        )
         return
     }
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        modifier = Modifier.fillMaxSize().padding(C1Spacing.lg),
+        verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
     ) {
         items(events, key = { it.id }) { event ->
             C1SurfaceCard(
                 modifier = Modifier.fillMaxWidth(),
                 containerColor = MaterialTheme.colorScheme.surface
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(C1Spacing.lg)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Event, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(C1Spacing.sm))
                         Text(event.category, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(C1Spacing.sm))
                     Text(event.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Text(event.clubName, style = MaterialTheme.typography.bodySmall)
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(C1Spacing.xs))
                     Text(event.description, style = MaterialTheme.typography.bodyMedium, maxLines = 3)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(C1Spacing.sm))
                     Text("Venue: ${event.venue} | ${event.eventDateFormatted}", style = MaterialTheme.typography.bodySmall)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Spacer(modifier = Modifier.height(C1Spacing.sm))
+                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                         FilterChip(
                             selected = event.myRsvpStatus == "GOING",
                             onClick = {
@@ -211,33 +193,37 @@ private fun ClubsList(
     onToggleFollow: (ClubEntity, Boolean) -> Unit
 ) {
     if (clubs.isEmpty()) {
-        C1EmptyState("No clubs yet", Icons.Default.Group)
+        C1EmptyState(
+            icon = Icons.Default.Group,
+            title = "No clubs yet",
+            message = "Clubs will appear here once approved."
+        )
         return
     }
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        modifier = Modifier.fillMaxSize().padding(C1Spacing.lg),
+        verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
     ) {
         items(clubs, key = { it.id }) { club ->
             C1SurfaceCard(
                 modifier = Modifier.fillMaxWidth(),
                 containerColor = MaterialTheme.colorScheme.surface
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(C1Spacing.lg)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(club.logoEmojiOrUrl, style = MaterialTheme.typography.headlineMedium)
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(C1Spacing.md))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(club.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                             Text("${club.category} • ${club.memberCount} members", style = MaterialTheme.typography.bodySmall)
                         }
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(C1Spacing.sm))
                     Text(club.description, style = MaterialTheme.typography.bodyMedium, maxLines = 3)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(C1Spacing.sm))
                     Text(club.contactEmail, style = MaterialTheme.typography.bodySmall)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Spacer(modifier = Modifier.height(C1Spacing.sm))
+                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                         FilterChip(
                             selected = club.isFollowedByMe,
                             onClick = { onToggleFollow(club, !club.isFollowedByMe) },
@@ -263,45 +249,76 @@ private fun CreateEventDialog(
     var category by remember { mutableStateOf("TECH") }
     var daysFromNow by remember { mutableStateOf("7") }
 
-    Dialog(onDismissRequest = onDismiss) {
-        C1SurfaceCard(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            containerColor = MaterialTheme.colorScheme.surface
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Propose Event", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(12.dp))
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Propose Event", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                 if (clubs.isEmpty()) {
                     Text("No approved clubs available.", style = MaterialTheme.typography.bodyMedium)
                 } else {
                     Text("Club: ${clubs[clubIndex.coerceIn(0, clubs.lastIndex)].name}", style = MaterialTheme.typography.bodySmall)
                     TextButton(onClick = { clubIndex = (clubIndex + 1) % clubs.size }) { Text("Switch club") }
                 }
-                C1TextField(value = title, onValueChange = { title = it }, label = "Event title", modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
-                C1TextField(value = desc, onValueChange = { desc = it }, label = "Description", modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
-                C1TextField(value = venue, onValueChange = { venue = it }, label = "Venue", modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
-                C1TextField(value = category, onValueChange = { category = it }, label = "Category (TECH/CULTURAL/SPORTS)", modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
-                C1TextField(value = daysFromNow, onValueChange = { daysFromNow = it }, label = "Days from now", modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    C1Button(text = "Cancel", onClick = onDismiss, intent = C1ButtonIntent.GHOST)
-                    C1Button(
-                        text = "Create",
-                        onClick = {
-                            if (clubs.isNotEmpty() && title.isNotBlank() && venue.isNotBlank()) {
-                                val club = clubs[clubIndex.coerceIn(0, clubs.lastIndex)]
-                                onCreate(club.id, club.name, category.uppercase(), title.trim(), desc.trim(), venue.trim(), "In $daysFromNow day(s)", daysFromNow.toIntOrNull() ?: 7)
-                            }
-                        }
-                    )
-                }
+                C1TextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = "Event title",
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(C1Spacing.xs))
+                C1TextField(
+                    value = desc,
+                    onValueChange = { desc = it },
+                    label = "Description",
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(C1Spacing.xs))
+                C1TextField(
+                    value = venue,
+                    onValueChange = { venue = it },
+                    label = "Venue",
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(C1Spacing.xs))
+                C1TextField(
+                    value = category,
+                    onValueChange = { category = it },
+                    label = "Category (TECH/CULTURAL/SPORTS)",
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(C1Spacing.xs))
+                C1TextField(
+                    value = daysFromNow,
+                    onValueChange = { daysFromNow = it },
+                    label = "Days from now",
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(C1Spacing.md))
             }
+        },
+        confirmButton = {
+            C1Button(
+                text = "Create",
+                onClick = {
+                    if (clubs.isNotEmpty() && title.isNotBlank() && venue.isNotBlank()) {
+                        val club = clubs[clubIndex.coerceIn(0, clubs.lastIndex)]
+                        onCreate(club.id, club.name, category.uppercase(), title.trim(), desc.trim(), venue.trim(), "In $daysFromNow day(s)", daysFromNow.toIntOrNull() ?: 7)
+                    }
+                },
+                intent = C1ButtonIntent.PRIMARY,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        dismissButton = {
+            C1Button(
+                text = "Cancel",
+                onClick = onDismiss,
+                intent = C1ButtonIntent.GHOST,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
-    }
+    )
 }
 
 // ============================================================================
@@ -323,12 +340,9 @@ fun LostAndFoundScreen(
 
     Scaffold(
         topBar = {
-            Text(
-                text = "Lost & Found",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp)
+            C1AppBar(
+                title = "Lost & Found",
+                onBack = { }
             )
         },
         floatingActionButton = {
@@ -343,8 +357,8 @@ fun LostAndFoundScreen(
             .padding(innerPadding)
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.padding(horizontal = C1Spacing.lg),
+                horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
             ) {
                 listOf("ALL", "LOST", "FOUND").forEach { type ->
                     FilterChip(
@@ -364,20 +378,20 @@ fun LostAndFoundScreen(
                     text = "Claim requests for your items",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    modifier = Modifier.padding(horizontal = C1Spacing.lg, vertical = C1Spacing.sm)
                 )
                 myPendingClaims.forEach { req ->
                     C1SurfaceCard(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = C1Spacing.lg, vertical = C1Spacing.xs),
                         containerColor = MaterialTheme.colorScheme.secondaryContainer
                     ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
+                        Column(modifier = Modifier.padding(C1Spacing.md)) {
                             Text(
                                 text = "${req.requesterName} wants to contact you",
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.bodyMedium
                             )
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                                 C1Button(text = "Accept & share contact", onClick = { viewModel.respondToClaimRequest(req, true) }, intent = C1ButtonIntent.PRIMARY)
                                 C1Button(text = "Ignore", onClick = { viewModel.respondToClaimRequest(req, false) }, intent = C1ButtonIntent.GHOST)
                             }
@@ -386,18 +400,22 @@ fun LostAndFoundScreen(
                 }
             }
             if (items.isEmpty()) {
-                C1EmptyState("Nothing reported yet", Icons.Default.Search)
+                C1EmptyState(
+                    icon = Icons.Default.Search,
+                    title = "Nothing reported yet",
+                    message = "Lost & found items will appear here."
+                )
             } else {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier.fillMaxSize().padding(C1Spacing.lg),
+                    verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
                 ) {
                     items(items, key = { it.id }) { item ->
                         C1SurfaceCard(
                             modifier = Modifier.fillMaxWidth(),
                             containerColor = MaterialTheme.colorScheme.surface
                         ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
+                            Column(modifier = Modifier.padding(C1Spacing.lg)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
                                         text = item.type,
@@ -405,21 +423,21 @@ fun LostAndFoundScreen(
                                         fontWeight = FontWeight.Bold,
                                         color = if (item.type == "LOST") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                                     )
-                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Spacer(modifier = Modifier.width(C1Spacing.sm))
                                     Text(item.category, style = MaterialTheme.typography.labelSmall)
                                     if (item.isResolved) {
-                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Spacer(modifier = Modifier.width(C1Spacing.sm))
                                         Text("RESOLVED", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary)
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(C1Spacing.sm))
                                 Text(item.itemTitle, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                                 Text(item.description, style = MaterialTheme.typography.bodyMedium, maxLines = 3)
-                                Spacer(modifier = Modifier.height(4.dp))
+                                Spacer(modifier = Modifier.height(C1Spacing.xs))
                                 Text("Location: ${item.location} | ${item.dateFormatted}", style = MaterialTheme.typography.bodySmall)
                                 Text("Posted by ${item.posterName}", style = MaterialTheme.typography.bodySmall)
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Spacer(modifier = Modifier.height(C1Spacing.sm))
+                                Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                                     if (!item.isResolved) {
                                         C1Button(text = "I found / claim", onClick = { claimItem = item }, intent = C1ButtonIntent.OUTLINED)
                                         if (item.posterUid == uiState.profile.uid) {
@@ -469,44 +487,50 @@ private fun AddLostFoundDialog(
     var location by remember { mutableStateOf("") }
     var contact by remember { mutableStateOf("") }
 
-    Dialog(onDismissRequest = onDismiss) {
-        C1SurfaceCard(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            containerColor = MaterialTheme.colorScheme.surface
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Report Item", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Report Item", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                     listOf("LOST", "FOUND").forEach { t ->
                         FilterChip(selected = type == t, onClick = { type = t }, label = { Text(t) })
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(C1Spacing.xs))
                 C1TextField(value = category, onValueChange = { category = it }, label = "Category", modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(C1Spacing.xs))
                 C1TextField(value = title, onValueChange = { title = it }, label = "Item title", modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(C1Spacing.xs))
                 C1TextField(value = desc, onValueChange = { desc = it }, label = "Description", modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(C1Spacing.xs))
                 C1TextField(value = location, onValueChange = { location = it }, label = "Location", modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(C1Spacing.xs))
                 C1TextField(value = contact, onValueChange = { contact = it }, label = "Preferred contact (kept private)", modifier = Modifier.fillMaxWidth())
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    C1Button(text = "Cancel", onClick = onDismiss, intent = C1ButtonIntent.GHOST)
-                    C1Button(
-                        text = "Submit",
-                        onClick = {
-                            if (title.isNotBlank() && location.isNotBlank() && contact.isNotBlank()) {
-                                onSubmit(type, category.uppercase(), title.trim(), desc.trim(), location.trim(), contact.trim())
-                            }
-                        }
-                    )
-                }
+                Spacer(modifier = Modifier.height(C1Spacing.md))
             }
+        },
+        confirmButton = {
+            C1Button(
+                text = "Submit",
+                onClick = {
+                    if (title.isNotBlank() && location.isNotBlank() && contact.isNotBlank()) {
+                        onSubmit(type, category.uppercase(), title.trim(), desc.trim(), location.trim(), contact.trim())
+                    }
+                },
+                intent = C1ButtonIntent.PRIMARY,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        dismissButton = {
+            C1Button(
+                text = "Cancel",
+                onClick = onDismiss,
+                intent = C1ButtonIntent.GHOST,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
-    }
+    )
 }
 
 @Composable
@@ -517,36 +541,42 @@ private fun ClaimRequestDialog(
 ) {
     var message by remember { mutableStateOf("") }
 
-    Dialog(onDismissRequest = onDismiss) {
-        C1SurfaceCard(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            containerColor = MaterialTheme.colorScheme.surface
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Contact ${item.posterName}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(8.dp))
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Contact ${item.posterName}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                 Text(
                     "Your contact details stay private until ${item.posterName} accepts your request.",
                     style = MaterialTheme.typography.bodySmall
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(C1Spacing.md))
                 C1TextField(
                     value = message,
                     onValueChange = { message = it },
                     label = "Message (proof of ownership helps)",
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    C1Button(text = "Cancel", onClick = onDismiss, intent = C1ButtonIntent.GHOST)
-                    C1Button(
-                        text = "Send request",
-                        onClick = { if (message.isNotBlank()) onSubmit(message.trim()) }
-                    )
-                }
+                Spacer(modifier = Modifier.height(C1Spacing.md))
             }
+        },
+        confirmButton = {
+            C1Button(
+                text = "Send request",
+                onClick = { if (message.isNotBlank()) onSubmit(message.trim()) },
+                intent = C1ButtonIntent.PRIMARY,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        dismissButton = {
+            C1Button(
+                text = "Cancel",
+                onClick = onDismiss,
+                intent = C1ButtonIntent.GHOST,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
-    }
+    )
 }
 
 // ============================================================================
@@ -574,20 +604,19 @@ fun CampusDirectoryScreen(
 
     Scaffold(
         topBar = {
-            Column {
-                Text(
-                    text = "Campus Directory",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp)
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                C1AppBar(
+                    title = "Campus Directory",
+                    onBack = { }
                 )
                 C1TextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
                     label = "Search name / department",
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    modifier = Modifier.fillMaxWidth().padding(16.dp)
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = C1Spacing.lg)
                 )
             }
         }
@@ -598,8 +627,8 @@ fun CampusDirectoryScreen(
             .padding(innerPadding)
         ) {
             LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                contentPadding = PaddingValues(horizontal = C1Spacing.lg),
+                horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
             ) {
                 items(listOf("ALL", "FACULTY", "IMPORTANT_OFFICE", "EMERGENCY", "HOSTEL_MEDICAL")) { cat ->
                     FilterChip(
@@ -610,24 +639,28 @@ fun CampusDirectoryScreen(
                 }
             }
             if (contacts.isEmpty()) {
-                C1EmptyState("No contacts found", Icons.Default.Search)
+                C1EmptyState(
+                    icon = Icons.Default.Search,
+                    title = "No contacts found",
+                    message = "Directory contacts will appear here."
+                )
             } else {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier.fillMaxSize().padding(C1Spacing.lg),
+                    verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
                 ) {
                     items(contacts, key = { it.id }) { contact ->
                         C1SurfaceCard(
                             modifier = Modifier.fillMaxWidth(),
                             containerColor = MaterialTheme.colorScheme.surface
                         ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
+                            Column(modifier = Modifier.padding(C1Spacing.lg)) {
                                 Text(contact.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                                 Text("${contact.designation}, ${contact.department}", style = MaterialTheme.typography.bodySmall)
-                                Spacer(modifier = Modifier.height(4.dp))
+                                Spacer(modifier = Modifier.height(C1Spacing.xs))
                                 Text("Office: ${contact.officeLocation} | ${contact.officeHours}", style = MaterialTheme.typography.bodySmall)
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Spacer(modifier = Modifier.height(C1Spacing.sm))
+                                Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                                     C1Button(
                                         text = "Call",
                                         onClick = {
@@ -678,44 +711,41 @@ private fun SuggestCorrectionDialog(
 ) {
     var change by remember { mutableStateOf("") }
 
-    Dialog(onDismissRequest = onDismiss) {
-        C1SurfaceCard(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            containerColor = MaterialTheme.colorScheme.surface
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Suggest correction", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Suggest correction", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                 Text("For: ${contact.name}", style = MaterialTheme.typography.bodySmall)
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(C1Spacing.md))
                 C1TextField(
                     value = change,
                     onValueChange = { change = it },
                     label = "Proposed change",
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    C1Button(text = "Cancel", onClick = onDismiss, intent = C1ButtonIntent.GHOST)
-                    C1Button(text = "Submit", onClick = { if (change.isNotBlank()) onSubmit(change.trim()) })
-                }
+                Spacer(modifier = Modifier.height(C1Spacing.md))
             }
+        },
+        confirmButton = {
+            C1Button(
+                text = "Submit",
+                onClick = { if (change.isNotBlank()) onSubmit(change.trim()) },
+                intent = C1ButtonIntent.PRIMARY,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        dismissButton = {
+            C1Button(
+                text = "Cancel",
+                onClick = onDismiss,
+                intent = C1ButtonIntent.GHOST,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
-    }
+    )
 }
 
 // ============================================================================
 // SHARED HELPERS
 // ============================================================================
-@Composable
-private fun C1EmptyState(message: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
-    Box(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(56.dp))
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(message, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
-}
