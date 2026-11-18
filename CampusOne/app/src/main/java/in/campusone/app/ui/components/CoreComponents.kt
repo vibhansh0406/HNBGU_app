@@ -849,10 +849,13 @@ fun C1TopBar(
     ) {
         if (onBack != null) {
             IconButton(onClick = onBack, modifier = Modifier.size(C1Height.touch)) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.action_back)
-                )
+                IconButton(onClick = onBack, modifier = Modifier.size(C1Height.touch)) {
+                    Text(
+                        "<",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
         }
         if (!centerTitle) {
@@ -1440,10 +1443,13 @@ fun C1AppBar(
     ) {
         if (onBack != null) {
             IconButton(onClick = onBack, modifier = Modifier.size(C1Height.touch)) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.action_back)
-                )
+                IconButton(onClick = onBack, modifier = Modifier.size(C1Height.touch)) {
+                    Text(
+                        "<",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
         }
         Column(modifier = Modifier.weight(1f)) {
