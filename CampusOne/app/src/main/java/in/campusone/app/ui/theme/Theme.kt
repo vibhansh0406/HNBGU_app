@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.sp
 import `in`.campusone.app.R
 
 // ============================================================================
-// MATERIAL3 COLOR SCHEME — Derived from semantic colors
+// MATERIAL3 COLOR SCHEME
 // ============================================================================
 
 private val LightColorScheme = lightColorScheme(
@@ -45,10 +45,7 @@ private val LightColorScheme = lightColorScheme(
     onSurface = LightSemanticColors.onSurface,
     surfaceVariant = LightSemanticColors.surfaceVariant,
     onSurfaceVariant = LightSemanticColors.onSurfaceVariant,
-    outline = LightSemanticColors.outline,
-    outlineVariant = LightSemanticColors.outlineVariant,
-    surfaceTint = LightSemanticColors.surfaceTint,
-    scrim = LightSemanticColors.scrim
+    outline = LightSemanticColors.outline
 )
 
 private val DarkColorScheme = darkColorScheme(
@@ -74,10 +71,7 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = DarkSemanticColors.onSurface,
     surfaceVariant = DarkSemanticColors.surfaceVariant,
     onSurfaceVariant = DarkSemanticColors.onSurfaceVariant,
-    outline = DarkSemanticColors.outline,
-    outlineVariant = DarkSemanticColors.outlineVariant,
-    surfaceTint = DarkSemanticColors.surfaceTint,
-    scrim = DarkSemanticColors.scrim
+    outline = DarkSemanticColors.outline
 )
 
 // ============================================================================
