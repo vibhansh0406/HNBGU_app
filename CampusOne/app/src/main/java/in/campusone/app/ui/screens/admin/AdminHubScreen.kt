@@ -8,14 +8,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Assignment
-import androidx.compose.material.icons.filled.Campus
-import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.HelpCenter
 import androidx.compose.material.icons.filled.LocationOn
@@ -33,7 +31,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsStateWithLifecycle
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageVector
 import androidx.compose.ui.unit.dp
@@ -62,16 +59,6 @@ fun AdminHubScreen(
                     }
                 }
             )
-        },
-        floatingActionButton = if (state.isAdmin) {
-            androidx.compose.material3.FloatingActionButton(
-                onClick = onManageModerators,
-                backgroundColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(Icons.Default.People, contentDescription = "Manage moderators")
-            }
-        } else {
-            null
         }
     ) {
         Column(
@@ -126,9 +113,9 @@ private val adminActions = listOf(
     AdminAction(route = "TIMETABLE", label = "Timetable", icon = Icons.Default.Schedule),
     AdminAction(route = "NOTICES", label = "Notices", icon = Icons.Default.Notifications),
     AdminAction(route = "ASSIGNMENTS", label = "Assignments", icon = Icons.Default.Assignment),
-    AdminAction(route = "EXAMS", label = "Exams", icon = Icons.Default.Campus),
+    AdminAction(route = "EXAMS", label = "Exams", icon = Icons.Default.School),
     AdminAction(route = "CLUBS", label = "Clubs", icon = Icons.Default.Group),
-    AdminAction(route = "EVENTS", label = "Events", icon = Icons.Default.Event),
+    AdminAction(route = "EVENTS", label = "Events", icon = Icons.Default.Group),
     AdminAction(route = "LOST_FOUND", label = "Lost & Found", icon = Icons.Default.LocationOn),
     AdminAction(route = "DIRECTORY", label = "Directory", icon = Icons.Default.People),
     AdminAction(route = "USERS", label = "Users", icon = Icons.Default.People),
