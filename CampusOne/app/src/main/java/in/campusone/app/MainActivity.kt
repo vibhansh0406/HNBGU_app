@@ -178,7 +178,14 @@ class MainActivity : AppCompatActivity() {
         }
         setContent {
             NotificationPermissionRequest()
-            CampusOneTheme {
+            val config = androidx.compose.ui.platform.LocalConfiguration.current
+            val ws = when {
+                config.screenWidthDp < 600 -> `in`.campusone.app.ui.theme.C1WindowSize.COMPACT
+                config.screenWidthDp < 840 -> `in`.campusone.app.ui.theme.C1WindowSize.MEDIUM
+                config.screenWidthDp < 1200 -> `in`.campusone.app.ui.theme.C1WindowSize.LARGE
+                else -> `in`.campusone.app.ui.theme.C1WindowSize.EXPANDED
+            }
+            CampusOneTheme(windowSize = ws) {
                 CampusOneRoot(
                     onGoogleSignIn = onGoogleSignIn,
                     authSession = authManager.session,

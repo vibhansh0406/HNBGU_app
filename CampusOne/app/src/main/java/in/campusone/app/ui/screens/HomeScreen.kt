@@ -80,8 +80,11 @@ import `in`.campusone.app.ui.theme.C1Motion
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.theme.C1TouchTarget
+import `in`.campusone.app.ui.theme.C1WindowSize
 import `in`.campusone.app.ui.theme.extendedColors
+import `in`.campusone.app.ui.theme.windowSize
 import `in`.campusone.app.ui.viewmodel.CoreUiState
+import `in`.campusone.app.ui.screens.StudyAndCampusScreens.MoreSubScreen
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.format.TextStyle
@@ -103,15 +106,18 @@ fun HomeScreen(
     onOpenMore: (MoreSubScreen) -> Unit,
     onRetryRefresh: () -> Unit
 ) {
+    val ws = windowSize
+    val isCompact = ws == C1WindowSize.COMPACT
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(
-            horizontal = C1Spacing.lg,
+            horizontal = C1Spacing.pagePadding(ws),
             vertical = C1Spacing.lg
         ),
-        verticalArrangement = Arrangement.spacedBy(C1Spacing.xxl)
+        verticalArrangement = Arrangement.spacedBy(C1Spacing.sectionGap(ws))
     ) {
         item {
             HomeHeader(
@@ -121,9 +127,21 @@ fun HomeScreen(
                 onOpenNotices = onOpenNotices
             )
         }
-        item { NextClassCard(uiState = uiState, onOpenTimetable = onOpenTimetable) }
-        item { AttendanceSummaryCard(insight = uiState.overallInsight, onClick = onOpenAttendance) }
-        item { QuickActionsSection(onOpenMore = onOpenMore) }
+        item {
+            NextClassCard(
+                uiState = uiState,
+                onOpenTimetable = onOpenTimetable
+            )
+        }
+        item {
+            AttendanceSummaryCard(
+                insight = uiState.overallInsight,
+                onClick = onOpenAttendance
+            )
+        }
+        item {
+            QuickActionsSection(onOpenMore = onOpenMore)
+        }
         item {
             AnnouncementsSection(
                 uiState = uiState,
@@ -152,6 +170,7 @@ private fun HomeHeader(
     onOpenProfile: () -> Unit,
     onOpenNotices: () -> Unit
 ) {
+    val ws = windowSize
     val firstName = uiState.profile.name.trim().substringBefore(" ").ifBlank { "Student" }
     val initial = firstName.first().uppercase()
     val courseLine = "${uiState.profile.courseName} • Sem ${uiState.profile.semester} (${uiState.profile.section})"
@@ -166,7 +185,7 @@ private fun HomeHeader(
         Surface(
             onClick = onOpenProfile,
             modifier = Modifier
-                .size(48.dp)
+                .size(C1TouchTarget)
                 .semantics { contentDescription = profileCd },
             shape = CircleShape,
             color = MaterialTheme.colorScheme.primaryContainer,
@@ -246,6 +265,7 @@ private fun NextClassCard(
     uiState: CoreUiState,
     onOpenTimetable: () -> Unit
 ) {
+    val ws = windowSize
     val next = uiState.nextClass
     val heroSlotId = next?.slot?.id
         ?: uiState.todaySchedule.firstOrNull { it.state == SlotLiveState.ONGOING }?.slot?.id
@@ -259,7 +279,7 @@ private fun NextClassCard(
         onClick = onOpenTimetable,
         modifier = Modifier.fillMaxWidth(),
         containerColor = MaterialTheme.colorScheme.primaryContainer,
-        contentPadding = PaddingValues(C1Spacing.xl)
+        contentPadding = PaddingValues(C1Spacing.xxl)
     ) {
         Column(
             modifier = Modifier
@@ -358,34 +378,69 @@ private fun NextClassCard(
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
                 )
-                laterToday.forEach { evaluated ->
+                // Adaptive grid: 1 column on compact, 2+ on larger
+                val cols = if (ws == C1WindowSize.COMPACT) 1 else 2
+                if (cols == 1) {
+                    laterToday.forEach { evaluated ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = C1Spacing.sm),
+                            horizontalArrangement = Arrangement.spacedBy(C1Spacing.md),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = evaluated.slot.startTime,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                            )
+                            Text(
+                                text = evaluated.slot.subjectName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Text(
+                                text = evaluated.slot.roomNumber,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                                maxLines = 1
+                            )
+                        }
+                    }
+                } else {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = C1Spacing.sm),
-                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.md),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
                     ) {
-                        Text(
-                            text = evaluated.slot.startTime,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                        )
-                        Text(
-                            text = evaluated.slot.subjectName,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Text(
-                            text = evaluated.slot.roomNumber,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-                            maxLines = 1
-                        )
+                        laterToday.forEach { evaluated ->
+                            Column(
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(
+                                    text = evaluated.slot.startTime,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                )
+                                Text(
+                                    text = evaluated.slot.subjectName,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = evaluated.slot.roomNumber,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                                    maxLines = 1
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -440,11 +495,13 @@ private data class HomeQuickAction(
 
 @Composable
 private fun QuickActionsSection(onOpenMore: (MoreSubScreen) -> Unit) {
+    val ws = windowSize
+    val cols = C1Spacing.gridColumns(ws)
+
     val primaryColor = MaterialTheme.colorScheme.primary
-    val tertiaryColor = MaterialTheme.colorScheme.tertiary
-    val secondaryColor = MaterialTheme.colorScheme.secondary
-    val errorColor = MaterialTheme.colorScheme.error
-    val infoColor = Color(0xFF006E8A)
+    val tertiaryColor = MaterialTheme.colorScheme.secondary
+    val secondaryColor = MaterialTheme.colorScheme.tertiary
+    val errorColor = Color(0xFF006E8A)
     val oakColor = Color(0xFF7A5C4A)
 
     val actions = remember {
@@ -454,15 +511,15 @@ private fun QuickActionsSection(onOpenMore: (MoreSubScreen) -> Unit) {
             HomeQuickAction(Icons.Default.MenuBook, R.string.qa_notes, MoreSubScreen.NOTES_PYQ, secondaryColor),
             HomeQuickAction(Icons.Default.Calculate, R.string.qa_gpa, MoreSubScreen.GPA_CALCULATOR, oakColor),
             HomeQuickAction(Icons.Default.Search, R.string.qa_lost_found, MoreSubScreen.LOST_FOUND, errorColor),
-            HomeQuickAction(Icons.Default.ContactPhone, R.string.qa_directory, MoreSubScreen.DIRECTORY, infoColor)
+            HomeQuickAction(Icons.Default.ContactPhone, R.string.qa_directory, MoreSubScreen.DIRECTORY, tertiaryColor)
         )
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
         C1SectionHeader(title = stringResource(R.string.home_quick_actions))
-        actions.chunked(3).forEach { rowActions ->
+        actions.chunked(cols).forEach { rowActions ->
             Row(
-                modifier = Modifier.height(IntrinsicSize.Min),
+                modifier = Modifier.heightIn(min = 100.dp),
                 horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
             ) {
                 rowActions.forEach { action ->
@@ -503,6 +560,7 @@ private fun AnnouncementsSection(
     onOpenNotices: () -> Unit,
     onRetryRefresh: () -> Unit
 ) {
+    val ws = windowSize
     val hairline = extendedColors.hairline
     val visibleNotices = remember(uiState.notices) {
         uiState.notices

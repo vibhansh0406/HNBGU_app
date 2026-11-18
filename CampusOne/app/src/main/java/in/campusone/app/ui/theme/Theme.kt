@@ -19,7 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import `in`.campusone.app.R
 
-// Forest & Ivory — Light Color Scheme (using semantic colors)
+// ============================================================================
+// MATERIAL3 COLOR SCHEME — Derived from semantic colors
+// ============================================================================
+
 private val LightColorScheme = lightColorScheme(
     primary = LightSemanticColors.primary,
     onPrimary = LightSemanticColors.onPrimary,
@@ -34,8 +37,8 @@ private val LightColorScheme = lightColorScheme(
     tertiaryContainer = LightSemanticColors.tertiaryContainer,
     onTertiaryContainer = LightSemanticColors.onTertiaryContainer,
     error = LightSemanticColors.error,
-    errorContainer = LightSemanticColors.errorContainer,
     onError = LightSemanticColors.onError,
+    errorContainer = LightSemanticColors.errorContainer,
     onErrorContainer = LightSemanticColors.onErrorContainer,
     background = LightSemanticColors.background,
     onBackground = LightSemanticColors.onBackground,
@@ -49,10 +52,9 @@ private val LightColorScheme = lightColorScheme(
     inverseSurface = LightSemanticColors.inverseSurface,
     inverseOnSurface = LightSemanticColors.inverseOnSurface,
     inversePrimary = LightSemanticColors.inversePrimary,
-    surfaceTint = LightSemanticColors.surfaceTint,
+    surfaceTint = LightSemanticColors.surfaceTint
 )
 
-// Forest & Ivory — Dark Color Scheme (using semantic colors)
 private val DarkColorScheme = darkColorScheme(
     primary = DarkSemanticColors.primary,
     onPrimary = DarkSemanticColors.onPrimary,
@@ -67,8 +69,8 @@ private val DarkColorScheme = darkColorScheme(
     tertiaryContainer = DarkSemanticColors.tertiaryContainer,
     onTertiaryContainer = DarkSemanticColors.onTertiaryContainer,
     error = DarkSemanticColors.error,
-    errorContainer = DarkSemanticColors.errorContainer,
     onError = DarkSemanticColors.onError,
+    errorContainer = DarkSemanticColors.errorContainer,
     onErrorContainer = DarkSemanticColors.onErrorContainer,
     background = DarkSemanticColors.background,
     onBackground = DarkSemanticColors.onBackground,
@@ -82,86 +84,57 @@ private val DarkColorScheme = darkColorScheme(
     inverseSurface = DarkSemanticColors.inverseSurface,
     inverseOnSurface = DarkSemanticColors.inverseOnSurface,
     inversePrimary = DarkSemanticColors.inversePrimary,
-    surfaceTint = DarkSemanticColors.surfaceTint,
+    surfaceTint = DarkSemanticColors.surfaceTint
 )
 
-// iOS-adjacent continuous-feeling corner radii
-val ExpressiveShapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),
-    small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(20.dp),
-    extraLarge = RoundedCornerShape(28.dp)
+// ============================================================================
+// SHAPES
+// ============================================================================
+
+val CampusOneShapes = Shapes(
+    extraSmall = C1Radius.xs,
+    small = C1Radius.sm,
+    medium = C1Radius.md,
+    large = C1Radius.lg,
+    extraLarge = C1Radius.xxl
 )
 
-// ---------------------------------------------------------------------------
-// TYPOGRAPHY — Manrope (display voice) + Inter (text voice) + Noto Sans
-// Devanagari (bundled Hindi fallback).
-//
-// Roles: display/headline/title carry the brand voice and use Manrope; body,
-// label and form roles use Inter. Every style ships the Devanagari fallback so
-// Hindi never renders in an unknown system face.
-// ---------------------------------------------------------------------------
-
-/** Display voice: hero numbers, screen titles, section headings. */
-val CampusOneDisplayFamily = FontFamily(
-    Font(R.font.manrope_variable, FontWeight.Normal),
-    Font(R.font.manrope_variable, FontWeight.Medium),
-    Font(R.font.manrope_variable, FontWeight.SemiBold),
-    Font(R.font.manrope_variable, FontWeight.Bold)
-)
-
-/** Text voice: body copy, navigation, buttons, labels, forms. */
-val CampusOneTextFamily = FontFamily(
-    Font(R.font.inter_variable, FontWeight.Normal),
-    Font(R.font.inter_variable, FontWeight.Medium),
-    Font(R.font.inter_variable, FontWeight.SemiBold),
-    Font(R.font.inter_variable, FontWeight.Bold)
-)
-
-private fun campusType(
-    family: FontFamily,
-    weight: FontWeight,
-    size: Int,
-    lineHeight: Int,
-    tracking: Double = 0.0
-): TextStyle = TextStyle(
-    fontFamily = family,
-    fontWeight = weight,
-    fontSize = size.sp,
-    lineHeight = lineHeight.sp,
-    letterSpacing = tracking.sp
-)
+// ============================================================================
+// TYPOGRAPHY — Adaptive based on window size
+// ============================================================================
 
 /**
- * The type scale. On dark surfaces body text gets one extra point of leading
- * and a touch more tracking so light-on-dark stays comfortable.
+ * Create Material3 Typography from adaptive C1Typography.
  */
-private fun campusTypography(dark: Boolean): Typography {
-    val bodyLine = if (dark) 1 else 0
-    val textWeight = if (dark) FontWeight.Normal else FontWeight.Normal
+fun campusTypography(windowSize: C1WindowSize): Typography {
+    val c1 = c1Typography(windowSize)
     return Typography(
-        displayLarge = campusType(CampusOneDisplayFamily, FontWeight.Bold, 57, 64, -1.5),
-        displayMedium = campusType(CampusOneDisplayFamily, FontWeight.Bold, 45, 52, -1.0),
-        displaySmall = campusType(CampusOneDisplayFamily, FontWeight.Bold, 36, 44, -0.8),
-        headlineLarge = campusType(CampusOneDisplayFamily, FontWeight.Bold, 32, 40, -0.6),
-        headlineMedium = campusType(CampusOneDisplayFamily, FontWeight.SemiBold, 28, 36, -0.4),
-        headlineSmall = campusType(CampusOneDisplayFamily, FontWeight.SemiBold, 24, 32, -0.3),
-        titleLarge = campusType(CampusOneDisplayFamily, FontWeight.SemiBold, 22, 28, -0.2),
-        titleMedium = campusType(CampusOneTextFamily, FontWeight.SemiBold, 16, 24, -0.1),
-        titleSmall = campusType(CampusOneTextFamily, FontWeight.SemiBold, 14, 20, -0.1),
-        bodyLarge = campusType(CampusOneTextFamily, textWeight, 16, 24 + bodyLine, -0.1),
-        bodyMedium = campusType(CampusOneTextFamily, textWeight, 14, 21 + bodyLine, 0.0),
-        bodySmall = campusType(CampusOneTextFamily, textWeight, 12, 18 + bodyLine, 0.0),
-        labelLarge = campusType(CampusOneTextFamily, FontWeight.SemiBold, 14, 20, 0.0),
-        labelMedium = campusType(CampusOneTextFamily, FontWeight.Medium, 12, 16, 0.1),
-        labelSmall = campusType(CampusOneTextFamily, FontWeight.Medium, 11, 14, 0.2)
+        displayLarge = c1.displayLarge,
+        displayMedium = c1.displayMedium,
+        displaySmall = c1.displaySmall,
+        headlineLarge = c1.headlineLarge,
+        headlineMedium = c1.headlineMedium,
+        headlineSmall = c1.headlineSmall,
+        titleLarge = c1.titleLarge,
+        titleMedium = c1.titleMedium,
+        titleSmall = c1.titleSmall,
+        bodyLarge = c1.bodyLarge,
+        bodyMedium = c1.bodyMedium,
+        bodySmall = c1.bodySmall,
+        labelLarge = c1.labelLarge,
+        labelMedium = c1.labelMedium,
+        labelSmall = c1.labelSmall
     )
 }
+
+// ============================================================================
+// THEME COMPOSABLE
+// ============================================================================
 
 @Composable
 fun CampusOneTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    windowSize: C1WindowSize = C1WindowSize.COMPACT,
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
@@ -174,23 +147,34 @@ fun CampusOneTheme(
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = campusTypography(darkTheme),
-            shapes = ExpressiveShapes,
+            typography = campusTypography(windowSize),
+            shapes = CampusOneShapes,
             content = content
         )
     }
 }
 
+// ============================================================================
+// COMPOSITION LOCALS
+// ============================================================================
+
 /** Theme-aware semantic colors: success/warning/info pairs and the hairline. */
 val LocalExtendedColors = staticCompositionLocalOf { LightExtendedColors }
 
 /** Convenience accessor for semantic colors inside composables. */
-val extendedColors: ExtendedColors
+val extendedColors: C1ExtendedColors
     @Composable get() = LocalExtendedColors.current
 
 /** Component-specific colors for consistent theming. */
 val LocalComponentColors = staticCompositionLocalOf { LightComponentColors }
 
 /** Convenience accessor for component colors inside composables. */
-val componentColors: ComponentColors
+val componentColors: C1ComponentColors
     @Composable get() = LocalComponentColors.current
+
+/** Window size class for responsive layout decisions. */
+val LocalWindowSize = staticCompositionLocalOf { C1WindowSize.COMPACT }
+
+/** Convenience accessor for window size inside composables. */
+val windowSize: C1WindowSize
+    @Composable get() = LocalWindowSize.current
