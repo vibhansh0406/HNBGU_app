@@ -87,7 +87,7 @@ fun AdminHubScreen(
                             .height(C1Height.listRow)
                     ) {
                         Icon(
-                            imageVector = action.icon,
+                            imageVector = actionIcon(action.route),
                             contentDescription = action.label,
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(24.dp)
@@ -108,22 +108,37 @@ fun AdminHubScreen(
 }
 
 private val adminActions = listOf(
-    AdminAction(route = "SUBJECTS", label = "Subjects", icon = Icons.Default.School),
-    AdminAction(route = "TIMETABLE", label = "Timetable", icon = Icons.Default.Schedule),
-    AdminAction(route = "NOTICES", label = "Notices", icon = Icons.Default.Notifications),
-    AdminAction(route = "ASSIGNMENTS", label = "Assignments", icon = Icons.Default.Assignment),
-    AdminAction(route = "EXAMS", label = "Exams", icon = Icons.Default.School),
-    AdminAction(route = "CLUBS", label = "Clubs", icon = Icons.Default.Group),
-    AdminAction(route = "EVENTS", label = "Events", icon = Icons.Default.Group),
-    AdminAction(route = "LOST_FOUND", label = "Lost & Found", icon = Icons.Default.LocationOn),
-    AdminAction(route = "DIRECTORY", label = "Directory", icon = Icons.Default.People),
-    AdminAction(route = "USERS", label = "Users", icon = Icons.Default.People),
-    AdminAction(route = "REVIEW", label = "Reports & Review", icon = Icons.Default.Policy),
-    AdminAction(route = "HELP", label = "Help Center", icon = Icons.Default.HelpCenter)
+    AdminAction(route = "SUBJECTS", label = "Subjects"),
+    AdminAction(route = "TIMETABLE", label = "Timetable"),
+    AdminAction(route = "NOTICES", label = "Notices"),
+    AdminAction(route = "ASSIGNMENTS", label = "Assignments"),
+    AdminAction(route = "EXAMS", label = "Exams"),
+    AdminAction(route = "CLUBS", label = "Clubs"),
+    AdminAction(route = "EVENTS", label = "Events"),
+    AdminAction(route = "LOST_FOUND", label = "Lost & Found"),
+    AdminAction(route = "DIRECTORY", label = "Directory"),
+    AdminAction(route = "USERS", label = "Users"),
+    AdminAction(route = "REVIEW", label = "Reports & Review"),
+    AdminAction(route = "HELP", label = "Help Center")
 )
+
+private fun actionIcon(route: String) = when (route) {
+    "SUBJECTS" -> Icons.Default.School
+    "TIMETABLE" -> Icons.Default.Schedule
+    "NOTICES" -> Icons.Default.Notifications
+    "ASSIGNMENTS" -> Icons.Default.Assignment
+    "EXAMS" -> Icons.Default.School
+    "CLUBS" -> Icons.Default.Group
+    "EVENTS" -> Icons.Default.Group
+    "LOST_FOUND" -> Icons.Default.LocationOn
+    "DIRECTORY" -> Icons.Default.People
+    "USERS" -> Icons.Default.People
+    "REVIEW" -> Icons.Default.Policy
+    "HELP" -> Icons.Default.HelpCenter
+    else -> Icons.Default.HelpCenter
+}
 
 private data class AdminAction(
     val route: String,
-    val label: String,
-    val icon: androidx.compose.ui.graphics.ImageVector
+    val label: String
 )
