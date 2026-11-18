@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -42,6 +43,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.ripple
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -954,9 +956,9 @@ fun C1TopBar(
         horizontalArrangement = if (centerTitle) Arrangement.Center else Arrangement.spacedBy(C1Spacing.md)
     ) {
         if (onBack != null) {
-            IconButton(onClick = onBack, modifier = Modifier.size(C1Height.touch)) {
+            IconButton(onClick = { onBack() }, modifier = Modifier.size(C1Height.touch)) {
                 Icon(
-                    imageVector = Icons.Default.ArrowBack,
+                    imageVector = ArrowBack,
                     contentDescription = stringResource(R.string.action_back)
                 )
             }
@@ -1523,7 +1525,7 @@ fun C1AppBar(
         horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
     ) {
         if (onBack != null) {
-            IconButton(onClick = onBack, modifier = Modifier.size(C1Height.touch)) {
+            IconButton(onClick = { onBack() }, modifier = Modifier.size(C1Height.touch)) {
                 Text(
                     "<",
                     fontWeight = FontWeight.Bold,
