@@ -250,10 +250,17 @@ private fun CreateEventDialog(
     var category by remember { mutableStateOf("TECH") }
     var daysFromNow by remember { mutableStateOf("7") }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Propose Event", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) },
-        text = {
+    C1Dialog(
+        title = "Propose Event",
+        onDismiss = onDismiss,
+        confirmLabel = "Create",
+        onConfirm = {
+            if (clubs.isNotEmpty() && title.isNotBlank() && venue.isNotBlank()) {
+                val club = clubs[clubIndex.coerceIn(0, clubs.lastIndex)]
+                onCreate(club.id, club.name, category.uppercase(), title.trim(), desc.trim(), venue.trim(), "In $daysFromNow day(s)", daysFromNow.toIntOrNull() ?: 7)
+            }
+        },
+        content = {
             Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                 if (clubs.isEmpty()) {
                     Text("No approved clubs available.", style = MaterialTheme.typography.bodyMedium)
@@ -297,27 +304,6 @@ private fun CreateEventDialog(
                 )
                 Spacer(modifier = Modifier.height(C1Spacing.md))
             }
-        },
-        confirmButton = {
-            C1Button(
-                text = "Create",
-                onClick = {
-                    if (clubs.isNotEmpty() && title.isNotBlank() && venue.isNotBlank()) {
-                        val club = clubs[clubIndex.coerceIn(0, clubs.lastIndex)]
-                        onCreate(club.id, club.name, category.uppercase(), title.trim(), desc.trim(), venue.trim(), "In $daysFromNow day(s)", daysFromNow.toIntOrNull() ?: 7)
-                    }
-                },
-                intent = C1ButtonIntent.PRIMARY,
-                modifier = Modifier.fillMaxWidth()
-            )
-        },
-        dismissButton = {
-            C1Button(
-                text = "Cancel",
-                onClick = onDismiss,
-                intent = C1ButtonIntent.GHOST,
-                modifier = Modifier.fillMaxWidth()
-            )
         }
     )
 }
