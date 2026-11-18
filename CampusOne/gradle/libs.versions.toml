@@ -13,8 +13,6 @@ room = "2.6.1"
 ksp = "2.0.21-1.0.27"
 workManager = "2.10.0"
 glance = "1.1.1"
-firebaseBom = "33.6.0"
-googleServices = "4.4.2"
 coroutines = "1.9.0"
 datastore = "1.1.1"
 serialization = "1.7.3"
@@ -86,4 +84,3 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
-google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }

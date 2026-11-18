@@ -6,11 +6,12 @@ Thank you for helping build **CampusOne** for Indian university students!
 
 1. Clone the repository and open in **Android Studio Ladybug (2024.2.1)+** with **JDK 17**.
 2. **Offline Seed Mode**: CampusOne runs out of the box without a `google-services.json` file using the built-in `HnbguSeedData` Room initializer.
-3. **Firebase Setup (Optional for Cloud Sync)**:
-   - Create a free Firebase Spark project.
-   - Enable Google Sign-In in Firebase Authentication and create a Cloud Firestore database.
-   - Deploy `firebase/firestore.rules` to your Firestore security rules tab.
-   - Place your `google-services.json` inside `app/`.
+3. **Supabase Setup (Cloud Sync)**:
+   - Create a free Supabase project.
+   - Run `supabase/schema.sql` in the Supabase SQL Editor to create tables, roles, permissions, and RLS policies.
+   - Add `SUPABASE_URL` and `SUPABASE_ANON_KEY` to `local.properties` (or CI secrets) — these are public client config only.
+   - Configure Google Sign-In in Supabase Authentication and add your Android client (package `in.campusone.app` + the pinned debug keystore SHA-1) to the Google Cloud OAuth client.
+   - No `google-services.json` is required; the app runs in offline seed mode via the built-in `HnbguSeedData` Room initializer.
 
 ## Code Quality & Testing Rules
 

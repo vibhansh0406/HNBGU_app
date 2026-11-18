@@ -134,10 +134,10 @@ class MainActivity : AppCompatActivity() {
                                         val profileResult = authManager.ensureUserProfile(
                                             uid = uid,
                                             email = account.email,
-                                            name = account.displayName,
-                                            role = if (account.email?.trim()
-                                                    .equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true)
-                                            ) "ADMIN" else "STUDENT"
+                                            name = account.displayName
+                                            // Role is assigned server-side by campusone_bootstrap_profile()
+                                            // (SECURITY DEFINER, reads the authenticated JWT email). The client
+                                            // never decides ADMIN.
                                         )
                                         if (!profileResult.isSuccess) {
                                             android.widget.Toast.makeText(
