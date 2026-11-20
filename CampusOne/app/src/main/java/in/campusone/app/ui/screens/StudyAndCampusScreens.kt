@@ -555,8 +555,8 @@ fun MoreHubScreen(
                     MoreSubScreen.LOST_FOUND -> LostAndFoundScreen(uiState, viewModel)
                     MoreSubScreen.DIRECTORY -> CampusDirectoryScreen(uiState, viewModel)
                     MoreSubScreen.PRIVACY_POLICY -> PrivacyPolicyScreen()
-                    MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
-                        uiState = adminState,
+MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
+                        uiState = adminViewModel.uiState.value,
                         viewModel = adminViewModel,
                         onBack = { activeScreen = MoreSubScreen.HUB },
                         onManageModerators = { activeScreen = MoreSubScreen.ADMIN_MODERATORS },
