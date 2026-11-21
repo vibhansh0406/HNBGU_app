@@ -84,7 +84,6 @@ import `in`.campusone.app.ui.theme.C1WindowSize
 import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.theme.windowSize
 import `in`.campusone.app.ui.viewmodel.CoreUiState
-import `in`.campusone.app.ui.screens.StudyAndCampusScreens.MoreSubScreen
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.format.TextStyle
