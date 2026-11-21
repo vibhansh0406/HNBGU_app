@@ -113,6 +113,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.R
 import `in`.campusone.app.data.local.entity.AssignmentEntity
@@ -133,6 +134,7 @@ import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.components.C1Tone
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
+import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.viewmodel.CommunityViewModel
 import `in`.campusone.app.ui.viewmodel.CoreViewModel
 import `in`.campusone.app.ui.viewmodel.StudyAndCampusUiState
@@ -316,6 +318,7 @@ fun MoreHubScreen(
                     title = stringResource(R.string.notes_pyq),
                     subtitle = stringResource(R.string.hub_resources_sub, uiState.resources.size),
                     icon = Icons.Default.Description,
+                    iconColor = Color(0xFF8B5CF6), // violet — notes
                     onClick = { activeScreen = MoreSubScreen.NOTES_PYQ }
                 )
             }
@@ -325,6 +328,7 @@ fun MoreHubScreen(
                     title = stringResource(R.string.assignments_title),
                     subtitle = stringResource(R.string.hub_assignments_sub, pendingCount),
                     icon = Icons.Default.Assignment,
+                    iconColor = Color(0xFFFB923C), // orange — assignments
                     onClick = { activeScreen = MoreSubScreen.ASSIGNMENTS }
                 )
             }
@@ -335,6 +339,7 @@ fun MoreHubScreen(
                     title = stringResource(R.string.exams_syllabus),
                     subtitle = stringResource(R.string.hub_exams_sub, uiState.exams.size, doneTopics, totalTopics),
                     icon = Icons.Default.CalendarMonth,
+                    iconColor = Color(0xFF6366F1), // indigo — syllabus
                     onClick = { activeScreen = MoreSubScreen.EXAMS_SYLLABUS }
                 )
             }
@@ -343,6 +348,7 @@ fun MoreHubScreen(
                     title = stringResource(R.string.gpa_calculator),
                     subtitle = stringResource(R.string.hub_gpa_sub, uiState.gpaResult.formattedSgpa, uiState.gpaResult.formattedCgpa, uiState.gpaResult.formattedPercentage),
                     icon = Icons.Default.Calculate,
+                    iconColor = extendedColors.success, // green — results
                     onClick = { activeScreen = MoreSubScreen.GPA_CALCULATOR }
                 )
             }
@@ -360,6 +366,7 @@ fun MoreHubScreen(
                     title = stringResource(R.string.community_title),
                     subtitle = stringResource(R.string.hub_community_sub, communityState.posts.size),
                     icon = Icons.Default.Forum,
+                    iconColor = Color(0xFF14B8A6), // teal — community
                     onClick = { activeScreen = MoreSubScreen.COMMUNITY }
                 )
             }
@@ -372,6 +379,7 @@ fun MoreHubScreen(
                         stringResource(R.string.notifications_subtitle)
                     },
                     icon = Icons.Default.Notifications,
+                    iconColor = extendedColors.warning, // amber — announcements
                     onClick = { activeScreen = MoreSubScreen.NOTIFICATIONS }
                 )
             }
@@ -380,13 +388,14 @@ fun MoreHubScreen(
                     title = stringResource(R.string.profile_title),
                     subtitle = stringResource(R.string.profile_subtitle),
                     icon = Icons.Default.Person,
+                    iconColor = MaterialTheme.colorScheme.primary,
                     onClick = { activeScreen = MoreSubScreen.PROFILE }
                 )
             }
             item {
                 Spacer(modifier = Modifier.height(C1Spacing.xs))
                 Text(
-                    text = "Campus Life & Utilities",
+                    text = stringResource(R.string.more_campus_community),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -396,6 +405,7 @@ fun MoreHubScreen(
                     title = stringResource(R.string.events_clubs),
                     subtitle = stringResource(R.string.hub_events_sub, uiState.events.size),
                     icon = Icons.Default.Event,
+                    iconColor = Color(0xFF22D3EE), // cyan — timetable/events
                     onClick = { activeScreen = MoreSubScreen.EVENTS_CLUBS }
                 )
             }
@@ -404,6 +414,7 @@ fun MoreHubScreen(
                     title = stringResource(R.string.lost_found),
                     subtitle = stringResource(R.string.hub_lostfound_sub, uiState.lostFoundItems.count { !it.isResolved }),
                     icon = Icons.Default.FindInPage,
+                    iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     onClick = { activeScreen = MoreSubScreen.LOST_FOUND }
                 )
             }
@@ -412,6 +423,7 @@ fun MoreHubScreen(
                     title = stringResource(R.string.campus_directory),
                     subtitle = stringResource(R.string.hub_directory_sub),
                     icon = Icons.Default.Call,
+                    iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     onClick = { activeScreen = MoreSubScreen.DIRECTORY }
                 )
             }
@@ -421,6 +433,7 @@ fun MoreHubScreen(
                         title = "Super Admin",
                         subtitle = stringResource(R.string.hub_superadmin_sub),
                         icon = Icons.Default.Shield,
+                        iconColor = MaterialTheme.colorScheme.error,
                         onClick = {
                             adminViewModel.init(uiState.profile)
                             activeScreen = MoreSubScreen.SUPER_ADMIN
@@ -434,6 +447,7 @@ fun MoreHubScreen(
                         title = "Admin Panel",
                         subtitle = stringResource(R.string.hub_admin_sub),
                         icon = Icons.Default.School,
+                        iconColor = MaterialTheme.colorScheme.primary,
                         onClick = {
                             adminViewModel.init(uiState.profile)
                             activeScreen = MoreSubScreen.ADMIN_PANEL
@@ -447,6 +461,7 @@ fun MoreHubScreen(
                         title = "Request a Role",
                         subtitle = stringResource(R.string.hub_role_sub),
                         icon = Icons.Default.AccountCircle,
+                        iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         onClick = { showRoleRequest = true }
                     )
                 }
@@ -456,6 +471,7 @@ fun MoreHubScreen(
                     title = stringResource(R.string.privacy_policy),
                     subtitle = stringResource(R.string.hub_privacy_sub),
                     icon = Icons.Default.PrivacyTip,
+                    iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     onClick = { activeScreen = MoreSubScreen.PRIVACY_POLICY }
                 )
             }
@@ -464,6 +480,7 @@ fun MoreHubScreen(
                     title = "Sign Out",
                     subtitle = stringResource(R.string.hub_signout_sub),
                     icon = Icons.Default.AccountCircle,
+                    iconColor = MaterialTheme.colorScheme.error,
                     onClick = onSignOut
                 )
             }
@@ -655,6 +672,7 @@ private fun FeatureHubCard(
     title: String,
     subtitle: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconColor: Color = MaterialTheme.colorScheme.primary,
     onClick: () -> Unit
 ) {
     C1FeatureCard(
@@ -662,7 +680,7 @@ private fun FeatureHubCard(
         icon = icon,
         title = title,
         description = subtitle,
-        iconColor = MaterialTheme.colorScheme.primary,
+        iconColor = iconColor,
         onClick = onClick
     )
 }

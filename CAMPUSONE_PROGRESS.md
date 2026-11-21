@@ -12,20 +12,20 @@
 - Phase 1 (Data/Backend Truthfulness): COMPLETE (previous fix on main)
 - Phase 2 (Design System): EXISTING (C1DesignSystem.kt, Theme.kt, C1Components.kt comprehensive)
 - Phase 3 (Button/Component Hierarchy): EXISTING (C1Components.kt has all semantic variants)
-- Phase 4 (Hub Redesign): PENDING
+- Phase 4 (Hub Redesign): IN PROGRESS
 - Phase 5 (Notes/Learning): PENDING
 - Phase 6 (All Other Screens): PENDING
 - Phase 7 (Responsive Layout/Typography): PENDING
-- Phase 8 (Brand Assets/Icon/Silent Intro): IN PROGRESS
+- Phase 8 (Brand Assets/Icon/Silent Intro): COMPLETE
   - Brand assets copied to design/brand/ ✓
   - C mark VectorDrawable created ✓
-  - Adaptive icon background → white ✓
-  - Adaptive icon foreground → C mark ✓
-  - Splash screen → white with C mark ✓
-  - Themes updated → splash drawable as windowBackground ✓
-  - Silent cinematic intro: IMPLEMENTED (replaced IntroScreen with SilentIntroScreen)
+  - Adaptive icon: white background + C mark foreground ✓
+  - Splash screen: white background with centered C mark ✓
+  - Themes: use splash drawable as windowBackground ✓
+  - Silent cinematic intro: IMPLEMENTED (geometric reveal, light sweep, wordmark, tagline)
   - Tagline updated to "Your campus. One place." ✓
   - introSeen == null case fixed ✓
+  - CI build: GREEN ✓
 - Phase 9 (Micro-interactions/Accessibility): PENDING
 - Phase 10 (Testing/Visual QA): PENDING
 - Phase 11 (Final Delivery): PENDING
@@ -44,15 +44,17 @@
 - CampusOne/app/src/main/java/in/campusone/app/MainActivity.kt — SilentIntroScreen, imports, introSeen fix
 
 ## Build status
-- Last CI build on main: green (commit 7169991)
-- Baseline build for this branch: NOT YET RUN (CI only triggers on main/phase-3)
+- CI build on phase-3: GREEN (commit bc5baee, run 44934099343)
+- CI build on main: GREEN (commit 7169991)
 
 ## Blockers
 - Cannot run Gradle locally (JVM cannot execute in this environment per AGENTS.md)
-- CI workflow only triggers on `main` and `phase-3` branches, not feature branches
-- Will push to `phase-3` to verify builds
+- CI workflow only triggers on `main` and `phase-3` branches
 
 ## Next steps
-1. Push to phase-3 to verify CI build
-2. Fix any compilation errors
-3. Continue with screen redesigns using the design system
+1. Redesign MoreHubScreen with semantic accent colors per category (blue/violet/orange/teal/indigo/cyan/green/amber)
+2. Ensure all screens use C1Button semantic variants (PRIMARY/SUCCESS/WARNING/DANGER/SECONDARY/OUTLINED/TEXT)
+3. Redesign Notes & PYQ screen with search, filters, bookmarks
+4. Fix responsive layout issues
+5. Add micro-interactions and accessibility improvements
+6. Push to phase-3 to verify each change
