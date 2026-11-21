@@ -1561,3 +1561,519 @@ fun C1AppBar(
         }
     }
 }
+/**
+ * Enhanced button with size variants and loading state.
+ */
+@Composable
+fun C1Button(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    intent: C1ButtonIntent = C1ButtonIntent.PRIMARY,
+    size: C1ButtonSize = C1ButtonSize.MEDIUM,
+    enabled: Boolean = true,
+    loading: Boolean = false,
+    icon: (@Composable () -> Unit)? = null,
+    iconPosition: C1IconPosition = C1IconPosition.START,
+    fullWidth: Boolean = false
+) {
+    val ws = windowSize
+    val colors = when (intent) {
+        C1ButtonIntent.PRIMARY -> ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = C1State.disabledAlpha),
+            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = C1State.disabledAlpha)
+        )
+        C1ButtonIntent.TONAL -> ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = C1State.disabledAlpha),
+            disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = C1State.disabledAlpha)
+        )
+        C1ButtonIntent.OUTLINED -> ButtonDefaults.outlinedButtonColors(
+            contentColor = MaterialTheme.colorScheme.primary,
+            disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = C1State.disabledAlpha)
+        )
+        C1ButtonIntent.DANGER -> ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+            disabledContainerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = C1State.disabledAlpha),
+            disabledContentColor = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = C1State.disabledAlpha)
+        )
+        C1ButtonIntent.GHOST -> ButtonDefaults.textButtonColors(
+            contentColor = MaterialTheme.colorScheme.primary,
+            disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = C1State.disabledAlpha)
+        )
+    }
+
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed && enabled && !loading) C1Motion.pressScale else 1f,
+        animationSpec = tween(durationMillis = C1Motion.fastMillis),
+        label = "buttonPress"
+    )
+
+    val height = C1ButtonHeight(size)
+    val padding = C1ButtonPadding(size)
+
+    val m = modifier
+        .height(height)
+        .graphicsLayer { scaleX = scale; scaleY = scale }
+
+    val buttonContent = {
+        if (loading) {
+            Box(
+                modifier = Modifier.size(20.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = when (intent) {
+                        C1ButtonIntent.DANGER -> MaterialTheme.colorScheme.onErrorContainer
+                        else -> MaterialTheme.colorScheme.onPrimaryContainer
+                    }
+                )
+            }
+        } else {
+            if (icon != null && iconPosition == C1IconPosition.START) {
+                icon()
+                Spacer(modifier = Modifier.width(C1Spacing.sm))
+            }
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.alpha(if (loading) 0f else 1f)
+            )
+            if (icon != null && iconPosition == C1IconPosition.END) {
+                Spacer(modifier = Modifier.width(C1Spacing.sm))
+                icon()
+            }
+        }
+    }
+
+    when (intent) {
+        C1ButtonIntent.OUTLINED -> OutlinedButton(
+            onClick = if (loading) null else onClick,
+            modifier = m.fillMaxWidth(if (fullWidth) 1f else 0f),
+            enabled = enabled && !loading,
+            shape = C1Radius.sm,
+            colors = colors,
+            border = BorderStroke(C1Border.thin, MaterialTheme.colorScheme.outlineVariant),
+            contentPadding = PaddingValues(horizontal = padding, vertical = C1Spacing.md),
+            interactionSource = interactionSource
+        ) {
+            buttonContent()
+        }
+        C1ButtonIntent.GHOST -> TextButton(
+            onClick = if (loading) null else onClick,
+            modifier = m.fillMaxWidth(if (fullWidth) 1f else 0f),
+            enabled = enabled && !loading,
+            shape = C1Radius.sm,
+            colors = colors,
+            interactionSource = interactionSource
+        ) {
+            buttonContent()
+        }
+        else -> Button(
+            onClick = if (loading) null else onClick,
+            modifier = m.fillMaxWidth(if (fullWidth) 1f else 0f),
+            enabled = enabled && !loading,
+            shape = C1Radius.sm,
+            colors = colors,
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
+            contentPadding = PaddingValues(horizontal = padding, vertical = C1Spacing.md),
+            interactionSource = interactionSource
+        ) {
+            buttonContent()
+        }
+    }
+}
+
+/**
+ * Shimmer loading skeleton with animated gradient.
+ */
+@Composable
+fun C1LoadingSkeleton(
+    modifier: Modifier = Modifier,
+    shape: androidx.compose.ui.graphics.Shape = C1Radius.sm,
+    width: Dp = Dp.Unspecified,
+    height: Dp = 16.dp
+) {
+    val compColors = componentColors
+    val transition = rememberInfiniteTransition(label = "skeleton")
+    val progress by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "skeletonProgress"
+    )
+    val brush = Brush.linearGradient(
+        colors = listOf(compColors.skeletonBase, compColors.skeletonHighlight, compColors.skeletonBase),
+        start = Offset(progress * 400f - 200f, 0f),
+        end = Offset(progress * 400f + 200f, 0f)
+    )
+    Box(
+        modifier = modifier
+            .width(width)
+            .height(height)
+            .background(brush, shape)
+    )
+}
+
+/**
+ * Enhanced empty state with illustration, title, message, and optional action.
+ */
+@Composable
+fun C1EmptyState(
+    icon: ImageVector,
+    title: String,
+    message: String,
+    modifier: Modifier = Modifier,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null,
+    illustrationSize: Dp = 80.dp,
+    iconSize: Dp = 28.dp
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(C1Spacing.xxxl),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(C1Spacing.lg)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(illustrationSize)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(iconSize)
+            )
+        }
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = C1Spacing.xl),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+        if (actionLabel != null && onAction != null) {
+            C1Button(
+                text = actionLabel,
+                onClick = onAction,
+                intent = C1ButtonIntent.PRIMARY,
+                modifier = Modifier.fillMaxWidth(0.8f)
+            )
+        }
+    }
+}
+
+/**
+ * Circular progress ring for indicating loading or completion.
+ */
+@Composable
+fun C1ProgressRing(
+    progress: Float,
+    modifier: Modifier = Modifier,
+    size: Dp = 40.dp,
+    strokeWidth: Dp = 4.dp,
+    color: Color = MaterialTheme.colorScheme.primary,
+    trackColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
+) {
+    CircularProgressIndicator(
+        modifier = modifier.size(size),
+        progress = progress,
+        strokeWidth = strokeWidth,
+        color = color,
+        trackColor = trackColor
+    )
+}
+
+/**
+ * Badge for counts and notifications with optional pulse animation.
+ */
+@Composable
+fun C1Badge(
+    count: Int,
+    modifier: Modifier = Modifier,
+    maxCount: Int = 99,
+    pulse: Boolean = false
+) {
+    if (count > 0) {
+        val displayText = if (count > maxCount) "$maxCount+" else count.toString()
+        val pulseAlpha by animateFloatAsState(
+            targetValue = if (pulse) 0.5f else 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 1000),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "badgePulse"
+        )
+        Box(
+            modifier = modifier
+                .padding(start = -8.dp, top = -8.dp)
+                .background(MaterialTheme.colorScheme.error, CircleShape)
+                .padding(horizontal = 4.dp, vertical = 1.dp)
+                .alpha(pulseAlpha),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = displayText,
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onError
+            )
+        }
+    }
+}
+
+/**
+ * Avatar with optional status indicator (online, offline, away).
+ */
+@Composable
+fun C1Avatar(
+    name: String,
+    modifier: Modifier = Modifier,
+    size: Dp = 40.dp,
+    containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
+    fontSize: Int = 16,
+    status: C1StatusChip.Tone? = null,
+    statusSize: Dp = 10.dp
+) {
+    val initial = name.trim().take(1).uppercase()
+    Box(
+        modifier = modifier
+            .size(size)
+            .background(containerColor, CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = initial,
+            style = MaterialTheme.typography.titleMedium.copy(fontSize = fontSize.sp),
+            fontWeight = FontWeight.Bold,
+            color = contentColor
+        )
+        if (status != null) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size(statusSize)
+                    .background(
+                        when (status) {
+                            C1StatusChip.Tone.SUCCESS -> MaterialTheme.colorScheme.success
+                            C1StatusChip.Tone.WARNING -> MaterialTheme.colorScheme.warning
+                            C1StatusChip.Tone.DANGER -> MaterialTheme.colorScheme.error
+                            C1StatusChip.Tone.INFO -> MaterialTheme.colorScheme.info
+                            C1StatusChip.Tone.NEUTRAL -> MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        CircleShape
+                    )
+                    .border(2.dp, MaterialTheme.colorScheme.background, CircleShape)
+            )
+        }
+    }
+}
+
+/**
+ * Segmented button for tab-like selection with 2-5 options.
+ */
+@Composable
+fun C1SegmentedButton(
+    selected: Int,
+    onSelectionChange: (Int) -> Unit,
+    labels: List<String>,
+    modifier: Modifier = Modifier,
+    colors: C1SegmentedButtonColors = C1SegmentedButtonColors()
+) {
+    require(labels.size >= 2 && labels.size <= 5) { "Segmented button requires 2-5 labels" }
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh, C1Radius.md),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        labels.forEachIndexed { index, label ->
+            val isSelected = selected == index
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clickable {
+                        onSelectionChange(index)
+                    }
+                    .background(
+                        if (isSelected) colors.selectedBackground else MaterialTheme.colorScheme.surfaceContainerHigh,
+                        C1Radius.md
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
+                    ),
+                    color = if (isSelected) colors.selectedContent else colors.unselectedContent,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+}
+
+@Immutable
+data class C1SegmentedButtonColors(
+    val selectedBackground: Color = MaterialTheme.colorScheme.primaryContainer,
+    val selectedContent: Color = MaterialTheme.colorScheme.onPrimaryContainer,
+    val unselectedContent: Color = MaterialTheme.colorScheme.onSurfaceVariant
+)
+
+/**
+ * List item with leading avatar, title, subtitle, and trailing action.
+ * Supports click, long press, and swipe-to-dismiss.
+ */
+@Composable
+fun C1ListItem(
+    title: String,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+    leading: (@Composable () -> Unit)? = null,
+    trailing: (@Composable () -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+    metadata: String? = null,
+    enabled: Boolean = true
+) {
+    val compColors = componentColors
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val base = modifier
+        .fillMaxWidth()
+        .heightIn(min = C1Height.listRow)
+        .semantics(mergeDescendants = true) {}
+    val row = if (onClick != null && enabled) {
+        base.clickable(
+            interactionSource = interactionSource,
+            indication = ripple(),
+            onClick = onClick
+        )
+    } else {
+        base
+    }
+    Surface(
+        modifier = row,
+        shape = C1Radius.sm,
+        color = if (pressed) compColors.cardPressed else compColors.cardBackground,
+        border = BorderStroke(C1Border.hairline, compColors.cardBorder)
+    ) {
+        Row(
+            modifier = Modifier.padding(vertical = C1Spacing.md, horizontal = C1Spacing.md),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
+        ) {
+            if (leading != null) {
+                leading()
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.alpha(if (enabled) 1f else 0.5f)
+                )
+                if (!subtitle.isNullOrBlank()) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.alpha(if (enabled) 1f else 0.5f)
+                    )
+                }
+                metadata?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
+            }
+            if (trailing != null) {
+                trailing()
+            }
+        }
+    }
+}
+
+/**
+ * Search bar with debounce, clear button, and optional filter chip.
+ */
+@Composable
+fun C1SearchBar(
+    value: String,
+    onValueChange: (String) -> Unit,
+    hint: String = "Search",
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    onClear: (() -> Unit)? = null,
+    leadingIcon: (@Composable () -> Unit)? = null
+) {
+    val compColors = componentColors
+    val extColors = extendedColors
+    var isFocused by remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
+    val focusEffect by animateFloatAsState(
+        targetValue = if (isFocused) 1f else 0f,
+        animationSpec = tween(durationMillis = C1Motion.fastMillis),
+        label = "searchFocus"
+    )
+
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(hint) },
+        modifier = modifier.fillMaxWidth(),
+        enabled = enabled,
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+        shape = C1Radius.md,
+        leadingIcon = leadingIcon?.let {
+            { IconButton(onClick = {}) { it() } }
+        },
+        trailingIcon = {
+            if (value.isNotEmpty() && onClear != null) {
+                IconButton(onClick = onClear) {
+                    Icon(Icons.Default.Close, contentDescription = "Clear", modifier = Modifier.size(20.dp))
+                }
+            }
+        },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f + focusEffect * 0.5f),
+            unfocusedBorderColor = compColors.inputBorder,
+            errorBorderColor = MaterialTheme.colorScheme.error,
+            cursorColor = MaterialTheme.colorScheme.primary,
+            focusedContainerColor = compColors.inputBackground,
+            unfocusedContainerColor = compColors.inputBackground,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            disabledBorderColor = extColors.hairline
+        ),
+        textStyle = MaterialTheme.typography.bodyMedium,
+        placeholderTextStyle = MaterialTheme.typography.bodyMedium.copy(
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+        )
+    )
+}
