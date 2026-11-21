@@ -245,7 +245,6 @@ private fun NoticeDialog(
                     value = body,
                     onValueChange = onBodyChange,
                     label = "Body / Details",
-                    minLines = 3,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {

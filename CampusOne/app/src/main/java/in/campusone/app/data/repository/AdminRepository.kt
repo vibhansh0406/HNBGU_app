@@ -15,7 +15,6 @@ import `in`.campusone.app.data.local.entity.DirectoryContactEntity
 import `in`.campusone.app.data.local.entity.ExamEntity
 import `in`.campusone.app.data.local.entity.LostFoundEntity
 import `in`.campusone.app.data.local.entity.NoticeEntity
-import `in`.campusone.app.data.local.entity.NoticeEntity.toRemoteMap
 import `in`.campusone.app.data.local.entity.StudyResourceEntity
 import `in`.campusone.app.data.local.entity.SubjectEntity
 import `in`.campusone.app.data.local.entity.SyllabusTopicEntity
@@ -467,7 +466,7 @@ class AdminRepository @Inject constructor(
 
     // Remote notice operations (admin only)
     suspend fun saveNoticeRemote(notice: NoticeEntity): Boolean =
-        supabaseSync.uploadNotices(notice.sectionKey, listOf(notice.toRemoteMap()))
+        supabaseSync.uploadNotices(notice.sectionKey, listOf(noticeToRemoteMap(notice)))
 
     suspend fun deleteNoticeRemote(noticeId: String): Boolean =
         supabaseSync.deleteNotice(noticeId)
@@ -594,4 +593,42 @@ class AdminRepository @Inject constructor(
 
     suspend fun getEventCount(collegeId: String): Int =
         campusLifeDao.observeEvents(collegeId).first().size
+
+
+private fun noticeToRemoteMap(notice: NoticeEntity): Map<String, Any> = mapOf<String, Any>(
+    "id" to notice.id,
+    "section_key" to notice.sectionKey,
+    "title" to notice.title,
+    "body" to notice.body,
+    "attachment_url" to notice.attachmentUrl.orEmpty(),
+    "attachment_type" to notice.attachmentType.name,
+    "is_pinned" to notice.isPinned,
+    "category" to notice.category,
+    "priority" to notice.priority,
+    "is_official" to notice.isOfficial,
+    "author_uid" to notice.authorUid,
+    "author_name" to notice.authorName,
+    "author_role" to notice.authorRole.name,
+    "created_at" to notice.createdAtMillis,
+    "is_read" to notice.isRead
+)
+
+
+private fun noticeToRemoteMap(notice: NoticeEntity): Map<String, Any> = mapOf<String, Any>(
+    "id" to notice.id,
+    "section_key" to notice.sectionKey,
+    "title" to notice.title,
+    "body" to notice.body,
+    "attachment_url" to notice.attachmentUrl.orEmpty(),
+    "attachment_type" to notice.attachmentType.name,
+    "is_pinned" to notice.isPinned,
+    "category" to notice.category,
+    "priority" to notice.priority,
+    "is_official" to notice.isOfficial,
+    "author_uid" to notice.authorUid,
+    "author_name" to notice.authorName,
+    "author_role" to notice.authorRole.name,
+    "created_at" to notice.createdAtMillis,
+    "is_read" to notice.isRead
+)
 }

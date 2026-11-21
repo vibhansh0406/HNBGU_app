@@ -84,7 +84,7 @@ fun NoticeEntity.toRemoteMap(): Map<String, Any> = mapOf<String, Any>(
     "section_key" to sectionKey,
     "title" to title,
     "body" to body,
-    "attachment_url" to attachmentUrl,
+    "attachment_url" to attachmentUrl.orEmpty(),
     "attachment_type" to attachmentType.name,
     "is_pinned" to isPinned,
     "category" to category,

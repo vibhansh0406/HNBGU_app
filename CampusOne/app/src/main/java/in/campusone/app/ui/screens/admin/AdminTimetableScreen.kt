@@ -1,9 +1,6 @@
 package `in`.campusone.app.ui.screens.admin
 
-import android.net.Uri
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,20 +12,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material.icons.filled.FileUpload
-import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -39,24 +27,18 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import `in`.campusone.app.R
 import `in`.campusone.app.data.local.entity.TimetableSlotEntity
 import `in`.campusone.app.ui.components.C1Button
@@ -64,7 +46,6 @@ import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1TextField
-import `in`.campusone.app.ui.components.C1Tone
 import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.theme.C1Tone
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
@@ -82,19 +63,11 @@ fun AdminTimetableScreen(
     viewModel: AdminViewModel,
     onBack: () -> Unit
 ) {
-    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
-    var showPreviewDialog by rememberSaveable { mutableStateOf(false) }
-    var previewRows by rememberSaveable { mutableStateOf<List<TimetableCsvParser.ParsedRow>>(emptyList()) }
-    var previewErrors by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
-    var previewFileName by rememberSaveable { mutableStateOf("") }
+    var showUploadDialog by rememberSaveable { mutableStateOf(false) }
+    var csvText by rememberSaveable { mutableStateOf("") }
     var showHistoryDialog by rememberSaveable { mutableStateOf(false) }
     var historyImports by rememberSaveable { mutableStateOf<List<Map<String, Any>>>(emptyList()) }
     var historyLoading by rememberSaveable { mutableStateOf(false) }
-
-    val context = LocalContext.current
-    val pickCsv = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
-        uri?.let { processCsvUri(it, context, viewModel) }
-    }
 
     val profile = uiState.profile
     val courseCode = profile.courseId
@@ -103,37 +76,22 @@ fun AdminTimetableScreen(
     val section = profile.section
     val academicYear = "${java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)}-${java.util.Calendar.getInstance().get(java.util.Calendar.YEAR) + 1}"
 
-    fun processCsvUri(uri: Uri, context: android.content.Context, viewModel: AdminViewModel) {
-        viewModel.viewModel.viewModelScope.launch {
-            try {
-                val content = uri?.let { context.contentResolver.openInputStream(it)?.use { it.readText() } }
-                if (content.isNullOrBlank()) {
-                    viewModel.emitMessage("Could not read file")
-                    return@launch
-                }
-                val result = TimetableCsvParser.parse(content!!)
-                previewRows = result.rows
-                previewErrors = result.errors
-                previewFileName = uri.lastPathSegment ?: "timetable.csv"
-                showPreviewDialog = true
-            } catch (e: Exception) {
-                viewModel.emitMessage("Failed to parse CSV: ${e.message}")
-            }
+    fun publishCsv() {
+        if (csvText.isBlank()) return
+        val result = TimetableCsvParser.parse(csvText)
+        if (result.errors.isNotEmpty()) {
+            viewModel.emitMessage("Validation errors: ${result.errors.joinToString(", ")}")
+            return
         }
-    }
-
-    fun publishPreview() {
-        if (previewRows.isEmpty()) return
-        val rows = previewRows.map { it.toRemoteMap() }
-        viewModel.publishTimetable(courseCode, courseName, semester, section, academicYear, previewFileName, rows)
-        showPreviewDialog = false
-        previewRows = emptyList()
-        previewErrors = emptyList()
+        val rows = result.rows.map { it.toRemoteMap() }
+        viewModel.publishTimetable(courseCode, courseName, semester, section, academicYear, "manual_entry.csv", rows)
+        showUploadDialog = false
+        csvText = ""
     }
 
     fun loadHistory() {
         historyLoading = true
-        viewModel.viewModel.viewModelScope.launch {
+        viewModel.viewModelScope.launch {
             val result = viewModel.repository.listTimetableImports()
             historyImports = if (result.isSuccess) result.getOrNull() ?: emptyList() else emptyList()
             historyLoading = false
@@ -142,7 +100,7 @@ fun AdminTimetableScreen(
     }
 
     fun deleteImport(importId: String) {
-        viewModel.viewModel.viewModelScope.launch {
+        viewModel.viewModelScope.launch {
             viewModel.deleteTimetableImport(importId)
             historyImports = historyImports.filterNot { it["id"] == importId }
         }
@@ -196,23 +154,23 @@ fun AdminTimetableScreen(
                 ) {
                     Column(modifier = Modifier.padding(C1Spacing.lg)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.FileUpload, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+                            Icon(Icons.Default.CloudUpload, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
                             Spacer(modifier = Modifier.width(C1Spacing.sm))
                             Text("Upload CSV", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                         }
                         Spacer(modifier = Modifier.height(C1Spacing.xs))
                         Text(
-                            "Import a timetable CSV for this course. Template: Subject Code, Subject Name, Teacher, Room, Day (1-7), Start (HH:mm), End (HH:mm)",
+                            "Paste CSV content: Subject Code, Subject Name, Teacher, Room, Day (1-7), Start (HH:mm), End (HH:mm)",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(C1Spacing.md))
                         C1Button(
-                            text = "Choose CSV File",
-                            onClick = { pickCsv.launch(arrayOf("text/csv", "application/csv")) },
+                            text = "Open CSV Editor",
+                            onClick = { showUploadDialog = true },
                             intent = C1ButtonIntent.PRIMARY,
                             fullWidth = true,
-                            icon = { Icon(Icons.Default.FileUpload, contentDescription = null) }
+                            icon = { Icon(Icons.Default.CloudUpload, contentDescription = null) }
                         )
                     }
                 }
@@ -272,7 +230,7 @@ fun AdminTimetableScreen(
                                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                                        IconButton(onClick = { viewModel.viewModel.viewModelScope.launch { viewModel.repository.deleteTimetableSlot(slot.id, uiState.sectionKey) } }) {
+                                        IconButton(onClick = { viewModel.viewModelScope.launch { viewModel.repository.deleteTimetableSlot(slot.id, uiState.sectionKey) } }) {
                                             Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
                                         }
                                     }
@@ -293,14 +251,13 @@ fun AdminTimetableScreen(
         }
     }
 
-    // Preview Dialog
-    if (showPreviewDialog) {
-        PreviewDialog(
-            fileName = previewFileName,
-            rows = previewRows,
-            errors = previewErrors,
-            onDismiss = { showPreviewDialog = false },
-            onPublish = publishPreview
+    // Upload Dialog
+    if (showUploadDialog) {
+        UploadDialog(
+            csvText = csvText,
+            onTextChange = { csvText = it },
+            onDismiss = { showUploadDialog = false },
+            onPublish = publishCsv
         )
     }
 
@@ -316,67 +273,38 @@ fun AdminTimetableScreen(
 }
 
 @Composable
-private fun PreviewDialog(
-    fileName: String,
-    rows: List<TimetableCsvParser.ParsedRow>,
-    errors: List<String>,
+private fun UploadDialog(
+    csvText: String,
+    onTextChange: (String) -> Unit,
     onDismiss: () -> Unit,
     onPublish: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Preview: $fileName") },
+        title = { Text("Paste CSV Content") },
         text = {
             Column(
                 modifier = Modifier
                     .width(400.dp)
-                    .height(500.dp)
+                    .height(400.dp)
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
             ) {
-                if (errors.isNotEmpty()) {
-                    C1SurfaceCard(containerColor = MaterialTheme.colorScheme.errorContainer) {
-                        Column(modifier = Modifier.padding(C1Spacing.md)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
-                                Spacer(modifier = Modifier.width(C1Spacing.sm))
-                                Text("Validation Errors", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
-                            }
-                            Spacer(modifier = Modifier.height(C1Spacing.xs))
-                            errors.forEach { err ->
-                                Text("• $err", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
-                            }
-                        }
-                    }
-                }
-                Text("Valid rows: ${rows.size}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth().height(300.dp),
-                    verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)
-                ) {
-                    items(rows, key = { it.subjectCode + it.dayOfWeek + it.startTime }) { row ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(C1Spacing.sm)
-                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Column {
-                                Text("${row.subjectName} (${row.subjectCode})", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-                                Text("${row.teacherName} · ${row.roomNumber} · Day ${row.dayOfWeek} · ${row.startTime}–${row.endTime}",
-                                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
-                    }
-                }
+                C1TextField(
+                    value = csvText,
+                    onValueChange = onTextChange,
+                    label = "CSV Content",
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Text("Format: subject_code,subject_name,teacher,room,day,start,end", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Example: SOET-CS-301,Data Structures,Dr. Smith,Room 101,1,09:00,10:00", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
         confirmButton = {
             C1Button(
                 text = "Publish",
                 onClick = onPublish,
-                enabled = rows.isNotEmpty() && errors.isEmpty(),
+                enabled = csvText.isNotBlank(),
                 intent = C1ButtonIntent.PRIMARY
             )
         },

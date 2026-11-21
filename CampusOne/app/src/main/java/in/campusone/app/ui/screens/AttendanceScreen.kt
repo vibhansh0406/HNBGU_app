@@ -314,7 +314,8 @@ private fun OverallAttendanceCard(
                         )
                     }
                 }
-            }            Spacer(modifier = Modifier.height(C1Spacing.md))
+            }
+            Spacer(modifier = Modifier.height(C1Spacing.md))
             SmartCalculatorBanner(insight = insight)
 
             Spacer(modifier = Modifier.height(C1Spacing.md))
