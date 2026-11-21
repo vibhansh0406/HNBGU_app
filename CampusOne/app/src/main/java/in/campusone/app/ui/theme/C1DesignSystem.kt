@@ -609,19 +609,21 @@ data class C1ZIndex(
  * Transition specifications for screen transitions.
  */
 object C1Transition {
-    val fade = androidx.compose.animation.AnimatedContentScope.() -> androidx.compose.animation.Transition<Any> = {
+    typealias ScreenTransition = androidx.compose.animation.AnimatedContentScope.() -> androidx.compose.animation.Transition<Any>
+
+    val fade: ScreenTransition = {
         fadeIn(animationSpec = tween(durationMillis = normalMillis, easing = standardEasing)) +
             fadeOut(animationSpec = tween(durationMillis = fastMillis, easing = decelerateEasing))
     }
 
-    val slideHorizontal = { offset: Float ->
+    fun slideHorizontal(offset: Float): ScreenTransition = {
         slideInHorizontally(
             animationSpec = tween(durationMillis = normalMillis, easing = premiumEasing),
             initialOffsetX = { offset }
         ) + fadeOut(animationSpec = tween(durationMillis = fastMillis))
     }
 
-    val scaleFade = {
+    val scaleFade: ScreenTransition = {
         scaleIn(
             animationSpec = tween(durationMillis = normalMillis, easing = bounceEasing),
             initialScale = 0.9f
