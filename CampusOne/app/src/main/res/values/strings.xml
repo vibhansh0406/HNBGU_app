@@ -333,4 +333,32 @@
     <string name="onboarding_cr_teacher_access">CR, Teacher, Moderator and Club Admin access is granted after admin approval. A request is sent automatically.</string>
     <string name="hub_campus_life">Campus Life &amp; Utilities</string>
     <string name="hub_request_sent">Your request is sent to the admin. Access is granted only after approval.</string>
+    <!-- Timetable Admin -->
+    <string name="timetable_title">Timetable</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="timetable_not_published">Timetable not published yet</string>
+    <string name="timetable_not_published_hint">Your administrator will publish the timetable for your course and semester.</string>
+    <string name="timetable_empty_hint">No classes scheduled for this day.</string>
+
+    <!-- Admin Timetable -->
+    <string name="admin_timetable_upload">Upload CSV</string>
+    <string name="admin_timetable_history">Import History</string>
+    <string name="admin_timetable_template_hint">Template: Subject Code, Subject Name, Teacher, Room, Day (1-7), Start (HH:mm), End (HH:mm)</string>
+    <string name="admin_timetable_no_imports">No imports yet</string>
+    <string name="admin_timetable_no_imports_hint">Published timetables will appear here.</string>
+
+    <!-- Attendance -->
+    <string name="attendance_overall_card">Overall Attendance</string>
+    <string name="attendance_present">Present</string>
+    <string name="attendance_absent">Absent</string>
+    <string name="attendance_cancelled">Cancelled</string>
+    <string name="attendance_safe">Safe</string>
+    <string name="attendance_on_edge">On the edge</string>
+    <string name="attendance_recover">Recover</string>
+
+    <!-- Notices -->
+    <string name="notices_sync_error">Could not load announcements. Pull to refresh.</string>
+    <string name="notices_empty">All caught up! No announcements yet.</string>
+    <string name="notices_empty_hint">Announcements from your CR, faculty and the university will appear here.</string>
+
 </resources>

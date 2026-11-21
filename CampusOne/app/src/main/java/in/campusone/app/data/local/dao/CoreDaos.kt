@@ -94,6 +94,15 @@ interface NoticeDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertNotices(notices: List<NoticeEntity>)
 
+    @Query("DELETE FROM notices WHERE sectionKey = :sectionKey")
+    suspend fun clearSectionNotices(sectionKey: String)
+
+    @Transaction
+    suspend fun replaceSectionNotices(sectionKey: String, notices: List<NoticeEntity>) {
+        clearSectionNotices(sectionKey)
+        upsertNotices(notices)
+    }
+
     @Query("UPDATE notices SET isRead = 1 WHERE id = :noticeId")
     suspend fun markNoticeAsRead(noticeId: String)
 

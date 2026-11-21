@@ -67,7 +67,8 @@ object AttendanceCalculator {
         return if (currentPct >= targetDouble) {
             val rawSkippable = (100.0 * attended - targetDouble * totalConducted) / targetDouble
             val canMiss = floor(rawSkippable + 1e-9).toInt().coerceAtLeast(0)
-            val health = if (canMiss >= 1) AttendanceHealth.SAFE else AttendanceHealth.ON_EDGE
+            // 100% attendance is always SAFE regardless of buffer
+            val health = if (attended == totalConducted || canMiss >= 1) AttendanceHealth.SAFE else AttendanceHealth.ON_EDGE
             AttendanceInsight(
                 attended = attended,
                 totalConducted = totalConducted,

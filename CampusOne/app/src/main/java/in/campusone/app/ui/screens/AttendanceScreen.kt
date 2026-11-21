@@ -2,6 +2,7 @@ package `in`.campusone.app.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -253,34 +254,67 @@ private fun OverallAttendanceCard(
                 color = extended.hairline
             )
 
-            Row(modifier = Modifier.fillMaxWidth()) {
-                C1CompactStatCard(
-                    modifier = Modifier.weight(1f),
-                    label = stringResource(R.string.mark_present),
-                    value = insight.attended.toString(),
-                    valueColor = extended.success
-                )
-                C1CompactStatCard(
-                    modifier = Modifier.weight(1f),
-                    label = stringResource(R.string.mark_absent),
-                    value = absentCount.toString(),
-                    valueColor = MaterialTheme.colorScheme.error
-                )
-                C1CompactStatCard(
-                    modifier = Modifier.weight(1f),
-                    label = stringResource(R.string.mark_cancelled),
-                    value = insight.cancelled.toString(),
-                    valueColor = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                C1CompactStatCard(
-                    modifier = Modifier.weight(1f),
-                    label = stringResource(R.string.attendance_total_lectures),
-                    value = insight.totalConducted.toString(),
-                    valueColor = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            Spacer(modifier = Modifier.height(C1Spacing.md))
+            BoxWithConstraints {
+                if (maxWidth < 480.dp) {
+                    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                            C1CompactStatCard(
+                                modifier = Modifier.weight(1f),
+                                label = stringResource(R.string.mark_present),
+                                value = insight.attended.toString(),
+                                valueColor = extended.success
+                            )
+                            C1CompactStatCard(
+                                modifier = Modifier.weight(1f),
+                                label = stringResource(R.string.mark_absent),
+                                value = absentCount.toString(),
+                                valueColor = MaterialTheme.colorScheme.error
+                            )
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                            C1CompactStatCard(
+                                modifier = Modifier.weight(1f),
+                                label = stringResource(R.string.mark_cancelled),
+                                value = insight.cancelled.toString(),
+                                valueColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            C1CompactStatCard(
+                                modifier = Modifier.weight(1f),
+                                label = stringResource(R.string.attendance_total_lectures),
+                                value = insight.totalConducted.toString(),
+                                valueColor = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                } else {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                        C1CompactStatCard(
+                            modifier = Modifier.weight(1f),
+                            label = stringResource(R.string.mark_present),
+                            value = insight.attended.toString(),
+                            valueColor = extended.success
+                        )
+                        C1CompactStatCard(
+                            modifier = Modifier.weight(1f),
+                            label = stringResource(R.string.mark_absent),
+                            value = absentCount.toString(),
+                            valueColor = MaterialTheme.colorScheme.error
+                        )
+                        C1CompactStatCard(
+                            modifier = Modifier.weight(1f),
+                            label = stringResource(R.string.mark_cancelled),
+                            value = insight.cancelled.toString(),
+                            valueColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        C1CompactStatCard(
+                            modifier = Modifier.weight(1f),
+                            label = stringResource(R.string.attendance_total_lectures),
+                            value = insight.totalConducted.toString(),
+                            valueColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }            Spacer(modifier = Modifier.height(C1Spacing.md))
             SmartCalculatorBanner(insight = insight)
 
             Spacer(modifier = Modifier.height(C1Spacing.md))

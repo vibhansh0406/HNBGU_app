@@ -1,6 +1,5 @@
 package `in`.campusone.app.data.repository
 
-import `in`.campusone.app.data.local.HnbguSeedData
 import `in`.campusone.app.data.local.dao.AttendanceDao
 import `in`.campusone.app.data.local.dao.NoticeDao
 import `in`.campusone.app.data.local.dao.TimetableDao
@@ -24,6 +23,8 @@ import `in`.campusone.app.util.security.SecurityUtils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -39,13 +40,14 @@ class CoreCampusRepository @Inject constructor(
     private val authManager: AuthManager
 ) {
 
-    /**
-     * Ensures that if the database is empty (first install or offline pilot),
-     * HNB Garhwal University default section timetable, subjects, and notices are seeded.
-     */
     companion object {
         const val OWNER_EMAIL = "vvibhansh@gmail.com"
+        private const val SYNC_THROTTLE_MILLIS = 60_000L
     }
+
+    private val syncMutex = Mutex()
+    private var lastSyncAtMillis = 0L
+    private var lastSyncSectionKey = ""
 
     suspend fun syncProfileToCloud(profile: UserProfile) {
         if (!supabaseSync.isSyncedEnabled()) return
@@ -109,79 +111,106 @@ class CoreCampusRepository @Inject constructor(
         )
     }
 
-    suspend fun ensureSeededForSection(sectionKey: String): Result<Unit> =
-        runCatching { seedSectionData(sectionKey) }
+    suspend fun ensureSeededForSection(
+        sectionKey: String,
+        forceRefresh: Boolean = false
+    ): Result<Unit> {
+        if (!supabaseSync.isSyncedEnabled()) return Result.success(Unit)
+        return syncMutex.withLock {
+            val now = System.currentTimeMillis()
+            if (!forceRefresh &&
+                sectionKey == lastSyncSectionKey &&
+                now - lastSyncAtMillis < SYNC_THROTTLE_MILLIS
+            ) {
+                return@withLock Result.success(Unit)
+            }
+            runCatching { seedSectionData(sectionKey) }.also {
+                lastSyncAtMillis = System.currentTimeMillis()
+                lastSyncSectionKey = sectionKey
+            }
+        }
+    }
 
     private suspend fun seedSectionData(sectionKey: String) {
         val profile = prefs.userProfile.first()
-        // Seeding/initialization is allowed for everyone; the scope check only
-        // applies to moderator/admin write actions, not to local bootstrap.
-        if (profile.role == UserRole.MODERATOR || profile.role == UserRole.ADMIN) {
-            SecurityUtils.requireScopeMatch(
-                moderatorScope = profile.moderatorScope,
-                targetScope = profile.courseId,
-                role = profile.role
-            ).getOrElse { }
-        }
+        if (profile.sectionKey != sectionKey) return
+        if (!supabaseSync.isSyncedEnabled()) return
 
-        val currentSlots = timetableDao.getTimetableSnapshot(sectionKey)
-        if (currentSlots.isEmpty()) {
-            attendanceDao.upsertSubjects(HnbguSeedData.defaultSubjects(sectionKey))
-            timetableDao.upsertSlots(HnbguSeedData.defaultTimetable(sectionKey))
+        runCatching { authManager.ensureFreshToken() }
+        if (!supabaseSync.isSyncedEnabled()) return
+
+        val remoteTimetable = supabaseSync.downloadStudentTimetable(
+            courseId = profile.courseId,
+            courseName = profile.courseName,
+            semester = profile.semester,
+            section = profile.section
+        ).getOrThrow()
+
+        val slots = remoteTimetable.map { map ->
+            TimetableSlotEntity(
+                id = map["id"] as? String ?: "slot_${System.currentTimeMillis()}",
+                sectionKey = sectionKey,
+                subjectId = map["subject_id"] as? String ?: "",
+                subjectName = map["subject_name"] as? String ?: "",
+                subjectCode = map["subject_code"] as? String ?: "",
+                teacherName = map["teacher_name"] as? String ?: "",
+                roomNumber = map["room_number"] as? String ?: "",
+                dayOfWeek = (map["day_of_week"] as? Number)?.toInt() ?: 1,
+                startTime = map["start_time"] as? String ?: "09:00",
+                endTime = map["end_time"] as? String ?: "10:00",
+                isElective = map["is_elective"] == true,
+                updatedAtMillis = System.currentTimeMillis()
+            )
         }
+        // A successful empty response means the administrator has not published
+        // this course yet: clear stale rows instead of showing a hardcoded table.
+        timetableDao.replaceSectionTimetable(sectionKey, slots)
+
+        val subjects = slots
+            .filter { it.subjectId.isNotBlank() }
+            .distinctBy { it.subjectId }
+            .map { slot ->
+                SubjectEntity(
+                    subjectId = slot.subjectId,
+                    sectionKey = sectionKey,
+                    subjectName = slot.subjectName,
+                    subjectCode = slot.subjectCode,
+                    teacherName = slot.teacherName,
+                    isElective = slot.isElective,
+                    isEnrolled = true
+                )
+            }
+        if (subjects.isNotEmpty()) attendanceDao.upsertSubjects(subjects)
+
+        val sectionNotices = supabaseSync.downloadNotices(sectionKey).getOrThrow()
+        val globalNotices = supabaseSync.downloadNotices("global").getOrThrow()
+        val remoteNotices = (sectionNotices + globalNotices).distinctBy { it["id"] }
+        val readIds = noticeDao.getReadNoticeIds(sectionKey).toSet()
+        noticeDao.replaceSectionNotices(sectionKey, remoteNotices.map { map ->
+            NoticeEntity(
+                id = map["id"] as? String ?: "notice_${System.currentTimeMillis()}",
+                sectionKey = sectionKey,
+                title = map["title"] as? String ?: "",
+                body = map["body"] as? String ?: "",
+                attachmentUrl = map["attachment_url"] as? String?,
+                attachmentType = runCatchingDefault({
+                    AttachmentType.valueOf(map["attachment_type"] as? String ?: "NONE")
+                }, AttachmentType.NONE),
+                isPinned = map["is_pinned"] == true,
+                category = map["category"] as? String ?: "GENERAL",
+                priority = map["priority"] as? String ?: "NORMAL",
+                isOfficial = map["is_official"] == true,
+                authorUid = map["author_uid"] as? String ?: "",
+                authorName = map["author_name"] as? String ?: "Faculty",
+                authorRole = runCatchingDefault({
+                    UserRole.valueOf(map["author_role"] as? String ?: "CR")
+                }, UserRole.CR),
+                createdAtMillis = TimestampUtils.toEpochMillis(map["created_at"]) ?: System.currentTimeMillis(),
+                isRead = map["is_read"] == true || map["id"] in readIds
+            )
+        })
 
         restoreAttendanceFromCloud()
-
-        // Sync with Supabase if user is signed in (permanent backend)
-        if (supabaseSync.isSyncedEnabled()) {
-            // Pull timetable & notices from Supabase
-            val remoteSlots = supabaseSync.downloadTimetable(sectionKey)
-            if (remoteSlots.isNotEmpty()) {
-                timetableDao.replaceSectionTimetable(sectionKey, remoteSlots.map { map ->
-                    TimetableSlotEntity(
-                        id = map["id"] as? String ?: "${sectionKey}_${System.currentTimeMillis()}",
-                        sectionKey = sectionKey,
-                        subjectId = map["subject_id"] as? String ?: "",
-                        subjectName = map["subject_name"] as? String ?: "",
-                        subjectCode = map["subject_code"] as? String ?: "",
-                        teacherName = map["teacher_name"] as? String ?: "",
-                        roomNumber = map["room_number"] as? String ?: "",
-                        dayOfWeek = (map["day_of_week"] as? Number)?.toInt() ?: 1,
-                        startTime = map["start_time"] as? String ?: "09:00",
-                        endTime = map["end_time"] as? String ?: "10:00",
-                        isElective = map["is_elective"] as? Boolean ?: false,
-                        updatedAtMillis = System.currentTimeMillis()
-                    )
-                })
-            }
-            val remoteNotices = supabaseSync.downloadNotices(sectionKey) +
-                supabaseSync.downloadNotices("global")
-            if (remoteNotices.isNotEmpty()) {
-                noticeDao.upsertNotices(remoteNotices.map { map ->
-                    NoticeEntity(
-                        id = map["id"] as? String ?: "notice_${System.currentTimeMillis()}",
-                        sectionKey = sectionKey,
-                        title = map["title"] as? String ?: "",
-                        body = map["body"] as? String ?: "",
-                        attachmentUrl = map["attachment_url"] as? String?,
-                        attachmentType = runCatchingDefault({
-                            AttachmentType.valueOf(map["attachment_type"] as? String ?: "NONE")
-                        }, AttachmentType.NONE),
-                        isPinned = map["is_pinned"] as? Boolean ?: false,
-                        category = map["category"] as? String ?: "GENERAL",
-                        priority = map["priority"] as? String ?: "NORMAL",
-                        isOfficial = map["is_official"] as? Boolean ?: false,
-                        authorUid = map["author_uid"] as? String ?: "",
-                        authorName = map["author_name"] as? String ?: "Faculty",
-                        authorRole = runCatchingDefault({
-                            UserRole.valueOf(map["author_role"] as? String ?: "CR")
-                        }, UserRole.CR),
-                        createdAtMillis = TimestampUtils.toEpochMillis(map["created_at"]) ?: System.currentTimeMillis(),
-                        isRead = map["is_read"] as? Boolean ?: false
-                    )
-                })
-            }
-        }
     }
 
     private suspend fun restoreAttendanceFromCloud() {
@@ -314,55 +343,6 @@ class CoreCampusRepository @Inject constructor(
                     isElective = entity.isElective
                 )
             }
-        }
-    }
-
-    /**
-     * CR / Teacher action: Publish or update a timetable slot for the section.
-     * Updates Room immediately (offline-first) and pushes to Supabase (permanent backend).
-     */
-    suspend fun saveAndPublishTimetableSlot(
-        profile: UserProfile,
-        slot: TimetableSlot
-    ): kotlin.Result<Unit> = runCatching {
-        require(profile.role == UserRole.CR || profile.role == UserRole.TEACHER) {
-            "Only Class Representatives (CR) or Teachers can publish section timetables."
-        }
-        val entity = TimetableSlotEntity(
-            id = slot.id,
-            sectionKey = profile.sectionKey,
-            subjectId = slot.subjectId,
-            subjectName = slot.subjectName,
-            subjectCode = slot.subjectCode,
-            teacherName = slot.teacherName,
-            roomNumber = slot.roomNumber,
-            dayOfWeek = slot.dayOfWeek,
-            startTime = slot.startTime,
-            endTime = slot.endTime,
-            isElective = slot.isElective,
-            updatedAtMillis = System.currentTimeMillis()
-        )
-        timetableDao.upsertSlots(listOf(entity))
-
-        // Supabase permanent sync
-        if (supabaseSync.isSyncedEnabled()) {
-            val allSectionSlots = timetableDao.getTimetableSnapshot(profile.sectionKey)
-            supabaseSync.uploadTimetable(profile.sectionKey, allSectionSlots.map { it ->
-                mapOf(
-                    "id" to it.id,
-                    "section_key" to it.sectionKey,
-                    "subject_id" to it.subjectId,
-                    "subject_name" to it.subjectName,
-                    "subject_code" to it.subjectCode,
-                    "teacher_name" to it.teacherName,
-                    "room_number" to it.roomNumber,
-                    "day_of_week" to it.dayOfWeek,
-                    "start_time" to it.startTime,
-                    "end_time" to it.endTime,
-                    "is_elective" to it.isElective,
-                    "updated_at" to System.currentTimeMillis()
-                )
-            })
         }
     }
 

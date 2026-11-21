@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.theme.C1Height
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
+import `in`.campusone.app.data.repository.AdminPermission
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,19 +48,12 @@ fun AdminHubScreen(
     onNavigate: (String) -> Unit
 ) {
     val state = uiState
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Admin Panel") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
+    val visibleActions = remember(state.identity) {
+        adminActions.filter { action ->
+            action.permission == null || state.identity.can(action.permission!!)
         }
-    ) {
+    }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -77,7 +71,7 @@ fun AdminHubScreen(
                 verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
             ) {
                 items(
-                    items = adminActions,
+                    items = visibleActions,
                     key = { it.route }
                 ) { action ->
                     Row(
@@ -108,18 +102,24 @@ fun AdminHubScreen(
 }
 
 private val adminActions = listOf(
-    AdminAction(route = "SUBJECTS", label = "Subjects"),
-    AdminAction(route = "TIMETABLE", label = "Timetable"),
-    AdminAction(route = "NOTICES", label = "Notices"),
-    AdminAction(route = "ASSIGNMENTS", label = "Assignments"),
-    AdminAction(route = "EXAMS", label = "Exams"),
-    AdminAction(route = "CLUBS", label = "Clubs"),
-    AdminAction(route = "EVENTS", label = "Events"),
-    AdminAction(route = "LOST_FOUND", label = "Lost & Found"),
-    AdminAction(route = "DIRECTORY", label = "Directory"),
-    AdminAction(route = "USERS", label = "Users"),
-    AdminAction(route = "REVIEW", label = "Reports & Review"),
-    AdminAction(route = "HELP", label = "Help Center")
+    AdminAction(route = "SUBJECTS", label = "Subjects", permission = null),
+    AdminAction(route = "TIMETABLE", label = "Timetable", permission = AdminPermission.MANAGE_TIMETABLE),
+    AdminAction(route = "NOTICES", label = "Notices", permission = AdminPermission.MANAGE_NOTICES),
+    AdminAction(route = "ASSIGNMENTS", label = "Assignments", permission = null),
+    AdminAction(route = "EXAMS", label = "Exams", permission = null),
+    AdminAction(route = "CLUBS", label = "Clubs", permission = null),
+    AdminAction(route = "EVENTS", label = "Events", permission = null),
+    AdminAction(route = "LOST_FOUND", label = "Lost & Found", permission = null),
+    AdminAction(route = "DIRECTORY", label = "Directory", permission = null),
+    AdminAction(route = "USERS", label = "Users", permission = AdminPermission.VIEW_USERS),
+    AdminAction(route = "REVIEW", label = "Reports & Review", permission = AdminPermission.MODERATE_REPORTS),
+    AdminAction(route = "HELP", label = "Help Center", permission = null)
+)
+
+private data class AdminAction(
+    val route: String,
+    val label: String,
+    val permission: AdminPermission?
 )
 
 private fun actionIcon(route: String) = when (route) {

@@ -78,3 +78,22 @@ data class NoticeEntity(
     val createdAtMillis: Long,
     val isRead: Boolean = false
 )
+
+fun NoticeEntity.toRemoteMap(): Map<String, Any> = mapOf(
+    "id" to id,
+    "section_key" to sectionKey,
+    "title" to title,
+    "body" to body,
+    "attachment_url" to attachmentUrl,
+    "attachment_type" to attachmentType.name,
+    "is_pinned" to isPinned,
+    "category" to category,
+    "priority" to priority,
+    "is_official" to isOfficial,
+    "author_uid" to authorUid,
+    "author_name" to authorName,
+    "author_role" to authorRole.name,
+    "created_at" to createdAtMillis,
+    "is_read" to isRead
+)
+

@@ -11,7 +11,6 @@ import `in`.campusone.app.domain.model.AttachmentType
 import `in`.campusone.app.domain.model.AttendanceStatus
 import `in`.campusone.app.domain.model.NoticeItem
 import `in`.campusone.app.domain.model.SubjectAttendanceSummary
-import `in`.campusone.app.domain.model.TimetableSlot
 import `in`.campusone.app.domain.model.UserProfile
 import `in`.campusone.app.domain.model.UserRole
 import `in`.campusone.app.domain.usecase.AttendanceCalculator
@@ -274,17 +273,6 @@ class CoreViewModel @Inject constructor(
         }
     }
 
-    fun publishTimetableSlot(slot: TimetableSlot) {
-        viewModelScope.launch {
-            val result = repository.saveAndPublishTimetableSlot(uiState.value.profile, slot)
-            if (result.isSuccess) {
-                _uiMessages.emit("Section timetable updated & synced!")
-            } else {
-                _uiMessages.emit(result.exceptionOrNull()?.message ?: "Failed to update timetable")
-            }
-        }
-    }
-
     fun updateDisplayName(name: String) {
         val trimmed = name.trim()
         if (trimmed.isBlank()) return
@@ -341,7 +329,19 @@ class CoreViewModel @Inject constructor(
     fun refreshNotices() {
         viewModelScope.launch {
             val sectionKey = prefs.userProfile.first().sectionKey
-            _noticesSyncError.value = repository.ensureSeededForSection(sectionKey).isFailure
+            _noticesSyncError.value =
+                repository.ensureSeededForSection(sectionKey, forceRefresh = true).isFailure
+        }
+    }
+
+    fun refreshTimetable() {
+        viewModelScope.launch {
+            val sectionKey = prefs.userProfile.first().sectionKey
+            val result = repository.ensureSeededForSection(sectionKey, forceRefresh = true)
+            _noticesSyncError.value = result.isFailure
+            if (result.isFailure) {
+                _uiMessages.emit("Could not refresh timetable. Check your connection.")
+            }
         }
     }
 }

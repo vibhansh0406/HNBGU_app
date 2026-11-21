@@ -437,6 +437,21 @@ class AdminRepository @Inject constructor(
         timetableDao.deleteSlot(slotId)
     }
 
+    // Remote timetable operations (admin only)
+    suspend fun publishTimetable(
+        courseCode: String,
+        courseName: String,
+        semester: Int,
+        section: String,
+        academicYear: String,
+        fileName: String,
+        rows: List<Map<String, Any>>
+    ) = supabaseSync.publishTimetable(courseCode, courseName, semester, section, academicYear, fileName, rows)
+
+    suspend fun listTimetableImports() = supabaseSync.listTimetableImports()
+
+    suspend fun deleteTimetableImport(importId: String) = supabaseSync.deleteTimetableImport(importId)
+
     // =========================================================================
     // NOTICES
     // =========================================================================
@@ -448,6 +463,13 @@ class AdminRepository @Inject constructor(
 
     suspend fun deleteNotice(noticeId: String) =
         noticeDao.deleteNotice(noticeId)
+
+    // Remote notice operations (admin only)
+    suspend fun saveNoticeRemote(notice: NoticeEntity): Boolean =
+        supabaseSync.uploadNotices(notice.sectionKey, listOf(notice.toRemoteMap()))
+
+    suspend fun deleteNoticeRemote(noticeId: String): Boolean =
+        supabaseSync.deleteNotice(noticeId)
 
     // =========================================================================
     // ASSIGNMENTS

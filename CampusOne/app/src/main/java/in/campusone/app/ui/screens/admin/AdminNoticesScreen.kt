@@ -41,6 +41,10 @@ import androidx.compose.ui.unit.dp
 import `in`.campusone.app.data.local.entity.NoticeEntity
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
+import `in`.campusone.app.ui.components.C1Button
+import `in`.campusone.app.ui.components.C1ButtonIntent
+import `in`.campusone.app.ui.components.C1TextField
+import `in`.campusone.app.ui.theme.C1Spacing
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -57,6 +61,9 @@ fun AdminNoticesScreen(
     var title by rememberSaveable { mutableStateOf("") }
     var body by rememberSaveable { mutableStateOf("") }
     var isPinned by rememberSaveable { mutableStateOf(false) }
+    var category by rememberSaveable { mutableStateOf("GENERAL") }
+    var priority by rememberSaveable { mutableStateOf("NORMAL") }
+    var isOfficial by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -75,6 +82,9 @@ fun AdminNoticesScreen(
                 title = ""
                 body = ""
                 isPinned = false
+                category = "GENERAL"
+                priority = "NORMAL"
+                isOfficial = false
                 showDialog = true
             }) {
                 Icon(Icons.Default.Add, contentDescription = "Add Notice")
@@ -82,12 +92,12 @@ fun AdminNoticesScreen(
         }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = C1Spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
         ) {
             items(uiState.notices, key = { it.id }) { notice ->
                 ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(C1Spacing.lg)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = notice.title,
@@ -98,37 +108,55 @@ fun AdminNoticesScreen(
                                 Icon(Icons.Default.PushPin, contentDescription = "Pinned", tint = MaterialTheme.colorScheme.primary)
                             }
                         }
-                        Spacer(modifier = Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height(C1Spacing.xs))
                         Text(
                             text = notice.body,
                             style = MaterialTheme.typography.bodyMedium,
                             maxLines = 2
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Spacer(modifier = Modifier.height(C1Spacing.sm))
+                        Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                             Text(
                                 text = "${notice.authorName} (${notice.authorRole.name})",
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
                                 text = SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault()).format(Date(notice.createdAtMillis)),
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                            if (notice.isOfficial) {
+                                androidx.compose.material3.Chip(
+                                    onClick = { },
+                                    label = { Text("Official", style = MaterialTheme.typography.labelSmall) },
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    modifier = Modifier.height(24.dp)
+                                )
+                            }
                         }
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                             IconButton(onClick = {
                                 editingNotice = notice
                                 title = notice.title
                                 body = notice.body
                                 isPinned = notice.isPinned
+                                category = notice.category
+                                priority = notice.priority
+                                isOfficial = notice.isOfficial
                                 showDialog = true
                             }) {
                                 Icon(Icons.Default.Edit, contentDescription = "Edit")
                             }
-                            IconButton(onClick = { }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Delete")
+                            IconButton(onClick = {
+                                viewModel.deleteNoticeRemote(notice.id)
+                            }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Delete from cloud")
+                            }
+                            IconButton(onClick = {
+                                viewModel.saveNoticeRemote(notice)
+                            }) {
+                                Icon(Icons.Default.CloudUpload, contentDescription = "Sync to cloud")
                             }
                         }
                     }
@@ -142,9 +170,15 @@ fun AdminNoticesScreen(
             title = title,
             body = body,
             isPinned = isPinned,
+            category = category,
+            priority = priority,
+            isOfficial = isOfficial,
             onTitleChange = { title = it },
             onBodyChange = { body = it },
             onPinnedChange = { isPinned = it },
+            onCategoryChange = { category = it },
+            onPriorityChange = { priority = it },
+            onOfficialChange = { isOfficial = it },
             onDismiss = { showDialog = false },
             onSave = {
                 val notice = NoticeEntity(
@@ -153,9 +187,9 @@ fun AdminNoticesScreen(
                     title = title,
                     body = body,
                     isPinned = isPinned,
-                    category = editingNotice?.category ?: "GENERAL",
-                    priority = editingNotice?.priority ?: "NORMAL",
-                    isOfficial = editingNotice?.isOfficial ?: false,
+                    category = category,
+                    priority = priority,
+                    isOfficial = isOfficial,
                     authorUid = uiState.profile.uid,
                     authorName = uiState.profile.name,
                     authorRole = uiState.profile.role,
@@ -163,55 +197,11 @@ fun AdminNoticesScreen(
                     isRead = false
                 )
                 viewModel.saveNotice(notice)
+                if (isOfficial || priority == "HIGH" || priority == "URGENT") {
+                    viewModel.saveNoticeRemote(notice)
+                }
                 showDialog = false
             }
         )
     }
-}
-
-@Composable
-private fun NoticeDialog(
-    title: String,
-    body: String,
-    isPinned: Boolean,
-    onTitleChange: (String) -> Unit,
-    onBodyChange: (String) -> Unit,
-    onPinnedChange: (Boolean) -> Unit,
-    onDismiss: () -> Unit,
-    onSave: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(if (title.isNotBlank()) "Edit Notice" else "Add Notice") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = onTitleChange,
-                    label = { Text("Title") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = body,
-                    onValueChange = onBodyChange,
-                    label = { Text("Body / Details") },
-                    minLines = 3,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = isPinned, onCheckedChange = onPinnedChange)
-                    Text("Pin to top")
-                }
-            }
-        },
-        confirmButton = {
-            Button(onClick = onSave, enabled = title.isNotBlank() && body.isNotBlank()) {
-                Text("Save")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
-        }
-    )
 }

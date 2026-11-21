@@ -1107,7 +1107,7 @@ fun RowScope.C1NavItem(
                 )
             }
         },
-        label = { Text(label, style = MaterialTheme.typography.labelMedium) },
+        label = { Text(label, style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         alwaysShowLabel = true,
         colors = NavigationBarItemDefaults.colors(
             selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -1434,7 +1434,10 @@ fun C1CompactStatCard(
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 36.dp)
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,

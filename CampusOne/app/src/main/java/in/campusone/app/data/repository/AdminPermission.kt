@@ -15,7 +15,8 @@ enum class AdminPermission(val code: String) {
     MODERATE_REPORTS("MODERATE_REPORTS"),
     MANAGE_EVENTS("MANAGE_EVENTS"),
     VIEW_AUDIT_LOGS("VIEW_AUDIT_LOGS"),
-    MANAGE_SYSTEM_SETTINGS("MANAGE_SYSTEM_SETTINGS");
+    MANAGE_SYSTEM_SETTINGS("MANAGE_SYSTEM_SETTINGS"),
+    MANAGE_TIMETABLE("MANAGE_TIMETABLE");
 
     companion object {
         fun from(code: String): AdminPermission? = entries.firstOrNull { it.code == code }

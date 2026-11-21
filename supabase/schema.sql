@@ -2075,3 +2075,320 @@ drop trigger if exists lost_found_contact_requests_guard on public.lost_found_co
 create trigger lost_found_contact_requests_guard
   before update on public.lost_found_contact_requests
   for each row execute function public.campusone_guard_status_only_staff();
+
+-- =========================================================================
+-- MISSION 7 — ANNOUNCEMENTS REPAIR + DYNAMIC COURSE TIMETABLES
+-- =========================================================================
+-- The client writes notice metadata (category / priority / is_official) that
+-- older deployments never received. Without these columns PostgREST rejects
+-- the whole announcement and nothing reaches the backend.
+alter table public.notices add column if not exists category text not null default 'GENERAL';
+alter table public.notices add column if not exists priority text not null default 'NORMAL';
+alter table public.notices add column if not exists is_official boolean not null default false;
+alter table public.notices add column if not exists updated_at bigint not null default 0;
+
+alter table public.notices drop constraint if exists notices_category_check;
+alter table public.notices add constraint notices_category_check
+  check (category in ('GENERAL','ACADEMIC','EXAM','EVENT','URGENT','PLACEMENT'));
+
+alter table public.notices drop constraint if exists notices_priority_check;
+alter table public.notices add constraint notices_priority_check
+  check (priority in ('LOW','NORMAL','HIGH','URGENT'));
+
+-- New capability: timetable publication is administrator-only.
+insert into public.admin_permissions (code, description, is_owner_only) values
+  ('MANAGE_TIMETABLE', 'Upload, publish, replace and delete course timetables', false)
+on conflict (code) do nothing;
+
+insert into public.role_permissions (role, permission)
+select 'ADMIN', 'MANAGE_TIMETABLE'
+on conflict do nothing;
+
+-- Timetable rows now carry their full academic scope so a student can only
+-- receive the timetable that belongs to their profile.
+alter table public.timetable_slots add column if not exists course_code text not null default '';
+alter table public.timetable_slots add column if not exists course_name text not null default '';
+alter table public.timetable_slots add column if not exists semester integer not null default 0;
+alter table public.timetable_slots add column if not exists section text not null default '';
+alter table public.timetable_slots add column if not exists academic_year text not null default '';
+alter table public.timetable_slots add column if not exists import_id uuid;
+
+create index if not exists timetable_scope_idx
+  on public.timetable_slots (course_code, semester, section, academic_year);
+create index if not exists timetable_course_name_idx
+  on public.timetable_slots (course_name, semester, section, academic_year);
+create index if not exists timetable_import_id_idx
+  on public.timetable_slots (import_id);
+
+create table if not exists public.timetable_imports (
+  id uuid primary key default gen_random_uuid(),
+  course_code text not null,
+  course_name text not null default '',
+  semester integer not null,
+  section text not null default 'A',
+  academic_year text not null,
+  file_name text not null default '',
+  row_count integer not null default 0,
+  status text not null default 'PUBLISHED',
+  uploaded_by uuid,
+  uploaded_by_email text not null default '',
+  created_at bigint not null default (extract(epoch from now()) * 1000)::bigint,
+  replaced_at bigint not null default 0,
+  constraint timetable_imports_status_check check (status in ('PUBLISHED','REPLACED')),
+  constraint timetable_imports_semester_check check (semester between 1 and 12)
+);
+
+create index if not exists timetable_imports_scope_idx
+  on public.timetable_imports (course_code, semester, section, academic_year, created_at desc);
+create index if not exists timetable_imports_created_idx
+  on public.timetable_imports (created_at desc);
+
+alter table public.timetable_imports enable row level security;
+drop policy if exists "campusone_read_timetable_imports" on public.timetable_imports;
+create policy "campusone_read_timetable_imports" on public.timetable_imports
+  for select to authenticated
+  using (public.campusone_has_permission('MANAGE_TIMETABLE'));
+
+-- No REST writes: publication and deletion go through the audited RPCs below.
+revoke insert, update, delete on public.timetable_imports from anon, authenticated;
+revoke insert, update, delete on public.timetable_slots from anon, authenticated;
+
+drop policy if exists "campusone_read_timetable_slots" on public.timetable_slots;
+drop policy if exists "campusone_staff_write_timetable_slots" on public.timetable_slots;
+
+create policy "campusone_read_own_timetable" on public.timetable_slots
+  for select to authenticated
+  using (
+    public.campusone_has_permission('MANAGE_TIMETABLE')
+    or exists (
+      select 1
+        from public.profiles p
+       where p.id = auth.uid()
+         and p.semester = timetable_slots.semester
+         and upper(coalesce(p.section, '')) = upper(timetable_slots.section)
+         and (
+           p.course_id = timetable_slots.course_code
+           or (p.course_name <> '' and p.course_name = timetable_slots.course_name)
+         )
+    )
+  );
+
+create or replace function public.campusone_publish_timetable(
+  p_course_code text,
+  p_course_name text,
+  p_semester integer,
+  p_section text,
+  p_academic_year text,
+  p_file_name text,
+  p_slots jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_import_id uuid := gen_random_uuid();
+  v_now bigint := (extract(epoch from now()) * 1000)::bigint;
+  v_errors jsonb := '[]'::jsonb;
+  v_row record;
+  v_section_key text;
+  v_count integer := 0;
+  v_course_code text := btrim(coalesce(p_course_code, ''));
+  v_course_name text := btrim(coalesce(p_course_name, ''));
+  v_section text := upper(btrim(coalesce(p_section, '')));
+  v_academic_year text := btrim(coalesce(p_academic_year, ''));
+begin
+  if not (public.campusone_is_owner() or public.campusone_has_permission('MANAGE_TIMETABLE')) then
+    return jsonb_build_object('ok', false, 'error', 'Not authorized to publish timetables');
+  end if;
+
+  if v_course_code = '' then
+    return jsonb_build_object('ok', false, 'error', 'course_code is required');
+  end if;
+  if p_semester is null or p_semester not between 1 and 12 then
+    return jsonb_build_object('ok', false, 'error', 'semester must be between 1 and 12');
+  end if;
+  if v_section = '' then
+    return jsonb_build_object('ok', false, 'error', 'section is required');
+  end if;
+  if v_academic_year !~ '^[0-9]{4}-[0-9]{2}$' then
+    return jsonb_build_object('ok', false, 'error', 'academic_year must look like 2026-27');
+  end if;
+  if p_slots is null or jsonb_typeof(p_slots) <> 'array' or jsonb_array_length(p_slots) = 0 then
+    return jsonb_build_object('ok', false, 'error', 'The CSV contains no timetable rows');
+  end if;
+
+  for v_row in
+    select * from jsonb_to_recordset(p_slots) as x(
+      row_no integer,
+      day integer,
+      subject_code text,
+      subject_name text,
+      start_time text,
+      end_time text,
+      room text,
+      faculty text
+    )
+  loop
+    if v_row.day is null or v_row.day not between 1 and 7 then
+      v_errors := v_errors || jsonb_build_array(jsonb_build_object(
+        'row', coalesce(v_row.row_no, 0), 'error', 'Day must be between 1 (Monday) and 7 (Sunday)'));
+    end if;
+    if coalesce(v_row.subject_code, '') = '' then
+      v_errors := v_errors || jsonb_build_array(jsonb_build_object(
+        'row', coalesce(v_row.row_no, 0), 'error', 'subject_code is required'));
+    end if;
+    if coalesce(v_row.subject_name, '') = '' then
+      v_errors := v_errors || jsonb_build_array(jsonb_build_object(
+        'row', coalesce(v_row.row_no, 0), 'error', 'subject_name is required'));
+    end if;
+    if coalesce(v_row.start_time, '') !~ '^([01][0-9]|2[0-3]):[0-5][0-9]$' then
+      v_errors := v_errors || jsonb_build_array(jsonb_build_object(
+        'row', coalesce(v_row.row_no, 0), 'error', 'start_time must use HH:mm'));
+    end if;
+    if coalesce(v_row.end_time, '') !~ '^([01][0-9]|2[0-3]):[0-5][0-9]$' then
+      v_errors := v_errors || jsonb_build_array(jsonb_build_object(
+        'row', coalesce(v_row.row_no, 0), 'error', 'end_time must use HH:mm'));
+    end if;
+    if coalesce(v_row.start_time, '') <> ''
+       and coalesce(v_row.end_time, '') <> ''
+       and v_row.end_time <= v_row.start_time then
+      v_errors := v_errors || jsonb_build_array(jsonb_build_object(
+        'row', coalesce(v_row.row_no, 0), 'error', 'end_time must be after start_time'));
+    end if;
+  end loop;
+
+  if jsonb_array_length(v_errors) > 0 then
+    return jsonb_build_object('ok', false, 'error', 'Validation failed', 'errors', v_errors);
+  end if;
+
+  if exists (
+    select 1
+      from jsonb_to_recordset(p_slots) as x(
+        row_no integer, day integer, subject_code text, subject_name text,
+        start_time text, end_time text, room text, faculty text)
+     group by x.day, x.start_time
+    having count(*) > 1
+  ) then
+    return jsonb_build_object('ok', false, 'error', 'Duplicate day/start_time entries in the CSV');
+  end if;
+
+  v_section_key := lower(v_course_code) || '_sem' || p_semester || '_sec' || v_section;
+
+  update public.timetable_imports
+     set status = 'REPLACED', replaced_at = v_now
+   where course_code = v_course_code
+     and semester = p_semester
+     and upper(section) = v_section
+     and academic_year = v_academic_year
+     and status = 'PUBLISHED';
+
+  delete from public.timetable_slots
+   where course_code = v_course_code
+     and semester = p_semester
+     and upper(section) = v_section
+     and academic_year = v_academic_year;
+
+  insert into public.timetable_imports (
+    id, course_code, course_name, semester, section, academic_year,
+    file_name, row_count, status, uploaded_by, uploaded_by_email, created_at
+  ) values (
+    v_import_id, v_course_code, v_course_name, p_semester, v_section, v_academic_year,
+    coalesce(p_file_name, ''), jsonb_array_length(p_slots), 'PUBLISHED',
+    auth.uid(), public.campusone_caller_email(), v_now
+  );
+
+  insert into public.timetable_slots (
+    id, section_key, subject_id, subject_name, subject_code, teacher_name,
+    room_number, day_of_week, start_time, end_time, is_elective, updated_at,
+    course_code, course_name, semester, section, academic_year, import_id
+  )
+  select v_import_id::text || '_' || row_number() over (order by x.row_no),
+         v_section_key,
+         coalesce(x.subject_code, ''),
+         coalesce(x.subject_name, ''),
+         coalesce(x.subject_code, ''),
+         coalesce(x.faculty, ''),
+         coalesce(x.room, ''),
+         x.day,
+         x.start_time,
+         x.end_time,
+         false,
+         v_now,
+         v_course_code,
+         v_course_name,
+         p_semester,
+         v_section,
+         v_academic_year,
+         v_import_id
+    from jsonb_to_recordset(p_slots) as x(
+      row_no integer, day integer, subject_code text, subject_name text,
+      start_time text, end_time text, room text, faculty text);
+
+  get diagnostics v_count = row_count;
+
+  perform public.campusone_audit(
+    'timetable_publish', 'timetable_import', v_import_id::text,
+    jsonb_build_object(
+      'courseCode', v_course_code,
+      'courseName', v_course_name,
+      'semester', p_semester,
+      'section', v_section,
+      'academicYear', v_academic_year,
+      'rowCount', v_count
+    ),
+    'SUCCESS'
+  );
+
+  return jsonb_build_object(
+    'ok', true,
+    'importId', v_import_id,
+    'rowCount', v_count,
+    'sectionKey', v_section_key
+  );
+exception when others then
+  return jsonb_build_object('ok', false, 'error', SQLERRM);
+end;
+$$;
+
+create or replace function public.campusone_delete_timetable(p_import_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_import public.timetable_imports%rowtype;
+begin
+  if not (public.campusone_is_owner() or public.campusone_has_permission('MANAGE_TIMETABLE')) then
+    return jsonb_build_object('ok', false, 'error', 'Not authorized to delete timetables');
+  end if;
+
+  select * into v_import from public.timetable_imports where id = p_import_id;
+  if not found then
+    return jsonb_build_object('ok', false, 'error', 'Timetable upload not found');
+  end if;
+
+  delete from public.timetable_slots where import_id = p_import_id;
+  delete from public.timetable_imports where id = p_import_id;
+
+  perform public.campusone_audit(
+    'timetable_delete', 'timetable_import', p_import_id::text,
+    jsonb_build_object(
+      'courseCode', v_import.course_code,
+      'semester', v_import.semester,
+      'section', v_import.section,
+      'academicYear', v_import.academic_year
+    ),
+    'SUCCESS'
+  );
+
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+revoke execute on function public.campusone_publish_timetable(text, text, integer, text, text, text, jsonb) from public, anon;
+revoke execute on function public.campusone_delete_timetable(uuid) from public, anon;
+grant execute on function public.campusone_publish_timetable(text, text, integer, text, text, text, jsonb) to authenticated;
+grant execute on function public.campusone_delete_timetable(uuid) to authenticated;

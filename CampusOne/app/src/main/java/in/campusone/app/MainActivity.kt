@@ -397,7 +397,7 @@ fun CampusOneRoot(
                         BottomNavTab.TIMETABLE -> TimetableScreen(
                         uiState = coreState,
                         onUpdateReminderMinutes = coreViewModel::updateReminderLeadMinutes,
-                        onPublishSlot = coreViewModel::publishTimetableSlot
+                        onRefresh = coreViewModel::refreshTimetable
                         )
                         BottomNavTab.NOTICES -> NoticeBoardScreen(
                         uiState = coreState,

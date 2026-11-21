@@ -43,12 +43,16 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AdminViewModel @Inject constructor(
-    private val repository: AdminRepository,
+    val repository: AdminRepository,
     private val authManager: AuthManager
 ) : ViewModel() {
 
     private val _messages = MutableSharedFlow<String>()
     val messages = _messages.asSharedFlow()
+
+    fun emitMessage(message: String) {
+        viewModelScope.launch { _messages.emit(message) }
+    }
 
     data class AdminUiState(
         val isAdmin: Boolean = false,
@@ -296,6 +300,39 @@ class AdminViewModel @Inject constructor(
         }
     }
 
+    fun publishTimetable(
+        courseCode: String,
+        courseName: String,
+        semester: Int,
+        section: String,
+        academicYear: String,
+        fileName: String,
+        rows: List<Map<String, Any>>
+    ) {
+        viewModelScope.launch {
+            val outcome = repository.publishTimetable(courseCode, courseName, semester, section, academicYear, fileName, rows)
+            _messages.emit(outcome.message)
+        }
+    }
+
+    fun loadTimetableImports() {
+        viewModelScope.launch {
+            val result = repository.listTimetableImports()
+            if (result.isSuccess) {
+                // TODO: expose in UI state
+            } else {
+                _messages.emit("Failed to load timetable history")
+            }
+        }
+    }
+
+    fun deleteTimetableImport(importId: String) {
+        viewModelScope.launch {
+            val outcome = repository.deleteTimetableImport(importId)
+            _messages.emit(outcome.message)
+        }
+    }
+
     // =========================================================================
     // NOTICES
     // =========================================================================
@@ -303,6 +340,20 @@ class AdminViewModel @Inject constructor(
         viewModelScope.launch {
             repository.upsertNotices(listOf(notice))
             _messages.emit("Notice published: ${notice.title}")
+        }
+    }
+
+    fun saveNoticeRemote(notice: NoticeEntity) {
+        viewModelScope.launch {
+            val ok = repository.saveNoticeRemote(notice)
+            _messages.emit(if (ok) "Notice synced to cloud" else "Failed to sync notice")
+        }
+    }
+
+    fun deleteNoticeRemote(noticeId: String) {
+        viewModelScope.launch {
+            val ok = repository.deleteNoticeRemote(noticeId)
+            _messages.emit(if (ok) "Notice deleted from cloud" else "Failed to delete notice")
         }
     }
 

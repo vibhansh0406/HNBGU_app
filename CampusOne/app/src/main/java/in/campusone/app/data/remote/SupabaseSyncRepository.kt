@@ -1,6 +1,7 @@
 package `in`.campusone.app.data.remote
 
 import android.content.Context
+import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,6 +22,12 @@ class SupabaseSyncRepository @Inject constructor(
     companion object {
         /** Upper bound on rows pulled for any admin listing. */
         const val ADMIN_PAGE_LIMIT = 500
+        private const val TAG = "CampusOneSync"
+        private val LEGACY_NOTICE_COLUMNS = setOf(
+            "id", "section_key", "title", "body", "attachment_url",
+            "attachment_type", "is_pinned", "author_uid", "author_name",
+            "author_role", "created_at", "is_read"
+        )
     }
 
     /** Authoritative identity/permission snapshot returned by the database. */
@@ -271,20 +278,41 @@ class SupabaseSyncRepository @Inject constructor(
     // =========================================================================
     // NOTICES SYNC
     // =========================================================================
-    suspend fun uploadNotices(sectionKey: String, notices: List<Map<String, Any>>) {
-        if (!isSyncedEnabled() || notices.isEmpty()) return
-        supabaseClient.from("notices").upsert(notices)
+    suspend fun uploadNotices(sectionKey: String, notices: List<Map<String, Any>>): Boolean {
+        if (!isSyncedEnabled() || notices.isEmpty()) return false
+        val result = supabaseClient.from("notices").upsert(notices)
+        if (result.isSuccess) return true
+        logFailure("notice upsert", result.error)
+        // Older deployments have not run the announcements migration yet.
+        // Retry with only the columns every version of the table has so an
+        // announcement is never silently lost.
+        val legacy = notices.map { notice ->
+            notice.filterKeys { it in LEGACY_NOTICE_COLUMNS }
+        }
+        val retry = supabaseClient.from("notices").upsert(legacy)
+        if (!retry.isSuccess) logFailure("notice upsert (legacy columns)", retry.error)
+        return retry.isSuccess
     }
 
-    suspend fun downloadNotices(sectionKey: String): List<Map<String, Any>> {
-        if (!isSyncedEnabled()) return emptyList()
+    suspend fun deleteNotice(noticeId: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("notices").eq("id", noticeId).delete()
+        if (!result.isSuccess) logFailure("notice delete", result.error)
+        return result.isSuccess
+    }
+
+    suspend fun downloadNotices(sectionKey: String): Result<List<Map<String, Any>>> {
+        if (!isSyncedEnabled()) return Result.success(emptyList())
         val result = supabaseClient.from("notices")
             .select("*")
             .eq("section_key", sectionKey)
             .order("created_at", ascending = false)
             .execute()
-        result.error?.let { throw IllegalStateException(it) }
-        return result.data as? List<Map<String, Any>> ?: emptyList()
+        if (!result.isSuccess) {
+            logFailure("notice download", result.error)
+            return Result.failure(IllegalStateException(safeError(result.error)))
+        }
+        return Result.success(result.data as? List<Map<String, Any>> ?: emptyList())
     }
 
     suspend fun downloadAttendanceLogs(uid: String): List<Map<String, Any>> {
@@ -299,20 +327,138 @@ class SupabaseSyncRepository @Inject constructor(
     // =========================================================================
     // TIMETABLE SYNC
     // =========================================================================
-    suspend fun uploadTimetable(sectionKey: String, slots: List<Map<String, Any>>) {
-        if (!isSyncedEnabled() || slots.isEmpty()) return
-        supabaseClient.from("timetable_slots").upsert(slots)
+    /**
+     * Returns the published timetable for exactly one student scope. A Result is
+     * used so callers can distinguish "no timetable published" (success, empty)
+     * from a network/server failure (failure) and keep cached rows on failure.
+     */
+    suspend fun downloadStudentTimetable(
+        courseId: String,
+        courseName: String,
+        semester: Int,
+        section: String
+    ): Result<List<Map<String, Any>>> {
+        if (!isSyncedEnabled()) return Result.success(emptyList())
+        if (courseId.isBlank() && courseName.isBlank()) return Result.success(emptyList())
+
+        val byCode = if (courseId.isNotBlank()) {
+            queryTimetableScope("course_code", courseId, semester, section)
+        } else {
+            null
+        }
+        if (byCode != null && !byCode.isSuccess) {
+            logFailure("timetable download", byCode.error)
+            return Result.failure(IllegalStateException(safeError(byCode.error)))
+        }
+        var rows = byCode?.data as? List<Map<String, Any>> ?: emptyList()
+
+        if (rows.isEmpty() && courseName.isNotBlank()) {
+            val byName = queryTimetableScope("course_name", courseName, semester, section)
+            if (!byName.isSuccess) {
+                logFailure("timetable download by course name", byName.error)
+                return Result.failure(IllegalStateException(safeError(byName.error)))
+            }
+            rows = byName.data as? List<Map<String, Any>> ?: emptyList()
+        }
+        return Result.success(rows.distinctBy { it["id"] })
     }
 
-    suspend fun downloadTimetable(sectionKey: String): List<Map<String, Any>> {
-        if (!isSyncedEnabled()) return emptyList()
-        val result = supabaseClient.from("timetable_slots")
+    private suspend fun queryTimetableScope(
+        column: String,
+        value: String,
+        semester: Int,
+        section: String
+    ): SupabaseResponse =
+        supabaseClient.from("timetable_slots")
             .select("*")
-            .eq("section_key", sectionKey)
+            .eq(column, value)
+            .eq("semester", semester)
+            .eq("section", section.uppercase())
             .order("day_of_week", ascending = true)
             .order("start_time", ascending = true)
             .execute()
-        return result.data as? List<Map<String, Any>> ?: emptyList()
+
+    suspend fun listTimetableImports(): Result<List<Map<String, Any>>> {
+        if (!isSyncedEnabled()) return Result.success(emptyList())
+        val result = supabaseClient.from("timetable_imports")
+            .select("*")
+            .order("created_at", ascending = false)
+            .limit(ADMIN_PAGE_LIMIT)
+            .execute()
+        if (!result.isSuccess) {
+            logFailure("timetable import list", result.error)
+            return Result.failure(IllegalStateException(safeError(result.error)))
+        }
+        return Result.success(result.data as? List<Map<String, Any>> ?: emptyList())
+    }
+
+    suspend fun publishTimetable(
+        courseCode: String,
+        courseName: String,
+        semester: Int,
+        section: String,
+        academicYear: String,
+        fileName: String,
+        rows: List<Map<String, Any>>
+    ): TimetablePublishOutcome {
+        if (!isSyncedEnabled()) {
+            return TimetablePublishOutcome(false, "Sign in to publish a timetable")
+        }
+        val result = supabaseClient.rpc(
+            "campusone_publish_timetable",
+            mapOf(
+                "p_course_code" to courseCode,
+                "p_course_name" to courseName,
+                "p_semester" to semester,
+                "p_section" to section,
+                "p_academic_year" to academicYear,
+                "p_file_name" to fileName,
+                "p_slots" to rows
+            )
+        )
+        if (!result.isSuccess) {
+            logFailure("timetable publish", result.error)
+            return TimetablePublishOutcome(false, safeError(result.error))
+        }
+        val payload = result.data as? Map<String, Any>
+        if (payload == null || payload["ok"] != true) {
+            val message = payload?.get("error") as? String ?: "The server rejected the timetable"
+            return TimetablePublishOutcome(false, message)
+        }
+        val count = (payload["rowCount"] as? Number)?.toInt() ?: rows.size
+        return TimetablePublishOutcome(true, "Published $count timetable rows", count)
+    }
+
+    suspend fun deleteTimetableImport(importId: String): TimetablePublishOutcome {
+        if (!isSyncedEnabled()) {
+            return TimetablePublishOutcome(false, "Sign in to delete a timetable")
+        }
+        val result = supabaseClient.rpc(
+            "campusone_delete_timetable",
+            mapOf("p_import_id" to importId)
+        )
+        if (!result.isSuccess) {
+            logFailure("timetable delete", result.error)
+            return TimetablePublishOutcome(false, safeError(result.error))
+        }
+        val payload = result.data as? Map<String, Any>
+        if (payload?.get("ok") != true) {
+            return TimetablePublishOutcome(
+                false,
+                payload?.get("error") as? String ?: "The server rejected the delete"
+            )
+        }
+        return TimetablePublishOutcome(true, "Timetable deleted")
+    }
+
+    private fun logFailure(operation: String, error: String?) {
+        Log.w(TAG, "$operation failed: ${safeError(error)}")
+    }
+
+    private fun safeError(error: String?): String {
+        val redacted = (error ?: "unknown error")
+            .replace(Regex("[A-Za-z0-9_\\-]{32,}"), "***")
+        return redacted.take(240)
     }
 
     // =========================================================================
@@ -611,3 +757,9 @@ class SupabaseSyncRepository @Inject constructor(
         return result.isSuccess
     }
 }
+
+data class TimetablePublishOutcome(
+    val success: Boolean,
+    val message: String,
+    val rowCount: Int = 0
+)
