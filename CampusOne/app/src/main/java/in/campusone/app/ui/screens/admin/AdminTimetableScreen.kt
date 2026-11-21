@@ -91,7 +91,7 @@ fun AdminTimetableScreen(
 
     fun loadHistory() {
         historyLoading = true
-        viewModel.viewModelScope.launch {
+        viewModel.viewModel.viewModelScope.launch {
             val result = viewModel.repository.listTimetableImports()
             historyImports = if (result.isSuccess) result.getOrNull() ?: emptyList() else emptyList()
             historyLoading = false
@@ -100,7 +100,7 @@ fun AdminTimetableScreen(
     }
 
     fun deleteImport(importId: String) {
-        viewModel.viewModelScope.launch {
+        viewModel.viewModel.viewModelScope.launch {
             viewModel.deleteTimetableImport(importId)
             historyImports = historyImports.filterNot { it["id"] == importId }
         }
@@ -194,7 +194,7 @@ fun AdminTimetableScreen(
                         Spacer(modifier = Modifier.height(C1Spacing.md))
                         C1Button(
                             text = "View History",
-                            onClick = loadHistory,
+                            onClick = { loadHistory() },
                             intent = C1ButtonIntent.TONAL,
                             fullWidth = true,
                             icon = { Icon(Icons.Default.History, contentDescription = null) }
@@ -230,7 +230,7 @@ fun AdminTimetableScreen(
                                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                                        IconButton(onClick = { viewModel.viewModelScope.launch { viewModel.repository.deleteTimetableSlot(slot.id, uiState.sectionKey) } }) {
+                                        IconButton(onClick = { viewModel.viewModel.viewModelScope.launch { viewModel.repository.deleteTimetableSlot(slot.id, uiState.sectionKey) } }) {
                                             Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
                                         }
                                     }
@@ -275,7 +275,7 @@ fun AdminTimetableScreen(
                 Text("Example: SOET-CS-301,Data Structures,Dr. Smith,Room 101,1,09:00,10:00", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
                     C1Button(text = "Cancel", onClick = { showUploadDialog = false }, intent = C1ButtonIntent.GHOST)
-                    C1Button(text = "Publish", onClick = publishCsv, enabled = csvText.isNotBlank(), intent = C1ButtonIntent.PRIMARY)
+                    C1Button(text = "Publish", onClick = { publishCsv() }, enabled = csvText.isNotBlank(), intent = C1ButtonIntent.PRIMARY)
                 }
             }
         }
@@ -328,7 +328,7 @@ fun AdminTimetableScreen(
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
-                                        IconButton(onClick = { onDelete(imp["id"] as String) }) {
+                                        IconButton(onClick = { deleteImport(imp["id"] as String) }) {
                                             Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
                                         }
                                     }
