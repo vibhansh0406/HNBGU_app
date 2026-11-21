@@ -134,6 +134,7 @@ import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.components.C1Tone
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
+import `in`.campusone.app.ui.theme.C1MaxContentWidth
 import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.viewmodel.CommunityViewModel
 import `in`.campusone.app.ui.viewmodel.CoreViewModel
@@ -298,11 +299,13 @@ fun MoreHubScreen(
     }
 
     if (activeScreen == MoreSubScreen.HUB) {
+        val ws = windowSize
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(C1Spacing.lg),
+                .padding(C1Spacing.lg)
+                .widthIn(max = C1MaxContentWidth(ws)),
             verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
         ) {
             item {
