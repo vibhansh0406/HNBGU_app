@@ -1,6 +1,7 @@
 package `in`.campusone.app.ui.theme
 
 import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
@@ -177,9 +178,18 @@ object C1Motion {
     val standardEasing = CubicBezierEasing(0.2f, 0f, 0.2f, 1f)
     val decelerateEasing = CubicBezierEasing(0f, 0f, 0.2f, 1f)
     val accelerateEasing = CubicBezierEasing(0.4f, 0f, 1f, 1f)
+    val bounceEasing = CubicBezierEasing(0.34f, 1.56f, 0.64f, 1.0f)
+    val gentleEasing = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1.0f)
+    val premiumEasing = CubicBezierEasing(0.23f, 1.0f, 0.32f, 1.0f)
 
     val pressScale = 0.96f
     val pressScaleStrong = 0.92f
+
+    // Spring animations for premium feel
+    val springDampingRatio = Spring.DampingRatioMediumBouncy
+    val springStiffness = Spring.StiffnessMedium
+    val springFastStiffness = Spring.StiffnessHigh
+    val springSlowStiffness = Spring.StiffnessLow
 }
 
 // ============================================================================
@@ -200,6 +210,7 @@ object C1Border {
 object C1Height {
     val touch = 48.dp
     val button = 48.dp
+    val buttonSmall = 40.dp
     val buttonLarge = 56.dp
     val field = 56.dp
     val chip = 32.dp
@@ -211,6 +222,24 @@ object C1Height {
 }
 
 val C1TouchTarget: Dp = 48.dp
+
+/**
+ * Button height based on size variant.
+ */
+fun C1ButtonHeight(size: C1ButtonSize): Dp = when (size) {
+    C1ButtonSize.SMALL -> 40.dp
+    C1ButtonSize.MEDIUM -> 48.dp
+    C1ButtonSize.LARGE -> 56.dp
+}
+
+/**
+ * Button horizontal padding based on size variant.
+ */
+fun C1ButtonPadding(size: C1ButtonSize): Dp = when (size) {
+    C1ButtonSize.SMALL -> 16.dp
+    C1ButtonSize.MEDIUM -> 24.dp
+    C1ButtonSize.LARGE -> 32.dp
+}
 
 // ============================================================================
 // STATE OPACITIES
@@ -553,6 +582,10 @@ enum class C1ButtonIntent {
     PRIMARY, TONAL, OUTLINED, DANGER, GHOST
 }
 
+enum class C1ButtonSize {
+    SMALL, MEDIUM, LARGE
+}
+
 enum class C1CardVariant {
     FLAT, ELEVATED, BORDERED, FILLED
 }
@@ -571,6 +604,34 @@ data class C1ZIndex(
 // ============================================================================
 // ADAPTIVE HELPERS
 // ============================================================================
+
+/**
+ * Transition specifications for screen transitions.
+ */
+object C1Transition {
+    val fade = androidx.compose.animation.AnimatedContentScope.() -> androidx.compose.animation.Transition<Any> = {
+        fadeIn(animationSpec = tween(durationMillis = normalMillis, easing = standardEasing)) +
+            fadeOut(animationSpec = tween(durationMillis = fastMillis, easing = decelerateEasing))
+    }
+
+    val slideHorizontal = { offset: Float ->
+        slideInHorizontally(
+            animationSpec = tween(durationMillis = normalMillis, easing = premiumEasing),
+            initialOffsetX = { offset }
+        ) + fadeOut(animationSpec = tween(durationMillis = fastMillis))
+    }
+
+    val scaleFade = {
+        scaleIn(
+            animationSpec = tween(durationMillis = normalMillis, easing = bounceEasing),
+            initialScale = 0.9f
+        ) + scaleOut(
+            animationSpec = tween(durationMillis = fastMillis, easing = decelerateEasing),
+            targetScale = 0.9f
+        ) + fadeIn(animationSpec = tween(durationMillis = normalMillis, easing = standardEasing)) +
+            fadeOut(animationSpec = tween(durationMillis = fastMillis))
+    }
+}
 
 /**
  * Adaptive content width based on window size.
