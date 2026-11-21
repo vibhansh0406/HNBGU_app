@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -28,7 +27,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -253,90 +251,53 @@ fun AdminTimetableScreen(
         }
     }
 
-    // Upload Dialog
+    // Upload Dialog - simplified without AlertDialog
     if (showUploadDialog) {
-        UploadDialog(
-            csvText = csvText,
-            onTextChange = { csvText = it },
-            onDismiss = { showUploadDialog = false },
-            onPublish = publishCsv
-        )
-    }
-
-    // History Dialog
-    if (showHistoryDialog) {
-        HistoryDialog(
-            imports = historyImports,
-            loading = historyLoading,
-            onDismiss = { showHistoryDialog = false },
-            onDelete = deleteImport
-        )
-    }
-}
-
-@Composable
-private fun UploadDialog(
-    csvText: String,
-    onTextChange: (String) -> Unit,
-    onDismiss: () -> Unit,
-    onPublish: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Paste CSV Content") },
-        text = {
+        C1SurfaceCard(
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.scrim),
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
             Column(
                 modifier = Modifier
                     .width(400.dp)
                     .height(400.dp)
-                    .verticalScroll(rememberScrollState()),
+                    .padding(C1Spacing.lg),
                 verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
             ) {
+                Text("Paste CSV Content", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 C1TextField(
                     value = csvText,
-                    onValueChange = onTextChange,
+                    onValueChange = { csvText = it },
                     label = "CSV Content",
                     modifier = Modifier.fillMaxWidth()
                 )
                 Text("Format: subject_code,subject_name,teacher,room,day,start,end", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text("Example: SOET-CS-301,Data Structures,Dr. Smith,Room 101,1,09:00,10:00", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
+                    C1Button(text = "Cancel", onClick = { showUploadDialog = false }, intent = C1ButtonIntent.GHOST)
+                    C1Button(text = "Publish", onClick = publishCsv, enabled = csvText.isNotBlank(), intent = C1ButtonIntent.PRIMARY)
+                }
             }
-        },
-        confirmButton = {
-            C1Button(
-                text = "Publish",
-                onClick = onPublish,
-                enabled = csvText.isNotBlank(),
-                intent = C1ButtonIntent.PRIMARY
-            )
-        },
-        dismissButton = {
-            C1Button(text = "Cancel", onClick = onDismiss, intent = C1ButtonIntent.GHOST)
         }
-    )
-}
+    }
 
-@Composable
-private fun HistoryDialog(
-    imports: List<Map<String, Any>>,
-    loading: Boolean,
-    onDismiss: () -> Unit,
-    onDelete: (String) -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Import History") },
-        text = {
+    // History Dialog - simplified without AlertDialog
+    if (showHistoryDialog) {
+        C1SurfaceCard(
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.scrim),
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
             Column(
                 modifier = Modifier
                     .width(400.dp)
                     .height(500.dp)
-                    .verticalScroll(rememberScrollState()),
+                    .padding(C1Spacing.lg),
                 verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
             ) {
-                if (loading) {
+                Text("Import History", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                if (historyLoading) {
                     CircularProgressIndicator(modifier = Modifier.fillMaxWidth().padding(C1Spacing.xxxl))
-                } else if (imports.isEmpty()) {
+                } else if (historyImports.isEmpty()) {
                     C1EmptyState(
                         icon = Icons.Default.History,
                         title = "No imports yet",
@@ -347,7 +308,7 @@ private fun HistoryDialog(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)
                     ) {
-                        items(imports, key = { it["id"] as String }) { imp ->
+                        items(historyImports, key = { it["id"] as String }) { imp ->
                             C1SurfaceCard(
                                 modifier = Modifier.fillMaxWidth(),
                                 containerColor = MaterialTheme.colorScheme.surface
@@ -376,10 +337,8 @@ private fun HistoryDialog(
                         }
                     }
                 }
+                C1Button(text = "Close", onClick = { showHistoryDialog = false }, intent = C1ButtonIntent.GHOST)
             }
-        },
-        dismissButton = {
-            C1Button(text = "Close", onClick = onDismiss, intent = C1ButtonIntent.GHOST)
         }
-    )
+    }
 }
