@@ -75,6 +75,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -101,6 +103,8 @@ import `in`.campusone.app.ui.screens.OnboardingScreen
 import `in`.campusone.app.ui.screens.TimetableScreen
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Motion
+import `in`.campusone.app.ui.theme.C1Spacing
+import `in`.campusone.app.ui.theme.CampusOneDisplayFamily
 import `in`.campusone.app.ui.theme.CampusOneTheme
 import `in`.campusone.app.ui.viewmodel.CommunityViewModel
 import `in`.campusone.app.ui.viewmodel.CoreViewModel
@@ -256,16 +260,9 @@ fun CampusOneRoot(
         }
     }
 
-    // First launch: immersive intro before sign-in
-    if (introSeen == null) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {}
-        return
-    }
-    if (introSeen == false) {
-        IntroScreen(onFinish = coreViewModel::markIntroSeen)
+    // First launch: silent cinematic intro before sign-in
+    if (introSeen != true) {
+        SilentIntroScreen(onFinish = coreViewModel::markIntroSeen)
         return
     }
 
@@ -517,124 +514,114 @@ fun SignInScreen(onGoogleSignIn: () -> Unit, isSigningIn: Boolean) {
     }
 }
 
-private data class IntroPage(
-    val icon: ImageVector,
-    val title: String,
-    val body: String
-)
-
 @Composable
-fun IntroScreen(onFinish: () -> Unit) {
-    val pages = remember {
-        listOf(
-            IntroPage(
-                Icons.Default.CheckCircle,
-                "Attendance that never slips",
-                "Track every class in one tap. Know exactly how many lectures you can miss and still stay safe."
-            ),
-            IntroPage(
-                Icons.Default.Schedule,
-                "Your day, always in sync",
-                "Live timetable, classroom alerts and notice board updates from your section and the university."
-            ),
-            IntroPage(
-                Icons.Default.MenuBook,
-                "Everything campus, one app",
-                "Study material, exams, clubs, events, lost & found and the campus directory — all offline-first."
-            )
-        )
-    }
-    val pagerState = rememberPagerState(pageCount = { pages.size })
+fun SilentIntroScreen(onFinish: () -> Unit) {
     val scope = rememberCoroutineScope()
+    var phase by remember { mutableIntStateOf(0) }
+
+    val revealProgress by animateFloatAsState(
+        targetValue = if (phase >= 1) 1f else 0f,
+        animationSpec = tween(durationMillis = 800, easing = C1Motion.emphasizedEasing),
+        label = "introReveal"
+    )
+    val lightSweep by animateFloatAsState(
+        targetValue = if (phase >= 2) 1f else -1f,
+        animationSpec = tween(durationMillis = 800, easing = C1Motion.standardEasing),
+        label = "introLightSweep"
+    )
+    val wordmarkAlpha by animateFloatAsState(
+        targetValue = if (phase >= 3) 1f else 0f,
+        animationSpec = tween(durationMillis = 800, easing = C1Motion.standardEasing),
+        label = "introWordmark"
+    )
+    val taglineAlpha by animateFloatAsState(
+        targetValue = if (phase >= 4) 1f else 0f,
+        animationSpec = tween(durationMillis = 800, easing = C1Motion.standardEasing),
+        label = "introTagline"
+    )
+
+    LaunchedEffect(Unit) {
+        phase = 1
+        delay(800)
+        phase = 2
+        delay(800)
+        phase = 3
+        delay(800)
+        phase = 4
+        delay(800)
+        delay(800)
+        onFinish()
+    }
+
+    val cMark = ImageVector.vectorResource(id = R.drawable.ic_campusone_c_mark)
+
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+        color = Color.White
     ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            // C mark — geometric reveal: scales up from 40% to 100%, fades in
+            Icon(
+                imageVector = cMark,
+                contentDescription = "CampusOne",
+                tint = Color(0xFF080B19),
+                modifier = Modifier
+                    .size(64.dp)
+                    .graphicsLayer {
+                        scaleX = 0.4f + revealProgress * 0.6f
+                        scaleY = 0.4f + revealProgress * 0.6f
+                        alpha = revealProgress
+                    }
+            )
+
+            // Silent light sweep across the C mark (no sound)
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(
+                                Color(0xFF080B19).copy(alpha = 0f),
+                                Color.White.copy(alpha = 0.4f),
+                                Color(0xFF080B19).copy(alpha = 0f)
+                            ),
+                            start = Alignment.CenterLeft,
+                            end = Alignment.CenterRight
+                        )
+                    )
+                    .offset(x = (lightSweep * 300f).dp)
+                    .alpha(1f - (lightSweep * lightSweep).coerceIn(0f, 1f))
+            )
+        }
+
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 28.dp, vertical = 24.dp)
+                .fillMaxWidth()
+                .padding(horizontal = C1Spacing.xxl),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                TextButton(onClick = onFinish) {
-                    Text("Skip")
-                }
-            }
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.weight(1f)
-            ) { index ->
-                val page = pages[index]
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(112.dp)
-                            .clip(C1Radius.xxl)
-                            .background(MaterialTheme.colorScheme.primaryContainer),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = page.icon,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(54.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(40.dp))
-                    Text(
-                        text = page.title,
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = page.body,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 20.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                pages.indices.forEach { index ->
-                    val active = pagerState.currentPage == index
-                    Box(
-                        modifier = Modifier
-                            .padding(horizontal = 4.dp)
-                            .size(if (active) 22.dp else 8.dp, 8.dp)
-                            .clip(C1Radius.pill)
-                            .background(
-                                if (active) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.outline
-                            )
-                    )
-                }
-            }
-            C1Button(
-                text = if (pagerState.currentPage == pages.lastIndex) "Get started" else "Next",
-                onClick = {
-                    if (pagerState.currentPage == pages.lastIndex) {
-                        onFinish()
-                    } else {
-                        scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(54.dp)
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Wordmark: "CampusOne"
+            Text(
+                text = "CampusOne",
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF080B19).copy(alpha = wordmarkAlpha),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Tagline: "Your campus. One place."
+            Text(
+                text = stringResource(R.string.tagline),
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF667085).copy(alpha = taglineAlpha),
+                textAlign = TextAlign.Center
             )
         }
     }

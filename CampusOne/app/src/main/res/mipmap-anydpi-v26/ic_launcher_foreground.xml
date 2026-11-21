@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- CampusOne adaptive icon foreground — C mark preserved from brand asset. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <group
-        android:name="group"
-        android:pivotX="54"
-        android:pivotY="54">
-        <path
-            android:name="path"
-            android:fillColor="#0F6B50"
-            android:pathData="M54,2 C30,2 12,30 12,54 C12,78 30,102 54,102 C78,102 96,78 96,54 C96,30 78,2 54,2 Z M54,18 C42,18 32,28 32,40 C32,52 42,62 54,62 C66,62 76,52 76,40 C76,28 66,18 54,18 Z M54,86 C42,86 32,76 32,64 C32,52 42,42 54,42 C66,42 76,52 76,64 C76,76 66,86 54,86 Z" />
-    </group>
+    android:viewportWidth="1000"
+    android:viewportHeight="1000">
+    <path
+        android:name="c_mark"
+        android:fillColor="#080B19"
+        android:fillType="nonZero"
+        android:pathData="M 327.73,8.50 L 305.32,19.83 L 270.31,46.74 L 33.61,281.87 L 12.61,310.20 L 4.20,330.03 L 0.00,349.86 L 0.00,658.64 L 5.60,679.89 L 18.21,703.97 L 36.41,726.63 L 263.31,953.26 L 289.92,973.09 L 313.73,987.25 L 331.93,994.33 L 362.75,1000.00 L 652.66,1000.00 L 689.08,991.50 L 708.68,981.59 L 729.69,966.01 L 970.59,728.05 L 995.80,705.38 L 1000.00,698.30 L 1000.00,689.80 L 997.20,685.55 L 735.29,575.07 L 721.29,575.07 L 708.68,583.57 L 544.82,739.38 L 521.01,750.71 L 495.80,750.71 L 471.99,739.38 L 245.10,525.50 L 229.69,507.08 L 229.69,487.25 L 236.69,475.92 L 471.99,249.29 L 487.39,240.79 L 497.20,237.96 L 521.01,237.96 L 533.61,242.21 L 547.62,250.71 L 708.68,392.35 L 718.49,398.02 L 732.49,398.02 L 981.79,290.37 L 988.80,286.12 L 991.60,280.45 L 990.20,273.37 L 956.58,240.79 L 731.09,38.24 L 704.48,18.41 L 684.87,8.50 L 661.06,1.42 L 648.46,0.00 L 365.55,0.00 L 345.94,2.83 Z" />
 </vector>
