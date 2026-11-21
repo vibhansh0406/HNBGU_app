@@ -854,6 +854,16 @@ fun NotesAndPyqScreen(
                     onRetryUpload = { viewModel.retryUpload(res.id) }
                 )
             }
+            if (filtered.isEmpty()) {
+                item {
+                    C1EmptyState(
+                        icon = Icons.Default.Description,
+                        title = stringResource(R.string.assignments_empty_title),
+                        message = stringResource(R.string.assignments_empty_hint),
+                        modifier = Modifier.fillMaxWidth().padding(C1Spacing.lg)
+                    )
+                }
+            }
         }
     }
 
