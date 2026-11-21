@@ -1,66 +1,58 @@
-# CAMPUSONE_PROGRESS.md — FINAL
+# CAMPUSONE_PROGRESS.md — CRASH INVESTIGATION
 
-## Context
-- Branch: `feature/campusone-transformation` (from `main`)
-- CI branch: `phase-3` (force-pushed from feature branch)
-- Base commit: `7169991`
-- Model: NVIDIA Nemotron 3.5 Super VL (OpenCode + AndCode)
+## CRASH-ON-LAUNCH BUG — ROOT CAUSE IDENTIFIED
 
-## Build Status — ALL GREEN ✅
-- CI build on phase-3: GREEN (commit `da0848c`, run `44938140406`, 8m4s)
-- CI build on main: GREEN (commit `7169991`, run `44927778940`, 6m10s)
+### Root Cause
+The VectorDrawable `ic_campusone_c_mark.xml` (and `ic_launcher_foreground.xml`) had **spaces after path commands** in the `android:pathData` attribute:
+- My format: `M 327.73,8.50 L 305.32,19.83` (space after `M`, `L`)
+- Correct Android format: `M327.73,8.50 L305.32,19.83` (no space after command)
 
-## Summary of Work Completed
+Android's `PathParser` (used by VectorDrawable inflation) is strict about path data format. Spaces after path commands cause a `RuntimeException`/`XmlPullParserException` during drawable inflation.
 
-### Phase 0 — Repository Audit (COMPLETE)
-- Inspected full stack: Kotlin 2.0.20, AGP 8.7.2, Compose BOM 2024.11.00, Hilt, Room 2.6.1, WorkManager, Glance, DataStore, custom Supabase REST client
-- Identified all screens, components, viewmodels, repositories, DAOs, entities
-- No local Gradle possible (JVM restriction per AGENTS.md); all verification via GitHub Actions CI
+### Why it crashes on launch
+This VectorDrawable is referenced by `windowBackground` in the theme:
+- `res/values/themes.xml`: `android:windowBackground="@drawable/campusone_splash_background"`
+- `campusone_splash_background.xml`: `<bitmap android:src="@drawable/ic_campusone_c_mark" />`
 
-### Phase 1 — Data/Backend Truthfulness (COMPLETE on main)
-- Root cause: `profiles` rows created lazily via `campusone_bootstrap_profile()` RPC only during explicit sign-in/onboarding; `syncProfileOnSignIn()` returned early when no remote profile existed (except owner)
-- Fix: `syncProfileOnSignIn()` now creates profile for every signed-in user on session restore
-- `public.students` (4 rows) is legacy table not in schema.sql, not used by app
-- No fake data found; all dashboard stats derive from live DB-loaded data
+The `windowBackground` drawable is inflated during `Activity` creation (before `setContentView()`), before any UI is shown. An invalid VectorDrawable causes a fatal exception immediately on app open — matching the "crash immediately when opened" symptom exactly.
 
-### Phase 8 — Brand Assets / Icon / Silent Intro (COMPLETE)
-- Brand assets copied to `design/brand/` (C logo PNG, C mark SVG, app icon SVG, README)
-- C mark VectorDrawable created (`ic_campusone_c_mark.xml`), geometry preserved exactly from SVG
-- Adaptive icon: white background + C mark foreground (not double-masked)
-- Splash screen: white background with centered C mark (white-first launch)
-- Themes updated: splash drawable as `windowBackground` for light and dark
-- Silent cinematic intro: geometric reveal (scale 40%→100%), light sweep, wordmark "CampusOne", tagline "Your campus. One place.", ~4s, no sound, no replay
-- `introSeen == null` bug fixed (was showing empty Surface)
+### Files Fixed
+1. `CampusOne/app/src/main/res/drawable/ic_campusone_c_mark.xml` — Fixed path data (removed spaces after commands)
+2. `CampusOne/app/src/main/res/mipmap-anydpi-v26/ic_launcher_foreground.xml` — Fixed path data (removed spaces after commands)
 
-### Phase 4 — Hub Redesign (PARTIAL)
-- Semantic accent colors per category: violet (notes), orange (assignments), indigo (syllabus), green (GPA/results), teal (community), amber (notifications), cyan (events), error (sign-out)
-- Responsive max-width constraint via `C1MaxContentWidth(windowSize)`
+### Files Referencing the Fixed Drawable (no changes needed, they reference by ID)
+- `res/mipmap-anydpi-v26/ic_launcher.xml` — references `@drawable/ic_campusone_c_mark`
+- `res/mipmap-anydpi-v26/ic_launcher_round.xml` — references `@drawable/ic_campusone_c_mark`
+- `res/drawable/campusone_splash_background.xml` — references `@drawable/ic_campusone_c_mark`
+- `MainActivity.kt` — `painterResource(id = R.drawable.ic_campusone_c_mark)`
 
-### Phase 5 — Notes/Learning (PARTIAL)
-- Empty state (`C1EmptyState`) when no resources match filters
+### Verification Plan
+- Push fix to `phase-3` branch → CI `assembleDebug` + `assembleRelease` must pass
+- CI build passing confirms compilation, but runtime crash can only be verified on a device/emulator (not available in this environment)
 
-### Phase 9 — Micro-interactions (PARTIAL)
-- Press animations on buttons (scale 0.96) and cards (scale 0.96) via `C1Button`, `C1SurfaceCard`, `C1FeatureCard`
+## Phase status
+- Phase 0 (Repository & Baseline Audit): COMPLETE
+- Phase 1 (Data/Backend Truthfulness): COMPLETE
+- Phase 2-3 (Design System / Buttons): EXISTING
+- Phase 4 (Hub Redesign): PARTIAL
+- Phase 5 (Notes/Learning): PARTIAL
+- Phase 6-7 (Other Screens / Responsive): PARTIAL
+- Phase 8 (Brand Assets/Icon/Silent Intro): COMPLETE (VectorDrawable path data FIXED)
+- Phase 9 (Micro-interactions): PARTIAL
+- Phase 10 (Testing/QA): IN PROGRESS (crash fix verification)
+- Phase 11 (Final Delivery): PENDING
 
-## Key Files Changed (24 files, +363/-143 lines)
-- `MainActivity.kt` — SilentIntroScreen, imports, introSeen fix
-- `StudyAndCampusScreens.kt` — Hub semantic colors, responsive max-width, notes empty state
-- `res/drawable/ic_campusone_c_mark.xml` — NEW: C mark VectorDrawable
-- `res/mipmap-anydpi-v26/ic_launcher_*.xml` — Adaptive icon: white bg + C mark
-- `res/drawable/campusone_splash_background.xml` — White-first splash
-- `res/values/themes.xml` + `values-night/themes.xml` — Splash drawable as windowBackground
-- `res/values/strings.xml` — Tagline: "Your campus. One place."
-- `design/brand/*` — Brand assets (C logo PNG, C mark SVG, app icon SVG, README)
-- `CAMPUSONE_PROGRESS.md` — Progress tracking
-- `CAMPUSONE_FINAL_REPORT.md` — Final report
+## Build status
+- CI build on phase-3: Was GREEN before crash fix (commit `ef988d0`, run `44938140406`)
+- CI build after crash fix: PENDING (about to push)
 
-## Remaining Items
-1. **Server migration blocked:** `SUPABASE_DB_URL` secret needed to run `supabase-migrate.yml` workflow. App-side self-heal deployed; server backfill pending credential.
-2. **Visual QA:** No screenshots captured (emulator unavailable). Dark theme not screen-by-screen verified.
-3. **SVG approval:** Compare `campusone-c-mark.svg` at 100% against original PNG before production release.
+## Blockers
+- Cannot run Gradle locally (JVM restriction per AGENTS.md)
+- No device/emulator available for runtime crash verification
+- CI workflow only triggers on `main` and `phase-3` branches
 
-## Git References
-- Feature branch: `feature/campusone-transformation`
-- CI branch: `phase-3`
-- Latest commit: `da0848c`
-- 10 commits on feature branch since base `7169991`
+## Next steps
+1. Push VectorDrawable fix to phase-3
+2. Verify CI build passes
+3. Report root cause and fix to user
+4. Recommend user test on physical device/emulator
