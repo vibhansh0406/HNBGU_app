@@ -79,6 +79,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.scale
@@ -568,15 +569,19 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            // C mark — geometric reveal: scales up from 40% to 100%, fades in
+            // C mark — geometric reveal: scales up from 40% to 100%, fades in via tint alpha
             Image(
                 painter = cMarkPainter,
                 contentDescription = "CampusOne",
                 modifier = Modifier
                     .size(64.dp)
-                    .scale(scale = 0.4f + revealProgress * 0.6f)
-                    .alpha(revealProgress),
-                colorFilter = ColorFilter.tint(Color(0xFF080B19))
+                    .scale(
+                        sx = 0.4f + revealProgress * 0.6f,
+                        sy = 0.4f + revealProgress * 0.6f
+                    ),
+                colorFilter = ColorFilter.tint(
+                    Color(0xFF080B19).copy(alpha = revealProgress)
+                )
             )
 
             // Silent light sweep across the C mark (no sound)
@@ -590,12 +595,11 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
                                 Color.White.copy(alpha = 0.4f),
                                 Color(0xFF080B19).copy(alpha = 0f)
                             ),
-                            start = Alignment.Start,
-                            end = Alignment.End
+                            start = Offset(0f, 0.5f),
+                            end = Offset(1f, 0.5f)
                         )
                     )
                     .offset(x = (lightSweep * 300f).dp)
-                    .alpha(1f - (lightSweep * lightSweep).coerceIn(0f, 1f))
             )
         }
 
