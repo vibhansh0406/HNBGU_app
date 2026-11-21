@@ -28,6 +28,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.time.Instant
+import java.time.OffsetDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -226,8 +228,8 @@ class AdminRepository @Inject constructor(
                 semester = 1,
                 section = "A",
                 isSuspended = false,
-                createdAtMillis = (map["created_at"] as? Number)?.toLong() ?: 0L,
-                updatedAtMillis = (map["updated_at"] as? Number)?.toLong() ?: 0L
+                createdAtMillis = map["created_at"].toEpochMillis(),
+                updatedAtMillis = map["updated_at"].toEpochMillis()
             )
         }
         return (profiles + legacy).sortedByDescending { it.createdAtMillis }
@@ -245,8 +247,8 @@ class AdminRepository @Inject constructor(
             semester = (this["semester"] as? Number)?.toInt() ?: 1,
             section = this["section"] as? String ?: "A",
             isSuspended = this["is_suspended"] == true,
-            createdAtMillis = (this["created_at"] as? Number)?.toLong() ?: 0L,
-            updatedAtMillis = (this["updated_at"] as? Number)?.toLong() ?: 0L
+            createdAtMillis = this["created_at"].toEpochMillis(),
+            updatedAtMillis = this["updated_at"].toEpochMillis()
         )
     }
 
@@ -444,7 +446,15 @@ class AdminRepository @Inject constructor(
     }
 
     private fun roleOf(name: String?): UserRole =
-        UserRole.entries.firstOrNull { it.name == name } ?: UserRole.STUDENT
+        UserRole.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: UserRole.STUDENT
+
+    private fun Any?.toEpochMillis(): Long = when (this) {
+        is Number -> toLong()
+        is String -> runCatching { OffsetDateTime.parse(this).toInstant().toEpochMilli() }
+            .recoverCatching { Instant.parse(this).toEpochMilli() }
+            .getOrDefault(0L)
+        else -> 0L
+    }
 
     // =========================================================================
     // SUBJECTS
