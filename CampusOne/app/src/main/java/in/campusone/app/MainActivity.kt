@@ -14,6 +14,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -81,7 +82,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
@@ -556,7 +558,7 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
         onFinish()
     }
 
-    val cMark = ImageVector.vectorResource(id = R.drawable.ic_campusone_c_mark)
+    val cMark = painterResource(id = R.drawable.ic_campusone_c_mark)
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -567,12 +569,14 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             // C mark — geometric reveal: scales up from 40% to 100%, fades in via tint alpha
-            Icon(
-                imageVector = cMark,
+            Image(
+                painter = cMark,
                 contentDescription = "CampusOne",
                 modifier = Modifier
                     .size(64.dp * (0.4f + revealProgress * 0.6f)),
-                tint = Color(0xFF080B19).copy(alpha = revealProgress)
+                colorFilter = ColorFilter.tint(
+                    Color(0xFF080B19).copy(alpha = revealProgress)
+                )
             )
 
             // Silent light sweep across the C mark (no sound)
