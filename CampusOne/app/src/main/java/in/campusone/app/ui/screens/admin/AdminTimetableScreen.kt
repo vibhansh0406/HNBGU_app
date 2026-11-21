@@ -63,6 +63,8 @@ fun AdminTimetableScreen(
     viewModel: AdminViewModel,
     onBack: () -> Unit
 ) {
+    val vm = viewModel
+
     var showUploadDialog by rememberSaveable { mutableStateOf(false) }
     var csvText by rememberSaveable { mutableStateOf("") }
     var showHistoryDialog by rememberSaveable { mutableStateOf(false) }
@@ -80,19 +82,19 @@ fun AdminTimetableScreen(
         if (csvText.isBlank()) return
         val result = TimetableCsvParser.parse(csvText)
         if (result.errors.isNotEmpty()) {
-            viewModel.emitMessage("Validation errors: ${result.errors.joinToString(", ")}")
+            vm.emitMessage("Validation errors: ${result.errors.joinToString(", ")}")
             return
         }
         val rows = result.rows.map { it.toRemoteMap() }
-        viewModel.publishTimetable(courseCode, courseName, semester, section, academicYear, "manual_entry.csv", rows)
+        vm.publishTimetable(courseCode, courseName, semester, section, academicYear, "manual_entry.csv", rows)
         showUploadDialog = false
         csvText = ""
     }
 
     fun loadHistory() {
         historyLoading = true
-        viewModel.viewModel.viewModelScope.launch {
-            val result = viewModel.repository.listTimetableImports()
+        viewModel.vm.viewModelScope.launch {
+            val result = vm.repository.listTimetableImports()
             historyImports = if (result.isSuccess) result.getOrNull() ?: emptyList() else emptyList()
             historyLoading = false
         }
@@ -100,8 +102,8 @@ fun AdminTimetableScreen(
     }
 
     fun deleteImport(importId: String) {
-        viewModel.viewModel.viewModelScope.launch {
-            viewModel.deleteTimetableImport(importId)
+        viewModel.vm.viewModelScope.launch {
+            vm.deleteTimetableImport(importId)
             historyImports = historyImports.filterNot { it["id"] == importId }
         }
     }
@@ -230,7 +232,7 @@ fun AdminTimetableScreen(
                                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                                        IconButton(onClick = { viewModel.viewModel.viewModelScope.launch { viewModel.repository.deleteTimetableSlot(slot.id, uiState.sectionKey) } }) {
+                                        IconButton(onClick = { viewModel.vm.viewModelScope.launch { vm.repository.deleteTimetableSlot(slot.id, uiState.sectionKey) } }) {
                                             Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
                                         }
                                     }
