@@ -2051,9 +2051,7 @@ fun C1SearchBar(
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
         shape = C1Radius.md,
-        leadingIcon = leadingIcon?.let {
-            { IconButton(onClick = {}) { it() } }
-        },
+        leadingIcon = leadingIcon,
         trailingIcon = {
             if (value.isNotEmpty() && onClear != null) {
                 IconButton(onClick = onClear) {
