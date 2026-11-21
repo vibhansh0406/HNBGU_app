@@ -135,7 +135,7 @@ fun AdminNoticesScreen(
                                         .height(24.dp)
                                         .padding(horizontal = C1Spacing.sm)
                                         .background(MaterialTheme.colorScheme.primaryContainer, androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
-                                        .align(Alignment.Center),
+                                        .align(Alignment.CenterVertically),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text("Official", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
