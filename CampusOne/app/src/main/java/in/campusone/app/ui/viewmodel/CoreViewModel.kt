@@ -11,6 +11,7 @@ import `in`.campusone.app.domain.model.AttachmentType
 import `in`.campusone.app.domain.model.AttendanceStatus
 import `in`.campusone.app.domain.model.NoticeItem
 import `in`.campusone.app.domain.model.SubjectAttendanceSummary
+import `in`.campusone.app.domain.model.TimetableSlot
 import `in`.campusone.app.domain.model.UserProfile
 import `in`.campusone.app.domain.model.UserRole
 import `in`.campusone.app.domain.usecase.AttendanceCalculator

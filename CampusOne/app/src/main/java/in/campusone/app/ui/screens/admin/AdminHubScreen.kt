@@ -31,6 +31,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.ui.theme.C1Spacing
@@ -54,6 +56,18 @@ fun AdminHubScreen(
         }
     }
 
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Admin Panel") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        }
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -99,6 +113,7 @@ fun AdminHubScreen(
             }
         }
     }
+}
 
 private val adminActions = listOf(
     AdminAction(route = "SUBJECTS", label = "Subjects", permission = null),
@@ -136,8 +151,3 @@ private fun actionIcon(route: String) = when (route) {
     "HELP" -> Icons.Default.HelpCenter
     else -> Icons.Default.HelpCenter
 }
-
-private data class AdminAction(
-    val route: String,
-    val label: String
-)

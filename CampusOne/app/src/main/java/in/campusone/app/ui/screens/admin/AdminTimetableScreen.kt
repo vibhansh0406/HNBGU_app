@@ -1,7 +1,5 @@
 package `in`.campusone.app.ui.screens.admin
 
-import android.app.Activity
-import android.content.Intent
 import android.net.Uri
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -31,6 +29,7 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,8 +42,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -90,8 +88,9 @@ fun AdminTimetableScreen(
     var historyImports by rememberSaveable { mutableStateOf<List<Map<String, Any>>>(emptyList()) }
     var historyLoading by rememberSaveable { mutableStateOf(false) }
 
+    val context = LocalContext.current
     val pickCsv = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
-        uri?.let { processCsvUri(it) }
+        uri?.let { processCsvUri(it, context, viewModel) }
     }
 
     val profile = uiState.profile
@@ -101,10 +100,10 @@ fun AdminTimetableScreen(
     val section = profile.section
     val academicYear = "${java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)}-${java.util.Calendar.getInstance().get(java.util.Calendar.YEAR) + 1}"
 
-    fun processCsvUri(uri: Uri) {
+    fun processCsvUri(uri: Uri, context: android.content.Context, viewModel: AdminViewModel) {
         viewModel.viewModelScope.launch {
             try {
-                val content = uri?.let { LocalContext.current.contentResolver.openInputStream(it)?.use { it.readText() } }
+                val content = uri?.let { context.contentResolver.openInputStream(it)?.use { it.readText() } }
                 if (content.isNullOrBlank()) {
                     viewModel.emitMessage("Could not read file")
                     return@launch
@@ -140,8 +139,10 @@ fun AdminTimetableScreen(
     }
 
     fun deleteImport(importId: String) {
-        viewModel.deleteTimetableImport(importId)
-        historyImports = historyImports.filterNot { it["id"] == importId }
+        viewModel.viewModelScope.launch {
+            viewModel.deleteTimetableImport(importId)
+            historyImports = historyImports.filterNot { it["id"] == importId }
+        }
     }
 
     Scaffold(
@@ -155,9 +156,9 @@ fun AdminTimetableScreen(
                 }
             )
         }
-    ) {
+    ) { innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(it),
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(C1Spacing.lg)
         ) {
             // Scope header
@@ -268,7 +269,7 @@ fun AdminTimetableScreen(
                                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                                        IconButton(onClick = { viewModel.repository.deleteTimetableSlot(slot.id, uiState.sectionKey) }) {
+                                        IconButton(onClick = { viewModel.viewModelScope.launch { viewModel.repository.deleteTimetableSlot(slot.id, uiState.sectionKey) } }) {
                                             Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
                                         }
                                     }
@@ -401,7 +402,7 @@ private fun HistoryDialog(
                 verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
             ) {
                 if (loading) {
-                    androidx.compose.material3.CircularProgressIndicator(modifier = Modifier.fillMaxWidth().padding(C1Spacing.xxxl))
+                    CircularProgressIndicator(modifier = Modifier.fillMaxWidth().padding(C1Spacing.xxxl))
                 } else if (imports.isEmpty()) {
                     C1EmptyState(
                         icon = Icons.Default.History,

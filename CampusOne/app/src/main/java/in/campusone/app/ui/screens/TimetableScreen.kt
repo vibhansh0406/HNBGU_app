@@ -74,7 +74,7 @@ fun TimetableScreen(
 
     val locale = Locale.getDefault()
     val todayLabel = remember { LocalDate.now().format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)) }
-    val availableDays = uiState.allTimetableSlots
+    val availableDays: List<Int> = uiState.allTimetableSlots
         .map { it.dayOfWeek }
         .filter { it in 1..7 }
         .distinct()
@@ -87,7 +87,7 @@ fun TimetableScreen(
         ).joinToString(" · ")
     }
 
-    LaunchedEffect(availableDays) {
+    LaunchedEffect(availableDays.size, availableDays.hashCode()) {
         if (availableDays.isNotEmpty() && selectedDayOfWeek !in availableDays) {
             selectedDayOfWeek = availableDays.first()
         }
@@ -226,7 +226,7 @@ fun TimetableScreen(
                         }
                     }
 
-                    val daySlots = uiState.allTimetableSlots.filter { it.dayOfWeek == selectedDayOfWeek }
+                    val daySlots: List<TimetableSlot> = uiState.allTimetableSlots.filter { it.dayOfWeek == selectedDayOfWeek }
                     if (availableDays.isEmpty()) {
                         item {
                             EmptySchedule(

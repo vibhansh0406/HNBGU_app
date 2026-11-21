@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PushPin
@@ -127,12 +128,15 @@ fun AdminNoticesScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             if (notice.isOfficial) {
-                                androidx.compose.material3.Chip(
-                                    onClick = { },
-                                    label = { Text("Official", style = MaterialTheme.typography.labelSmall) },
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                    modifier = Modifier.height(24.dp)
-                                )
+                                Box(
+                                    modifier = Modifier
+                                        .height(24.dp)
+                                        .padding(horizontal = C1Spacing.sm)
+                                        .background(MaterialTheme.colorScheme.primaryContainer, androidx.compose.foundation.shape.RoundedCornerShape(12.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text("Official", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                }
                             }
                         }
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
@@ -205,3 +209,81 @@ fun AdminNoticesScreen(
         )
     }
 }
+
+@Composable
+private fun NoticeDialog(
+    title: String,
+    body: String,
+    isPinned: Boolean,
+    category: String,
+    priority: String,
+    isOfficial: Boolean,
+    onTitleChange: (String) -> Unit,
+    onBodyChange: (String) -> Unit,
+    onPinnedChange: (Boolean) -> Unit,
+    onCategoryChange: (String) -> Unit,
+    onPriorityChange: (String) -> Unit,
+    onOfficialChange: (Boolean) -> Unit,
+    onDismiss: () -> Unit,
+    onSave: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (title.isNotBlank()) "Edit Notice" else "Add Notice") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                C1TextField(
+                    value = title,
+                    onValueChange = onTitleChange,
+                    label = "Title",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1TextField(
+                    value = body,
+                    onValueChange = onBodyChange,
+                    label = "Body / Details",
+                    minLines = 3,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.Checkbox(checked = isPinned, onCheckedChange = onPinnedChange)
+                    Text("Pin to top")
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                    C1TextField(
+                        value = category,
+                        onValueChange = onCategoryChange,
+                        label = "Category",
+                        modifier = Modifier.weight(1f)
+                    )
+                    C1TextField(
+                        value = priority,
+                        onValueChange = onPriorityChange,
+                        label = "Priority",
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.Checkbox(checked = isOfficial, onCheckedChange = onOfficialChange)
+                    Text("Official announcement")
+                }
+            }
+        },
+        confirmButton = {
+            C1Button(
+                text = "Save",
+                onClick = onSave,
+                enabled = title.isNotBlank() && body.isNotBlank()
+            )
+        },
+        dismissButton = {
+            C1Button(
+                text = "Cancel",
+                onClick = onDismiss,
+                intent = C1ButtonIntent.GHOST
+            )
+        }
+    )
+}
+
