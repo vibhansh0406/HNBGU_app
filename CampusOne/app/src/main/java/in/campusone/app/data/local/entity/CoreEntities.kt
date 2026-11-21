@@ -79,7 +79,7 @@ data class NoticeEntity(
     val isRead: Boolean = false
 )
 
-fun NoticeEntity.toRemoteMap(): Map<String, Any> = mapOf(
+fun NoticeEntity.toRemoteMap(): Map<String, Any> = mapOf<String, Any>(
     "id" to id,
     "section_key" to sectionKey,
     "title" to title,
