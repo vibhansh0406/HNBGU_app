@@ -93,7 +93,7 @@ fun AdminTimetableScreen(
 
     fun loadHistory() {
         historyLoading = true
-        vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.viewModelScope.launch {
+        vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.viewModelScope.launch {
             val result = vm.repository.listTimetableImports()
             historyImports = if (result.isSuccess) result.getOrNull() ?: emptyList() else emptyList()
             historyLoading = false
@@ -102,7 +102,7 @@ fun AdminTimetableScreen(
     }
 
     fun deleteImport(importId: String) {
-        vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.viewModelScope.launch {
+        vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.viewModelScope.launch {
             vm.deleteTimetableImport(importId)
             historyImports = historyImports.filterNot { it["id"] == importId }
         }
@@ -232,7 +232,7 @@ fun AdminTimetableScreen(
                                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                                        IconButton(onClick = { vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.viewModelScope.launch { vm.repository.deleteTimetableSlot(slot.id, uiState.sectionKey) } }) {
+                                        IconButton(onClick = { vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.vm.viewModelScope.launch { vm.repository.deleteTimetableSlot(slot.id, uiState.sectionKey) } }) {
                                             Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
                                         }
                                     }
