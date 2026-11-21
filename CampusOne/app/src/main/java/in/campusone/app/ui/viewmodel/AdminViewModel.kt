@@ -161,7 +161,13 @@ class AdminViewModel @Inject constructor(
             startLocalCollectors(sectionKey, collegeId)
         }
 
-        viewModelScope.launch { refreshIdentity() }
+        viewModelScope.launch {
+            refreshIdentity()
+            val identity = _uiState.value.identity
+            if (identity.isOwner || identity.permissions.isNotEmpty()) {
+                loadRemoteData()
+            }
+        }
     }
 
     private fun startLocalCollectors(sectionKey: String, collegeId: String) {
