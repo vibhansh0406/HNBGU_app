@@ -338,7 +338,7 @@
     <string name="action_refresh">Refresh</string>
     <string name="timetable_not_published">Timetable not published yet</string>
     <string name="timetable_not_published_hint">Your administrator will publish the timetable for your course and semester.</string>
-    <string name="timetable_empty_hint">No classes scheduled for this day.</string>
+    <string name="timetable_day_empty_hint">No classes scheduled for this day.</string>
 
     <!-- Admin Timetable -->
     <string name="admin_timetable_upload">Upload CSV</string>

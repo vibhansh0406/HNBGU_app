@@ -239,7 +239,7 @@ fun TimetableScreen(
                         item {
                             EmptySchedule(
                                 title = stringResource(R.string.timetable_no_classes_day),
-                                message = stringResource(R.string.timetable_empty_hint)
+                                message = stringResource(R.string.timetable_day_empty_hint)
                             )
                         }
                     } else {
