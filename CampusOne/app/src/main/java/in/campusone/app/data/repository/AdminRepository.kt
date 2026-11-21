@@ -15,7 +15,7 @@ import `in`.campusone.app.data.local.entity.DirectoryContactEntity
 import `in`.campusone.app.data.local.entity.ExamEntity
 import `in`.campusone.app.data.local.entity.LostFoundEntity
 import `in`.campusone.app.data.local.entity.NoticeEntity
-import `in`.campusone.app.data.local.entity.CoreEntities.toRemoteMap
+import `in`.campusone.app.data.local.entity.NoticeEntity.toRemoteMap
 import `in`.campusone.app.data.local.entity.StudyResourceEntity
 import `in`.campusone.app.data.local.entity.SubjectEntity
 import `in`.campusone.app.data.local.entity.SyllabusTopicEntity
@@ -467,7 +467,7 @@ class AdminRepository @Inject constructor(
 
     // Remote notice operations (admin only)
     suspend fun saveNoticeRemote(notice: NoticeEntity): Boolean =
-        supabaseSync.uploadNotices(notice.sectionKey, listOf(notice.toRemoteMap() as Map<String, Any>))
+        supabaseSync.uploadNotices(notice.sectionKey, listOf(notice.toRemoteMap()))
 
     suspend fun deleteNoticeRemote(noticeId: String): Boolean =
         supabaseSync.deleteNotice(noticeId)
