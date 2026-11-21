@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">CampusOne</string>
-    <string name="tagline">Your Offline-First Campus Companion</string>
+    <string name="tagline">Your campus. One place.</string>
 
     <!-- Navigation -->
     <string name="nav_home">Home</string>

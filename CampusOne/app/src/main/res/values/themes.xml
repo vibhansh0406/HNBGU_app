@@ -4,7 +4,7 @@
         <item name="colorPrimary">#0F6B50</item>
         <item name="colorPrimaryContainer">#A6F2D4</item>
         <item name="colorOnPrimaryContainer">#002116</item>
-        <item name="android:windowBackground">@color/campusone_background</item>
+        <item name="android:windowBackground">@drawable/campusone_splash_background</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
