@@ -82,7 +82,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.scale
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -574,11 +573,7 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
                 painter = cMarkPainter,
                 contentDescription = "CampusOne",
                 modifier = Modifier
-                    .size(64.dp)
-                    .scale(
-                        sx = 0.4f + revealProgress * 0.6f,
-                        sy = 0.4f + revealProgress * 0.6f
-                    ),
+                    .size(64.dp * (0.4f + revealProgress * 0.6f)),
                 colorFilter = ColorFilter.tint(
                     Color(0xFF080B19).copy(alpha = revealProgress)
                 )
