@@ -39,6 +39,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,6 +48,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -62,6 +64,7 @@ import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1TextField
+import `in`.campusone.app.ui.components.C1Tone
 import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.theme.C1Tone
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
@@ -101,7 +104,7 @@ fun AdminTimetableScreen(
     val academicYear = "${java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)}-${java.util.Calendar.getInstance().get(java.util.Calendar.YEAR) + 1}"
 
     fun processCsvUri(uri: Uri, context: android.content.Context, viewModel: AdminViewModel) {
-        viewModel.viewModelScope.launch {
+        viewModel.viewModel.viewModelScope.launch {
             try {
                 val content = uri?.let { context.contentResolver.openInputStream(it)?.use { it.readText() } }
                 if (content.isNullOrBlank()) {
@@ -130,7 +133,7 @@ fun AdminTimetableScreen(
 
     fun loadHistory() {
         historyLoading = true
-        viewModel.viewModelScope.launch {
+        viewModel.viewModel.viewModelScope.launch {
             val result = viewModel.repository.listTimetableImports()
             historyImports = if (result.isSuccess) result.getOrNull() ?: emptyList() else emptyList()
             historyLoading = false
@@ -139,7 +142,7 @@ fun AdminTimetableScreen(
     }
 
     fun deleteImport(importId: String) {
-        viewModel.viewModelScope.launch {
+        viewModel.viewModel.viewModelScope.launch {
             viewModel.deleteTimetableImport(importId)
             historyImports = historyImports.filterNot { it["id"] == importId }
         }
@@ -269,7 +272,7 @@ fun AdminTimetableScreen(
                                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                                        IconButton(onClick = { viewModel.viewModelScope.launch { viewModel.repository.deleteTimetableSlot(slot.id, uiState.sectionKey) } }) {
+                                        IconButton(onClick = { viewModel.viewModel.viewModelScope.launch { viewModel.repository.deleteTimetableSlot(slot.id, uiState.sectionKey) } }) {
                                             Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
                                         }
                                     }

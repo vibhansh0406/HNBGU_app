@@ -466,7 +466,7 @@ class AdminRepository @Inject constructor(
 
     // Remote notice operations (admin only)
     suspend fun saveNoticeRemote(notice: NoticeEntity): Boolean =
-        supabaseSync.uploadNotices(notice.sectionKey, listOf(notice.toRemoteMap()))
+        supabaseSync.uploadNotices(notice.sectionKey, listOf(notice.toRemoteMap() as Map<String, Any>))
 
     suspend fun deleteNoticeRemote(noticeId: String): Boolean =
         supabaseSync.deleteNotice(noticeId)
