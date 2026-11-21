@@ -10,6 +10,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -623,10 +624,11 @@ object C1Transition {
             fadeOut(animationSpec = tween(durationMillis = C1Motion.fastMillis, easing = C1Motion.decelerateEasing))
     }
 
-    fun slideHorizontal(offset: Float): ScreenTransition = {
+    fun slideHorizontal(offsetDp: Float): ScreenTransition = {
+        val offsetPx = (offsetDp * androidx.compose.ui.platform.LocalDensity.current.density).roundToInt()
         slideInHorizontally(
             animationSpec = tween(durationMillis = C1Motion.normalMillis, easing = C1Motion.premiumEasing),
-            initialOffsetX = { offset }
+            initialOffsetX = { offsetPx }
         ) + fadeOut(animationSpec = tween(durationMillis = C1Motion.fastMillis))
     }
 
