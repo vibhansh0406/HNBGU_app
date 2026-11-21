@@ -15,6 +15,7 @@ import `in`.campusone.app.data.local.entity.DirectoryContactEntity
 import `in`.campusone.app.data.local.entity.ExamEntity
 import `in`.campusone.app.data.local.entity.LostFoundEntity
 import `in`.campusone.app.data.local.entity.NoticeEntity
+import `in`.campusone.app.data.local.entity.CoreEntities.toRemoteMap
 import `in`.campusone.app.data.local.entity.StudyResourceEntity
 import `in`.campusone.app.data.local.entity.SubjectEntity
 import `in`.campusone.app.data.local.entity.SyllabusTopicEntity
