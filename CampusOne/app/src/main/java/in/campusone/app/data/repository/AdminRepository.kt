@@ -612,23 +612,4 @@ private fun noticeToRemoteMap(notice: NoticeEntity): Map<String, Any> = mapOf<St
     "created_at" to notice.createdAtMillis,
     "is_read" to notice.isRead
 )
-
-
-private fun noticeToRemoteMap(notice: NoticeEntity): Map<String, Any> = mapOf<String, Any>(
-    "id" to notice.id,
-    "section_key" to notice.sectionKey,
-    "title" to notice.title,
-    "body" to notice.body,
-    "attachment_url" to notice.attachmentUrl.orEmpty(),
-    "attachment_type" to notice.attachmentType.name,
-    "is_pinned" to notice.isPinned,
-    "category" to notice.category,
-    "priority" to notice.priority,
-    "is_official" to notice.isOfficial,
-    "author_uid" to notice.authorUid,
-    "author_name" to notice.authorName,
-    "author_role" to notice.authorRole.name,
-    "created_at" to notice.createdAtMillis,
-    "is_read" to notice.isRead
-)
 }
