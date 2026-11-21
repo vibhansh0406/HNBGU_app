@@ -202,6 +202,29 @@ class SupabaseSyncRepository @Inject constructor(
         return result.data as? List<Map<String, Any>> ?: emptyList()
     }
 
+    /**
+     * Repairs the profile directory so every registered auth user has a row.
+     * Server-side, permission-checked and idempotent; a missing function is a
+     * no-op so older databases keep working until the migration is applied.
+     */
+    suspend fun syncRegisteredProfiles(): Boolean =
+        callAdmin("campusone_admin_sync_profiles")
+
+    /**
+     * Read-only view of the legacy roster kept by the previous backend. Used to
+     * avoid under-counting registrations that have no profile row yet.
+     */
+    suspend fun downloadLegacyStudents(): List<Map<String, Any>> {
+        if (!isSyncedEnabled()) return emptyList()
+        val result = supabaseClient.from("students")
+            .select("id,email,full_name,role,course,created_at,updated_at")
+            .order("created_at", ascending = false)
+            .limit(ADMIN_PAGE_LIMIT)
+            .execute()
+        if (!result.isSuccess) return emptyList()
+        return result.data as? List<Map<String, Any>> ?: emptyList()
+    }
+
     suspend fun downloadRoleRequests(): List<Map<String, Any>> {
         if (!isSyncedEnabled()) return emptyList()
         val result = supabaseClient.from("role_requests")

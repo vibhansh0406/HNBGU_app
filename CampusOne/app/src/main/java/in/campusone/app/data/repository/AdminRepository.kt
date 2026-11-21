@@ -196,23 +196,59 @@ class AdminRepository @Inject constructor(
         )
     }
 
-    suspend fun loadAllUsers(): List<AdminUserRecord> =
-        supabaseSync.downloadAllProfiles().mapNotNull { map ->
+    suspend fun loadAllUsers(): List<AdminUserRecord> {
+        // Registered auth users that never finished onboarding have no profile
+        // row yet, so repair the directory before reading it.
+        supabaseSync.syncRegisteredProfiles()
+        val profiles = supabaseSync.downloadAllProfiles().mapNotNull { it.toAdminUserRecord() }
+        val seenUids = profiles.map { it.uid }.toMutableSet()
+        val seenEmails = mutableSetOf<String>()
+        profiles.forEach { record ->
+            val key = record.email.lowercase()
+            if (key.isNotBlank()) seenEmails += key
+        }
+        val legacy = supabaseSync.downloadLegacyStudents().mapNotNull { map ->
             val uid = map["id"] as? String ?: return@mapNotNull null
+            val email = (map["email"] as? String).orEmpty()
+            val emailKey = email.lowercase()
+            if (uid in seenUids || (emailKey.isNotBlank() && emailKey in seenEmails)) {
+                return@mapNotNull null
+            }
+            seenUids += uid
+            if (emailKey.isNotBlank()) seenEmails += emailKey
             AdminUserRecord(
                 uid = uid,
-                name = map["full_name"] as? String ?: "",
-                email = map["email"] as? String ?: "",
+                name = (map["full_name"] as? String).orEmpty(),
+                email = email,
                 role = roleOf(map["role"] as? String),
-                collegeName = map["college_name"] as? String ?: "",
-                courseName = map["course_name"] as? String ?: "",
-                semester = (map["semester"] as? Number)?.toInt() ?: 1,
-                section = map["section"] as? String ?: "A",
-                isSuspended = map["is_suspended"] == true,
+                collegeName = "",
+                courseName = (map["course"] as? String).orEmpty(),
+                semester = 1,
+                section = "A",
+                isSuspended = false,
                 createdAtMillis = (map["created_at"] as? Number)?.toLong() ?: 0L,
                 updatedAtMillis = (map["updated_at"] as? Number)?.toLong() ?: 0L
             )
         }
+        return (profiles + legacy).sortedByDescending { it.createdAtMillis }
+    }
+
+    private fun Map<String, Any>.toAdminUserRecord(): AdminUserRecord? {
+        val uid = this["id"] as? String ?: return null
+        return AdminUserRecord(
+            uid = uid,
+            name = this["full_name"] as? String ?: "",
+            email = this["email"] as? String ?: "",
+            role = roleOf(this["role"] as? String),
+            collegeName = this["college_name"] as? String ?: "",
+            courseName = this["course_name"] as? String ?: "",
+            semester = (this["semester"] as? Number)?.toInt() ?: 1,
+            section = this["section"] as? String ?: "A",
+            isSuspended = this["is_suspended"] == true,
+            createdAtMillis = (this["created_at"] as? Number)?.toLong() ?: 0L,
+            updatedAtMillis = (this["updated_at"] as? Number)?.toLong() ?: 0L
+        )
+    }
 
     suspend fun updateUserRole(uid: String, role: UserRole): AdminActionResult {
         if (role.name !in ASSIGNABLE_ROLE_NAMES) {

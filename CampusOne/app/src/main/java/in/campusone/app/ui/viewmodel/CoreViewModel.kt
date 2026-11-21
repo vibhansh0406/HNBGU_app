@@ -98,22 +98,24 @@ class CoreViewModel @Inject constructor(
         val alreadyOnboarded = prefs.isOnboarded.first()
         val remote = runCatching { repository.fetchRemoteProfile(resolvedUid) }.getOrNull()
         if (remote == null) {
+            val local = prefs.userProfile.first()
+            val resolvedEmail = email?.takeIf { it.isNotBlank() } ?: local.email
             if (isOwner && alreadyOnboarded) {
-                val local = prefs.userProfile.first()
-                val resolvedEmail = email?.takeIf { it.isNotBlank() } ?: local.email
                 if (local.role != UserRole.ADMIN || local.email != resolvedEmail) {
                     prefs.saveUserProfile(
                         local.copy(role = UserRole.ADMIN, email = resolvedEmail),
                         markOnboarded = true
                     )
                 }
-                authManager.ensureUserProfile(
-                    uid = resolvedUid,
-                    email = resolvedEmail,
-                    name = local.name,
-                    role = UserRole.ADMIN.name
-                )
             }
+            // Every registered auth account must have a profile row. This is the
+            // only path that repairs accounts that skipped or failed onboarding.
+            authManager.ensureUserProfile(
+                uid = resolvedUid,
+                email = resolvedEmail,
+                name = local.name,
+                role = if (isOwner) UserRole.ADMIN.name else UserRole.STUDENT.name
+            )
             return
         }
         val remoteRole = if (isOwner) UserRole.ADMIN else remote.role
