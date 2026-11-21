@@ -14,6 +14,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -78,11 +79,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.layer.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.vectorResource
+import androidx.compose.ui.graphics.scale
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
@@ -521,7 +522,6 @@ fun SignInScreen(onGoogleSignIn: () -> Unit, isSigningIn: Boolean) {
 
 @Composable
 fun SilentIntroScreen(onFinish: () -> Unit) {
-    val scope = rememberCoroutineScope()
     var phase by remember { mutableIntStateOf(0) }
 
     val revealProgress by animateFloatAsState(
@@ -558,7 +558,7 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
         onFinish()
     }
 
-    val cMark = ImageVector.vectorResource(id = R.drawable.ic_campusone_c_mark)
+    val cMarkPainter = painterResource(id = R.drawable.ic_campusone_c_mark)
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -569,17 +569,14 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             // C mark — geometric reveal: scales up from 40% to 100%, fades in
-            Icon(
-                imageVector = cMark,
+            Image(
+                painter = cMarkPainter,
                 contentDescription = "CampusOne",
-                tint = Color(0xFF080B19),
                 modifier = Modifier
                     .size(64.dp)
-                    .graphicsLayer {
-                        scaleX = 0.4f + revealProgress * 0.6f
-                        scaleY = 0.4f + revealProgress * 0.6f
-                        alpha = revealProgress
-                    }
+                    .scale(scale = 0.4f + revealProgress * 0.6f)
+                    .alpha(revealProgress),
+                colorFilter = ColorFilter.tint(Color(0xFF080B19))
             )
 
             // Silent light sweep across the C mark (no sound)
@@ -593,8 +590,8 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
                                 Color.White.copy(alpha = 0.4f),
                                 Color(0xFF080B19).copy(alpha = 0f)
                             ),
-                            start = Alignment.CenterLeft,
-                            end = Alignment.CenterRight
+                            start = Alignment.Start,
+                            end = Alignment.End
                         )
                     )
                     .offset(x = (lightSweep * 300f).dp)
