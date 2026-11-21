@@ -1,16 +1,8 @@
 package `in`.campusone.app.ui.theme
 
-import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -612,37 +604,6 @@ data class C1ZIndex(
 // ============================================================================
 // ADAPTIVE HELPERS
 // ============================================================================
-
-/**
- * Transition specifications for screen transitions.
- */
-object C1Transition {
-    typealias ScreenTransition = AnimatedContentScope.() -> androidx.compose.animation.Transition<Any>
-
-    val fade: ScreenTransition = {
-        fadeIn(animationSpec = tween(durationMillis = C1Motion.normalMillis, easing = C1Motion.standardEasing)) +
-            fadeOut(animationSpec = tween(durationMillis = C1Motion.fastMillis, easing = C1Motion.decelerateEasing))
-    }
-
-    fun slideHorizontal(offsetDp: Float): ScreenTransition = {
-        val offsetPx = (offsetDp * androidx.compose.ui.platform.LocalDensity.current.density).roundToInt()
-        slideInHorizontally(
-            animationSpec = tween(durationMillis = C1Motion.normalMillis, easing = C1Motion.premiumEasing),
-            initialOffsetX = { offsetPx }
-        ) + fadeOut(animationSpec = tween(durationMillis = C1Motion.fastMillis))
-    }
-
-    val scaleFade: ScreenTransition = {
-        scaleIn(
-            animationSpec = tween(durationMillis = C1Motion.normalMillis, easing = C1Motion.bounceEasing),
-            initialScale = 0.9f
-        ) + scaleOut(
-            animationSpec = tween(durationMillis = C1Motion.fastMillis, easing = C1Motion.decelerateEasing),
-            targetScale = 0.9f
-        ) + fadeIn(animationSpec = tween(durationMillis = C1Motion.normalMillis, easing = C1Motion.standardEasing)) +
-            fadeOut(animationSpec = tween(durationMillis = C1Motion.fastMillis))
-    }
-}
 
 /**
  * Adaptive content width based on window size.
