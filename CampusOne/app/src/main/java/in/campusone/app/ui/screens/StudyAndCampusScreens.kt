@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -136,6 +137,7 @@ import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.theme.C1MaxContentWidth
 import `in`.campusone.app.ui.theme.extendedColors
+import `in`.campusone.app.ui.theme.windowSize
 import `in`.campusone.app.ui.viewmodel.CommunityViewModel
 import `in`.campusone.app.ui.viewmodel.CoreViewModel
 import `in`.campusone.app.ui.viewmodel.StudyAndCampusUiState
