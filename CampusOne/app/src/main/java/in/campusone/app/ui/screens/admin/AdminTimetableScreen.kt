@@ -51,7 +51,7 @@ import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
 import `in`.campusone.app.util.TimetableCsvParser
-import androidx.lifecycle.viewmodel.compose.viewModelScope
+import androidx.lifecycle.viewmodel.viewModelScope
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
