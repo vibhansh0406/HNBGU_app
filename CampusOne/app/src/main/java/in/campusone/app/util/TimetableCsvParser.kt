@@ -1,6 +1,6 @@
 package `in`.campusone.app.util
 
-import kotlinx.serialization.json.Json
+import java.util.Locale
 
 /**
  * Parses a timetable CSV into structured rows for publishing.
@@ -37,11 +37,10 @@ object TimetableCsvParser {
     )
 
     private val REQUIRED_HEADERS = setOf("subject_code", "subject_name", "teacher", "room", "day", "start", "end")
-    private val TIME_REGEX = "^([01]\d|2[0-3]):[0-5]\d$".toRegex()
+    private val TIME_REGEX = "^([01]\\d|2[0-3]):[0-5]\\d$".toRegex()
 
     fun parse(csvText: String): ParseResult {
-        val lines = csvText.trim().split("
-").filter { it.isNotBlank() }
+        val lines = csvText.trim().split("\n").filter { it.isNotBlank() }
         if (lines.isEmpty()) return ParseResult(emptyList(), listOf("Empty file"))
 
         val headerLine = lines[0].toLowerCase(Locale.ROOT)
@@ -118,12 +117,8 @@ object TimetableCsvParser {
     }
 
     /** Generates a CSV template string for the admin to download. */
-    fun template(): String = "subject_code,subject_name,teacher,room,day,start,end
-" +
-        "SOET-CS-301,Data Structures & Algorithms,Dr. M. M. S. Rauthan,CS Block - Room 104,1,09:00,10:00
-" +
-        "SOET-CS-302,Computer Organization,Prof. A. K. Singh,CS Block - Room 105,1,10:15,11:15
-" +
-        "SOET-CS-303,Discrete Mathematics,Dr. S. K. Sharma,CS Block - Room 106,2,09:00,10:00
-"
+    fun template(): String = "subject_code,subject_name,teacher,room,day,start,end\n" +
+        "SOET-CS-301,Data Structures & Algorithms,Dr. M. M. S. Rauthan,CS Block - Room 104,1,09:00,10:00\n" +
+        "SOET-CS-302,Computer Organization,Prof. A. K. Singh,CS Block - Room 105,1,10:15,11:15\n" +
+        "SOET-CS-303,Discrete Mathematics,Dr. S. K. Sharma,CS Block - Room 106,2,09:00,10:00\n"
 }

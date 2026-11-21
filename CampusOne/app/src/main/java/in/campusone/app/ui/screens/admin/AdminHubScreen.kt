@@ -99,7 +99,6 @@ fun AdminHubScreen(
             }
         }
     }
-}
 
 private val adminActions = listOf(
     AdminAction(route = "SUBJECTS", label = "Subjects", permission = null),
