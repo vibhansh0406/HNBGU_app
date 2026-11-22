@@ -61,5 +61,6 @@ data class SupabaseSession(
 
 data class SupabaseUser(
     val id: String?,
-    val email: String? = null
+    val email: String? = null,
+    val avatarUrl: String? = null
 )

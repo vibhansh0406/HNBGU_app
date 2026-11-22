@@ -120,6 +120,9 @@ dependencies {
     // Google Sign-In
     implementation(libs.play.services.auth)
 
+    // Coil image loading for avatars and thumbnails
+    implementation(libs.coil.compose)
+
     // Hilt DI
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

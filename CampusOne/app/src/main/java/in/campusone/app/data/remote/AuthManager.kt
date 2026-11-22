@@ -85,6 +85,9 @@ class AuthManager @Inject constructor(
         supabaseClient.auth.currentUser?.email
             ?: GoogleSignIn.getLastSignedInAccount(context)?.email
 
+    /** Get the signed-in user's avatar URL from Supabase Auth metadata (avatar_url / picture). */
+    fun currentUserAvatarUrl(): String? = supabaseClient.auth.currentUser?.avatarUrl
+
     /** Listen to auth state changes. */
     fun onAuthStateChanged(callback: (SupabaseSession?) -> Unit) {
         supabaseClient.auth.authStateChanges(callback)

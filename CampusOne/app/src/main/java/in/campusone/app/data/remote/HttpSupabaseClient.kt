@@ -494,13 +494,17 @@ private class HttpSupabaseAuth(
             val refreshToken = obj.optString("refresh_token").takeIf { it.isNotBlank() }
             val expiresIn = obj.optLong("expires_in", 3600L)
             val userObj = obj.optJSONObject("user")
+            val meta = userObj?.optJSONObject("raw_user_meta_data")
+            val avatarUrl = meta?.optString("avatar_url")?.takeIf { it.isNotBlank() }
+                ?: meta?.optString("picture")?.takeIf { it.isNotBlank() }
             SupabaseSession(
                 accessToken = accessToken,
                 refreshToken = refreshToken,
                 expiresAt = System.currentTimeMillis() + expiresIn * 1000,
                 user = SupabaseUser(
                     id = userObj?.optString("id")?.takeIf { it.isNotBlank() },
-                    email = userObj?.optString("email")?.takeIf { it.isNotBlank() }
+                    email = userObj?.optString("email")?.takeIf { it.isNotBlank() },
+                    avatarUrl = avatarUrl
                 )
             )
         } catch (e: IllegalStateException) {

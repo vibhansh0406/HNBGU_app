@@ -3,11 +3,16 @@ package `in`.campusone.app.ui.screens
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.GridCells
+import androidx.compose.foundation.layout.LazyVerticalGrid
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,6 +34,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -53,6 +59,7 @@ import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1FilterChip
 import `in`.campusone.app.ui.components.C1IconPosition
 import `in`.campusone.app.ui.components.C1SectionHeader
+import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.theme.C1Height
 import `in`.campusone.app.ui.theme.C1Motion
@@ -423,17 +430,20 @@ private fun OnboardingStepCampusCourse(
             verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
         ) {
             C1SectionHeader(title = stringResource(R.string.select_course))
-            FlowRow(
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm),
-                verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+                verticalArrangement = Arrangement.spacedBy(C1Spacing.sm),
+                horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
             ) {
-                courses.forEachIndexed { index, (_, label) ->
-                    C1FilterChip(
+                items(courses, key = { it.first }) { (courseId, label) ->
+                    val isSelected = selectedCourseIndex == courses.indexOfFirst { it.first == courseId }
+                    CourseSelectionCard(
                         label = label,
-                        selected = selectedCourseIndex == index,
-                        onClick = { onCourseChange(index) },
-                        modifier = Modifier.weight(1f, fill = false)
+                        selected = isSelected,
+                        onClick = {
+                            selectedCourseIndex = courses.indexOfFirst { it.first == courseId }
+                        }
                     )
                 }
             }
@@ -562,6 +572,53 @@ private fun OnboardingStepClass(
                     modifier = Modifier.padding(top = C1Spacing.sm)
                 )
             }
+        }
+    }
+}
+
+/**
+ * Course selection card with consistent dimensions and two-line text wrapping.
+ * Replaces overflow-prone filter chips for long course names.
+ */
+@Composable
+private fun CourseSelectionCard(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) C1Motion.pressScale else 1f,
+        animationSpec = tween(durationMillis = C1Motion.fastMillis),
+        label = "courseCardPress"
+    )
+    C1SurfaceCard(
+        modifier = Modifier
+            .clickable(
+                interactionSource = interactionSource,
+                indication = ripple(),
+                onClick = onClick
+            )
+            .graphicsLayer { scaleX = scale; scaleY = scale },
+        containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+        borderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+        contentPadding = PaddingValues(C1Spacing.md)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }

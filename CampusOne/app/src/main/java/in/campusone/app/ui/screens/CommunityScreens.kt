@@ -1011,6 +1011,7 @@ private fun NotificationRow(notification: AppNotification, onClick: () -> Unit) 
 @Composable
 fun StudentProfileScreen(
     uiState: CoreUiState,
+    avatarUrl: String? = null,
     onBack: () -> Unit,
     onSaveName: (String) -> Unit
 ) {
@@ -1052,18 +1053,12 @@ fun StudentProfileScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = profile.name.take(1).uppercase(),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
+                C1Avatar(
+                    name = profile.name,
+                    size = 56.dp,
+                    imageUrl = avatarUrl,
+                    fontSize = 24
+                )
                 Column {
                     Text(
                         text = profile.name,

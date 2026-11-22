@@ -386,6 +386,9 @@ class CoreCampusRepository @Inject constructor(
 
     /**
      * CR / Teacher action: Post a new announcement to the section Notice Board.
+     * The creator identity is derived from the active Supabase authenticated
+     * user UUID (auth.uid()), never from a cached profile ID, so a user can
+     * never impersonate another uploader.
      */
     suspend fun postNotice(
         profile: UserProfile,
@@ -412,6 +415,11 @@ class CoreCampusRepository @Inject constructor(
         val targetSectionKey = if (profile.role == UserRole.ADMIN) "global" else profile.sectionKey
         val now = System.currentTimeMillis()
         val noticeId = "notice_${now}_${profile.uid.take(6)}"
+        // Derive creator identity from the active Supabase authenticated user UUID,
+        // never from a stale cached profile ID. This prevents impersonation.
+        val authUid = authManager.currentUserId() ?: return@runCatching Result.failure(
+            IllegalStateException("Not signed in to Supabase")
+        )
         val entity = NoticeEntity(
             id = noticeId,
             sectionKey = profile.sectionKey,
@@ -423,7 +431,7 @@ class CoreCampusRepository @Inject constructor(
             category = category,
             priority = priority,
             isOfficial = isOfficial,
-            authorUid = profile.uid.ifBlank { "local_author" },
+            authorUid = authUid,
             authorName = profile.name.ifBlank { "CR / Faculty" },
             authorRole = profile.role,
             createdAtMillis = now,
@@ -431,7 +439,7 @@ class CoreCampusRepository @Inject constructor(
         )
         noticeDao.upsertNotices(listOf(entity))
 
-        // Supabase permanent sync
+        // Supabase permanent sync — author_uid is the auth user ID, enforced by RLS.
         if (supabaseSync.isSyncedEnabled()) {
             supabaseSync.uploadNotices(profile.sectionKey, listOf(mapOf<String, Any>(
                 "id" to entity.id,
@@ -444,7 +452,7 @@ class CoreCampusRepository @Inject constructor(
                 "category" to entity.category,
                 "priority" to entity.priority,
                 "is_official" to entity.isOfficial,
-                "author_uid" to entity.authorUid,
+                "author_uid" to authUid,
                 "author_name" to entity.authorName,
                 "author_role" to entity.authorRole.name,
                 "created_at" to entity.createdAtMillis,
