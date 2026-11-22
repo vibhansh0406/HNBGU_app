@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Campaign
@@ -32,13 +31,10 @@ import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -134,7 +130,12 @@ fun SettingsScreen(
                     )
                 }
             }
-            item { C1SectionHeader(title = "Notifications", subtitle = "Control the updates CampusOne sends to this device") }
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                    C1SectionHeader(title = "Notifications")
+                    Text("Control the updates CampusOne sends to this device", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
             item {
                 C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.md)) {
                     SettingsSwitchRow("All notifications", "Master switch for CampusOne notifications", Icons.Default.Notifications, notifications) {
@@ -157,7 +158,12 @@ fun SettingsScreen(
                     }
                 }
             }
-            item { C1SectionHeader(title = "Academic reminders", subtitle = "Local reminders generated on this device") }
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                    C1SectionHeader(title = "Academic reminders")
+                    Text("Local reminders generated on this device", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
             item {
                 C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.md)) {
                     SettingsSwitchRow("Upcoming classes", "Remind me before a scheduled class", Icons.Default.Schedule, classReminders, notifications) {
