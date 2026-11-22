@@ -835,7 +835,7 @@ begin
   if v_target.id is null then
     return jsonb_build_object('ok', false, 'error', 'User not found');
   end if;
-  if lower(v_target.email) = 'vvibhansh@gmail.com' then
+  if v_target.id = 'b2b52ade-0fcc-4e1d-9c39-ca284789c960'::uuid then
     return jsonb_build_object('ok', false, 'error', 'Owner account is protected');
   end if;
 
@@ -872,7 +872,7 @@ begin
   if v_target.id is null then
     return jsonb_build_object('ok', false, 'error', 'User not found');
   end if;
-  if lower(v_target.email) = 'vvibhansh@gmail.com' then
+  if v_target.id = 'b2b52ade-0fcc-4e1d-9c39-ca284789c960'::uuid then
     return jsonb_build_object('ok', false, 'error', 'Owner account is protected');
   end if;
 
