@@ -519,6 +519,9 @@ fun CampusOneRoot(
                             onSignOut()
                             currentTab = BottomNavTab.HOME
                         },
+                        onOpenTimetable = { currentTab = BottomNavTab.TIMETABLE },
+                        onOpenAttendance = { currentTab = BottomNavTab.ATTENDANCE },
+                        onOpenNotices = { currentTab = BottomNavTab.NOTICES },
                         deepLink = pendingMoreScreen,
                         onDeepLinkConsumed = { pendingMoreScreen = null },
                         communityViewModel = communityViewModel,

@@ -417,9 +417,7 @@ class CoreCampusRepository @Inject constructor(
         val noticeId = "notice_${now}_${profile.uid.take(6)}"
         // Derive creator identity from the active Supabase authenticated user UUID,
         // never from a stale cached profile ID. This prevents impersonation.
-        val authUid = authManager.currentUserId() ?: return@runCatching Result.failure(
-            IllegalStateException("Not signed in to Supabase")
-        )
+        val authUid = authManager.currentUserId() ?: throw IllegalStateException("Not signed in to Supabase")
         val entity = NoticeEntity(
             id = noticeId,
             sectionKey = profile.sectionKey,
