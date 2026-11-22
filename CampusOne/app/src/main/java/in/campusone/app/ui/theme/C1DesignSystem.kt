@@ -182,11 +182,11 @@ object C1Motion {
     val gentleEasing = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1.0f)
     val premiumEasing = CubicBezierEasing(0.23f, 1.0f, 0.32f, 1.0f)
 
-    val pressScale = 0.96f
-    val pressScaleStrong = 0.92f
+    val pressScale = 0.97f
+    val pressScaleStrong = 0.94f
 
     // Spring animations for premium feel
-    val springDampingRatio = Spring.DampingRatioMediumBouncy
+    val springDampingRatio = Spring.DampingRatioNoBouncy
     val springStiffness = Spring.StiffnessMedium
     val springFastStiffness = Spring.StiffnessHigh
     val springSlowStiffness = Spring.StiffnessLow
