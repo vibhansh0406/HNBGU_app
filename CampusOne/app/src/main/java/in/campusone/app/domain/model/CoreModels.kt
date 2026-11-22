@@ -50,7 +50,9 @@ data class UserProfile(
     /** Department/course this moderator manages (e.g. "BSc Life Science", "BTech CS"). Empty for non-moderators. */
     val moderatorScope: String = "",
     /** Whether this moderator appointment is approved by an Admin. */
-    val isModeratorApproved: Boolean = false
+    val isModeratorApproved: Boolean = false,
+    /** True once the student onboarding flow has been completed server-side. */
+    val onboardingCompleted: Boolean = false
 ) {
     val sectionKey: String
         get() = "${collegeId}_${courseId}_sem${semester}_sec${section}"

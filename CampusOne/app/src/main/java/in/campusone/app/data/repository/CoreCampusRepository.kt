@@ -66,7 +66,8 @@ class CoreCampusRepository @Inject constructor(
             semester = profile.semester,
             section = profile.section,
             moderatorScope = profile.moderatorScope,
-            isModeratorApproved = profile.role == UserRole.MODERATOR || profile.role == UserRole.ADMIN
+            isModeratorApproved = profile.role == UserRole.MODERATOR || profile.role == UserRole.ADMIN,
+            onboardingCompleted = profile.onboardingCompleted
         )
     }
 
@@ -87,7 +88,6 @@ class CoreCampusRepository @Inject constructor(
     suspend fun fetchRemoteProfile(uid: String): UserProfile? {
         val remote = supabaseSync.downloadProfile(uid) ?: return null
         val courseId = remote["course_id"] as? String ?: ""
-        if (courseId.isBlank()) return null
         val remoteRole = remote["role"] as? String ?: ""
         val isOwner = (remote["email"] as? String)?.equals(OWNER_EMAIL, ignoreCase = true) == true
         val role = when {
@@ -107,7 +107,8 @@ class CoreCampusRepository @Inject constructor(
             courseName = remote["course_name"] as? String ?: "",
             semester = (remote["semester"] as? Number)?.toInt() ?: 3,
             section = remote["section"] as? String ?: "A",
-            moderatorScope = remote["moderator_scope"] as? String ?: ""
+            moderatorScope = remote["moderator_scope"] as? String ?: "",
+            onboardingCompleted = remote["onboarding_completed"] as? Boolean ?: false
         )
     }
 
