@@ -1963,6 +1963,11 @@ create policy "campusone_staff_write_exams" on public.exams
   using (public.campusone_is_catalog_admin())
   with check (public.campusone_is_catalog_admin());
 
+drop policy if exists "campusone_read_moderators" on public.moderators;
+create policy "campusone_read_moderators" on public.moderators
+  for select to authenticated
+  using (true);
+
 drop policy if exists "campusone_staff_write_moderators" on public.moderators;
 create policy "campusone_staff_write_moderators" on public.moderators
   for all to authenticated
@@ -2048,37 +2053,64 @@ create trigger study_resources_guard
 -- ---------------------------------------------------------------------------
 -- Student-submitted rows: the student may create and manage only their own.
 -- ---------------------------------------------------------------------------
+drop policy if exists "campusone_lost_found_contact_requests_select" on public.lost_found_contact_requests;
+create policy "campusone_lost_found_contact_requests_select" on public.lost_found_contact_requests
+  for select to authenticated
+  using (
+    requester_uid = auth.uid()::text
+    or exists (
+      select 1 from public.lost_found_items li
+      where li.id = item_id and li.poster_uid = auth.uid()::text
+    )
+    or public.campusone_is_staff()
+  );
+
 drop policy if exists "campusone_write_lost_found_contact_requests" on public.lost_found_contact_requests;
 create policy "campusone_write_lost_found_contact_requests" on public.lost_found_contact_requests
   for insert to authenticated
-  with check (requester_uid = auth.uid()::text);
+  with check (
+    requester_uid = auth.uid()::text
+    and status = 'PENDING'
+    and exists (
+      select 1 from public.lost_found_items li
+      where li.id = item_id and coalesce(li.is_hidden, false) = false
+    )
+  );
 
 drop policy if exists "campusone_update_lost_found_contact_requests" on public.lost_found_contact_requests;
 create policy "campusone_update_lost_found_contact_requests" on public.lost_found_contact_requests
   for update to authenticated
-  using (requester_uid = auth.uid()::text)
-  with check (requester_uid = auth.uid()::text);
+  using (public.campusone_is_staff())
+  with check (public.campusone_is_staff());
 
 drop policy if exists "campusone_delete_lost_found_contact_requests" on public.lost_found_contact_requests;
 create policy "campusone_delete_lost_found_contact_requests" on public.lost_found_contact_requests
   for delete to authenticated
-  using (requester_uid = auth.uid()::text);
+  using (
+    (requester_uid = auth.uid()::text and status = 'PENDING')
+    or public.campusone_is_staff()
+  );
+
+drop policy if exists "campusone_directory_suggestions_select" on public.directory_suggestions;
+create policy "campusone_directory_suggestions_select" on public.directory_suggestions
+  for select to authenticated
+  using (submitted_by = auth.uid()::text or public.campusone_is_staff());
 
 drop policy if exists "campusone_write_directory_suggestions" on public.directory_suggestions;
 create policy "campusone_write_directory_suggestions" on public.directory_suggestions
   for insert to authenticated
-  with check (submitted_by = auth.uid()::text);
+  with check (submitted_by = auth.uid()::text and status = 'PENDING');
 
 drop policy if exists "campusone_update_directory_suggestions" on public.directory_suggestions;
 create policy "campusone_update_directory_suggestions" on public.directory_suggestions
   for update to authenticated
-  using (submitted_by = auth.uid()::text)
-  with check (submitted_by = auth.uid()::text);
+  using (public.campusone_is_staff())
+  with check (public.campusone_is_staff());
 
 drop policy if exists "campusone_delete_directory_suggestions" on public.directory_suggestions;
 create policy "campusone_delete_directory_suggestions" on public.directory_suggestions
   for delete to authenticated
-  using (submitted_by = auth.uid()::text);
+  using (public.campusone_is_staff());
 
 -- ---------------------------------------------------------------------------
 -- Grants follow the policies: the anon key still only reaches what RLS allows.
