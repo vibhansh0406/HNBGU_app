@@ -86,3 +86,16 @@ engineering task, explicitly read the relevant `SKILL.md` file(s) with the Read 
 Read only the skill(s) the task actually needs — never bulk-load the whole set.
 Keep each skill's `SKILL.md` and its `LICENSE`/`LICENSE.txt` unmodified when copying or
 re-installing it.
+
+
+## Anti-slop quality gate (installed from miqdadbadjuber/anti-slop)
+
+For UI, copy, accessibility, mobile-layout, or code-comment cleanup tasks, use the relevant project-local skills in `.agents/skills/`. The core rules live at `.agents/skills/antislop/antislop.md`; the core skill is `.agents/skills/antislop/SKILL.md`.
+
+- UI / Compose / web visual work: read `.agents/skills/antislop/SKILL.md` and `.agents/skills/antislop-ui/SKILL.md`.
+- Product copy: add `.agents/skills/antislop-copywriting/SKILL.md`.
+- Accessibility and interaction states: add `.agents/skills/antislop-human/SKILL.md`.
+- Responsive/mobile layout: add `.agents/skills/antislop-layoutmobile/SKILL.md`.
+- Comment-only cleanup: use `.agents/skills/antislop-code/SKILL.md` and do not change executable code under that skill.
+
+CampusOne's existing `DESIGN.md` is the visual authority. Anti-slop removes generic patterns; it must not replace the Forest & Ivory identity, invent a new design system, or authorize broad redesigns without a concrete usability/design reason. Preserve product behavior, navigation, accessibility, localization, and offline-first constraints. Audit first, make focused changes, and report findings plus verification honestly.
