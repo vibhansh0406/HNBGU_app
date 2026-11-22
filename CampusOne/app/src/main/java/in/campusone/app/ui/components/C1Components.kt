@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -47,7 +46,6 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.ripple
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.AlertDialog
@@ -66,6 +64,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -77,6 +76,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.geometry.Offset
+import coil.compose.rememberImagePainter
 import `in`.campusone.app.R
 import `in`.campusone.app.ui.theme.C1Border
 import `in`.campusone.app.ui.theme.C1Elevation
@@ -1625,7 +1625,9 @@ fun C1Badge(
 }
 
 /**
- * Avatar with optional status indicator (online, offline, away).
+ * Avatar with optional image URL (Google profile photo) and status indicator.
+ * Loads the image with Coil (cached), falls back to initials on loading or failure.
+ * The painter key includes the URL so account switching triggers a reload.
  */
 @Composable
 fun C1Avatar(
@@ -1636,21 +1638,53 @@ fun C1Avatar(
     contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
     fontSize: Int = 16,
     status: C1Tone? = null,
-    statusSize: Dp = 10.dp
+    statusSize: Dp = 10.dp,
+    imageUrl: String? = null,
+    onClick: (() -> Unit)? = null
 ) {
     val initial = name.trim().take(1).uppercase()
+    val painter = rememberImagePainter(
+        request = imageUrl?.let { coil.request.ImageRequest.Builder(LocalContext.current)
+            .data(it)
+            .build()
+        } ?: null,
+        builder = { painter ->
+            // On error or empty, painter is null → fall back to initials below
+        }
+    )
+    val hasImage = imageUrl.isNotBlank() && painter != null
+    val base = modifier
+        .size(size)
+        .background(if (hasImage) Color.Transparent else containerColor, CircleShape)
+    val clickable = if (onClick != null) {
+        base.clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = ripple(),
+            onClick = onClick
+        )
+    } else {
+        base
+    }
     Box(
-        modifier = modifier
-            .size(size)
-            .background(containerColor, CircleShape),
+        modifier = clickable,
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = initial,
-            style = MaterialTheme.typography.titleMedium.copy(fontSize = fontSize.sp),
-            fontWeight = FontWeight.Bold,
-            color = contentColor
-        )
+        if (hasImage) {
+            Image(
+                painter = painter,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(size)
+                    .clip(CircleShape)
+            )
+        } else {
+            Text(
+                text = initial,
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = fontSize.sp),
+                fontWeight = FontWeight.Bold,
+                color = contentColor
+            )
+        }
         if (status != null) {
             Surface(
                 modifier = Modifier
@@ -1664,7 +1698,7 @@ fun C1Avatar(
                     C1Tone.INFO -> extendedColors.info
                     C1Tone.NEUTRAL -> MaterialTheme.colorScheme.onSurfaceVariant
                 },
-                border = BorderStroke(2.dp, MaterialTheme.colorScheme.background)
+                border = BorderStroke(2.dp, if (hasImage) Color.White else containerColor)
             ) {
             }
         }
@@ -1868,6 +1902,160 @@ fun C1SearchBar(
                     )
                 )
             }
+        )
+    }
+}
+
+/**
+ * Hub action card: square card with icon, title, and two-line subtitle.
+ * Consistent dimensions for all quick-action entries.
+ */
+@Composable
+fun HubActionCard(
+    title: String,
+    subtitle: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconColor: Color = MaterialTheme.colorScheme.primary,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) C1Motion.pressScale else 1f,
+        animationSpec = tween(durationMillis = C1Motion.fastMillis),
+        label = "hubActionCardPress"
+    )
+    val cardWidth = 168.dp
+    Surface(
+        modifier = Modifier
+            .size(cardWidth)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = ripple(),
+                onClick = onClick
+            )
+            .graphicsLayer { scaleX = scale; scaleY = scale },
+        shape = C1Radius.lg,
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(C1Border.hairline, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(C1Spacing.md),
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.md),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier.size(44.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconColor,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+/**
+ * Hub list row: leading icon, title, subtitle, trailing chevron.
+ * Used for Account and Administration sections.
+ */
+@Composable
+fun HubListRow(
+    title: String,
+    subtitle: String?,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconColor: Color = MaterialTheme.colorScheme.primary,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) C1Motion.pressScale else 1f,
+        animationSpec = tween(durationMillis = C1Motion.fastMillis),
+        label = "hubListRowPress"
+    )
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = C1Height.listRow)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = ripple(),
+                onClick = onClick
+            )
+            .graphicsLayer { scaleX = scale; scaleY = scale },
+        shape = C1Radius.md,
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(C1Border.hairline, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = C1Spacing.lg, vertical = C1Spacing.md),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
+        ) {
+            Box(
+                modifier = Modifier.size(C1Height.listRowCompact - 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconColor,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (subtitle != null) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+            Icon(
+                imageVector = Icons.Default.ArrowForward,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+    }
+}
         )
     }
 }

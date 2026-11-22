@@ -228,17 +228,31 @@ class CoreViewModel @Inject constructor(
                 courseName = courseName,
                 semester = semester,
                 section = section,
-                onboardingCompleted = true
+                onboardingCompleted = false // Not yet persisted to server
             )
-            prefs.saveUserProfile(profile, markOnboarded = true)
+            // Save locally first (not yet onboarded) so data isn't lost if server fails.
+            prefs.saveUserProfile(profile, markOnboarded = false)
             repository.ensureSeededForSection(profile.sectionKey)
-            authManager.ensureUserProfile(
+
+            // Persist to server: bootstrap profile + upload full details.
+            val bootstrapResult = authManager.ensureUserProfile(
                 uid = uid,
                 email = profileEmail,
                 name = name,
                 role = effectiveRole.name
             )
-            repository.syncProfileToCloud(profile)
+            if (!bootstrapResult.isSuccess) {
+                _uiMessages.emit("Could not save profile to server. Please try again.")
+                return@launch
+            }
+
+            // Sync full profile (including onboarding_completed = true) to cloud.
+            val cloudProfile = profile.copy(onboardingCompleted = true)
+            repository.syncProfileToCloud(cloudProfile)
+
+            // Only now mark as onboarded locally — server persistence succeeded.
+            prefs.saveUserProfile(cloudProfile, markOnboarded = true)
+
             if (!isOwner && requestedRole != UserRole.STUDENT) {
                 repository.requestRoleChange(requestedRole, "Requested during onboarding")
                     .onSuccess { _uiMessages.emit("Role request sent for admin approval.") }
@@ -348,4 +362,8 @@ class CoreViewModel @Inject constructor(
             }
         }
     }
+
+    /** Current Supabase authenticated user's avatar URL (avatar_url / picture from auth metadata). */
+    val currentUserAvatarUrl: String?
+        get() = authManager.currentUserAvatarUrl()
 }

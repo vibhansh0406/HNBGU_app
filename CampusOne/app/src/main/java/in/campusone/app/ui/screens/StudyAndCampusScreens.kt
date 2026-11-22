@@ -133,6 +133,8 @@ import `in`.campusone.app.ui.components.C1StatusChip
 import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.components.C1Tone
+import `in`.campusone.app.ui.components.HubActionCard
+import `in`.campusone.app.ui.components.HubListRow
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.theme.C1MaxContentWidth
@@ -209,6 +211,26 @@ private val requestableRoles = listOf(
     UserRole.CLUB_ADMIN
 )
 
+/** Each sub-screen's parent for system Back navigation. Screens not listed go to HUB. */
+private val screenParent: Map<MoreSubScreen, MoreSubScreen> = mapOf(
+    MoreSubScreen.ADMIN_MODERATORS to MoreSubScreen.ADMIN_PANEL,
+    MoreSubScreen.ADMIN_SUBJECTS to MoreSubScreen.ADMIN_PANEL,
+    MoreSubScreen.ADMIN_TIMETABLE to MoreSubScreen.ADMIN_PANEL,
+    MoreSubScreen.ADMIN_NOTICES to MoreSubScreen.ADMIN_PANEL,
+    MoreSubScreen.ADMIN_ASSIGNMENTS to MoreSubScreen.ADMIN_PANEL,
+    MoreSubScreen.ADMIN_EXAMS to MoreSubScreen.ADMIN_PANEL,
+    MoreSubScreen.ADMIN_CLUBS to MoreSubScreen.ADMIN_PANEL,
+    MoreSubScreen.ADMIN_EVENTS to MoreSubScreen.ADMIN_PANEL,
+    MoreSubScreen.ADMIN_LOST_FOUND to MoreSubScreen.ADMIN_PANEL,
+    MoreSubScreen.ADMIN_DIRECTORY to MoreSubScreen.ADMIN_PANEL,
+    MoreSubScreen.SUPER_ADMIN_USERS to MoreSubScreen.SUPER_ADMIN,
+    MoreSubScreen.SUPER_ADMIN_ROLES to MoreSubScreen.SUPER_ADMIN,
+    MoreSubScreen.SUPER_ADMIN_CONTENT to MoreSubScreen.SUPER_ADMIN,
+    MoreSubScreen.SUPER_ADMIN_MODERATION to MoreSubScreen.SUPER_ADMIN,
+    MoreSubScreen.SUPER_ADMIN_SETTINGS to MoreSubScreen.SUPER_ADMIN,
+    MoreSubScreen.SUPER_ADMIN_AUDIT to MoreSubScreen.SUPER_ADMIN
+)
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun MoreHubScreen(
@@ -231,6 +253,7 @@ fun MoreHubScreen(
     var showRoleRequest by rememberSaveable { mutableStateOf(false) }
     var requestedRole by rememberSaveable { mutableStateOf(UserRole.CR.name) }
     var roleRequestNote by rememberSaveable { mutableStateOf("") }
+    var showLogoutConfirm by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(deepLink) {
         if (deepLink != null) {
@@ -248,7 +271,12 @@ fun MoreHubScreen(
     }
 
     BackHandler(enabled = activeScreen != MoreSubScreen.HUB) {
-        activeScreen = MoreSubScreen.HUB
+        val parent = screenParent[activeScreen]
+        if (parent != null) {
+            activeScreen = parent
+        } else {
+            activeScreen = MoreSubScreen.HUB
+        }
     }
 
     val isAdmin = uiState.profile.role == `in`.campusone.app.domain.model.UserRole.ADMIN ||
@@ -294,6 +322,7 @@ fun MoreHubScreen(
     if (activeScreen == MoreSubScreen.PROFILE) {
         StudentProfileScreen(
             uiState = coreState,
+            avatarUrl = coreViewModel.currentUserAvatarUrl,
             onBack = { activeScreen = MoreSubScreen.HUB },
             onSaveName = coreViewModel::updateDisplayName
         )
@@ -302,168 +331,264 @@ fun MoreHubScreen(
 
     if (activeScreen == MoreSubScreen.HUB) {
         val ws = windowSize
+        val profile = coreState.profile
+        val greeting = when {
+            profile.name.isNotBlank() -> stringResource(R.string.home_greeting, profile.name)
+            else -> stringResource(R.string.hub_greeting_default)
+        }
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(C1Spacing.lg)
                 .widthIn(max = C1MaxContentWidth(ws)),
-            verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.xl)
         ) {
+            // ===== Header =====
             item {
-                Text(
-                    text = stringResource(R.string.study_hub),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.semantics { heading() }
-                )
-            }
-            item {
-                FeatureHubCard(
-                    title = stringResource(R.string.notes_pyq),
-                    subtitle = stringResource(R.string.hub_resources_sub, uiState.resources.size),
-                    icon = Icons.Default.Description,
-                    iconColor = Color(0xFF8B5CF6), // violet — notes
-                    onClick = { activeScreen = MoreSubScreen.NOTES_PYQ }
-                )
-            }
-            item {
-                val pendingCount = uiState.assignments.count { !it.isCompleted && it.isAddedToPersonalList }
-                FeatureHubCard(
-                    title = stringResource(R.string.assignments_title),
-                    subtitle = stringResource(R.string.hub_assignments_sub, pendingCount),
-                    icon = Icons.Default.Assignment,
-                    iconColor = Color(0xFFFB923C), // orange — assignments
-                    onClick = { activeScreen = MoreSubScreen.ASSIGNMENTS }
-                )
-            }
-            item {
-                val doneTopics = uiState.syllabusTopics.count { it.isCompleted }
-                val totalTopics = uiState.syllabusTopics.size
-                FeatureHubCard(
-                    title = stringResource(R.string.exams_syllabus),
-                    subtitle = stringResource(R.string.hub_exams_sub, uiState.exams.size, doneTopics, totalTopics),
-                    icon = Icons.Default.CalendarMonth,
-                    iconColor = Color(0xFF6366F1), // indigo — syllabus
-                    onClick = { activeScreen = MoreSubScreen.EXAMS_SYLLABUS }
-                )
-            }
-            item {
-                FeatureHubCard(
-                    title = stringResource(R.string.gpa_calculator),
-                    subtitle = stringResource(R.string.hub_gpa_sub, uiState.gpaResult.formattedSgpa, uiState.gpaResult.formattedCgpa, uiState.gpaResult.formattedPercentage),
-                    icon = Icons.Default.Calculate,
-                    iconColor = extendedColors.success, // green — results
-                    onClick = { activeScreen = MoreSubScreen.GPA_CALCULATOR }
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text(
+                            text = greeting,
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.semantics { heading() }
+                        )
+                        Text(
+                            text = "${profile.collegeName} • ${profile.courseName} Sem ${profile.semester} Sec ${profile.section}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    C1Avatar(
+                        name = profile.name,
+                        size = 44.dp,
+                        imageUrl = coreViewModel.currentUserAvatarUrl,
+                        fontSize = 20,
+                        onClick = { activeScreen = MoreSubScreen.PROFILE }
+                    )
+                }
             }
 
+            // ===== Quick Actions =====
             item {
-                Spacer(modifier = Modifier.height(C1Spacing.xs))
-                Text(
-                    text = stringResource(R.string.more_campus_community),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.primary
+                C1SectionHeader(
+                    title = stringResource(R.string.hub_quick_actions),
+                    actionLabel = stringResource(R.string.home_view_all),
+                    onAction = null
                 )
             }
             item {
-                FeatureHubCard(
-                    title = stringResource(R.string.community_title),
-                    subtitle = stringResource(R.string.hub_community_sub, communityState.posts.size),
-                    icon = Icons.Default.Forum,
-                    iconColor = Color(0xFF14B8A6), // teal — community
-                    onClick = { activeScreen = MoreSubScreen.COMMUNITY }
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.md),
+                    verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
+                ) {
+                    HubActionCard(
+                        title = stringResource(R.string.notes_pyq),
+                        subtitle = stringResource(R.string.hub_resources_sub, uiState.resources.size),
+                        icon = Icons.Default.Description,
+                        iconColor = Color(0xFF8B5CF6),
+                        onClick = { activeScreen = MoreSubScreen.NOTES_PYQ }
+                    )
+                    HubActionCard(
+                        title = stringResource(R.string.assignments_title),
+                        subtitle = stringResource(R.string.hub_assignments_sub, uiState.assignments.count { !it.isCompleted && it.isAddedToPersonalList }),
+                        icon = Icons.Default.Assignment,
+                        iconColor = Color(0xFFFB923C),
+                        onClick = { activeScreen = MoreSubScreen.ASSIGNMENTS }
+                    )
+                    HubActionCard(
+                        title = stringResource(R.string.timetable_title),
+                        subtitle = stringResource(R.string.hub_timetable_sub, uiState.allTimetableSlots.size),
+                        icon = Icons.Default.Schedule,
+                        iconColor = Color(0xFF6366F1),
+                        onClick = { currentTab = BottomNavTab.TIMETABLE }
+                    )
+                    HubActionCard(
+                        title = stringResource(R.string.nav_attendance),
+                        subtitle = stringResource(R.string.hub_attendance_sub, Math.round(coreState.overallInsight.percentage)),
+                        icon = Icons.Default.CheckCircle,
+                        iconColor = extendedColors.success,
+                        onClick = { currentTab = BottomNavTab.ATTENDANCE }
+                    )
+                }
+            }
+
+            // ===== Community & Events =====
+            item {
+                C1SectionHeader(
+                    title = stringResource(R.string.hub_community_events),
+                    actionLabel = null,
+                    onAction = null
                 )
             }
             item {
-                FeatureHubCard(
-                    title = stringResource(R.string.notifications_title),
-                    subtitle = if (unreadNotifications > 0) {
-                        "$unreadNotifications ${stringResource(R.string.notifications_unread)} • ${stringResource(R.string.notifications_subtitle)}"
-                    } else {
-                        stringResource(R.string.notifications_subtitle)
-                    },
-                    icon = Icons.Default.Notifications,
-                    iconColor = extendedColors.warning, // amber — announcements
-                    onClick = { activeScreen = MoreSubScreen.NOTIFICATIONS }
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.md),
+                    verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
+                ) {
+                    HubActionCard(
+                        title = stringResource(R.string.community_title),
+                        subtitle = stringResource(R.string.hub_community_sub, communityState.posts.size),
+                        icon = Icons.Default.Forum,
+                        iconColor = Color(0xFF14B8A6),
+                        onClick = { activeScreen = MoreSubScreen.COMMUNITY }
+                    )
+                    HubActionCard(
+                        title = stringResource(R.string.notifications_title),
+                        subtitle = if (unreadNotifications > 0) {
+                            "$unreadNotifications ${stringResource(R.string.notifications_unread)}"
+                        } else {
+                            stringResource(R.string.notifications_subtitle)
+                        },
+                        icon = Icons.Default.Notifications,
+                        iconColor = extendedColors.warning,
+                        onClick = { activeScreen = MoreSubScreen.NOTIFICATIONS }
+                    )
+                    HubActionCard(
+                        title = stringResource(R.string.events_clubs),
+                        subtitle = stringResource(R.string.hub_events_sub, uiState.events.size),
+                        icon = Icons.Default.Event,
+                        iconColor = Color(0xFF22D3EE),
+                        onClick = { activeScreen = MoreSubScreen.EVENTS_CLUBS }
+                    )
+                }
+            }
+
+            // ===== Campus Resources =====
+            item {
+                C1SectionHeader(
+                    title = stringResource(R.string.hub_campus_resources),
+                    actionLabel = null,
+                    onAction = null
                 )
             }
             item {
-                FeatureHubCard(
-                    title = stringResource(R.string.profile_title),
-                    subtitle = stringResource(R.string.profile_subtitle),
-                    icon = Icons.Default.Person,
-                    iconColor = MaterialTheme.colorScheme.primary,
-                    onClick = { activeScreen = MoreSubScreen.PROFILE }
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.md),
+                    verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
+                ) {
+                    HubActionCard(
+                        title = stringResource(R.string.lost_found),
+                        subtitle = stringResource(R.string.hub_lostfound_sub, uiState.lostFoundItems.count { !it.isResolved }),
+                        icon = Icons.Default.FindInPage,
+                        iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        onClick = { activeScreen = MoreSubScreen.LOST_FOUND }
+                    )
+                    HubActionCard(
+                        title = stringResource(R.string.campus_directory),
+                        subtitle = stringResource(R.string.hub_directory_sub),
+                        icon = Icons.Default.Call,
+                        iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        onClick = { activeScreen = MoreSubScreen.DIRECTORY }
+                    )
+                    HubActionCard(
+                        title = stringResource(R.string.gpa_calculator),
+                        subtitle = stringResource(R.string.hub_gpa_sub, uiState.gpaResult.formattedSgpa, uiState.gpaResult.formattedCgpa, uiState.gpaResult.formattedPercentage),
+                        icon = Icons.Default.Calculate,
+                        iconColor = extendedColors.success,
+                        onClick = { activeScreen = MoreSubScreen.GPA_CALCULATOR }
+                    )
+                }
+            }
+
+            // ===== Account =====
+            item {
+                C1SectionHeader(
+                    title = stringResource(R.string.hub_account),
+                    actionLabel = null,
+                    onAction = null
                 )
             }
             item {
-                Spacer(modifier = Modifier.height(C1Spacing.xs))
-                Text(
-                    text = stringResource(R.string.more_campus_community),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-            item {
-                FeatureHubCard(
-                    title = stringResource(R.string.events_clubs),
-                    subtitle = stringResource(R.string.hub_events_sub, uiState.events.size),
-                    icon = Icons.Default.Event,
-                    iconColor = Color(0xFF22D3EE), // cyan — timetable/events
-                    onClick = { activeScreen = MoreSubScreen.EVENTS_CLUBS }
-                )
-            }
-            item {
-                FeatureHubCard(
-                    title = stringResource(R.string.lost_found),
-                    subtitle = stringResource(R.string.hub_lostfound_sub, uiState.lostFoundItems.count { !it.isResolved }),
-                    icon = Icons.Default.FindInPage,
-                    iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    onClick = { activeScreen = MoreSubScreen.LOST_FOUND }
-                )
-            }
-            item {
-                FeatureHubCard(
-                    title = stringResource(R.string.campus_directory),
-                    subtitle = stringResource(R.string.hub_directory_sub),
-                    icon = Icons.Default.Call,
-                    iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    onClick = { activeScreen = MoreSubScreen.DIRECTORY }
-                )
-            }
-            if (isSuperAdmin) {
-                item {
-                    FeatureHubCard(
-                        title = "Super Admin",
-                        subtitle = stringResource(R.string.hub_superadmin_sub),
-                        icon = Icons.Default.Shield,
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+                ) {
+                    HubListRow(
+                        title = stringResource(R.string.profile_title),
+                        subtitle = stringResource(R.string.profile_subtitle),
+                        icon = Icons.Default.Person,
+                        onClick = { activeScreen = MoreSubScreen.PROFILE }
+                    )
+                    HubListRow(
+                        title = stringResource(R.string.hub_settings_title),
+                        subtitle = stringResource(R.string.hub_settings_subtitle),
+                        icon = Icons.Default.Settings,
+                        onClick = { /* Settings screen - placeholder */ }
+                    )
+                    HubListRow(
+                        title = stringResource(R.string.hub_sign_out_title),
+                        subtitle = stringResource(R.string.hub_signout_sub),
+                        icon = Icons.Default.Logout,
                         iconColor = MaterialTheme.colorScheme.error,
-                        onClick = {
-                            adminViewModel.init(uiState.profile)
-                            activeScreen = MoreSubScreen.SUPER_ADMIN
-                        }
+                        onClick = { showLogoutConfirm = true }
                     )
                 }
             }
-            if (isAdminOrStaff) {
+
+            // ===== Administration (authorized users only) =====
+            if (isSuperAdmin || isAdminOrStaff) {
                 item {
-                    FeatureHubCard(
-                        title = "Admin Panel",
-                        subtitle = stringResource(R.string.hub_admin_sub),
-                        icon = Icons.Default.School,
-                        iconColor = MaterialTheme.colorScheme.primary,
-                        onClick = {
-                            adminViewModel.init(uiState.profile)
-                            activeScreen = MoreSubScreen.ADMIN_PANEL
-                        }
+                    C1SectionHeader(
+                        title = stringResource(R.string.hub_administration_title),
+                        actionLabel = null,
+                        onAction = null
                     )
                 }
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+                    ) {
+                        if (isSuperAdmin) {
+                            HubListRow(
+                                title = "Super Admin",
+                                subtitle = stringResource(R.string.hub_superadmin_sub),
+                                icon = Icons.Default.Shield,
+                                iconColor = MaterialTheme.colorScheme.error,
+                                onClick = {
+                                    adminViewModel.init(uiState.profile)
+                                    activeScreen = MoreSubScreen.SUPER_ADMIN
+                                }
+                            )
+                        }
+                        if (isAdminOrStaff) {
+                            HubListRow(
+                                title = stringResource(R.string.admin_panel),
+                                subtitle = stringResource(R.string.hub_admin_sub),
+                                icon = Icons.Default.School,
+                                iconColor = MaterialTheme.colorScheme.primary,
+                                onClick = {
+                                    adminViewModel.init(uiState.profile)
+                                    activeScreen = MoreSubScreen.ADMIN_PANEL
+                                }
+                            )
+                        }
+                    }
+                }
             }
+
+            // ===== Role Request (students only) =====
             if (uiState.profile.role == UserRole.STUDENT) {
                 item {
-                    FeatureHubCard(
-                        title = "Request a Role",
+                    C1SectionHeader(
+                        title = stringResource(R.string.hub_role_requests_title),
+                        actionLabel = null,
+                        onAction = null
+                    )
+                }
+                item {
+                    HubListRow(
+                        title = stringResource(R.string.hub_request_role_title),
                         subtitle = stringResource(R.string.hub_role_sub),
                         icon = Icons.Default.AccountCircle,
                         iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -471,8 +596,9 @@ fun MoreHubScreen(
                     )
                 }
             }
+
             item {
-                FeatureHubCard(
+                HubListRow(
                     title = stringResource(R.string.privacy_policy),
                     subtitle = stringResource(R.string.hub_privacy_sub),
                     icon = Icons.Default.PrivacyTip,
@@ -480,18 +606,83 @@ fun MoreHubScreen(
                     onClick = { activeScreen = MoreSubScreen.PRIVACY_POLICY }
                 )
             }
-            item {
-                FeatureHubCard(
-                    title = "Sign Out",
-                    subtitle = stringResource(R.string.hub_signout_sub),
-                    icon = Icons.Default.AccountCircle,
-                    iconColor = MaterialTheme.colorScheme.error,
-                    onClick = onSignOut
-                )
-            }
+
             item { Spacer(modifier = Modifier.height(C1Spacing.md)) }
         }
+
         if (showRoleRequest) {
+            AlertDialog(
+                onDismissRequest = { showRoleRequest = false },
+                title = { Text("Request a role") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            text = "Your request is sent to the admin. Access is granted only after approval.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            requestableRoles.forEach { role ->
+                                FilterChip(
+                                    selected = requestedRole == role.name,
+                                    onClick = { requestedRole = role.name },
+                                    label = { Text(role.name) }
+                                )
+                            }
+                        }
+                        C1TextField(
+                            value = roleRequestNote,
+                            onValueChange = { roleRequestNote = it },
+                            label = "Note (optional)",
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    C1Button(
+                        text = "Send request",
+                        onClick = {
+                            viewModel.requestRole(
+                                UserRole.entries.firstOrNull { it.name == requestedRole } ?: UserRole.CR,
+                                roleRequestNote.trim()
+                            )
+                            showRoleRequest = false
+                        }
+                    )
+                },
+                dismissButton = {
+                    C1Button(
+                        text = "Cancel",
+                        onClick = { showRoleRequest = false },
+                        intent = C1ButtonIntent.GHOST
+                    )
+                }
+            )
+        }
+
+        if (showLogoutConfirm) {
+            C1Dialog(
+                title = stringResource(R.string.hub_sign_out_dialog_title),
+                onDismiss = { showLogoutConfirm = false },
+                confirmLabel = stringResource(R.string.hub_sign_out_dialog_confirm),
+                onConfirm = {
+                    onSignOut()
+                    currentTab = BottomNavTab.HOME
+                    showLogoutConfirm = false
+                },
+                confirmIntent = C1ButtonIntent.DANGER,
+                dismissLabel = stringResource(R.string.action_cancel),
+                content = {
+                    Text(
+                        text = stringResource(R.string.hub_sign_out_dialog_message),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            )
+        }
+    } else {
             AlertDialog(
                 onDismissRequest = { showRoleRequest = false },
                 title = { Text("Request a role") },

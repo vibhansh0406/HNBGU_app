@@ -332,6 +332,24 @@
     <string name="hub_privacy_sub">Zero ads, zero trackers, offline-first • MIT open source</string>
     <string name="hub_signout_sub">Sign out of Google &amp; Supabase on this device</string>
     <string name="hub_community_sub">%1$d posts • campus feed and discussions</string>
+
+    <!-- Hub Redesign -->
+    <string name="hub_greeting_default">Welcome to CampusOne</string>
+    <string name="hub_quick_actions">Quick Actions</string>
+    <string name="hub_timetable_sub">%1$d classes this week • view today\u2019s schedule</string>
+    <string name="hub_attendance_sub">%1$d%% overall • track your class attendance</string>
+    <string name="hub_community_events">Community &amp; Events</string>
+    <string name="hub_campus_resources">Campus Resources</string>
+    <string name="hub_account">Account</string>
+    <string name="hub_settings_title">Settings</string>
+    <string name="hub_settings_subtitle">App preferences and language</string>
+    <string name="hub_sign_out_title">Sign Out</string>
+    <string name="hub_administration_title">Administration</string>
+    <string name="hub_role_requests_title">Role Requests</string>
+    <string name="hub_request_role_title">Request a Role</string>
+    <string name="hub_sign_out_dialog_title">Sign Out</string>
+    <string name="hub_sign_out_dialog_confirm">Sign Out</string>
+    <string name="hub_sign_out_dialog_message">You will be signed out of Google and Supabase on this device. Your profile data is kept safely on the server.</string>
     <string name="onboarding_your_campus">Your campus</string>
     <string name="onboarding_your_class">Your class</string>
     <string name="onboarding_admin_access">Admin access</string>
