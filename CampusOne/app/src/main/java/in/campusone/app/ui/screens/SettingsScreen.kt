@@ -56,7 +56,6 @@ import `in`.campusone.app.ui.viewmodel.SettingsViewModel
 @Composable
 fun SettingsScreen(
     profile: UserProfile,
-    onBack: () -> Unit,
     onSignOut: () -> Unit,
     onOpenPrivacy: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
@@ -75,23 +74,10 @@ fun SettingsScreen(
     val eventReminders by viewModel.eventRemindersEnabled.collectAsStateWithLifecycle()
     var showSignOut by rememberSaveable { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Settings", fontWeight = FontWeight.SemiBold) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
-        }
-    ) { insets ->
-        LazyColumn(
+    LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(insets)
                 .padding(horizontal = C1Spacing.lg),
             verticalArrangement = Arrangement.spacedBy(C1Spacing.lg)
         ) {
@@ -203,7 +189,6 @@ fun SettingsScreen(
             }
             item { Spacer(Modifier.height(C1Spacing.xl)) }
         }
-    }
 
     if (showSignOut) {
         AlertDialog(
