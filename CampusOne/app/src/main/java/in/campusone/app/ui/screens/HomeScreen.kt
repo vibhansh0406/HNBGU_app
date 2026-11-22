@@ -635,16 +635,11 @@ private fun NoticePreview(
     onOpenNotice: (String) -> Unit
 ) {
     val dateFormat = remember { SimpleDateFormat("d MMM", Locale.getDefault()) }
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(
-                interactionSource = interactionSource,
-                onClick = { onOpenNotice(notice.id) }
-            )
+            .clickable { onOpenNotice(notice.id) }
             .padding(C1Spacing.lg)
             .semantics(mergeDescendants = true) {},
         verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)
@@ -691,7 +686,7 @@ private fun NoticePreview(
             text = notice.title,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (pressed) 0.8f else 1f),
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
