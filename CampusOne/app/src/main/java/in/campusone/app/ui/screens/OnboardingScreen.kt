@@ -135,7 +135,7 @@ fun OnboardingScreen(
         "bped" to "B.P.Ed.",
         "blib" to "B.Lib.I.Sc."
     )
-    val selectedCourseIndex = remember { mutableIntStateOf(0) }
+    var selectedCourseIndex by remember { mutableIntStateOf(0) }
     var selectedSemester by rememberSaveable { mutableIntStateOf(3) }
     var selectedSection by rememberSaveable { mutableStateOf("A") }
     var selectedRole by rememberSaveable { mutableStateOf(UserRole.STUDENT) }
@@ -244,8 +244,8 @@ fun OnboardingScreen(
                     selectedCampus = selectedCampus,
                     onCampusChange = { selectedCampus = it },
                     courses = courses,
-                    selectedCourseIndex = selectedCourseIndex.value,
-                    onCourseChange = { selectedCourseIndex.value = it }
+                    selectedCourseIndex = selectedCourseIndex,
+                    onCourseChange = { selectedCourseIndex = it }
                 )
                 else -> OnboardingStepClass(
                     selectedSemester = selectedSemester,
@@ -286,7 +286,7 @@ fun OnboardingScreen(
                             step += 1
                         } else {
                             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            val (courseId, courseName) = courses[selectedCourseIndex.value]
+                            val (courseId, courseName) = courses[selectedCourseIndex]
                             onCompleteSetup(
                                 name,
                                 email,
@@ -442,12 +442,12 @@ private fun OnboardingStepCampusCourse(
                 horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
             ) {
                 items(courses, key = { it.first }) { (courseId, label) ->
-                    val isSelected = selectedCourseIndex.value == courses.indexOfFirst { it.first == courseId }
+                    val isSelected = selectedCourseIndex == courses.indexOfFirst { it.first == courseId }
                     CourseSelectionCard(
                         label = label,
                         selected = isSelected,
                         onClick = {
-                            selectedCourseIndex.value = courses.indexOfFirst { it.first == courseId }
+                            selectedCourseIndex = courses.indexOfFirst { it.first == courseId }
                         }
                     )
                 }
