@@ -81,9 +81,21 @@ jobs:
             test "$PACKAGE" = "in.campusone.app" || { echo "::error::Unexpected package: $PACKAGE"; exit 1; }
             $APKSIGNER verify --verbose "$apk"
             $ZIPALIGN -c 4 "$apk"
-            CERT=$($APKSIGNER verify --print-certs "$apk" | sed -n "s/^Signer #1 certificate SHA-256 digest: //p")
+            CERT_INFO=$($APKSIGNER verify --print-certs "$apk")
+            CERT=$(printf '%s\n' "$CERT_INFO" | sed -n "s/^Signer #1 certificate SHA-256 digest: //p")
             test -n "$CERT"
-            if [ "$apk" = "$DEBUG_APK" ]; then DEBUG_CERT="$CERT"; else RELEASE_CERT="$CERT"; fi
+            if [ "$apk" = "$DEBUG_APK" ]; then
+              DEBUG_CERT="$CERT"
+            else
+              RELEASE_CERT="$CERT"
+              RELEASE_SHA1=$(printf '%s\n' "$CERT_INFO" | sed -n "s/^Signer #1 certificate SHA-1 digest: //p" | tr -d ':' | tr '[:lower:]' '[:upper:]')
+              EXPECTED_RELEASE_SHA1="50341BDAAE1E1CFCC7E26893D3CF8A1F7AFC35A2"
+              if [ "$RELEASE_SHA1" != "$EXPECTED_RELEASE_SHA1" ]; then
+                echo "::error::Release SHA-1 mismatch. Expected $EXPECTED_RELEASE_SHA1, got $RELEASE_SHA1"
+                exit 1
+              fi
+              echo "Verified permanent release SHA-1=$RELEASE_SHA1"
+            fi
             echo "Verified package=$PACKAGE signer_sha256=$CERT"
           done
           if [ "$DEBUG_CERT" = "$RELEASE_CERT" ]; then
