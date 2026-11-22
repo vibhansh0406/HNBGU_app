@@ -164,11 +164,17 @@
     <string name="home_open_profile">प्रोफ़ाइल खोलें</string>
     <string name="home_loading_announcements">घोषणाएं लोड हो रही हैं\u2026</string>
     <string name="qa_assignments">असाइनमेंट</string>
+    <string name="qa_assignments_desc">कार्य, समय सीमा और सबमिशन ट्रैक करें</string>
     <string name="qa_exams">परीक्षाएं</string>
+    <string name="qa_exams_desc">परीक्षा तिथियां, सिलेबस और काउंटडाउन</string>
     <string name="qa_notes">नोट्स और PYQ</string>
+    <string name="qa_notes_desc">अध्ययन सामग्री और पिछले पेपर</string>
     <string name="qa_gpa">GPA</string>
+    <string name="qa_gpa_desc">SGPA, CGPA और लक्ष्य कैलकुलेटर</string>
     <string name="qa_lost_found">खोया-पाया</string>
+    <string name="qa_lost_found_desc">खोई हुई वस्तुओं की रिपोर्ट करें या दावा करें</string>
     <string name="qa_directory">डायरेक्टरी</string>
+    <string name="qa_directory_desc">संकाय, HoDs और आपातकालीन संपर्क</string>
     <string name="latest_notice">नवीनतम सूचना</string>
     <string name="due_today">आज</string>
     <string name="due_tomorrow">कल</string>
