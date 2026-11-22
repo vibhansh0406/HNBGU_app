@@ -37,6 +37,16 @@ class UserPreferencesRepository @Inject constructor(
         val LAST_NOTICE_SYNC = longPreferencesKey("last_notice_sync")
         val TARGET_ATTENDANCE_PCT = intPreferencesKey("target_attendance_pct")
         val REMINDER_LEAD_MINS = intPreferencesKey("reminder_lead_mins")
+        val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
+        val ANNOUNCEMENTS_ENABLED = booleanPreferencesKey("announcements_enabled")
+        val NOTICES_ENABLED = booleanPreferencesKey("notices_enabled")
+        val EXAM_UPDATES_ENABLED = booleanPreferencesKey("exam_updates_enabled")
+        val ASSIGNMENT_UPDATES_ENABLED = booleanPreferencesKey("assignment_updates_enabled")
+        val STUDY_MATERIAL_UPDATES_ENABLED = booleanPreferencesKey("study_material_updates_enabled")
+        val CLASS_REMINDERS_ENABLED = booleanPreferencesKey("class_reminders_enabled")
+        val ASSIGNMENT_REMINDERS_ENABLED = booleanPreferencesKey("assignment_reminders_enabled")
+        val EXAM_REMINDERS_ENABLED = booleanPreferencesKey("exam_reminders_enabled")
+        val EVENT_REMINDERS_ENABLED = booleanPreferencesKey("event_reminders_enabled")
     }
 
     val isOnboarded: Flow<Boolean> = context.dataStore.data.map { it[Keys.IS_ONBOARDED] ?: false }
@@ -57,6 +67,69 @@ class UserPreferencesRepository @Inject constructor(
     }
 
     val languageTag: Flow<String> = context.dataStore.data.map { it[Keys.LANGUAGE_TAG] ?: "en" }
+
+    val darkModeOverride: Flow<String> = context.dataStore.data.map {
+        it[Keys.DARK_MODE_OVERRIDE] ?: "SYSTEM"
+    }
+    val notificationsEnabled: Flow<Boolean> = context.dataStore.data.map {
+        it[Keys.NOTIFICATIONS_ENABLED] ?: true
+    }
+    val announcementsEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.ANNOUNCEMENTS_ENABLED] ?: true }
+    val noticesEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.NOTICES_ENABLED] ?: true }
+    val examUpdatesEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.EXAM_UPDATES_ENABLED] ?: true }
+    val assignmentUpdatesEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.ASSIGNMENT_UPDATES_ENABLED] ?: true }
+    val studyMaterialUpdatesEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.STUDY_MATERIAL_UPDATES_ENABLED] ?: true }
+    val classRemindersEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.CLASS_REMINDERS_ENABLED] ?: true }
+    val assignmentRemindersEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.ASSIGNMENT_REMINDERS_ENABLED] ?: true }
+    val examRemindersEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.EXAM_REMINDERS_ENABLED] ?: true }
+    val eventRemindersEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.EVENT_REMINDERS_ENABLED] ?: true }
+
+    suspend fun setDarkModeOverride(mode: String) {
+        context.dataStore.edit { it[Keys.DARK_MODE_OVERRIDE] = mode.uppercase().takeIf {
+            it in setOf("SYSTEM", "LIGHT", "DARK")
+        } ?: "SYSTEM" }
+    }
+
+    suspend fun setNotificationsEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.NOTIFICATIONS_ENABLED] = enabled }
+    }
+
+    suspend fun setNotificationCategoryEnabled(category: String, enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            when (category) {
+                "announcement" -> prefs[Keys.ANNOUNCEMENTS_ENABLED] = enabled
+                "notice" -> prefs[Keys.NOTICES_ENABLED] = enabled
+                "exam" -> prefs[Keys.EXAM_UPDATES_ENABLED] = enabled
+                "assignment" -> prefs[Keys.ASSIGNMENT_UPDATES_ENABLED] = enabled
+                "study_material" -> prefs[Keys.STUDY_MATERIAL_UPDATES_ENABLED] = enabled
+            }
+        }
+    }
+
+    suspend fun isNotificationCategoryEnabled(category: String): Boolean {
+        val settings = context.dataStore.data.map { prefs ->
+            (prefs[Keys.NOTIFICATIONS_ENABLED] ?: true) && when (category) {
+                "announcement" -> prefs[Keys.ANNOUNCEMENTS_ENABLED] ?: true
+                "notice" -> prefs[Keys.NOTICES_ENABLED] ?: true
+                "exam" -> prefs[Keys.EXAM_UPDATES_ENABLED] ?: true
+                "assignment" -> prefs[Keys.ASSIGNMENT_UPDATES_ENABLED] ?: true
+                "study_material" -> prefs[Keys.STUDY_MATERIAL_UPDATES_ENABLED] ?: true
+                else -> true
+            }
+        }
+        return settings.first()
+    }
+
+    suspend fun setLocalReminderEnabled(category: String, enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            when (category) {
+                "class" -> prefs[Keys.CLASS_REMINDERS_ENABLED] = enabled
+                "assignment" -> prefs[Keys.ASSIGNMENT_REMINDERS_ENABLED] = enabled
+                "exam" -> prefs[Keys.EXAM_REMINDERS_ENABLED] = enabled
+                "event" -> prefs[Keys.EVENT_REMINDERS_ENABLED] = enabled
+            }
+        }
+    }
 
     suspend fun saveUserProfile(profile: UserProfile, markOnboarded: Boolean = true) {
         context.dataStore.edit { prefs ->
