@@ -255,11 +255,12 @@ private fun SettingsActionRow(
     onClick: () -> Unit,
     danger: Boolean = false
 ) {
-    androidx.compose.foundation.clickable
     Row(
-        modifier = Modifier.fillMaxWidth().height(64.dp).then(
-            Modifier.padding(horizontal = C1Spacing.xs)
-        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(64.dp)
+            .clickable(onClick = onClick)
+            .padding(horizontal = C1Spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
     ) {
@@ -268,6 +269,5 @@ private fun SettingsActionRow(
             Text(title, style = MaterialTheme.typography.bodyLarge, color = if (danger) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        TextButton(onClick = onClick) { Text("Open") }
     }
 }
