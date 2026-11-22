@@ -8,8 +8,8 @@
 
 ## Permanent project constants (immutable — never change)
 - **Application ID / package name: `in.campusone.app`** — locked in `namespace` + `applicationId` (`CampusOne/app/build.gradle.kts`). No renames, migrations, flavors, or `applicationIdSuffix` in any module or build type, ever.
-- **Signing identity: `CampusOne/ci/debug.keystore`** (alias `androiddebugkey`) — the permanent signing identity for BOTH debug and release builds. SHA-1 `A9:A0:15:5D:1C:57:5A:4A:66:5E:15:7C:C7:23:DE:81:7B:39:CC:DE`. Never regenerate or replace; the Google OAuth Android client is registered against exactly this package + SHA-1.
-- CI mirrors the keystore via GitHub Secrets (`KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`); workflow decodes it and exports `KEYSTORE_FILE`/`KEYSTORE_PASSWORD`/`KEY_ALIAS`/`KEY_PASSWORD` for the release signing config.
+- **Permanent release identity:** SHA-1 `50:34:1B:DA:AE:1E:1C:FC:C7:E2:68:93:D3:CF:8A:1F:7A:FC:35:A2`. The release keystore is held in GitHub Actions secrets (`KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`) and decoded by `.github/workflows/build.yml`. Never regenerate the key, change its alias or credentials, delete or overwrite these secrets, or add a release-signing fallback.
+- Debug signing uses the Android Gradle Plugin standard debug identity and is separate from the permanent release certificate. Debug and Release SHA-1 values must not be confused.
 - Every workflow must keep verifying the built APK's package name and cert fingerprint (`apksigner verify --print-certs` + `aapt dump badging`) so a signature drift fails loudly.
 
 ## Environment reality (read first, every session)
