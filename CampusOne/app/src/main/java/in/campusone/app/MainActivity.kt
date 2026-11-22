@@ -724,7 +724,7 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
                             colors = listOf(
                                 MaterialTheme.colorScheme.primary.copy(alpha = 0f),
                                 MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                                Color(0xFF080B19).copy(alpha = 0f)
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0f)
                             ),
                             start = Offset(0f, 0.5f),
                             end = Offset(1f, 0.5f)
