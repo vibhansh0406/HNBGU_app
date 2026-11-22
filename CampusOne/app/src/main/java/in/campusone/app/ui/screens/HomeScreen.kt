@@ -751,8 +751,8 @@ private fun AtAGlanceSection(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = task.title,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.SemiBold,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -807,15 +807,15 @@ private fun AtAGlanceSection(
                             )
                             Text(
                                 text = stringResource(R.string.home_exam_countdown),
-                                style = MaterialTheme.typography.titleSmall,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                         }
                         Spacer(modifier = Modifier.height(C1Spacing.xs))
                         Text(
                             text = "${exam.subjectCode}: ${exam.subjectName}",
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.SemiBold,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
