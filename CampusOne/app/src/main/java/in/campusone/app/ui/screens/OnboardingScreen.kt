@@ -22,9 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Email
@@ -438,21 +435,24 @@ private fun OnboardingStepCampusCourse(
             verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
         ) {
             C1SectionHeader(title = stringResource(R.string.select_course))
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
+            FlowRow(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(C1Spacing.sm),
-                horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+                horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm),
+                verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
             ) {
-                items(courses, key = { it.first }) { (courseId, label) ->
+                courses.forEach { (courseId, label) ->
                     val isSelected = selectedCourseIndex == courses.indexOfFirst { it.first == courseId }
-                    CourseSelectionCard(
-                        label = label,
-                        selected = isSelected,
-                        onClick = {
-                            onCourseChange(courses.indexOfFirst { it.first == courseId })
-                        }
-                    )
+                    Box(
+                        modifier = Modifier.weight(1f, fill = false)
+                    ) {
+                        CourseSelectionCard(
+                            label = label,
+                            selected = isSelected,
+                            onClick = {
+                                onCourseChange(courses.indexOfFirst { it.first == courseId })
+                            }
+                        )
+                    }
                 }
             }
         }
