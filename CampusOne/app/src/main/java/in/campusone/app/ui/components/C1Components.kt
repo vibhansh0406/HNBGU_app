@@ -1147,7 +1147,10 @@ fun C1FeatureCard(
             verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
         ) {
             Box(
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(C1Radius.md)
+                    .background(iconColor.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -1924,7 +1927,10 @@ fun HubActionCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
-                modifier = Modifier.size(44.dp),
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(C1Radius.md)
+                    .background(iconColor.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
