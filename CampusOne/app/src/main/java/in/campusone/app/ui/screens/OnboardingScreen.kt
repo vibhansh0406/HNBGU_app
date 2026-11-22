@@ -136,7 +136,7 @@ fun OnboardingScreen(
         "bped" to "B.P.Ed.",
         "blib" to "B.Lib.I.Sc."
     )
-    val selectedCourseIndex = remember { mutableIntStateOf(0) }
+    val selectedCourseIndex = remember { mutableStateOf(0) }
     var selectedSemester by rememberSaveable { mutableIntStateOf(3) }
     var selectedSection by rememberSaveable { mutableStateOf("A") }
     var selectedRole by rememberSaveable { mutableStateOf(UserRole.STUDENT) }
