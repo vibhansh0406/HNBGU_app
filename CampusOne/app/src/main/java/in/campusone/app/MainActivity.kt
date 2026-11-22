@@ -137,6 +137,9 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var supabaseSync: SupabaseSyncRepository
 
+    /** Notification target delivered while the app is running (warm start via onNewIntent). */
+    private var pendingNotificationTarget by mutableStateOf<Pair<String, String>?>(null)
+
     private val googleSignInLauncher: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             result.data?.let { data ->
@@ -208,7 +211,7 @@ class MainActivity : AppCompatActivity() {
             googleSignInLauncher.launch(authManager.getSignInIntent())
         }
         // Handle notification tap intent from onCreate (cold start)
-        val notificationTarget = handleNotificationIntent(intent)
+        pendingNotificationTarget = handleNotificationIntent(intent)
         setContent {
             NotificationPermissionRequest()
             val config = androidx.compose.ui.platform.LocalConfiguration.current
@@ -233,7 +236,7 @@ class MainActivity : AppCompatActivity() {
                                 authManager.signOut()
                             }
                         },
-                        pendingNotificationTarget = notificationTarget
+                        pendingNotificationTarget = pendingNotificationTarget.value
                     )
                 }
         }
@@ -244,10 +247,7 @@ class MainActivity : AppCompatActivity() {
         setIntent(intent)
         val target = handleNotificationIntent(intent)
         if (target != null) {
-            lifecycleScope.launch {
-                // The notification target will be handled by CampusOneRoot via the pendingNotificationTarget param
-                // We need to signal it through a state update. For now, store it and let the recomposition pick it up.
-            }
+            pendingNotificationTarget = target
         }
     }
 
@@ -614,7 +614,7 @@ fun SignInScreen(onGoogleSignIn: () -> Unit, isSigningIn: Boolean) {
             )
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(28.dp))
             Text(
-                text = "Offline first. Synced only for you.",
+                text = stringResource(`in`.campusone.app.R.string.sign_in_subtitle),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center

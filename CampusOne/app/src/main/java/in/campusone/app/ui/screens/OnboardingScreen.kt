@@ -140,7 +140,9 @@ fun OnboardingScreen(
     var selectedCourseIndex = remember { mutableIntStateOf(0) }
     var selectedSemester by rememberSaveable { mutableIntStateOf(3) }
     var selectedSection by rememberSaveable { mutableStateOf("A") }
-    var selectedRole by rememberSaveable { mutableStateOf(UserRole.STUDENT) }
+    // Role selection is transient UI state; it does not need to survive process death.
+    // Using rememberSaveable with a UserRole enum risks a missing Saver crash on rotation.
+    var selectedRole by remember { mutableStateOf(UserRole.STUDENT) }
 
     val selectableRoles = listOf(
         UserRole.STUDENT,

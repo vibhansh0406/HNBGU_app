@@ -247,8 +247,13 @@ class CoreViewModel @Inject constructor(
             }
 
             // Sync full profile (including onboarding_completed = true) to cloud.
+            // Only mark as onboarded locally once server persistence is confirmed.
             val cloudProfile = profile.copy(onboardingCompleted = true)
-            repository.syncProfileToCloud(cloudProfile)
+            val syncResult = repository.syncProfileToCloud(cloudProfile)
+            if (syncResult.isFailure) {
+                _uiMessages.emit(syncResult.exceptionOrNull()?.message ?: "Could not sync profile to server. Please try again.")
+                return@launch
+            }
 
             // Only now mark as onboarded locally — server persistence succeeded.
             prefs.saveUserProfile(cloudProfile, markOnboarded = true)

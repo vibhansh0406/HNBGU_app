@@ -49,26 +49,36 @@ class CoreCampusRepository @Inject constructor(
     private var lastSyncAtMillis = 0L
     private var lastSyncSectionKey = ""
 
-    suspend fun syncProfileToCloud(profile: UserProfile) {
-        if (!supabaseSync.isSyncedEnabled()) return
-        // The row must exist before it can be updated: a plain UPDATE on a
-        // missing row silently matches nothing.
-        supabaseSync.bootstrapProfile(profile.name, profile.email)
-        supabaseSync.uploadProfile(
-            uid = profile.uid,
-            name = profile.name,
-            email = profile.email,
-            role = profile.role.name,
-            collegeId = profile.collegeId,
-            collegeName = profile.collegeName,
-            courseId = profile.courseId,
-            courseName = profile.courseName,
-            semester = profile.semester,
-            section = profile.section,
-            moderatorScope = profile.moderatorScope,
-            isModeratorApproved = profile.role == UserRole.MODERATOR || profile.role == UserRole.ADMIN,
-            onboardingCompleted = profile.onboardingCompleted
-        )
+    suspend fun syncProfileToCloud(profile: UserProfile): Result<Unit> {
+        if (!supabaseSync.isSyncedEnabled()) return Result.success(Unit)
+        return runCatching {
+            // The row must exist before it can be updated: a plain UPDATE on a
+            // missing row silently matches nothing. bootstrap_profile is
+            // SECURITY DEFINER so it can insert even without an INSERT policy.
+            val bootstrapped = supabaseSync.bootstrapProfile(profile.name, profile.email)
+            if (!bootstrapped) {
+                throw IllegalStateException("Profile bootstrap failed on server")
+            }
+            val uploaded = supabaseSync.uploadProfile(
+                uid = profile.uid,
+                name = profile.name,
+                email = profile.email,
+                role = profile.role.name,
+                collegeId = profile.collegeId,
+                collegeName = profile.collegeName,
+                courseId = profile.courseId,
+                courseName = profile.courseName,
+                semester = profile.semester,
+                section = profile.section,
+                moderatorScope = profile.moderatorScope,
+                isModeratorApproved = profile.role == UserRole.MODERATOR || profile.role == UserRole.ADMIN,
+                onboardingCompleted = profile.onboardingCompleted
+            )
+            if (!uploaded) {
+                throw IllegalStateException("Profile upload failed on server")
+            }
+            Unit
+        }
     }
 
     suspend fun requestRoleChange(role: UserRole, note: String): Result<Unit> {
