@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.CampusOne" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">#8AD6B9</item>
-        <item name="colorPrimaryContainer">#00513B</item>
-        <item name="colorOnPrimaryContainer">#A6F2D4</item>
+        <item name="colorPrimary">#A9B9FF</item>
+        <item name="colorPrimaryContainer">#263B85</item>
+        <item name="colorOnPrimaryContainer">#E5EAFE</item>
         <item name="android:windowBackground">@color/campusone_background_dark</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
