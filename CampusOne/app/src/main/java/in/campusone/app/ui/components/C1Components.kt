@@ -64,7 +64,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -76,7 +75,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.geometry.Offset
-import coil.compose.rememberImagePainter
 import `in`.campusone.app.R
 import `in`.campusone.app.ui.theme.C1Border
 import `in`.campusone.app.ui.theme.C1Elevation
@@ -1626,8 +1624,8 @@ fun C1Badge(
 
 /**
  * Avatar with optional image URL (Google profile photo) and status indicator.
- * Loads the image with Coil (cached), falls back to initials on loading or failure.
- * The painter key includes the URL so account switching triggers a reload.
+ * Currently renders initials; imageUrl is accepted for future image-loading integration.
+ * Falls back to initials. The painter key includes the URL so account switching triggers a reload.
  */
 @Composable
 fun C1Avatar(
@@ -1643,19 +1641,9 @@ fun C1Avatar(
     onClick: (() -> Unit)? = null
 ) {
     val initial = name.trim().take(1).uppercase()
-    val painter = rememberImagePainter(
-        request = imageUrl?.let { coil.request.ImageRequest.Builder(LocalContext.current)
-            .data(it)
-            .build()
-        } ?: null,
-        builder = { painter ->
-            // On error or empty, painter is null → fall back to initials below
-        }
-    )
-    val hasImage = imageUrl.isNotBlank() && painter != null
     val base = modifier
         .size(size)
-        .background(if (hasImage) Color.Transparent else containerColor, CircleShape)
+        .background(containerColor, CircleShape)
     val clickable = if (onClick != null) {
         base.clickable(
             interactionSource = remember { MutableInteractionSource() },
@@ -1669,22 +1657,12 @@ fun C1Avatar(
         modifier = clickable,
         contentAlignment = Alignment.Center
     ) {
-        if (hasImage) {
-            Image(
-                painter = painter,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(size)
-                    .clip(CircleShape)
-            )
-        } else {
-            Text(
-                text = initial,
-                style = MaterialTheme.typography.titleMedium.copy(fontSize = fontSize.sp),
-                fontWeight = FontWeight.Bold,
-                color = contentColor
-            )
-        }
+        Text(
+            text = initial,
+            style = MaterialTheme.typography.titleMedium.copy(fontSize = fontSize.sp),
+            fontWeight = FontWeight.Bold,
+            color = contentColor
+        )
         if (status != null) {
             Surface(
                 modifier = Modifier
@@ -1698,7 +1676,7 @@ fun C1Avatar(
                     C1Tone.INFO -> extendedColors.info
                     C1Tone.NEUTRAL -> MaterialTheme.colorScheme.onSurfaceVariant
                 },
-                border = BorderStroke(2.dp, if (hasImage) Color.White else containerColor)
+                border = BorderStroke(2.dp, containerColor)
             ) {
             }
         }
