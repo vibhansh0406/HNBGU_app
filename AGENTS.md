@@ -4,7 +4,7 @@
 - **CampusOne/** — Android app `in.campusone.app` for HNBGU campus: Kotlin 2.0.21, AGP 8.7.2, Jetpack Compose (BOM 2024.11.00, Material3), Hilt 2.52, Room 2.6.1, KSP, WorkManager, Glance widget, DataStore, kotlinx.serialization. Backend: Supabase (REST + auth). Min SDK 26, target/compile SDK 35, JVM 17.
 - **supabase/schema.sql** — authoritative DB schema; sync app-side schema changes with it.
 - **aura/** — zero-dependency Python (server.py) + vanilla JS web app; do not add npm/pip deps to it.
-- **CampusOne/ci/debug.keystore** — stable debug keystore pinned for Google Sign-In SHA-1. NEVER regenerate, move, or delete it.
+- Debug builds use the Android Gradle Plugin standard debug signing identity. Release builds use the permanent dedicated release keystore decoded from GitHub Actions secrets.
 
 ## Permanent project constants (immutable — never change)
 - **Application ID / package name: `in.campusone.app`** — locked in `namespace` + `applicationId` (`CampusOne/app/build.gradle.kts`). No renames, migrations, flavors, or `applicationIdSuffix` in any module or build type, ever.
@@ -98,4 +98,4 @@ For UI, copy, accessibility, mobile-layout, or code-comment cleanup tasks, use t
 - Responsive/mobile layout: add `.agents/skills/antislop-layoutmobile/SKILL.md`.
 - Comment-only cleanup: use `.agents/skills/antislop-code/SKILL.md` and do not change executable code under that skill.
 
-CampusOne's existing `DESIGN.md` is the visual authority. Anti-slop removes generic patterns; it must not replace the Forest & Ivory identity, invent a new design system, or authorize broad redesigns without a concrete usability/design reason. Preserve product behavior, navigation, accessibility, localization, and offline-first constraints. Audit first, make focused changes, and report findings plus verification honestly.
+`DESIGN.md` is the approved visual authority. Anti-slop removes generic patterns; it must not invent an unrelated brand identity or override the currently approved Campus Spectrum system. Preserve product behavior, navigation, accessibility, localization, and offline-first constraints. Audit first, make focused changes, and report findings plus verification honestly.
