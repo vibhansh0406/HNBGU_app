@@ -132,33 +132,33 @@ fun TimetableScreen(
                 contentPadding = PaddingValues(top = C1Spacing.lg, bottom = C1Spacing.xxxl),
                 verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
             ) {
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.timetable_title),
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                            if (scopeLabel.isNotBlank()) {
-                                Text(
-                                    text = scopeLabel,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                        C1Button(
-                            text = stringResource(R.string.action_refresh),
-                            onClick = onRefresh,
-                            intent = C1ButtonIntent.GHOST
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.timetable_title),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold
                         )
+                        if (scopeLabel.isNotBlank()) {
+                            Text(
+                                text = scopeLabel,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
+                    C1Button(
+                        text = stringResource(R.string.action_refresh),
+                        onClick = onRefresh,
+                        intent = C1ButtonIntent.OUTLINED
+                    )
                 }
+            }
 
                 item {
                     ReminderLeadTimeCard(
@@ -167,28 +167,28 @@ fun TimetableScreen(
                     )
                 }
 
-                if (selectedTab == 0) {
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = todayLabel,
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.weight(1f)
-                            )
-                            if (uiState.todaySchedule.isNotEmpty()) {
-                                C1StatusChip(
-                                    text = stringResource(R.string.timetable_classes_today, uiState.todaySchedule.size),
-                                    tone = C1Tone.NEUTRAL
+                    if (selectedTab == 0) {
+                        item {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = todayLabel,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.weight(1f)
                                 )
+                                if (uiState.todaySchedule.isNotEmpty()) {
+                                    C1StatusChip(
+                                        text = stringResource(R.string.timetable_classes_today, uiState.todaySchedule.size),
+                                        tone = C1Tone.NEUTRAL
+                                    )
+                                }
                             }
                         }
-                    }
 
                     if (uiState.todaySchedule.isEmpty()) {
                         item {
@@ -321,7 +321,7 @@ private fun TimetableSlotCard(slot: TimetableSlot, evaluated: EvaluatedSlot?) {
     C1SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
         containerColor = if (highlighted) {
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
         } else {
             MaterialTheme.colorScheme.surface
         },
@@ -338,7 +338,7 @@ private fun TimetableSlotCard(slot: TimetableSlot, evaluated: EvaluatedSlot?) {
                 Spacer(modifier = Modifier.width(C1Spacing.xs))
                 Text(
                     text = "${slot.startTime} – ${slot.endTime}",
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -353,7 +353,7 @@ private fun TimetableSlotCard(slot: TimetableSlot, evaluated: EvaluatedSlot?) {
             Spacer(modifier = Modifier.height(C1Spacing.sm))
             Text(
                 text = slot.subjectName,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
 
