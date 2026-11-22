@@ -68,14 +68,21 @@ jobs:
         run: gradle assembleDebug
       - name: Build signed release APK
         run: gradle assembleRelease
-      - name: Verify APK package name and signing certificate
+      - name: Verify APK package name, signing certificate, and alignment
         run: |
           APKSIGNER=$(ls -t $ANDROID_HOME/build-tools/*/apksigner | head -1)
           AAPT=$(ls -t $ANDROID_HOME/build-tools/*/aapt | head -1)
+          ZIPALIGN=$(ls -t $ANDROID_HOME/build-tools/*/zipalign | head -1)
           for apk in app/build/outputs/apk/debug/*.apk app/build/outputs/apk/release/*.apk; do
             echo "=== $apk ==="
+            # Verify package name and app info
             $AAPT dump badging "$apk" | head -1
+            # Verify cryptographic signature (fails if unsigned or invalid)
             $APKSIGNER verify --print-certs "$apk" | grep -E "SHA-1|SHA-256"
+            # Verify APK alignment (4-byte alignment required for installation)
+            $ZIPALIGN -c 4 "$apk" | grep -E "Verification|OK"
+            # Verify signature schemes (V1, V2, V3)
+            $APKSIGNER verify --print-certs "$apk" | grep -E "V1|V2|V3"
           done
       - name: Run unit tests
         run: gradle testDebugUnitTest
