@@ -146,12 +146,17 @@ fun SettingsScreen(
                     SettingsSwitchRow("Study material", "New notes and resource uploads", Icons.Default.Info, studyUpdates, notifications) {
                         viewModel.setNotificationCategory("study_material", it)
                     }
-                    SettingsActionRow("Android notification settings", "Manage system permission and notification channels", Icons.Default.Notifications) {
-                        val intent = Intent(AndroidSettings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                            putExtra(AndroidSettings.EXTRA_APP_PACKAGE, context.packageName)
+                    SettingsActionRow(
+                        title = "Android notification settings",
+                        subtitle = "Manage system permission and notification channels",
+                        icon = Icons.Default.Notifications,
+                        onClick = {
+                            val intent = Intent(AndroidSettings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                putExtra(AndroidSettings.EXTRA_APP_PACKAGE, context.packageName)
+                            }
+                            context.startActivity(intent)
                         }
-                        context.startActivity(intent)
-                    }
+                    )
                 }
             }
             item {
