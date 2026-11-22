@@ -101,7 +101,7 @@ fun SettingsScreen(
                         subtitle = "Choose how CampusOne looks on this device",
                         options = listOf("SYSTEM" to "System", "LIGHT" to "Light", "DARK" to "Dark"),
                         selected = theme,
-                        onSelect = viewModel::setThemeMode
+                        onSelect = { viewModel.setThemeMode(it) }
                     )
                 }
             }
@@ -112,7 +112,7 @@ fun SettingsScreen(
                         subtitle = "App language",
                         options = listOf("en" to "English", "hi" to "हिन्दी"),
                         selected = language,
-                        onSelect = viewModel::setLanguage
+                        onSelect = { viewModel.setLanguage(it) }
                     )
                 }
             }
