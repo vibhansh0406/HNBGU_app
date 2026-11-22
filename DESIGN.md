@@ -1,303 +1,131 @@
 ---
 name: CampusOne
-description: Offline-first companion for HNBGU campus life — Forest & Ivory design system
+description: A student-first campus super-app with the Campus Spectrum design system
 colors:
-  forest-primary: "#183D32"
-  forest-on-primary: "#FFFFFF"
-  forest-primary-container: "#DCE7DF"
-  forest-on-primary-container: "#102D25"
-  moss-secondary: "#315C4B"
-  moss-secondary-container: "#E2EAE4"
-  oak-tertiary: "#7A5C50"
-  oak-tertiary-container: "#F0E4DE"
-  ivory-bg: "#F7F6F0"
-  ivory-on-bg: "#202923"
-  paper-surface: "#FFFFFF"
-  paper-surface-variant: "#EFEEE6"
-  surface-container-low: "#F2F1E9"
-  surface-container: "#EDECE3"
-  surface-container-high: "#E7E6DC"
-  surface-container-highest: "#E1E0D5"
-  outline-hairline: "#E6E6DC"
-  outline-variant: "#D8D8CC"
-  text-muted: "#5E665E"
+  brand-blue: "#3156D9"
+  on-brand-blue: "#FFFFFF"
+  brand-blue-container: "#E5EAFE"
+  on-brand-blue-container: "#172B70"
+  brand-violet: "#6849C8"
+  on-brand-violet: "#FFFFFF"
+  brand-violet-container: "#EEE9FF"
+  on-brand-violet-container: "#2D1B63"
+  brand-coral: "#D65F4B"
+  on-brand-coral: "#3A1712"
+  brand-coral-container: "#FFE7E1"
+  on-brand-coral-container: "#5A2118"
+  background: "#F6F7FB"
+  on-background: "#1B2030"
+  surface: "#FFFFFF"
+  surface-variant: "#ECEEF5"
+  on-surface-variant: "#596176"
+  outline: "#C8CDDA"
+  outline-variant: "#E3E6EF"
+  info: "#087EAC"
+  info-container: "#D8F1FA"
   success: "#2E7D5B"
   success-container: "#DDEBE2"
   warning: "#B45309"
   warning-container: "#F7ECD9"
   danger: "#B42318"
   danger-container: "#FBE5E2"
-  info: "#2C6E8A"
-  info-container: "#DCEAF0"
-  night-bg: "#101B17"
-  night-surface: "#182720"
-  night-primary: "#83A995"
-  night-on-bg: "#F1F2EA"
-  night-success: "#8CC7A6"
-  night-warning: "#E5B36B"
-  night-danger: "#FF8A7A"
-  night-info: "#8FC3D9"
+  dark-background: "#11131D"
+  dark-surface: "#191D2B"
+  dark-surface-variant: "#242A3A"
+  dark-primary: "#A9B9FF"
+  dark-secondary: "#C9B8FF"
+  dark-tertiary: "#FFB5A5"
 typography:
   families:
-    display: "Manrope (bundled variable, OFL) via res/font/manrope_family.xml"
-    text: "Inter (bundled variable, OFL) via res/font/inter_family.xml"
-    hindi-fallback: "Noto Sans Devanagari (bundled variable, OFL) declared as a fallback entry inside both families"
-  display-large:
-    fontFamily: "Manrope"
-    fontSize: "40sp"
-    fontWeight: 700
-    lineHeight: "46sp"
-    letterSpacing: "-1sp"
-  display-medium:
-    fontFamily: "Manrope"
-    fontSize: "34sp"
-    fontWeight: 700
-    lineHeight: "40sp"
-    letterSpacing: "-0.8sp"
-  display-small:
-    fontFamily: "Manrope"
-    fontSize: "30sp"
-    fontWeight: 700
-    lineHeight: "36sp"
-    letterSpacing: "-0.6sp"
-  headline-large:
-    fontFamily: "Manrope"
-    fontSize: "26sp"
-    fontWeight: 700
-    lineHeight: "32sp"
-    letterSpacing: "-0.4sp"
-  headline-medium:
-    fontFamily: "Manrope"
-    fontSize: "22sp"
-    fontWeight: 600
-    lineHeight: "28sp"
-    letterSpacing: "-0.3sp"
-  headline-small:
-    fontFamily: "Manrope"
-    fontSize: "19sp"
-    fontWeight: 600
-    lineHeight: "25sp"
-    letterSpacing: "-0.2sp"
-  title-large:
-    fontFamily: "Manrope"
-    fontSize: "18sp"
-    fontWeight: 600
-    lineHeight: "24sp"
-    letterSpacing: "-0.2sp"
-  title-medium:
-    fontFamily: "Inter"
-    fontSize: "16sp"
-    fontWeight: 600
-    lineHeight: "22sp"
-    letterSpacing: "-0.1sp"
-  title-small:
-    fontFamily: "Inter"
-    fontSize: "14sp"
-    fontWeight: 600
-    lineHeight: "20sp"
-    letterSpacing: "-0.1sp"
-  body-large:
-    fontFamily: "Inter"
-    fontSize: "16sp"
-    fontWeight: 400
-    lineHeight: "24sp"
-    letterSpacing: "-0.1sp"
-  body-medium:
-    fontFamily: "Inter"
-    fontSize: "14sp"
-    fontWeight: 400
-    lineHeight: "21sp"
-    letterSpacing: "0sp"
-  body-small:
-    fontFamily: "Inter"
-    fontSize: "13sp"
-    fontWeight: 400
-    lineHeight: "19sp"
-    letterSpacing: "0sp"
-  label-large:
-    fontFamily: "Inter"
-    fontSize: "14sp"
-    fontWeight: 600
-    lineHeight: "20sp"
-    letterSpacing: "0sp"
-  label-medium:
-    fontFamily: "Inter"
-    fontSize: "12sp"
-    fontWeight: 500
-    lineHeight: "16sp"
-    letterSpacing: "0.1sp"
-  label-small:
-    fontFamily: "Inter"
-    fontSize: "11sp"
-    fontWeight: 500
-    lineHeight: "14sp"
-    letterSpacing: "0.2sp"
-rounded:
-  xs: "10dp"
-  sm: "14dp"
-  md: "18dp"
-  lg: "24dp"
-  xl: "30dp"
-  pill: "50%"
-spacing:
-  xs: "4dp"
-  sm: "8dp"
-  md: "12dp"
-  lg: "16dp"
-  xl: "20dp"
-  xxl: "24dp"
-  xxxl: "32dp"
-components:
-  button-primary:
-    backgroundColor: "{colors.forest-primary}"
-    textColor: "{colors.forest-on-primary}"
-    typography: label-large
-    rounded: "{rounded.sm}"
-    padding: "12px 20px"
-    height: "48dp"
-  button-tonal:
-    backgroundColor: "{colors.moss-secondary-container}"
-    textColor: "{colors.forest-on-primary-container}"
-    typography: label-large
-    rounded: "{rounded.sm}"
-    padding: "12px 20px"
-    height: "48dp"
-  button-outlined:
-    backgroundColor: "transparent"
-    textColor: "{colors.forest-primary}"
-    rounded: "{rounded.sm}"
-    height: "48dp"
-  button-danger:
-    backgroundColor: "{colors.danger-container}"
-    textColor: "#4A0E08"
-    rounded: "{rounded.sm}"
-    height: "48dp"
-  input-field:
-    backgroundColor: "{colors.paper-surface}"
-    textColor: "{colors.ivory-on-bg}"
-    rounded: "{rounded.sm}"
-    height: "56dp"
-  status-chip:
-    backgroundColor: "{colors.surface-container-high}"
-    textColor: "{colors.text-muted}"
-    typography: label-medium
-    rounded: "{rounded.pill}"
-    padding: "4px 12px"
-  stat-tile:
-    backgroundColor: "{colors.surface-container-low}"
-    textColor: "{colors.forest-primary}"
-    rounded: "{rounded.md}"
-    padding: "12px 16px"
-  banner-info:
-    backgroundColor: "{colors.info-container}"
-    textColor: "#0E2E3B"
-    rounded: "{rounded.sm}"
-    padding: "12px"
+    display: "Manrope variable (bundled, OFL)"
+    text: "Inter variable (bundled, OFL)"
+    hindi-fallback: "Noto Sans Devanagari (bundled, OFL)"
+  display-large: { fontFamily: "Manrope", fontSize: "40sp", fontWeight: 700, lineHeight: "46sp", letterSpacing: "-1sp" }
+  display-medium: { fontFamily: "Manrope", fontSize: "34sp", fontWeight: 700, lineHeight: "40sp", letterSpacing: "-0.8sp" }
+  headline-large: { fontFamily: "Manrope", fontSize: "26sp", fontWeight: 700, lineHeight: "32sp" }
+  headline-medium: { fontFamily: "Manrope", fontSize: "22sp", fontWeight: 600, lineHeight: "28sp" }
+  title-large: { fontFamily: "Manrope", fontSize: "18sp", fontWeight: 600, lineHeight: "24sp" }
+  title-medium: { fontFamily: "Inter", fontSize: "16sp", fontWeight: 600, lineHeight: "22sp" }
+  body-large: { fontFamily: "Inter", fontSize: "16sp", fontWeight: 400, lineHeight: "24sp" }
+  body-medium: { fontFamily: "Inter", fontSize: "14sp", fontWeight: 400, lineHeight: "21sp" }
+  body-small: { fontFamily: "Inter", fontSize: "13sp", fontWeight: 400, lineHeight: "19sp" }
+rounded: { xs: "10dp", sm: "14dp", md: "18dp", lg: "24dp", xl: "30dp", pill: "50%" }
+spacing: { xs: "4dp", sm: "8dp", md: "12dp", lg: "16dp", xl: "20dp", xxl: "24dp", xxxl: "32dp" }
 ---
 
-# CampusOne — Forest & Ivory Design System
+# CampusOne — Campus Spectrum
 
-## Overview
+## Product character
+CampusOne is a practical student super-app: quick to scan between classes, reliable on mid-range Android devices, and useful even when connectivity is poor. **Campus Spectrum** brings a confident royal-blue identity, a violet secondary voice, coral emphasis, cyan information cues and warm-neutral surfaces. The palette is energetic without turning every tile into a different colour.
 
-CampusOne is an **Operate**-mode product: students scan it in seconds between classes, often offline, often one-handed. The design language — **Forest & Ivory** — borrows its authority from deep forest green and its calm from warm ivory paper. It should feel like a well-printed university prospectus that learned to be an app: confident typography, flat surfaces separated by tone and hairlines, and color used only where it means something (attendance health, status, actions).
-
-Three rules govern every screen:
-
-1. **Flat-first.** Hierarchy comes from surface tone (`surfaceContainerLow` → `Highest`) and 1dp hairlines — never from drop shadows. Elevation is reserved for truly floating elements (dialogs, FABs).
-2. **Color is information.** Forest green = brand and primary action. Success/warning/danger/info appear only as status. If a color carries no meaning, it is `onSurfaceVariant`.
-3. **Type does the talking.** Heavy, tight-tracked titles; calm body; no all-caps shouting except tiny labels.
-
-## Colors
-
-Light mode is the canonical world: ivory paper (`#F7F6F0` background), white cards, deep forest (`#183D32`) for primary actions and section titles. Dark mode is a true forest-at-night translation (`#101B17` background), not an inverted filter — primary becomes a soft sage (`#83A995`) so contrast stays AA on dark surfaces.
-
-Semantic pairs (theme-aware via `LocalExtendedColors`):
-
-| Token | Light | Dark | Use |
+## Colour system
+| Role | Light | Dark | Intended use |
 |---|---|---|---|
-| success | `#2E7D5B` / container `#DDEBE2` | `#8CC7A6` / `#1E3B2E` | attendance safe, approved |
-| warning | `#B45309` / `#F7ECD9` | `#E5B36B` / `#3F2E14` | on-edge attendance, pending |
-| danger | `#B42318` / `#FBE5E2` | `#FF8A7A` / `#4A1510` | critical, destructive, errors |
-| info | `#2C6E8A` / `#DCEAF0` | `#8FC3D9` / `#1C3A47` | neutral announcements |
-| hairline | `#E6E6DC` | `#2B3C32` | dividers, input borders |
+| Primary / royal blue | `#3156D9` | `#A9B9FF` | Main actions, selected navigation, key progress |
+| Secondary / violet | `#6849C8` | `#C9B8FF` | Supporting actions, resource and community accents |
+| Tertiary / coral | `#D65F4B` | `#FFB5A5` | Important emphasis, deadlines, featured moments |
+| Info / cyan | `#087EAC` | `#8DDCF1` | Informational status and neutral updates |
+| Success | `#2E7D5B` | `#8CC7A6` | Attendance health and completed actions |
+| Warning | `#B45309` | `#E5B36B` | Pending or attention-needed states |
+| Danger | `#B42318` | `#FF8A7A` | Errors and destructive actions |
+| Background | `#F6F7FB` | `#11131D` | App canvas |
+| Surface | `#FFFFFF` | `#191D2B` | Cards, sheets and forms |
+| Surface variant | `#ECEEF5` | `#242A3A` | Grouped content and low-emphasis controls |
 
-Never hardcode these hexes in screens — read `MaterialTheme.colorScheme` and `extendedColors` so light/dark stay in sync.
+Do not use brand accents as arbitrary decoration. A screen may use blue as its anchor, violet for a related feature, coral for a single callout and cyan for informational status. Most surfaces remain neutral. Gradients are reserved for a small number of high-value brand moments such as a welcome banner or sign-in hero; never apply a gradient to every card.
+
+All screen code consumes `MaterialTheme.colorScheme` and `extendedColors`; do not introduce screen-local hex values for theme roles. The semantic green remains available for success, but green is no longer the brand colour.
+
+## Contrast
+The palette is designed for WCAG AA text contrast. White text on primary blue is approximately 6.06:1; white on violet is approximately 6.22:1. Coral uses a dark foreground (approximately 4.27:1 against the selected deep coral text; prefer larger/bolder text or the coral container for small text). The default body text and neutral backgrounds exceed 12:1. Always verify actual foreground/background pairs when adding a new component. Do not place white small text directly on the coral brand tone.
 
 ## Typography
+- **Manrope** is the display voice for screen titles, section headings and prominent metrics.
+- **Inter** is the reading voice for body text, buttons, navigation, labels and forms.
+- **Noto Sans Devanagari** is the bundled Hindi fallback.
+- Keep body copy at 14–16sp where possible; supporting copy may use 13sp. Do not shrink text to solve layout problems.
 
-Two bundled families, one clear job each:
+## Shape, spacing and depth
+- Use the 4dp spacing rhythm: 4 / 8 / 12 / 16 / 20 / 24 / 32dp.
+- Page margins are 16dp on compact phones and scale with the existing window-size classes.
+- Inputs and compact chips use 10–14dp radii; cards use 18–24dp; sheets use 24–30dp.
+- Prefer tonal surface steps and 1dp borders over shadows. Elevation belongs to floating controls, menus and dialogs only.
+- Interactive targets should be at least 48dp high and have clear spacing.
 
-- **Manrope** — the display voice: screen titles, section headings and prominent numerals (attendance %, GPA, counts). Geometric, slightly rounded, calm at large sizes.
-- **Inter** — the text voice: body copy, navigation, buttons, labels, forms and supporting metadata. High legibility at 13–16sp.
-- **Noto Sans Devanagari** — bundled fallback for Hindi, so Devanagari never renders in an unknown system face.
+## Information architecture
+Primary bottom navigation remains **Home / Attendance / Timetable / Notices / More**. This keeps the four highest-frequency academic destinations one tap away and avoids a risky rewrite of the existing state-based navigation.
 
-Both families are OFL-licensed variable fonts shipped in `res/font` (no runtime fetch). The scale runs 40sp display → 11sp label with an obvious step between display, headline, title, body and label roles. Body text never drops below 13sp; metadata uses `labelMedium` (12sp). Tracking tightens as size grows (-0.4sp at 26sp → 0 at 12sp). On dark surfaces body roles gain one point of leading so light-on-dark stays comfortable.
+**More** is the organised feature library:
+- **Study:** Notes & PYQ, Assignments, Exams & Syllabus, GPA Calculator.
+- **Campus:** Community, Events & Clubs, Lost & Found, Campus Directory.
+- **Account:** Profile, Settings, Privacy Policy, Sign out.
+- **Administration:** admin and super-admin destinations remain visible only to authorised roles. Never expose privileged controls to students.
 
-## Navigation & Interaction
+Home prioritises the next actionable academic item, then attendance and today's schedule, then notices and shortcuts. Avoid a long stack of equally weighted cards; use section hierarchy and compact summaries.
 
-- Bottom navigation is state-based (`BottomNavTab` + `MoreSubScreen`) and deliberately stays that way in this mission: no rewrite of the shipped navigation architecture.
-- Tab switches animate (fade + 8% horizontal slide, 250ms) and each tab keeps its own saved state through a `SaveableStateHolder`, so a search box or filter survives a tab round trip.
-- System back is predictable: inside a More sub-screen it returns to the hub; from any bottom tab it returns to Home; only Home exits the app.
-- Notification taps are de-duplicated inside a 400ms window so a double tap cannot open two screens.
-- Loading states are skeletons where the content shape is known (`C1SkeletonRows`), spinners only where the shape is unknown.
-- Press feedback is a 0.97 scale + ripple on cards and lists, 150ms; nothing bounces.
+## Settings behaviour
+- Theme selection (System / Light / Dark) is persisted in Preferences DataStore and immediately updates the app theme.
+- Language (English / Hindi) uses the existing AppCompat locale mechanism and persists through DataStore.
+- Notification master and category switches are persisted and enforced in the FCM message handler.
+- Local class, assignment, exam and event reminder switches are persisted and enforced by the periodic reminder worker.
+- Account details are read from the authenticated profile; sign-out uses the existing auth flow.
+- Privacy Policy opens the existing in-app policy screen. Android's OS notification permission remains controlled by Android.
 
-## Layout
+A setting is not a setting unless it changes app behaviour and survives process restarts. Do not add decorative controls for unsupported features.
 
-- 4dp-based spacing scale; screen margins are `lg` (16dp), card padding `lg`, related-element gaps `sm`–`md`, section gaps `xl`–`xxl`.
-- Content max width is the phone edge-to-edge; no centered narrow columns.
-- Lists and dashboards read top-down: greeting → primary insight (attendance/next class) → sections.
-- Minimum touch target: 48dp (`C1TouchTarget`).
+## Motion
+- Use native Compose animation APIs and the shared `C1Motion` durations/easing.
+- Press feedback is subtle (about 0.97 scale plus ripple, 120–160ms).
+- Navigation uses a restrained fade and short horizontal movement; preserve state across tab switches.
+- Animate progress only when the value changes; do not continuously animate idle dashboards.
+- Prefer skeletons when content geometry is known. Avoid pulsing, bouncing or shimmer that adds no information.
+- Respect system animator/reduced-motion settings where practical.
 
-## Elevation & Depth
+## Accessibility and responsiveness
+- Use semantic headings and meaningful content descriptions for non-decorative icons.
+- Maintain AA contrast, scalable typography, keyboard focus and clear error messages.
+- Compact phones use one column; medium windows may use two columns; larger windows may use three only when content supports it.
+- No horizontal overflow, clipped controls or bottom-navigation overlap. Test narrow widths and font scaling.
 
-| Level | Value | Where |
-|---|---|---|
-| Flat | 0dp | Cards, tiles, banners, chips — separated by surface tone |
-| Raised | 1dp | Pressed cards, sticky headers |
-| Floating | 4dp | Dialogs, menus, FAB |
-
-Shadows never substitute for borders; if a surface needs definition on the same tone as its parent, use `outlineVariant` hairline or step one `surfaceContainer` level.
-
-## Shapes
-
-Radius scale: 10dp (inputs' inner elements, chips' containers), 14dp (buttons, text fields, banners), 18dp (cards, tiles), 24dp (sheets, large cards), 30dp (bottom sheets), full pill (status chips). Radius grows with surface size — never mix a 30dp card with a 10dp button inside.
-
-## Components
-
-Shared primitives live in `ui/components/CoreComponents.kt` and are the **only** sanctioned way to build these patterns:
-
-- **C1Button** — intents: `PRIMARY` (filled forest), `TONAL` (moss container), `OUTLINED` (hairline border), `DANGER` (error container), `GHOST` (text-only). One primitive, no ad-hoc `Button` styling in screens.
-- **C1TextField** — outlined input, 14dp radius, theme-aware borders, built-in error/supporting text.
-- **C1StatusChip** — pill with semantic tone (`SUCCESS/WARNING/DANGER/INFO/NEUTRAL`).
-- **C1Banner** — inline informational strip with optional icon.
-- **C1SectionHeader** — bold forest title with optional trailing action.
-- **C1StatTile** — label/value row on `surfaceContainerLow`.
-- **C1EmptyState** — tonal icon circle + title + message.
-- **C1LoadingState** — centered progress indicator with optional label.
-- **C1ErrorState** — error tone icon circle, title, message, optional retry button.
-- **C1SurfaceCard** — flat hairline-bordered content surface with optional press feedback (0.97 scale + ripple). Cards are never nested.
-- **C1ListRow** — leading element + title + optional subtitle + trailing slot, merged into one TalkBack target.
-- **C1FilterChip** — selectable pill with an unmistakable selected state.
-- **C1TopBar** — screen title bar with optional back affordance and actions; the title carries heading semantics.
-- **C1Avatar** — initials avatar for people and authors.
-- **C1Divider** — hairline separator.
-- **C1Skeleton / C1SkeletonRows** — shimmer placeholders for loading lists (replaces spinners where content shape is known).
-- **AnimatedAttendanceRing** — the attendance hero component; colors come from `extendedColors`.
-
-Icons: Material filled set, 24dp standard / 18dp inline / 26dp in empty-state circles, tinted `onSurfaceVariant` unless they carry status meaning.
-
-## Do's and Don'ts
-
-**Do**
-- Use surface-tone steps (`surfaceContainerLow` → `Highest`) for grouping.
-- Keep dark mode a first-class translation — verify every new component in both modes.
-- Use semantic tones through `C1StatusChip`/`C1Banner` so light/dark pairs stay contrast-safe.
-- Reserve `headlineLarge/Medium` for one hero element per screen.
-
-**Don't**
-- No drop shadows on cards, no gradients, no glassmorphism, no neon accents.
-- No generic dashboard styling: no rows of identical gradient stat cards, no decorative illustrations behind content.
-- No hardcoded hex colors in feature screens — tokens only.
-- No all-caps body text; caps are for `labelSmall` metadata only.
-- No radius mixing that breaks the size-to-radius relationship.
+## Engineering boundaries
+Preserve package `in.campusone.app`, Supabase auth and RLS, role enforcement, existing repositories/ViewModels, FCM, WorkManager, Room and storage contracts. Keep privileged actions server-authorised. Do not add mock production data or unnecessary dependencies. The release certificate is fixed at `50:34:1B:DA:AE:1E:1C:FC:C7:E2:68:93:D3:CF:8A:1F:7A:FC:35:A2`; the release pipeline and secrets are immutable.
