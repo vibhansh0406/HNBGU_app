@@ -66,6 +66,9 @@ class CampusFirebaseMessagingService : FirebaseMessagingService() {
     @Inject
     lateinit var supabaseSync: SupabaseSyncRepository
 
+    @Inject
+    lateinit var userPreferencesRepository: UserPreferencesRepository
+
     private val notificationManagerCompat by lazy {
         NotificationManagerCompat.from(this)
     }
@@ -180,6 +183,18 @@ class CampusFirebaseMessagingService : FirebaseMessagingService() {
                     targetId = data["target_id"] ?: ""
                 )
             }
+        }
+    }
+
+    private suspend fun showNotificationIfEnabled(
+        title: String,
+        body: String,
+        category: String,
+        targetType: String,
+        targetId: String
+    ) {
+        if (userPreferencesRepository.isNotificationCategoryEnabled(category)) {
+            showNotification(title, body, category, targetType, targetId)
         }
     }
 
