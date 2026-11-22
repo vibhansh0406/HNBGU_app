@@ -362,11 +362,20 @@ fun CampusOneRoot(
                 transitionSpec = {
                     val forward = targetState.ordinal > initialState.ordinal
                     val offset = if (forward) 1 else -1
-                    (fadeIn(animationSpec = tween(C1Motion.normalMillis)) +
+                    (fadeIn(animationSpec = spring(
+                        dampingRatio = C1Motion.springDampingRatio,
+                        stiffness = C1Motion.springStiffness
+                    )) +
                         slideInHorizontally(
-                            animationSpec = tween(C1Motion.normalMillis, easing = C1Motion.emphasizedEasing)
-                        ) { width -> offset * width / 12 })
-                        .togetherWith(fadeOut(animationSpec = tween(C1Motion.fastMillis)))
+                            animationSpec = spring(
+                                dampingRatio = C1Motion.springDampingRatio,
+                                stiffness = C1Motion.springStiffness
+                            )
+                        ) { width -> offset * width / 8 })
+                        .togetherWith(fadeOut(animationSpec = spring(
+                            dampingRatio = C1Motion.springDampingRatio,
+                            stiffness = C1Motion.springStiffness
+                        )))
                 },
                 label = "bottomTabTransition"
             ) { tab ->
