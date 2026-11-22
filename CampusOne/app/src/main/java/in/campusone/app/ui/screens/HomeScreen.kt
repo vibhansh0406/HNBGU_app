@@ -643,7 +643,7 @@ private fun NoticePreview(
             .fillMaxWidth()
             .clickable(
                 interactionSource = interactionSource,
-                onClick = onOpenNotice(notice.id)
+                onClick = { onOpenNotice(notice.id) }
             )
             .padding(C1Spacing.lg)
             .semantics(mergeDescendants = true) {},
