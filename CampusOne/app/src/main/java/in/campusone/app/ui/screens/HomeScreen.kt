@@ -1,6 +1,8 @@
 package `in`.campusone.app.ui.screens
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.animateFloatAsState
+import androidx.compose.animation.animateItemPlacement
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -116,7 +118,13 @@ fun HomeScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(MaterialTheme.colorScheme.background)
+            .animateItemPlacement(
+                animationSpec = tween(
+                    durationMillis = C1Motion.normalMillis,
+                    easing = C1Motion.emphasizedEasing
+                )
+            ),
         contentPadding = PaddingValues(
             horizontal = C1Spacing.pagePadding(ws),
             vertical = C1Spacing.lg
@@ -523,13 +531,26 @@ private fun QuickActionTile(
     modifier: Modifier = Modifier,
     onOpenMore: (MoreSubScreen) -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) C1Motion.pressScale else 1f,
+        animationSpec = tween(durationMillis = C1Motion.fastMillis),
+        label = "quickActionPress"
+    )
+
     C1FeatureCard(
-        modifier = modifier.heightIn(min = 120.dp),
+        modifier = modifier
+            .heightIn(min = 120.dp)
+            .graphicsLayer { scaleX = scale; scaleY = scale },
         icon = action.icon,
         title = stringResource(action.labelRes),
         description = stringResource(action.descriptionRes),
         iconColor = action.color,
-        onClick = { onOpenMore(action.screen) }
+        onClick = {
+            interactionSource.tryEmitPress(true)
+            onOpenMore(action.screen)
+        }
     )
 }
 
