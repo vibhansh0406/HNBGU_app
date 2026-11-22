@@ -128,12 +128,12 @@ object C1Spacing {
 
 object C1Radius {
     val none = RoundedCornerShape(0.dp)
-    val xs = RoundedCornerShape(6.dp)
-    val sm = RoundedCornerShape(10.dp)
-    val md = RoundedCornerShape(14.dp)
-    val lg = RoundedCornerShape(20.dp)
-    val xl = RoundedCornerShape(28.dp)
-    val xxl = RoundedCornerShape(36.dp)
+    val xs = RoundedCornerShape(10.dp)
+    val sm = RoundedCornerShape(14.dp)
+    val md = RoundedCornerShape(18.dp)
+    val lg = RoundedCornerShape(24.dp)
+    val xl = RoundedCornerShape(30.dp)
+    val xxl = RoundedCornerShape(30.dp)
     val pill = RoundedCornerShape(50)
     val circle = RoundedCornerShape(50)
 }
