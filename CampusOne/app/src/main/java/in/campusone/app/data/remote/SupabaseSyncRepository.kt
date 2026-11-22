@@ -61,24 +61,27 @@ class SupabaseSyncRepository @Inject constructor(
         moderatorScope: String = "",
         isModeratorApproved: Boolean = false,
         onboardingCompleted: Boolean = false
-    ) {
-        if (!isSyncedEnabled()) return
-        supabaseClient.from("profiles").upsert(mapOf(
-            "id" to uid,
-            "full_name" to name,
-            "email" to email,
-            "role" to role,
-            "college_id" to collegeId,
-            "college_name" to collegeName,
-            "course_id" to courseId,
-            "course_name" to courseName,
-            "semester" to semester,
-            "section" to section,
-            "moderator_scope" to moderatorScope,
-            "is_moderator_approved" to isModeratorApproved,
-            "onboarding_completed" to onboardingCompleted,
-            "updated_at" to System.currentTimeMillis()
-        ))
+    ): Boolean {
+        if (!isSyncedEnabled()) return false
+        return runCatching {
+            supabaseClient.from("profiles").upsert(mapOf(
+                "id" to uid,
+                "full_name" to name,
+                "email" to email,
+                "role" to role,
+                "college_id" to collegeId,
+                "college_name" to collegeName,
+                "course_id" to courseId,
+                "course_name" to courseName,
+                "semester" to semester,
+                "section" to section,
+                "moderator_scope" to moderatorScope,
+                "is_moderator_approved" to isModeratorApproved,
+                "onboarding_completed" to onboardingCompleted,
+                "updated_at" to System.currentTimeMillis()
+            ))
+            true
+        }.getOrDefault(false)
     }
 
     suspend fun downloadProfile(uid: String): Map<String, Any>? {
@@ -112,11 +115,13 @@ class SupabaseSyncRepository @Inject constructor(
 
     suspend fun bootstrapProfile(name: String, email: String): Boolean {
         if (!isSyncedEnabled()) return false
-        val response = supabaseClient.rpc(
-            "campusone_bootstrap_profile",
-            mapOf("p_name" to name, "p_email" to email)
-        )
-        return response.isSuccess && (response.data as? Map<String, Any>)?.get("ok") == true
+        return runCatching {
+            val response = supabaseClient.rpc(
+                "campusone_bootstrap_profile",
+                mapOf("p_name" to name, "p_email" to email)
+            )
+            response.isSuccess && (response.data as? Map<String, Any>)?.get("ok") == true
+        }.getOrDefault(false)
     }
 
     suspend fun adminSetRole(uid: String, role: String): Boolean =

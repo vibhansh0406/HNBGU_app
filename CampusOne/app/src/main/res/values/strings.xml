@@ -15,6 +15,7 @@
     <string name="welcome_title">Welcome to CampusOne</string>
     <string name="welcome_subtitle">Built for HNB Garhwal University &amp; Indian colleges. Works seamlessly offline.</string>
     <string name="sign_in_google">Continue with Google</string>
+    <string name="sign_in_subtitle">Offline first. Synced only for you.</string>
     <string name="select_college">Select University / College</string>
     <string name="select_course">Select Course / Programme</string>
     <string name="select_semester">Semester</string>
