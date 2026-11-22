@@ -1,12 +1,9 @@
 package `in`.campusone.app.ui.screens
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,7 +48,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -525,26 +521,13 @@ private fun QuickActionTile(
     modifier: Modifier = Modifier,
     onOpenMore: (MoreSubScreen) -> Unit
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (pressed) C1Motion.pressScale else 1f,
-        animationSpec = tween(durationMillis = C1Motion.fastMillis),
-        label = "quickActionPress"
-    )
-
     C1FeatureCard(
-        modifier = modifier
-            .heightIn(min = 120.dp)
-            .graphicsLayer { scaleX = scale; scaleY = scale },
+        modifier = modifier.heightIn(min = 120.dp),
         icon = action.icon,
         title = stringResource(action.labelRes),
         description = stringResource(action.descriptionRes),
         iconColor = action.color,
-        onClick = {
-            interactionSource.tryEmitPress(true)
-            onOpenMore(action.screen)
-        }
+        onClick = { onOpenMore(action.screen) }
     )
 }
 
