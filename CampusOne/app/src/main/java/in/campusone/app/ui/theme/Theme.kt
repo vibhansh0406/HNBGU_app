@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.sp
 import `in`.campusone.app.R
 
 // ============================================================================
-// MATERIAL3 COLOR SCHEME — Forest & Ivory
+// MATERIAL3 COLOR SCHEME — Campus Spectrum
 // ============================================================================
 
 private val LightColorScheme = ColorScheme(
