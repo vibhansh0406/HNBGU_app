@@ -47,7 +47,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -549,6 +548,7 @@ private fun AnnouncementsSection(
         when {
             uiState.isLoading && visibleNotices.isEmpty() -> C1SurfaceCard(
                 modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(0.dp),
                 containerColor = MaterialTheme.colorScheme.surface
             ) {
                 C1SkeletonRows(
@@ -559,6 +559,7 @@ private fun AnnouncementsSection(
 
             dataRefreshError && visibleNotices.isEmpty() -> C1SurfaceCard(
                 modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(0.dp),
                 containerColor = MaterialTheme.colorScheme.surface
             ) {
                 C1ErrorState(
@@ -571,6 +572,7 @@ private fun AnnouncementsSection(
 
             visibleNotices.isEmpty() -> C1SurfaceCard(
                 modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(0.dp),
                 containerColor = MaterialTheme.colorScheme.surface
             ) {
                 C1EmptyState(
@@ -708,6 +710,8 @@ private fun AtAGlanceSection(
             C1SurfaceCard(
                 onClick = { onOpenMore(MoreSubScreen.ASSIGNMENTS) },
                 modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(0.dp),
+                contentPadding = PaddingValues(0.dp),
                 containerColor = MaterialTheme.colorScheme.surface
             ) {
                 Column(
@@ -774,6 +778,7 @@ private fun AtAGlanceSection(
             C1SurfaceCard(
                 onClick = { onOpenMore(MoreSubScreen.EXAMS_SYLLABUS) },
                 modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(0.dp),
                 containerColor = MaterialTheme.colorScheme.surface
             ) {
                 Row(
