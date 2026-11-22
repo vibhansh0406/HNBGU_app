@@ -14,6 +14,42 @@
       "sourceType": "github",
       "skillPath": "skills/supabase-postgres-best-practices/SKILL.md",
       "computedHash": "3eb972c2d7c818e544e35cc33ea8d7147d4d78ae08142ef40037b0fbac7a2505"
+    },
+    "antislop": {
+      "source": "miqdadbadjuber/anti-slop",
+      "commit": "main",
+      "sourceType": "github",
+      "skillPath": "skills/antislop/SKILL.md"
+    },
+    "antislop-ui": {
+      "source": "miqdadbadjuber/anti-slop",
+      "commit": "main",
+      "sourceType": "github",
+      "skillPath": "skills/antislop-ui/SKILL.md"
+    },
+    "antislop-copywriting": {
+      "source": "miqdadbadjuber/anti-slop",
+      "commit": "main",
+      "sourceType": "github",
+      "skillPath": "skills/antislop-copywriting/SKILL.md"
+    },
+    "antislop-human": {
+      "source": "miqdadbadjuber/anti-slop",
+      "commit": "main",
+      "sourceType": "github",
+      "skillPath": "skills/antislop-human/SKILL.md"
+    },
+    "antislop-layoutmobile": {
+      "source": "miqdadbadjuber/anti-slop",
+      "commit": "main",
+      "sourceType": "github",
+      "skillPath": "skills/antislop-layoutmobile/SKILL.md"
+    },
+    "antislop-code": {
+      "source": "miqdadbadjuber/anti-slop",
+      "commit": "main",
+      "sourceType": "github",
+      "skillPath": "skills/antislop-code/SKILL.md"
     }
   }
 }
