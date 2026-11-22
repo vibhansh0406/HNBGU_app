@@ -401,7 +401,7 @@ fun MoreHubScreen(
                 Spacer(modifier = Modifier.height(C1Spacing.xs))
                 Text(
                     text = stringResource(R.string.more_campus_community),
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
