@@ -1089,7 +1089,6 @@ create policy "campusone_read_study_resources" on public.study_resources
   for select to authenticated
   using (
     (coalesce(is_hidden, false) = false and coalesce(is_flagged, false) = false)
-    or public.campusone_is_staff()
     or public.campusone_has_permission('MODERATE_REPORTS')
   );
 create policy "campusone_read_syllabus_topics" on public.syllabus_topics
