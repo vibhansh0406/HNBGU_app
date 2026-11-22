@@ -20,6 +20,7 @@ import `in`.campusone.app.MainActivity
 import `in`.campusone.app.R
 import `in`.campusone.app.data.remote.AuthManager
 import `in`.campusone.app.data.remote.SupabaseSyncRepository
+import `in`.campusone.app.data.preferences.UserPreferencesRepository
 import javax.inject.Inject
 
 /** Notification channel IDs for CampusOne notification categories. */
@@ -158,37 +159,27 @@ class CampusFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
 
-        // Handle data payload for notification display
         val data = remoteMessage.data
-        if (data.isNotEmpty()) {
-            val title = data["title"] ?: data["body"] ?: "CampusOne"
-            val body = data["body"] ?: "New notification"
-            val category = data["category"] ?: NotificationCategory.NOTICE
-            val targetType = data["target_type"] ?: ""
-            val targetId = data["target_id"] ?: ""
-
-            showNotification(
-                title = title,
-                body = body,
-                category = category,
-                targetType = targetType,
-                targetId = targetId
-            )
-        }
-
-        // Handle notification payload (received when app is in background)
-        remoteMessage.notification?.let { notification ->
-            val category = remoteMessage.data["category"] ?: NotificationCategory.NOTICE
-            val targetType = remoteMessage.data["target_type"] ?: ""
-            val targetId = remoteMessage.data["target_id"] ?: ""
-
-            showNotification(
-                title = notification.title ?: "CampusOne",
-                body = notification.body ?: "New notification",
-                category = category,
-                targetType = targetType,
-                targetId = targetId
-            )
+        CoroutineScope(Dispatchers.IO).launch {
+            if (data.isNotEmpty()) {
+                showNotificationIfEnabled(
+                    title = data["title"] ?: data["body"] ?: "CampusOne",
+                    body = data["body"] ?: "New notification",
+                    category = data["category"] ?: NotificationCategory.NOTICE,
+                    targetType = data["target_type"] ?: "",
+                    targetId = data["target_id"] ?: ""
+                )
+            }
+            remoteMessage.notification?.let { notification ->
+                val category = data["category"] ?: NotificationCategory.NOTICE
+                showNotificationIfEnabled(
+                    title = notification.title ?: "CampusOne",
+                    body = notification.body ?: "New notification",
+                    category = category,
+                    targetType = data["target_type"] ?: "",
+                    targetId = data["target_id"] ?: ""
+                )
+            }
         }
     }
 
