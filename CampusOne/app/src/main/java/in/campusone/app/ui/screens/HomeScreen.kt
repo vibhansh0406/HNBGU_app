@@ -64,6 +64,7 @@ import `in`.campusone.app.domain.usecase.AttendanceHealth
 import `in`.campusone.app.domain.usecase.AttendanceInsight
 import `in`.campusone.app.domain.usecase.SlotLiveState
 import `in`.campusone.app.ui.components.AnimatedAttendanceRing
+import `in`.campusone.app.ui.components.C1Avatar
 import `in`.campusone.app.ui.components.C1Banner
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
@@ -71,6 +72,7 @@ import `in`.campusone.app.ui.components.C1CompactStatCard
 import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1ErrorState
 import `in`.campusone.app.ui.components.C1FeatureCard
+import `in`.campusone.app.ui.components.C1FilterChip
 import `in`.campusone.app.ui.components.C1SkeletonRows
 import `in`.campusone.app.ui.components.C1SectionHeader
 import `in`.campusone.app.ui.components.C1StatusChip
@@ -180,62 +182,38 @@ private fun HomeHeader(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Profile avatar
-        Surface(
-            onClick = onOpenProfile,
+        // Profile avatar with subtle ring
+        C1Avatar(
+            name = uiState.profile.name,
             modifier = Modifier
                 .size(C1TouchTarget)
+                .clickable(onClick = onOpenProfile)
                 .semantics { contentDescription = profileCd },
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.primaryContainer,
-            shadowElevation = 0.dp
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text(
-                    text = initial,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-        }
+            size = C1TouchTarget,
+        )
         Spacer(modifier = Modifier.width(C1Spacing.md))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = stringResource(R.string.home_greeting, firstName),
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = courseLine,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
         }
         // Language toggle
-        Surface(
-            onClick = onToggleLanguage,
-            modifier = Modifier
-                .heightIn(min = C1TouchTarget)
-                .semantics { contentDescription = languageCd },
-            shape = C1Radius.pill,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh
-        ) {
-            Box(
-                modifier = Modifier.padding(horizontal = C1Spacing.md),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = if (uiState.languageTag == "hi") "EN" else "हिन्दी",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-        }
+        C1FilterChip(
+            label = if (uiState.languageTag == "hi") "EN" else "हिन्दी",
+            selected = false,
+            onClick = onToggleLanguage
+        )
         // Notifications
         IconButton(onClick = onOpenNotices) {
             BadgedBox(
