@@ -55,6 +55,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -68,6 +69,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
@@ -1663,6 +1665,7 @@ fun C1Avatar(
                 },
                 border = BorderStroke(2.dp, MaterialTheme.colorScheme.background)
             )
+            content = { }
         }
     }
 }
@@ -1676,7 +1679,7 @@ fun C1SegmentedButton(
     onSelectionChange: (Int) -> Unit,
     labels: List<String>,
     modifier: Modifier = Modifier,
-    colors: C1SegmentedButtonColors = C1SegmentedButtonColors()
+    colors: C1SegmentedButtonColors
 ) {
     require(labels.size >= 2 && labels.size <= 5) { "Segmented button requires 2-5 labels" }
     Row(
@@ -1715,9 +1718,9 @@ fun C1SegmentedButton(
 
 @Immutable
 data class C1SegmentedButtonColors(
-    val selectedBackground: Color = MaterialTheme.colorScheme.primaryContainer,
-    val selectedContent: Color = MaterialTheme.colorScheme.onPrimaryContainer,
-    val unselectedContent: Color = MaterialTheme.colorScheme.onSurfaceVariant
+    val selectedBackground: Color,
+    val selectedContent: Color,
+    val unselectedContent: Color
 )
 
 /**
