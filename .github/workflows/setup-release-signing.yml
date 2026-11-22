@@ -1,0 +1,92 @@
+name: Generate permanent release signing key
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate-and-store:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate keystore and store encrypted GitHub Actions secrets
+        env:
+          SETUP_TOKEN: ${{ secrets.KEYSTORE_SETUP_TOKEN }}
+          GH_REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SETUP_TOKEN:-}" ]; then
+            echo "::error::Missing KEYSTORE_SETUP_TOKEN repository secret."
+            exit 1
+          fi
+
+          KEYSTORE="$RUNNER_TEMP/campusone-release.jks"
+          STORE_PASS="$(openssl rand -hex 32)"
+          KEY_PASS="$(openssl rand -hex 32)"
+          KEY_ALIAS="campusone-release"
+
+          keytool -genkeypair -v \
+            -keystore "$KEYSTORE" \
+            -storetype JKS \
+            -storepass "$STORE_PASS" \
+            -keypass "$KEY_PASS" \
+            -alias "$KEY_ALIAS" \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=CampusOne, OU=Android, O=CampusOne, L=Dehradun, ST=Uttarakhand, C=IN"
+
+          test -s "$KEYSTORE"
+          KEYSTORE_B64="$(base64 -w 0 "$KEYSTORE")"
+
+          python -m pip install --quiet pynacl
+          export KEYSTORE_B64 STORE_PASS KEY_PASS KEY_ALIAS SETUP_TOKEN GH_REPOSITORY
+          python <<'PY'
+          import base64, json, os, urllib.request
+          from nacl.public import PublicKey, SealedBox
+
+          repo = os.environ["GH_REPOSITORY"]
+          token = os.environ["SETUP_TOKEN"]
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {token}",
+              "X-GitHub-Api-Version": "2022-11-28",
+              "User-Agent": "CampusOne-Release-Key-Setup"
+          }
+
+          def request(method, url, payload=None):
+              data = None if payload is None else json.dumps(payload).encode()
+              req = urllib.request.Request(url, data=data, headers=headers, method=method)
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  raw = response.read()
+                  return json.loads(raw) if raw else {}
+
+          base = f"https://api.github.com/repos/{repo}/actions/secrets"
+          public = request("GET", base + "/public-key")
+          pubkey = PublicKey(base64.b64decode(public["key"]))
+          box = SealedBox(pubkey)
+
+          values = {
+              "KEYSTORE_BASE64": os.environ["KEYSTORE_B64"],
+              "KEYSTORE_PASSWORD": os.environ["STORE_PASS"],
+              "KEY_ALIAS": os.environ["KEY_ALIAS"],
+              "KEY_PASSWORD": os.environ["KEY_PASS"],
+          }
+
+          for name, value in values.items():
+              encrypted = base64.b64encode(box.encrypt(value.encode())).decode()
+              request("PUT", f"{base}/{name}", {
+                  "encrypted_value": encrypted,
+                  "key_id": public["key_id"]
+              })
+              print(f"Configured repository secret: {name}")
+
+          # Remove the temporary setup credential after all four secrets are stored.
+          request("DELETE", base + "/KEYSTORE_SETUP_TOKEN")
+          print("Removed temporary KEYSTORE_SETUP_TOKEN.")
+          PY
+
+          rm -f "$KEYSTORE"
+          unset STORE_PASS KEY_PASS KEYSTORE_B64 SETUP_TOKEN
+          echo "Permanent release signing key created and stored as encrypted repository secrets."
