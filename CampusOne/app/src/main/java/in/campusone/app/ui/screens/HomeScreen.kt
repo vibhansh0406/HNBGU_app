@@ -711,7 +711,6 @@ private fun AtAGlanceSection(
                 onClick = { onOpenMore(MoreSubScreen.ASSIGNMENTS) },
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(0.dp),
-                contentPadding = PaddingValues(0.dp),
                 containerColor = MaterialTheme.colorScheme.surface
             ) {
                 Column(
