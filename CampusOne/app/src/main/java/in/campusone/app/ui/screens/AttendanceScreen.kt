@@ -209,7 +209,7 @@ private fun OverallAttendanceCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(R.string.attendance_overall),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(C1Spacing.xs))
@@ -351,7 +351,7 @@ private fun SubjectAttendanceCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = summary.subjectName,
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
