@@ -10,10 +10,11 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.lifecycleScope
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import `in`.campusone.app.MainActivity
 import `in`.campusone.app.R
@@ -128,7 +129,7 @@ class CampusFirebaseMessagingService : FirebaseMessagingService() {
     /** Called when FCM registration token is generated or refreshed. */
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        lifecycleScope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             registerFcmToken(token)
         }
     }
