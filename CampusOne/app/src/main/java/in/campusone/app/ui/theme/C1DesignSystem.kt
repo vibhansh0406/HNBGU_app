@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.sp
 import `in`.campusone.app.R
 
 /**
- * CampusOne Design System — "Forest & Ivory"
+ * CampusOne Design System — "Campus Spectrum"
  *
  * A complete, production-grade design language with:
  * - Responsive typography that scales with viewport
