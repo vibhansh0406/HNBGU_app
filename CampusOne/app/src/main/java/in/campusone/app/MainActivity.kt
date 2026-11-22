@@ -648,7 +648,7 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF080B19).copy(alpha = wordmarkAlpha),
                 textAlign = TextAlign.Center,
-                modifier = Modifier.scale(wordmarkScale)
+                modifier = Modifier.graphicsLayer { scaleX = wordmarkScale; scaleY = wordmarkScale }
             )
 
             Spacer(modifier = Modifier.height(8.dp))
