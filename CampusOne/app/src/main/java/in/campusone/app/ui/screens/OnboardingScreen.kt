@@ -39,8 +39,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -136,7 +136,7 @@ fun OnboardingScreen(
         "bped" to "B.P.Ed.",
         "blib" to "B.Lib.I.Sc."
     )
-    val selectedCourseIndex = remember { mutableStateOf(0) }
+    val selectedCourseIndex: MutableIntState = remember { mutableIntStateOf(0) }
     var selectedSemester by rememberSaveable { mutableIntStateOf(3) }
     var selectedSection by rememberSaveable { mutableStateOf("A") }
     var selectedRole by rememberSaveable { mutableStateOf(UserRole.STUDENT) }
