@@ -3,6 +3,10 @@ package `in`.campusone.app.data.remote
 import android.content.Context
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.OutputStream
+import java.net.HttpURLConnection
+import java.net.URL
+import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -780,6 +784,99 @@ class SupabaseSyncRepository @Inject constructor(
             .eq("user_id", uid)
             .update(mapOf("is_read" to true))
         return result.isSuccess
+    }
+
+    /**
+     * Registers an FCM device token with Supabase via Edge Function.
+     * The Edge Function validates the caller's JWT and upserts the token
+     * into the device_tokens table with RLS enforcement.
+     */
+    suspend fun registerDeviceToken(
+        uid: String,
+        fcmToken: String,
+        devicePlatform: String,
+        deviceName: String,
+        email: String
+    ): Boolean {
+        val edgeUrl = authManager.config.edgeFunctionUrl
+        if (edgeUrl.isBlank()) return false
+
+        val session = authManager.currentSession()
+        val token = session?.accessToken
+            ?: return false
+        val anonKey = authManager.config.anonKey
+
+        return try {
+            val url = URL("$edgeUrl/register-device-token")
+            val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.setRequestProperty("apikey", anonKey)
+            conn.setRequestProperty("Authorization", "Bearer $token")
+            conn.setRequestProperty("Content-Type", "application/json")
+            conn.connectTimeout = 15000
+            conn.readTimeout = 15000
+            conn.doOutput = true
+
+            val body = """{
+                "uid": "$uid",
+                "fcm_token": "$fcmToken",
+                "device_platform": "$devicePlatform",
+                "device_name": "$deviceName",
+                "email": "$email"
+            }""".trimIndent()
+
+            conn.outputStream.use { it.write(body.toByteArray(StandardCharsets.UTF_8)) }
+
+            val responseCode = conn.responseCode
+            val responseStream = if (responseCode in 200..299) conn.inputStream else conn.errorStream
+            val responseBody = responseStream?.use { it.readBytes() } ?: ByteArray(0)
+            val response = String(responseBody, StandardCharsets.UTF_8)
+
+            responseCode in 200..299 && runCatching {
+                org.json.JSONObject(response).optBoolean("ok", false)
+            }.getOrDefault(false)
+        } catch (e: Exception) {
+            Log.w(TAG, "registerDeviceToken failed: ${e.message}")
+            false
+        }
+    }
+
+    /**
+     * Deactivates an FCM device token (called on sign-out).
+     * Sets is_active = false so the token is no longer used for notifications.
+     */
+    suspend fun deactivateDeviceToken(fcmToken: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("device_tokens")
+            .eq("fcm_token", fcmToken)
+            .update(mapOf("is_active" to false, "updated_at" to System.currentTimeMillis()))
+        return result.isSuccess
+    }
+
+    /**
+     * Deletes an FCM device token record.
+     */
+    suspend fun deleteDeviceToken(fcmToken: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("device_tokens")
+            .eq("fcm_token", fcmToken)
+            .delete()
+        return result.isSuccess
+    }
+
+    /**
+     * Gets all active device tokens for a user (admin use).
+     */
+    suspend fun getDeviceTokensForUser(uid: String): List<String> {
+        if (!isSyncedEnabled()) return emptyList()
+        val result = supabaseClient.from("device_tokens")
+            .select("fcm_token")
+            .eq("user_id", uid)
+            .eq("is_active", true)
+            .execute()
+        return (result.data as? List<Map<String, Any>>)
+            ?.mapNotNull { it["fcm_token"] as? String }
+            ?: emptyList()
     }
 }
 

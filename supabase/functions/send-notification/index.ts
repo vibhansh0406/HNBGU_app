@@ -1,0 +1,236 @@
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+// FCM configuration - these must be set as Edge Function secrets
+const FCM_PROJECT_ID = Deno.env.get("FCM_PROJECT_ID")!;
+const FCM_SERVICE_ACCOUNT_EMAIL = Deno.env.get("FCM_SERVICE_ACCOUNT_EMAIL")!;
+const FCM_PRIVATE_KEY = Deno.env.get("FCM_PRIVATE_KEY")!; // PEM format private key
+
+// Cache the OAuth2 access token
+let accessToken: string | null = null;
+let tokenExpiry = 0;
+
+async function getFcmAccessToken(): Promise<string> {
+  const now = Date.now();
+  if (accessToken && now < tokenExpiry - 60000) {
+    return accessToken;
+  }
+
+  // Generate JWT for Google OAuth2
+  const header = { alg: "RS256", typ: "JWT" };
+  const nowSec = Math.floor(now / 1000);
+  const payload = {
+    iss: FCM_SERVICE_ACCOUNT_EMAIL,
+    sub: FCM_SERVICE_ACCOUNT_EMAIL,
+    aud: "https://oauth2.googleapis.com/token",
+    iat: nowSec,
+    exp: nowSec + 3600,
+    scope: "https://www.googleapis.com/auth/firebase.messaging",
+  };
+
+  const encoder = new TextEncoder();
+  const headerB64 = btoa(JSON.stringify(header));
+  const payloadB64 = btoa(JSON.stringify(payload));
+  const signingInput = `${headerB64}.${payloadB64}`;
+
+  // Sign with the private key (PKCS#8 PKCS#8 PEM)
+  const keyData = FCM_PRIVATE_KEY.replace(/-----BEGIN PRIVATE KEY-----/, "")
+    .replace(/-----END PRIVATE KEY-----/, "")
+    .replace(/\s/g, "");
+  const keyBytes = Uint8Array.from(atob(keyData), (c) => c.charCodeAt(0));
+
+  const cryptoKey = await crypto.subtle.importKey(
+    "pkcs8",
+    keyBytes,
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+
+  const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", cryptoKey, encoder.encode(signingInput));
+  const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signature)));
+
+  const jwt = `${signingInput}.${signatureB64}`;
+
+  // Exchange JWT for access token
+  const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion: jwt,
+    }),
+  });
+
+  const tokenData = await tokenResponse.json();
+  accessToken = tokenData.access_token;
+  tokenExpiry = now + (tokenData.expires_in || 3600) * 1000;
+
+  return accessToken;
+}
+
+async function sendFcmMessage(
+  accessToken: string,
+  fcmToken: string,
+  title: string,
+  body: string,
+  data: Record<string, string>
+): Promise<boolean> {
+  try {
+    const message = {
+      message: {
+        token: fcmToken,
+        notification: {
+          title: title,
+          body: body,
+        },
+        data: data,
+        android: {
+          priority: "high",
+          notification: {
+            channelId: "campusone_notices",
+            icon: "ic_notification",
+          },
+        },
+        apns: {
+          payload: {
+            aps: {
+              sound: "default",
+            },
+          },
+        },
+      },
+    };
+
+    const response = await fetch(
+      `https://fcm.googleapis.com/v1/projects/${FCM_PROJECT_ID}/messages:send`,
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(message),
+      }
+    );
+
+    return response.ok;
+  } catch (error) {
+    console.error("FCM send error:", error);
+    return false;
+  }
+}
+
+serve(async (req) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, apikey, content-type" } });
+  }
+
+  try {
+    // Get the authorization header
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ ok: false, error: "Missing authorization header" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+
+    // Create a Supabase client with the service role key
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify the user's JWT and check admin permission
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(JSON.stringify({ ok: false, error: "Invalid or expired token" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+
+    // Check if user has VIEW_USERS permission (admin)
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    const isAdmin = profile?.role === "ADMIN" || profile?.role === "SUPER_ADMIN" || user.email === "vvibhansh@gmail.com";
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ ok: false, error: "Admin access required" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+
+    // Parse request body
+    const body = await req.json();
+    const { user_ids, title, body: notificationBody, category, target_type, target_id } = body;
+
+    if (!title || !notificationBody) {
+      return new Response(JSON.stringify({ ok: false, error: "Missing title or body" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+
+    // Get device tokens for target users
+    let query = supabase.from("device_tokens").select("fcm_token, user_id").eq("is_active", true);
+
+    if (user_ids && Array.isArray(user_ids) && user_ids.length > 0) {
+      query = query.in("user_id", user_ids);
+    }
+
+    const { data: tokens, error: tokensError } = await query;
+
+    if (tokensError) {
+      console.error("Token query error:", tokensError);
+      return new Response(JSON.stringify({ ok: false, error: "Failed to query device tokens" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+
+    if (!tokens || tokens.length === 0) {
+      return new Response(JSON.stringify({ ok: true, message: "No active device tokens found", sent: 0 }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+
+    // Get FCM access token
+    const fcmToken = await getFcmAccessToken();
+
+    // Send notifications to all device tokens
+    const dataPayload: Record<string, string> = {
+      title,
+      body: notificationBody,
+      category: category || "notice",
+      target_type: target_type || "",
+      target_id: target_id || "",
+    };
+
+    const results = await Promise.allSettled(
+      tokens.map((t) => sendFcmMessage(fcmToken, t.fcm_token, title, notificationBody, dataPayload))
+    );
+
+    const sentCount = results.filter((r) => r.status === "fulfilled" && r.value === true).length;
+
+    return new Response(JSON.stringify({ ok: true, message: `Sent ${sentCount}/${tokens.length} notifications`, sent: sentCount, total: tokens.length }), {
+      status: 200,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+    });
+  } catch (error) {
+    console.error("Edge function error:", error);
+    return new Response(JSON.stringify({ ok: false, error: "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+    });
+  }
+});

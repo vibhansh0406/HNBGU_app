@@ -1875,9 +1875,6 @@ fun C1SearchBar(
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
                 )
-            }
-        )
-    }
 }
 
 /**

@@ -16,7 +16,7 @@ import kotlin.Result
 class AuthManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val supabaseClient: SupabaseClient,
-    private val config: SupabaseConfig
+    val config: SupabaseConfig
 ) {
 
     private val googleSignInClient: GoogleSignInClient by lazy {
