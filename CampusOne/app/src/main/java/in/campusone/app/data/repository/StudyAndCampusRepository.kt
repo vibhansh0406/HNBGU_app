@@ -373,31 +373,39 @@ class StudyAndCampusRepository @Inject constructor(
     private fun studyResourceSyncMap(
         r: StudyResourceEntity,
         sectionKeyOverride: String? = null
-    ): Map<String, Any> = mapOf<String, Any>(
-        "id" to r.id,
-        "section_key" to (sectionKeyOverride ?: r.sectionKey),
-        "subject_id" to r.subjectId,
-        "subject_name" to r.subjectName,
-        "semester" to r.semester,
-        "title" to r.title,
-        "category" to r.category,
-        "exam_year" to r.examYear,
-        "file_url" to r.fileUrl,
-        "file_type" to r.fileType,
-        "file_size_bytes" to r.fileSizeBytes,
-        "file_hash" to r.fileHash,
-        "uploader_uid" to r.uploaderUid,
-        "uploader_name" to r.uploaderName,
-        "show_uploader_name" to r.showUploaderName,
-        "upvotes" to r.upvotes,
-        "report_count" to r.reportCount,
-        "is_flagged" to r.isFlagged,
-        "is_hidden" to r.isHidden,
-        "is_approved_by_cr" to r.isApprovedByCr,
-        "upload_status" to r.uploadStatus,
-        "created_at" to r.createdAtMillis,
-        "updated_at" to r.updatedAtMillis
-    )
+    ): Map<String, Any> {
+        val values = mutableMapOf<String, Any>(
+            "id" to r.id,
+            "section_key" to (sectionKeyOverride ?: r.sectionKey),
+            "subject_id" to r.subjectId,
+            "subject_name" to r.subjectName,
+            "semester" to r.semester,
+            "title" to r.title,
+            "category" to r.category,
+            "exam_year" to r.examYear,
+            "file_url" to r.fileUrl,
+            "file_type" to r.fileType,
+            "file_size_bytes" to r.fileSizeBytes,
+            "file_hash" to r.fileHash,
+            "uploader_uid" to r.uploaderUid,
+            "uploader_name" to r.uploaderName,
+            "show_uploader_name" to r.showUploaderName,
+            "upvotes" to r.upvotes,
+            "report_count" to r.reportCount,
+            "is_flagged" to r.isFlagged,
+            "is_hidden" to r.isHidden,
+            "is_approved_by_cr" to r.isApprovedByCr,
+            "upload_status" to r.uploadStatus,
+            "created_at" to r.createdAtMillis,
+            "updated_at" to r.updatedAtMillis
+        )
+        Regex("/v1/objects/([0-9a-fA-F-]{36})/download")
+            .find(r.fileUrl)
+            ?.groupValues
+            ?.getOrNull(1)
+            ?.let { values["storage_object_id"] = it }
+        return values
+    }
 
     suspend fun upvoteResource(id: String) = studyDao.upvoteResource(id)
 
