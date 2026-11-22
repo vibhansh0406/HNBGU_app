@@ -59,7 +59,7 @@ class CampusSyncAndReminderWorker @AssistedInject constructor(
             )
         }
         val nextClass = TimetableEngine.findNextOrOngoingClass(slots, LocalDateTime.now())
-        if (nextClass != null && !nextClass.isOngoing && nextClass.isToday) {
+        if (classRemindersEnabled && nextClass != null && !nextClass.isOngoing && nextClass.isToday) {
             if (nextClass.minutesUntilStart in 1..profile.reminderLeadMinutes.toLong()) {
                 sendNotification(
                     channelId = "campusone_class_reminders",
