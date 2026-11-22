@@ -30,7 +30,7 @@ object SupabaseConfigLoader {
             googleWebClientId = value(BuildConfig.GOOGLE_OAUTH_WEB_CLIENT_ID, "google.oauth.web_client_id"),
             oauthCallbackUrl = value(BuildConfig.GOOGLE_OAUTH_CALLBACK_URL, "google.oauth.callback_url"),
             edgeFunctionUrl = value(BuildConfig.SUPABASE_EDGE_FUNCTION_URL, "supabase.edge.function.url"),
-            storageApiUrl = value("", "storage.api.url")
+            storageApiUrl = value(BuildConfig.STORAGE_API_URL, "storage.api.url")
         )
     }
 
