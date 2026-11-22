@@ -184,14 +184,19 @@ fun SettingsScreen(
             item { C1SectionHeader(title = "Privacy & support") }
             item {
                 C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.md)) {
-                    SettingsActionRow("Send feedback", "Share feedback using an app on your device", Icons.Default.Info) {
-                        val intent = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_SUBJECT, "CampusOne feedback")
-                            putExtra(Intent.EXTRA_TEXT, "CampusOne " + BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")\n\nFeedback:\n")
+                    SettingsActionRow(
+                        title = "Send feedback",
+                        subtitle = "Share feedback using an app on your device",
+                        icon = Icons.Default.Info,
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_SUBJECT, "CampusOne feedback")
+                                putExtra(Intent.EXTRA_TEXT, "CampusOne " + BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")\\n\\nFeedback:\\n")
+                            }
+                            context.startActivity(Intent.createChooser(intent, "Send feedback"))
                         }
-                        context.startActivity(Intent.createChooser(intent, "Send feedback"))
-                    }
+                    )
                     SettingsActionRow("Privacy policy", "How CampusOne handles your information", Icons.Default.PrivacyTip, onOpenPrivacy)
                 }
             }
