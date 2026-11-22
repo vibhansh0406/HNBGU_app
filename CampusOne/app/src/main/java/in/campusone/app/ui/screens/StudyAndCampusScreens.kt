@@ -683,7 +683,6 @@ fun MoreHubScreen(
             )
         }
     }
-
     } else {
         Scaffold(
             topBar = {

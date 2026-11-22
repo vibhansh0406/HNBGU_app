@@ -273,11 +273,10 @@ fun C1ToggleButton(
                 text = text,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                color = if (selected) {
-                    MaterialTheme.colorScheme.onPrimary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-}
+                color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
 }
 
 /**
@@ -1876,9 +1875,6 @@ fun C1SearchBar(
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
                 )
-            }
-        )
-    }
 }
 
 /**
