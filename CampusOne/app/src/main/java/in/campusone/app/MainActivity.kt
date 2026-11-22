@@ -683,7 +683,7 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color.White
+        color = MaterialTheme.colorScheme.background
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -696,8 +696,8 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
                     .background(
                         Brush.radialGradient(
                             colors = listOf(
-                                Color(0xFF1B4D3A).copy(alpha = 0.12f * revealProgress),
-                                Color(0x001B4D3A)
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.12f * revealProgress),
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0f)
                             ),
                             center = Offset(0.5f, 0.5f)
                         )
@@ -711,7 +711,7 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
                 modifier = Modifier
                     .size(64.dp * (0.3f + revealProgress * 0.7f)),
                 colorFilter = ColorFilter.tint(
-                    Color(0xFF080B19).copy(alpha = revealProgress)
+                    MaterialTheme.colorScheme.primary.copy(alpha = revealProgress)
                 )
             )
 
@@ -722,8 +722,8 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
                     .background(
                         Brush.linearGradient(
                             colors = listOf(
-                                Color(0xFF080B19).copy(alpha = 0f),
-                                Color.White.copy(alpha = 0.5f),
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0f),
+                                MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                                 Color(0xFF080B19).copy(alpha = 0f)
                             ),
                             start = Offset(0f, 0.5f),
@@ -747,7 +747,7 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
                 text = "CampusOne",
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF080B19).copy(alpha = wordmarkAlpha),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = wordmarkAlpha),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.graphicsLayer { scaleX = wordmarkScale; scaleY = wordmarkScale }
             )
@@ -758,7 +758,7 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
             Text(
                 text = stringResource(R.string.tagline),
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF667085).copy(alpha = taglineAlpha),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = taglineAlpha),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.offset(y = taglineSlide.dp)
             )
