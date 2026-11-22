@@ -103,6 +103,7 @@ import `in`.campusone.app.data.remote.AuthManager
 import `in`.campusone.app.data.remote.SupabaseSession
 import `in`.campusone.app.data.repository.CoreCampusRepository
 import `in`.campusone.app.data.remote.SupabaseSyncRepository
+import `in`.campusone.app.data.preferences.UserPreferencesRepository
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1NavItem
 import `in`.campusone.app.ui.screens.AttendanceScreen
@@ -221,7 +222,7 @@ class MainActivity : AppCompatActivity() {
                 config.screenWidthDp < 1200 -> `in`.campusone.app.ui.theme.C1WindowSize.LARGE
                 else -> `in`.campusone.app.ui.theme.C1WindowSize.EXPANDED
             }
-                CampusOneTheme(windowSize = ws) {
+                CampusOneTheme(darkTheme = useDarkTheme, windowSize = ws) {
                     CampusOneRoot(
                         onGoogleSignIn = onGoogleSignIn,
                         authSession = authManager.session,
