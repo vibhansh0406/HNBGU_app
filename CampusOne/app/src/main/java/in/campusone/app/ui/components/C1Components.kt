@@ -2,6 +2,10 @@ package `in`.campusone.app.ui.components
 
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -78,6 +82,9 @@ import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.theme.C1State
 import `in`.campusone.app.ui.theme.C1TouchTarget
 import `in`.campusone.app.ui.theme.C1WindowSize
+import `in`.campusone.app.ui.theme.C1ButtonSize
+import `in`.campusone.app.ui.theme.C1ButtonHeight
+import `in`.campusone.app.ui.theme.C1ButtonPadding
 import `in`.campusone.app.ui.theme.componentColors
 import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.theme.windowSize
@@ -88,125 +95,6 @@ import `in`.campusone.app.ui.theme.windowSize
 
 /** Visual intent of a [C1Button]. */
 enum class C1ButtonIntent { PRIMARY, TONAL, OUTLINED, DANGER, GHOST }
-
-/**
- * The single button primitive. 48dp tall, medium radius, no shadows —
- * hierarchy comes from fill, not elevation. Adapts to window size.
- */
-@Composable
-fun C1Button(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    intent: C1ButtonIntent = C1ButtonIntent.PRIMARY,
-    enabled: Boolean = true,
-    icon: (@Composable () -> Unit)? = null,
-    iconPosition: C1IconPosition = C1IconPosition.START,
-    fullWidth: Boolean = false
-) {
-    val ws = windowSize
-    val colors = when (intent) {
-        C1ButtonIntent.PRIMARY -> ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
-            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = C1State.disabledAlpha),
-            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = C1State.disabledAlpha)
-        )
-        C1ButtonIntent.TONAL -> ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = C1State.disabledAlpha),
-            disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = C1State.disabledAlpha)
-        )
-        C1ButtonIntent.OUTLINED -> ButtonDefaults.outlinedButtonColors(
-            contentColor = MaterialTheme.colorScheme.primary,
-            disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = C1State.disabledAlpha)
-        )
-        C1ButtonIntent.DANGER -> ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
-            contentColor = MaterialTheme.colorScheme.onErrorContainer,
-            disabledContainerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = C1State.disabledAlpha),
-            disabledContentColor = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = C1State.disabledAlpha)
-        )
-        C1ButtonIntent.GHOST -> ButtonDefaults.textButtonColors(
-            contentColor = MaterialTheme.colorScheme.primary,
-            disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = C1State.disabledAlpha)
-        )
-    }
-
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (pressed && enabled) C1Motion.pressScale else 1f,
-        animationSpec = tween(durationMillis = C1Motion.fastMillis),
-        label = "buttonPress"
-    )
-
-    val m = modifier
-        .heightIn(min = C1TouchTarget)
-        .graphicsLayer { scaleX = scale; scaleY = scale }
-
-    when (intent) {
-        C1ButtonIntent.OUTLINED -> OutlinedButton(
-            onClick = onClick,
-            modifier = m.fillMaxWidth(if (fullWidth) 1f else 0f),
-            enabled = enabled,
-            shape = C1Radius.sm,
-            colors = colors,
-            border = BorderStroke(C1Border.thin, MaterialTheme.colorScheme.outlineVariant),
-            contentPadding = PaddingValues(horizontal = C1Spacing.xl, vertical = C1Spacing.md),
-            interactionSource = interactionSource
-        ) {
-            if (icon != null && iconPosition == C1IconPosition.START) {
-                icon()
-                Spacer(modifier = Modifier.width(C1Spacing.sm))
-            }
-            Text(text, style = MaterialTheme.typography.labelLarge)
-            if (icon != null && iconPosition == C1IconPosition.END) {
-                Spacer(modifier = Modifier.width(C1Spacing.sm))
-                icon()
-            }
-        }
-        C1ButtonIntent.GHOST -> TextButton(
-            onClick = onClick,
-            modifier = m.fillMaxWidth(if (fullWidth) 1f else 0f),
-            enabled = enabled,
-            shape = C1Radius.sm,
-            colors = colors,
-            interactionSource = interactionSource
-        ) {
-            if (icon != null && iconPosition == C1IconPosition.START) {
-                icon()
-                Spacer(modifier = Modifier.width(C1Spacing.sm))
-            }
-            Text(text, style = MaterialTheme.typography.labelLarge)
-            if (icon != null && iconPosition == C1IconPosition.END) {
-                Spacer(modifier = Modifier.width(C1Spacing.sm))
-                icon()
-            }
-        }
-        else -> Button(
-            onClick = onClick,
-            modifier = m.fillMaxWidth(if (fullWidth) 1f else 0f),
-            enabled = enabled,
-            shape = C1Radius.sm,
-            colors = colors,
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
-            contentPadding = PaddingValues(horizontal = C1Spacing.xl, vertical = C1Spacing.md),
-            interactionSource = interactionSource
-        ) {
-            if (icon != null && iconPosition == C1IconPosition.START) {
-                icon()
-                Spacer(modifier = Modifier.width(C1Spacing.sm))
-            }
-            Text(text, style = MaterialTheme.typography.labelLarge)
-            if (icon != null && iconPosition == C1IconPosition.END) {
-                Spacer(modifier = Modifier.width(C1Spacing.sm))
-                icon()
-            }
-        }
-    }
-}
 
 enum class C1IconPosition { START, END }
 
@@ -456,62 +344,6 @@ fun C1SectionHeader(
             TextButton(onClick = onAction) {
                 Text(actionLabel, style = MaterialTheme.typography.labelLarge)
             }
-        }
-    }
-}
-
-/**
- * Empty or placeholder state: icon in a tonal circle, title, one-line message.
- */
-@Composable
-fun C1EmptyState(
-    icon: ImageVector,
-    title: String,
-    message: String,
-    modifier: Modifier = Modifier,
-    actionLabel: String? = null,
-    onAction: (() -> Unit)? = null
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(C1Spacing.xxxl),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(C1Spacing.lg)
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(64.dp)
-                .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape)
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(28.dp)
-            )
-        }
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = C1Spacing.xl),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-        )
-        if (actionLabel != null && onAction != null) {
-            C1Button(
-                text = actionLabel,
-                onClick = onAction,
-                intent = C1ButtonIntent.PRIMARY,
-                modifier = Modifier.fillMaxWidth(0.8f)
-            )
         }
     }
 }
@@ -841,34 +673,6 @@ fun C1Divider(
 }
 
 /**
- * Initials avatar for people and authors.
- */
-@Composable
-fun C1Avatar(
-    name: String,
-    modifier: Modifier = Modifier,
-    size: Dp = 40.dp,
-    containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
-    contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
-    fontSize: Int = 16
-) {
-    val initial = name.trim().take(1).uppercase()
-    Box(
-        modifier = modifier
-            .size(size)
-            .background(containerColor, CircleShape),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = initial,
-            style = MaterialTheme.typography.titleMedium.copy(fontSize = fontSize.sp),
-            fontWeight = FontWeight.Bold,
-            color = contentColor
-        )
-    }
-}
-
-/**
  * List row: leading element, title, optional subtitle, trailing slot.
  * The whole row is one TalkBack target.
  */
@@ -1187,34 +991,6 @@ fun C1CircularProgress(
         strokeWidth = strokeWidth,
         color = color
     )
-}
-
-/**
- * Badge for counts and notifications.
- */
-@Composable
-fun C1Badge(
-    count: Int,
-    modifier: Modifier = Modifier,
-    maxCount: Int = 99
-) {
-    if (count > 0) {
-        val displayText = if (count > maxCount) "$maxCount+" else count.toString()
-        Box(
-            modifier = modifier
-                .padding(start = -8.dp, top = -8.dp)
-                .background(MaterialTheme.colorScheme.error, CircleShape)
-                .padding(horizontal = 4.dp, vertical = 1.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = displayText,
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onError
-            )
-        }
-    }
 }
 
 /**
@@ -1854,7 +1630,7 @@ fun C1Avatar(
     containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
     contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
     fontSize: Int = 16,
-    status: C1StatusChip.Tone? = null,
+    status: C1Tone? = null,
     statusSize: Dp = 10.dp
 ) {
     val initial = name.trim().take(1).uppercase()
@@ -1877,11 +1653,11 @@ fun C1Avatar(
                     .size(statusSize)
                     .background(
                         when (status) {
-                            C1StatusChip.Tone.SUCCESS -> MaterialTheme.colorScheme.success
-                            C1StatusChip.Tone.WARNING -> MaterialTheme.colorScheme.warning
-                            C1StatusChip.Tone.DANGER -> MaterialTheme.colorScheme.error
-                            C1StatusChip.Tone.INFO -> MaterialTheme.colorScheme.info
-                            C1StatusChip.Tone.NEUTRAL -> MaterialTheme.colorScheme.onSurfaceVariant
+                            C1Tone.SUCCESS -> MaterialTheme.colorScheme.success
+                            C1Tone.WARNING -> MaterialTheme.colorScheme.warning
+                            C1Tone.DANGER -> MaterialTheme.colorScheme.error
+                            C1Tone.INFO -> MaterialTheme.colorScheme.info
+                            C1Tone.NEUTRAL -> MaterialTheme.colorScheme.onSurfaceVariant
                         },
                         CircleShape
                     )
@@ -2020,7 +1796,7 @@ fun C1ListItem(
 }
 
 /**
- * Search bar with debounce, clear button, and optional leading icon.
+ * Search bar with clear button.
  */
 @Composable
 fun C1SearchBar(
@@ -2029,8 +1805,7 @@ fun C1SearchBar(
     hint: String = "Search",
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    onClear: (() -> Unit)? = null,
-    leadingIcon: (@Composable () -> Unit)? = null
+    onClear: (() -> Unit)? = null
 ) {
     val compColors = componentColors
     val extColors = extendedColors
@@ -2053,39 +1828,38 @@ fun C1SearchBar(
                 modifier = Modifier.padding(bottom = C1Spacing.xs)
             )
         }
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier.fillMaxWidth(),
-        enabled = enabled,
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-        shape = C1Radius.md,
-        leadingIcon = leadingIcon,
-        trailingIcon = {
-            if (value.isNotEmpty() && onClear != null) {
-                IconButton(onClick = onClear) {
-                    Icon(Icons.Default.Close, contentDescription = "Clear", modifier = Modifier.size(20.dp))
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = modifier.fillMaxWidth(),
+            enabled = enabled,
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            shape = C1Radius.md,
+            trailingIcon = {
+                if (value.isNotEmpty() && onClear != null) {
+                    IconButton(onClick = onClear) {
+                        Icon(Icons.Default.Close, contentDescription = "Clear", modifier = Modifier.size(20.dp))
+                    }
+                } else {
+                    Box(Modifier.size(20.dp))
                 }
-            } else {
-                // Placeholder to maintain layout stability
-                Box(Modifier.size(20.dp))
-            }
-        },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f + focusEffect * 0.5f),
-            unfocusedBorderColor = compColors.inputBorder,
-            errorBorderColor = MaterialTheme.colorScheme.error,
-            cursorColor = MaterialTheme.colorScheme.primary,
-            focusedContainerColor = compColors.inputBackground,
-            unfocusedContainerColor = compColors.inputBackground,
-            disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            disabledBorderColor = extColors.hairline
-        ),
-        textStyle = MaterialTheme.typography.bodyMedium,
-        placeholderTextStyle = MaterialTheme.typography.bodyMedium.copy(
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f + focusEffect * 0.5f),
+                unfocusedBorderColor = compColors.inputBorder,
+                errorBorderColor = MaterialTheme.colorScheme.error,
+                cursorColor = MaterialTheme.colorScheme.primary,
+                focusedContainerColor = compColors.inputBackground,
+                unfocusedContainerColor = compColors.inputBackground,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                disabledBorderColor = extColors.hairline
+            ),
+            textStyle = MaterialTheme.typography.bodyMedium,
+            placeholderTextStyle = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            )
         )
-    )
     }
+}
 }
