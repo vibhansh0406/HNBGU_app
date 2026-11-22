@@ -251,13 +251,13 @@ fun OnboardingScreen(
                 )
                 else -> OnboardingStepClass(
                     selectedSemester = selectedSemester,
-                    onSemesterChange = { selectedSemester.value = it },
+                    onSemesterChange = { selectedSemester = it },
                     selectedSection = selectedSection,
-                    onSectionChange = { selectedSection.value = it },
+                    onSectionChange = { selectedSection = it },
                     isOwner = isOwner,
                     selectableRoles = selectableRoles,
                     selectedRole = selectedRole,
-                    onRoleChange = { selectedRole.value = it }
+                    onRoleChange = { selectedRole = it }
                 )
             }
         }
