@@ -12,6 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -1654,10 +1655,10 @@ fun C1Avatar(
                     .size(statusSize)
                     .background(
                         when (status) {
-                            C1Tone.SUCCESS -> MaterialTheme.colorScheme.success
-                            C1Tone.WARNING -> MaterialTheme.colorScheme.warning
+                            C1Tone.SUCCESS -> extendedColors.success
+                            C1Tone.WARNING -> extendedColors.warning
                             C1Tone.DANGER -> MaterialTheme.colorScheme.error
-                            C1Tone.INFO -> MaterialTheme.colorScheme.info
+                            C1Tone.INFO -> extendedColors.info
                             C1Tone.NEUTRAL -> MaterialTheme.colorScheme.onSurfaceVariant
                         },
                         CircleShape
