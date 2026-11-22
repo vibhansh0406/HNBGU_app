@@ -245,8 +245,8 @@ fun OnboardingScreen(
                     selectedCampus = selectedCampus,
                     onCampusChange = { selectedCampus = it },
                     courses = courses,
-                    selectedCourseIndex = courseSelection.index,
-                    onCourseChange = { courseSelection.index = it }
+                    selectedCourseIndex = selectedCourseIndex.value,
+                    onCourseChange = { selectedCourseIndex.value = it }
                 )
                 else -> OnboardingStepClass(
                     selectedSemester = selectedSemester,
@@ -287,7 +287,7 @@ fun OnboardingScreen(
                             step += 1
                         } else {
                             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            val (courseId, courseName) = courses[courseSelection.index]
+                            val (courseId, courseName) = courses[selectedCourseIndex.value]
                             onCompleteSetup(
                                 name,
                                 email,
