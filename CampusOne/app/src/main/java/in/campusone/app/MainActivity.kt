@@ -47,6 +47,7 @@ import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.School
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -526,35 +527,53 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
 
     val revealProgress by animateFloatAsState(
         targetValue = if (phase >= 1) 1f else 0f,
-        animationSpec = tween(durationMillis = 800, easing = C1Motion.emphasizedEasing),
+        animationSpec = spring(
+            dampingRatio = C1Motion.springDampingRatio,
+            stiffness = C1Motion.springStiffness
+        ),
         label = "introReveal"
     )
     val lightSweep by animateFloatAsState(
         targetValue = if (phase >= 2) 1f else -1f,
-        animationSpec = tween(durationMillis = 800, easing = C1Motion.standardEasing),
+        animationSpec = tween(durationMillis = 700, easing = C1Motion.standardEasing),
         label = "introLightSweep"
     )
     val wordmarkAlpha by animateFloatAsState(
         targetValue = if (phase >= 3) 1f else 0f,
-        animationSpec = tween(durationMillis = 800, easing = C1Motion.standardEasing),
-        label = "introWordmark"
+        animationSpec = spring(
+            dampingRatio = C1Motion.springDampingRatio,
+            stiffness = C1Motion.springSlowStiffness
+        ),
+        label = "introWordmarkAlpha"
+    )
+    val wordmarkScale by animateFloatAsState(
+        targetValue = if (phase >= 3) 1f else 0.92f,
+        animationSpec = spring(
+            dampingRatio = C1Motion.springDampingRatio,
+            stiffness = C1Motion.springSlowStiffness
+        ),
+        label = "introWordmarkScale"
     )
     val taglineAlpha by animateFloatAsState(
         targetValue = if (phase >= 4) 1f else 0f,
-        animationSpec = tween(durationMillis = 800, easing = C1Motion.standardEasing),
-        label = "introTagline"
+        animationSpec = tween(durationMillis = 700, easing = C1Motion.standardEasing),
+        label = "introTaglineAlpha"
+    )
+    val taglineSlide by animateFloatAsState(
+        targetValue = if (phase >= 4) 0f else 10f,
+        animationSpec = tween(durationMillis = 700, easing = C1Motion.standardEasing),
+        label = "introTaglineSlide"
     )
 
     LaunchedEffect(Unit) {
         phase = 1
-        delay(800)
+        delay(600)
         phase = 2
-        delay(800)
+        delay(600)
         phase = 3
-        delay(800)
+        delay(600)
         phase = 4
-        delay(800)
-        delay(800)
+        delay(700)
         onFinish()
     }
 
@@ -568,18 +587,33 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            // C mark — geometric reveal: scales up from 40% to 100%, fades in via tint alpha
+            // C mark glow halo
+            Box(
+                modifier = Modifier
+                    .size(110.dp * (0.4f + revealProgress * 0.6f))
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                Color(0xFF1B4D3A).copy(alpha = 0.12f * revealProgress),
+                                Color(0x001B4D3A)
+                            ),
+                            center = Alignment.Center
+                        )
+                    )
+            )
+
+            // C mark — geometric reveal: scales up from 30% to 100%
             Image(
                 painter = cMark,
                 contentDescription = "CampusOne",
                 modifier = Modifier
-                    .size(64.dp * (0.4f + revealProgress * 0.6f)),
+                    .size(64.dp * (0.3f + revealProgress * 0.7f)),
                 colorFilter = ColorFilter.tint(
                     Color(0xFF080B19).copy(alpha = revealProgress)
                 )
             )
 
-            // Silent light sweep across the C mark (no sound)
+            // Silent light sweep across the C mark
             Box(
                 modifier = Modifier
                     .size(100.dp)
@@ -587,7 +621,7 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
                         Brush.linearGradient(
                             colors = listOf(
                                 Color(0xFF080B19).copy(alpha = 0f),
-                                Color.White.copy(alpha = 0.4f),
+                                Color.White.copy(alpha = 0.5f),
                                 Color(0xFF080B19).copy(alpha = 0f)
                             ),
                             start = Offset(0f, 0.5f),
@@ -604,25 +638,27 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
                 .padding(horizontal = C1Spacing.xxl),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // Wordmark: "CampusOne"
+            // Wordmark: "CampusOne" — fade + scale up
             Text(
                 text = "CampusOne",
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF080B19).copy(alpha = wordmarkAlpha),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                modifier = Modifier.scale(wordmarkScale)
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Tagline: "Your campus. One place."
+            // Tagline: "Your campus. One place." — fade + slide up
             Text(
                 text = stringResource(R.string.tagline),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color(0xFF667085).copy(alpha = taglineAlpha),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                modifier = Modifier.offset(y = taglineSlide.dp)
             )
         }
     }
