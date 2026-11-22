@@ -85,9 +85,8 @@ class UserPreferencesRepository @Inject constructor(
     val eventRemindersEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.EVENT_REMINDERS_ENABLED] ?: true }
 
     suspend fun setDarkModeOverride(mode: String) {
-        context.dataStore.edit { it[Keys.DARK_MODE_OVERRIDE] = mode.uppercase().takeIf {
-            it in setOf("SYSTEM", "LIGHT", "DARK")
-        } ?: "SYSTEM" }
+        val normalized = mode.uppercase().takeIf { it in setOf("SYSTEM", "LIGHT", "DARK") } ?: "SYSTEM"
+        context.dataStore.edit { prefs -> prefs[Keys.DARK_MODE_OVERRIDE] = normalized }
     }
 
     suspend fun setNotificationsEnabled(enabled: Boolean) {
