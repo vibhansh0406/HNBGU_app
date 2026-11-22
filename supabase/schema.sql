@@ -2118,6 +2118,10 @@ create policy "campusone_delete_directory_suggestions" on public.directory_sugge
 grant select, insert, update, delete on public.study_resources to authenticated;
 grant select, insert, update, delete on public.directory_suggestions to authenticated;
 grant select, insert, update, delete on public.lost_found_contact_requests to authenticated;
+grant select, insert, update, delete on public.moderators to authenticated;
+revoke all on public.directory_suggestions from anon;
+revoke all on public.lost_found_contact_requests from anon;
+revoke all on public.moderators from anon;
 
 revoke execute on function public.campusone_is_staff() from public, anon;
 revoke execute on function public.campusone_is_catalog_admin() from public, anon;
@@ -2652,6 +2656,7 @@ revoke execute on function public.campusone_role_allowed(text, uuid) from public
 revoke execute on function public.campusone_audit(text, text, text, jsonb, text) from public, anon, authenticated;
 revoke execute on function public.campusone_handle_new_user() from public, anon, authenticated;
 revoke execute on function public.campusone_guard_study_resource() from public, anon, authenticated;
+revoke execute on function public.campusone_guard_status_only_staff() from public, anon, authenticated;
 revoke execute on function public.campusone_is_admin() from public, anon, authenticated;
 
 -- Read-only caller helpers and the app's identity snapshot are safe for the
