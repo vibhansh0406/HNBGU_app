@@ -181,6 +181,7 @@ enum class MoreSubScreen {
     COMMUNITY,
     NOTIFICATIONS,
     PROFILE,
+    SETTINGS,
     NOTES_PYQ,
     ASSIGNMENTS,
     EXAMS_SYLLABUS,
