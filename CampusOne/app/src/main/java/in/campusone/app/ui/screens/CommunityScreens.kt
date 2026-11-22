@@ -250,7 +250,7 @@ private fun CommunityFeed(
                 Column {
                     Text(
                         text = stringResource(R.string.community_title),
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.semantics { heading() }
@@ -534,12 +534,12 @@ private fun CommunityPostDetail(
             IconButton(onClick = onBack) {
                 Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.action_back))
             }
-            Text(
-                text = stringResource(R.string.community_tab_discussions),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
+                    Text(
+                        text = stringResource(R.string.community_tab_discussions),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
         }
         LazyColumn(
             modifier = Modifier.weight(1f),
@@ -908,12 +908,12 @@ fun NotificationsScreen(
                         Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                     Column {
-                        Text(
-                            text = stringResource(R.string.notifications_title),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                    Text(
+                        text = stringResource(R.string.notifications_title),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                         Text(
                             text = stringResource(R.string.notifications_subtitle),
                             style = MaterialTheme.typography.bodySmall,
@@ -1031,7 +1031,7 @@ fun StudentProfileScreen(
             Column {
                 Text(
                     text = stringResource(R.string.profile_title),
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
