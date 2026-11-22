@@ -11,7 +11,7 @@ colors:
   brand-violet-container: "#EEE9FF"
   on-brand-violet-container: "#2D1B63"
   brand-coral: "#D65F4B"
-  on-brand-coral: "#3A1712"
+  on-brand-coral: "#32100B"
   brand-coral-container: "#FFE7E1"
   on-brand-coral-container: "#5A2118"
   background: "#F6F7FB"
@@ -92,6 +92,18 @@ The palette is designed for WCAG AA text contrast. White text on primary blue is
 - Prefer tonal surface steps and 1dp borders over shadows. Elevation belongs to floating controls, menus and dialogs only.
 - Interactive targets should be at least 48dp high and have clear spacing.
 
+## Screen inventory (audited repository destinations)
+- **Entry and identity:** silent intro, Google sign-in, student onboarding, profile.
+- **Primary tabs:** Home, Attendance, Timetable and Notices; More is the feature library.
+- **Home:** student greeting/profile, next class, attendance summary, quick actions, announcements and upcoming assignments/exam at-a-glance.
+- **Study:** Notes & PYQ, Assignments, Exams & Syllabus, GPA Calculator.
+- **Campus:** Community, Notifications, Events & Clubs, Lost & Found, Campus Directory.
+- **Account:** Profile, Settings and Privacy Policy.
+- **Administration:** Admin Hub, moderators, subjects, timetable, notices, assignments, exams, clubs, events, lost-and-found and directory management.
+- **Super Admin:** users, roles, content, moderation, settings and audit.
+
+No existing destination was removed. The role-gated administration branches remain protected by the existing role/permission checks.
+
 ## Information architecture
 Primary bottom navigation remains **Home / Attendance / Timetable / Notices / More**. This keeps the four highest-frequency academic destinations one tap away and avoids a risky rewrite of the existing state-based navigation.
 
@@ -114,7 +126,7 @@ Home prioritises the next actionable academic item, then attendance and today's 
 A setting is not a setting unless it changes app behaviour and survives process restarts. Do not add decorative controls for unsupported features.
 
 ## Motion
-- Use native Compose animation APIs and the shared `C1Motion` durations/easing.
+- Use native Compose animation APIs and the shared `C1Motion` durations/easing. Feature tiles use small semantic-tint icon wells; avoid decorative motion that competes with information.
 - Press feedback is subtle (about 0.97 scale plus ripple, 120–160ms).
 - Navigation uses a restrained fade and short horizontal movement; preserve state across tab switches.
 - Animate progress only when the value changes; do not continuously animate idle dashboards.
