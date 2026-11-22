@@ -72,6 +72,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.geometry.Offset
 import `in`.campusone.app.R
 import `in`.campusone.app.ui.theme.C1Border
 import `in`.campusone.app.ui.theme.C1Elevation
@@ -1606,7 +1607,7 @@ fun C1Badge(
                 .padding(start = -8.dp, top = -8.dp)
                 .background(MaterialTheme.colorScheme.error, CircleShape)
                 .padding(horizontal = 4.dp, vertical = 1.dp)
-                .alpha(pulseAlpha),
+                .graphicsLayer { alpha = pulseAlpha },
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -1770,14 +1771,14 @@ fun C1ListItem(
                     text = title,
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.alpha(if (enabled) 1f else 0.5f)
+                    modifier = Modifier.graphicsLayer { alpha = if (enabled) 1f else 0.5f }
                 )
                 if (!subtitle.isNullOrBlank()) {
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.alpha(if (enabled) 1f else 0.5f)
+                        modifier = Modifier.graphicsLayer { alpha = if (enabled) 1f else 0.5f }
                     )
                 }
                 metadata?.let {
