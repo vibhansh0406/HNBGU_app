@@ -361,7 +361,7 @@ fun NoticeBoardScreen(
 }
 
 @Composable
-private fun showNoticesList(
+private fun LazyListScope.showNoticesList(
     displayedNotices: List<NoticeItem>,
     onMarkNoticeRead: (String) -> Unit,
     onNoticeClick: (NoticeItem) -> Unit
