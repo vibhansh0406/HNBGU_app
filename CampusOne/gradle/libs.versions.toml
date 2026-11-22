@@ -24,7 +24,7 @@ coroutinesTest = "1.9.0"
 playServicesAuth = "21.2.0"
 
 # Coil image loading (avatars, resource thumbnails)
-coil = "2.7.0"
+coil = "2.6.0"
 
 # Material Components (Views)
 material = "1.12.0"
