@@ -515,7 +515,15 @@ private fun QuickActionTile(
         icon = action.icon,
         title = stringResource(action.labelRes),
         description = stringResource(action.descriptionRes),
-        iconColor = MaterialTheme.colorScheme.primary,
+        iconColor = when (action.screen) {
+            MoreSubScreen.ASSIGNMENTS -> MaterialTheme.colorScheme.tertiary
+            MoreSubScreen.EXAMS_SYLLABUS -> extendedColors.warning
+            MoreSubScreen.NOTES_PYQ -> MaterialTheme.colorScheme.secondary
+            MoreSubScreen.GPA_CALCULATOR -> MaterialTheme.colorScheme.primary
+            MoreSubScreen.LOST_FOUND -> extendedColors.info
+            MoreSubScreen.DIRECTORY -> MaterialTheme.colorScheme.onSurfaceVariant
+            else -> MaterialTheme.colorScheme.primary
+        },
         onClick = { onOpenMore(action.screen) }
     )
 }
