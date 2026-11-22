@@ -12,7 +12,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +20,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -1649,21 +1649,19 @@ fun C1Avatar(
             color = contentColor
         )
         if (status != null) {
-            Box(
+            Surface(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .size(statusSize)
-                    .background(
-                        when (status) {
-                            C1Tone.SUCCESS -> extendedColors.success
-                            C1Tone.WARNING -> extendedColors.warning
-                            C1Tone.DANGER -> MaterialTheme.colorScheme.error
-                            C1Tone.INFO -> extendedColors.info
-                            C1Tone.NEUTRAL -> MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                        CircleShape
-                    )
-                    .border(2.dp, MaterialTheme.colorScheme.background, CircleShape)
+                    .size(statusSize),
+                shape = CircleShape,
+                color = when (status) {
+                    C1Tone.SUCCESS -> extendedColors.success
+                    C1Tone.WARNING -> extendedColors.warning
+                    C1Tone.DANGER -> MaterialTheme.colorScheme.error
+                    C1Tone.INFO -> extendedColors.info
+                    C1Tone.NEUTRAL -> MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                border = BorderStroke(2.dp, MaterialTheme.colorScheme.background)
             )
         }
     }
