@@ -1086,7 +1086,12 @@ create policy "campusone_read_timetable_slots" on public.timetable_slots
 create policy "campusone_read_notices" on public.notices
   for select using (true);
 create policy "campusone_read_study_resources" on public.study_resources
-  for select using (true);
+  for select to authenticated
+  using (
+    (coalesce(is_hidden, false) = false and coalesce(is_flagged, false) = false)
+    or public.campusone_is_staff()
+    or public.campusone_has_permission('MODERATE_REPORTS')
+  );
 create policy "campusone_read_syllabus_topics" on public.syllabus_topics
   for select using (true);
 create policy "campusone_read_clubs" on public.clubs
@@ -1883,10 +1888,15 @@ language sql
 stable
 security definer
 set search_path = public
-as $$
+as $
   select public.campusone_is_owner()
-      or public.campusone_caller_role() in ('ADMIN', 'TEACHER', 'CR', 'MODERATOR');
-$$;
+      or exists (
+        select 1 from public.profiles p
+        where p.id = auth.uid()
+          and p.role in ('ADMIN', 'TEACHER', 'CR', 'MODERATOR')
+          and p.is_suspended = false
+      );
+$;
 
 create or replace function public.campusone_is_catalog_admin()
 returns boolean
@@ -1999,7 +2009,21 @@ security definer
 set search_path = public
 as $$
 begin
-  if not public.campusone_is_staff() then
+  if public.campusone_is_staff() then
+    return new;
+  end if;
+
+  if tg_op = 'INSERT' then
+    if auth.uid() is null then
+      raise exception 'Authenticated user required to create a study resource';
+    end if;
+    new.uploader_uid := auth.uid()::text;
+    new.is_approved_by_cr := false;
+    new.is_hidden := false;
+    new.is_flagged := false;
+    new.upvotes := 0;
+    new.report_count := 0;
+  else
     new.uploader_uid := old.uploader_uid;
     new.uploader_name := old.uploader_name;
     new.is_approved_by_cr := old.is_approved_by_cr;
@@ -2008,6 +2032,10 @@ begin
     new.upvotes := old.upvotes;
     new.report_count := old.report_count;
     new.upload_status := old.upload_status;
+    new.file_url := old.file_url;
+    new.file_type := old.file_type;
+    new.file_size_bytes := old.file_size_bytes;
+    new.file_hash := old.file_hash;
   end if;
   return new;
 end;
@@ -2015,7 +2043,7 @@ $$;
 
 drop trigger if exists study_resources_guard on public.study_resources;
 create trigger study_resources_guard
-  before update on public.study_resources
+  before insert or update on public.study_resources
   for each row execute function public.campusone_guard_study_resource();
 
 -- ---------------------------------------------------------------------------
