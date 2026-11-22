@@ -77,7 +77,7 @@ Do not use brand accents as arbitrary decoration. A screen may use blue as its a
 All screen code consumes `MaterialTheme.colorScheme` and `extendedColors`; do not introduce screen-local hex values for theme roles. The semantic green remains available for success, but green is no longer the brand colour.
 
 ## Contrast
-The palette is designed for WCAG AA text contrast. White text on primary blue is approximately 6.06:1; white on violet is approximately 6.22:1. Coral uses a dark foreground (approximately 4.27:1 against the selected deep coral text; prefer larger/bolder text or the coral container for small text). The default body text and neutral backgrounds exceed 12:1. Always verify actual foreground/background pairs when adding a new component. Do not place white small text directly on the coral brand tone.
+The palette is designed for WCAG AA text contrast. White text on primary blue is approximately 6.06:1; white on violet is approximately 6.22:1. Coral uses a dark foreground (approximately 4.61:1 with the specified deep coral foreground). The default body text and neutral backgrounds exceed 12:1. Always verify actual foreground/background pairs when adding a new component. Do not place white small text directly on the coral brand tone.
 
 ## Typography
 - **Manrope** is the display voice for screen titles, section headings and prominent metrics.
