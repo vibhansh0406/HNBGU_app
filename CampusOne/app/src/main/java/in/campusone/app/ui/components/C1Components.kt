@@ -1421,7 +1421,7 @@ fun C1Button(
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.alpha(if (loading) 0f else 1f)
+                modifier = Modifier.graphicsLayer { alpha = if (loading) 0f else 1f }
             )
             if (icon != null && iconPosition == C1IconPosition.END) {
                 Spacer(modifier = Modifier.width(C1Spacing.sm))
@@ -1432,7 +1432,7 @@ fun C1Button(
 
     when (intent) {
         C1ButtonIntent.OUTLINED -> OutlinedButton(
-            onClick = if (loading) null else onClick,
+            onClick = { if (!loading) onClick() },
             modifier = m.fillMaxWidth(if (fullWidth) 1f else 0f),
             enabled = enabled && !loading,
             shape = C1Radius.sm,
@@ -1444,7 +1444,7 @@ fun C1Button(
             buttonContent()
         }
         C1ButtonIntent.GHOST -> TextButton(
-            onClick = if (loading) null else onClick,
+            onClick = { if (!loading) onClick() },
             modifier = m.fillMaxWidth(if (fullWidth) 1f else 0f),
             enabled = enabled && !loading,
             shape = C1Radius.sm,
@@ -1454,7 +1454,7 @@ fun C1Button(
             buttonContent()
         }
         else -> Button(
-            onClick = if (loading) null else onClick,
+            onClick = { if (!loading) onClick() },
             modifier = m.fillMaxWidth(if (fullWidth) 1f else 0f),
             enabled = enabled && !loading,
             shape = C1Radius.sm,
