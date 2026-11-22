@@ -1664,8 +1664,8 @@ fun C1Avatar(
                     C1Tone.NEUTRAL -> MaterialTheme.colorScheme.onSurfaceVariant
                 },
                 border = BorderStroke(2.dp, MaterialTheme.colorScheme.background)
-            )
-            content = { }
+            ) {
+            }
         }
     }
 }
