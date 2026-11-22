@@ -226,7 +226,9 @@ class MainActivity : AppCompatActivity() {
                             lifecycleScope.launch {
                                 // Deactivate FCM token on sign-out
                                 FirebaseMessaging.getInstance().token.addOnSuccessListener { fcmToken ->
-                                    supabaseSync.deactivateDeviceToken(fcmToken)
+                                    lifecycleScope.launch {
+                                        supabaseSync.deactivateDeviceToken(fcmToken)
+                                    }
                                 }
                                 authManager.signOut()
                             }
@@ -307,7 +309,7 @@ fun CampusOneRoot(
     val unreadNotifications by communityViewModel.unreadNotificationCount.collectAsStateWithLifecycle()
 
     // Handle FCM notification tap navigation
-    var pendingNotification by remember { mutableStateOf<Pair<String, String>?>(null) }
+    val pendingNotification = remember { mutableStateOf<Pair<String, String>?>(null) }
     LaunchedEffect(pendingNotificationTarget) {
         pendingNotification.value = pendingNotificationTarget
     }

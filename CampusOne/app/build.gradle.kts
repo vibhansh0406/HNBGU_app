@@ -47,6 +47,7 @@ android {
         buildConfigField("String", "GOOGLE_OAUTH_CLIENT_ID", quoted(configValue("google.oauth.client_id")))
         buildConfigField("String", "GOOGLE_OAUTH_WEB_CLIENT_ID", quoted(configValue("google.oauth.web_client_id")))
         buildConfigField("String", "GOOGLE_OAUTH_CALLBACK_URL", quoted(configValue("google.oauth.callback_url")))
+        buildConfigField("String", "SUPABASE_EDGE_FUNCTION_URL", quoted(configValue("supabase.edge.function.url")))
     }
 
     signingConfigs {
