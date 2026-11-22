@@ -165,11 +165,17 @@
     <string name="home_open_profile">Open profile</string>
     <string name="home_loading_announcements">Loading announcements\u2026</string>
     <string name="qa_assignments">Assignments</string>
+    <string name="qa_assignments_desc">Track tasks, deadlines and submissions</string>
     <string name="qa_exams">Exams</string>
+    <string name="qa_exams_desc">Exam dates, syllabus and countdown</string>
     <string name="qa_notes">Notes &amp; PYQ</string>
+    <string name="qa_notes_desc">Study materials and previous papers</string>
     <string name="qa_gpa">GPA</string>
+    <string name="qa_gpa_desc">SGPA, CGPA and target calculator</string>
     <string name="qa_lost_found">Lost &amp; Found</string>
+    <string name="qa_lost_found_desc">Report or claim lost items</string>
     <string name="qa_directory">Directory</string>
+    <string name="qa_directory_desc">Faculty, HoDs and emergency contacts</string>
     <string name="latest_notice">Latest notice</string>
     <string name="due_today">Today</string>
     <string name="due_tomorrow">Tomorrow</string>

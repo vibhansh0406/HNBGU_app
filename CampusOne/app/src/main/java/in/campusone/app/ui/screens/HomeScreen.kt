@@ -445,7 +445,7 @@ private fun AttendanceSummaryCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = stringResource(R.string.attendance_overall),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(C1Spacing.xs))
@@ -455,8 +455,8 @@ private fun AttendanceSummaryCard(
             AnimatedAttendanceRing(
                 percentage = insight.currentPercentage,
                 health = insight.health,
-                size = 80.dp,
-                strokeWidth = 9.dp,
+                size = 90.dp,
+                strokeWidth = 10.dp,
                 label = "Overall"
             )
         }
@@ -466,6 +466,7 @@ private fun AttendanceSummaryCard(
 private data class HomeQuickAction(
     val icon: ImageVector,
     val labelRes: Int,
+    val descriptionRes: Int,
     val screen: MoreSubScreen,
     val color: Color
 )
@@ -483,12 +484,12 @@ private fun QuickActionsSection(onOpenMore: (MoreSubScreen) -> Unit) {
 
     val actions = remember {
         listOf(
-            HomeQuickAction(Icons.Default.Assignment, R.string.qa_assignments, MoreSubScreen.ASSIGNMENTS, primaryColor),
-            HomeQuickAction(Icons.Default.EventNote, R.string.qa_exams, MoreSubScreen.EXAMS_SYLLABUS, tertiaryColor),
-            HomeQuickAction(Icons.Default.MenuBook, R.string.qa_notes, MoreSubScreen.NOTES_PYQ, secondaryColor),
-            HomeQuickAction(Icons.Default.Calculate, R.string.qa_gpa, MoreSubScreen.GPA_CALCULATOR, oakColor),
-            HomeQuickAction(Icons.Default.Search, R.string.qa_lost_found, MoreSubScreen.LOST_FOUND, errorColor),
-            HomeQuickAction(Icons.Default.ContactPhone, R.string.qa_directory, MoreSubScreen.DIRECTORY, tertiaryColor)
+            HomeQuickAction(Icons.Default.Assignment, R.string.qa_assignments, R.string.qa_assignments_desc, MoreSubScreen.ASSIGNMENTS, primaryColor),
+            HomeQuickAction(Icons.Default.EventNote, R.string.qa_exams, R.string.qa_exams_desc, MoreSubScreen.EXAMS_SYLLABUS, tertiaryColor),
+            HomeQuickAction(Icons.Default.MenuBook, R.string.qa_notes, R.string.qa_notes_desc, MoreSubScreen.NOTES_PYQ, secondaryColor),
+            HomeQuickAction(Icons.Default.Calculate, R.string.qa_gpa, R.string.qa_gpa_desc, MoreSubScreen.GPA_CALCULATOR, oakColor),
+            HomeQuickAction(Icons.Default.Search, R.string.qa_lost_found, R.string.qa_lost_found_desc, MoreSubScreen.LOST_FOUND, errorColor),
+            HomeQuickAction(Icons.Default.ContactPhone, R.string.qa_directory, R.string.qa_directory_desc, MoreSubScreen.DIRECTORY, tertiaryColor)
         )
     }
 
@@ -496,7 +497,7 @@ private fun QuickActionsSection(onOpenMore: (MoreSubScreen) -> Unit) {
         C1SectionHeader(title = stringResource(R.string.home_quick_actions))
         actions.chunked(cols).forEach { rowActions ->
             Row(
-                modifier = Modifier.heightIn(min = 100.dp),
+                modifier = Modifier.heightIn(min = 120.dp),
                 horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
             ) {
                 rowActions.forEach { action ->
@@ -520,10 +521,10 @@ private fun QuickActionTile(
     onOpenMore: (MoreSubScreen) -> Unit
 ) {
     C1FeatureCard(
-        modifier = modifier.heightIn(min = 100.dp),
+        modifier = modifier.heightIn(min = 120.dp),
         icon = action.icon,
         title = stringResource(action.labelRes),
-        description = "",
+        description = stringResource(action.descriptionRes),
         iconColor = action.color,
         onClick = { onOpenMore(action.screen) }
     )
