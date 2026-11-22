@@ -1813,7 +1813,10 @@ fun C1SearchBar(
 ) {
     val compColors = componentColors
     val extColors = extendedColors
-    var isFocused by remember { mutableStateOf<Boolean>(false) }
+    val isFocusedState = remember { mutableStateOf<Boolean>(false) }
+    var isFocused: Boolean
+        get() = isFocusedState.value
+        set(value) { isFocusedState.value = value }
     val focusEffect by animateFloatAsState(
         targetValue = if (isFocused) 1f else 0f,
         animationSpec = tween(durationMillis = C1Motion.fastMillis),
@@ -1840,7 +1843,7 @@ fun C1SearchBar(
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             shape = C1Radius.md,
-            trailingIcon = {
+            trailingIcon = @Composable {
                 if (value.isNotEmpty() && onClear != null) {
                     IconButton(onClick = onClear) {
                         Icon(Icons.Default.Close, contentDescription = "Clear", modifier = Modifier.size(20.dp))
@@ -1860,9 +1863,14 @@ fun C1SearchBar(
                 disabledBorderColor = extColors.hairline
             ),
             textStyle = MaterialTheme.typography.bodyMedium,
-            placeholderTextStyle = MaterialTheme.typography.bodyMedium.copy(
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-            )
+            placeholder = @Composable {
+                Text(
+                    text = hint,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                )
+            }
         )
     }
 }
