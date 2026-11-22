@@ -236,7 +236,7 @@ class MainActivity : AppCompatActivity() {
                                 authManager.signOut()
                             }
                         },
-                        pendingNotificationTarget = pendingNotificationTarget.value
+                        pendingNotificationTarget = pendingNotificationTarget
                     )
                 }
         }
