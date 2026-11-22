@@ -74,10 +74,6 @@ import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.theme.C1TouchTarget
 
-class CourseSelectionState {
-    var index: Int = 0
-}
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun OnboardingScreen(
@@ -141,8 +137,7 @@ fun OnboardingScreen(
         "bped" to "B.P.Ed.",
         "blib" to "B.Lib.I.Sc."
     )
-    val courseSelection = remember { CourseSelectionState() }
-    var selectedSemester by rememberSaveable { mutableIntStateOf(3) }
+    val selectedSemester by rememberSaveable { mutableIntStateOf(3) }
     var selectedSection by rememberSaveable { mutableStateOf("A") }
     var selectedRole by rememberSaveable { mutableStateOf(UserRole.STUDENT) }
 
@@ -395,18 +390,6 @@ private fun OnboardingStepCampusCourse(
     selectedCourseIndex: Int,
     onCourseChange: (Int) -> Unit
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(C1Spacing.xl)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(C1Spacing.sm),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Your Campus",
-                style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -448,13 +431,12 @@ private fun OnboardingStepCampusCourse(
                 horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
             ) {
                 items(courses, key = { it.first }) { (courseId, label) ->
-                    val isSelected = courseSelection.index == courses.indexOfFirst { it.first == courseId }
+                    val isSelected = selectedCourseIndex == courses.indexOfFirst { it.first == courseId }
                     CourseSelectionCard(
                         label = label,
                         selected = isSelected,
-                        courseSelection = courseSelection,
                         onClick = {
-                            courseSelection.index = courses.indexOfFirst { it.first == courseId }
+                            onCourseChange(courses.indexOfFirst { it.first == courseId })
                         }
                     )
                 }
@@ -596,7 +578,6 @@ private fun OnboardingStepClass(
 private fun CourseSelectionCard(
     label: String,
     selected: Boolean,
-    courseSelection: CourseSelectionState,
     onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
