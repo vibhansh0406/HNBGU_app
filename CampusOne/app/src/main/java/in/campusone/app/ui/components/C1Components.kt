@@ -277,10 +277,7 @@ fun C1ToggleButton(
                     MaterialTheme.colorScheme.onPrimary
                 } else {
                     MaterialTheme.colorScheme.onSurfaceVariant
-                }
-            )
-        }
-    }
+}
 }
 
 /**

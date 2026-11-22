@@ -682,56 +682,8 @@ fun MoreHubScreen(
                 }
             )
         }
-    } else {
-            AlertDialog(
-                onDismissRequest = { showRoleRequest = false },
-                title = { Text("Request a role") },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(
-                            text = "Your request is sent to the admin. Access is granted only after approval.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            requestableRoles.forEach { role ->
-                                FilterChip(
-                                    selected = requestedRole == role.name,
-                                    onClick = { requestedRole = role.name },
-                                    label = { Text(role.name) }
-                                )
-                            }
-                        }
-                        C1TextField(
-                            value = roleRequestNote,
-                            onValueChange = { roleRequestNote = it },
-                            label = "Note (optional)",
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                },
-                confirmButton = {
-                    C1Button(
-                        text = "Send request",
-                        onClick = {
-                            viewModel.requestRole(
-                                UserRole.entries.firstOrNull { it.name == requestedRole } ?: UserRole.CR,
-                                roleRequestNote.trim()
-                            )
-                            showRoleRequest = false
-                        }
-                    )
-                },
-                dismissButton = {
-                    C1Button(
-                        text = "Cancel",
-                        onClick = { showRoleRequest = false },
-                        intent = C1ButtonIntent.GHOST
-                    )
-                }
-            )
-        }
+    }
+
     } else {
         Scaffold(
             topBar = {
