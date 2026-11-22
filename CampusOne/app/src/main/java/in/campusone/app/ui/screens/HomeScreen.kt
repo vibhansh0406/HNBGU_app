@@ -1,8 +1,8 @@
 package `in`.campusone.app.ui.screens
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.animateFloatAsState
 import androidx.compose.animation.animateItemPlacement
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
