@@ -452,6 +452,7 @@ private fun OnboardingStepCampusCourse(
                     CourseSelectionCard(
                         label = label,
                         selected = isSelected,
+                        courseSelection = courseSelection,
                         onClick = {
                             courseSelection.index = courses.indexOfFirst { it.first == courseId }
                         }
@@ -595,6 +596,7 @@ private fun OnboardingStepClass(
 private fun CourseSelectionCard(
     label: String,
     selected: Boolean,
+    courseSelection: CourseSelectionState,
     onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
