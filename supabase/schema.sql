@@ -2688,3 +2688,14 @@ grant execute on function public.admin_moderate_content(text, text, text) to aut
 grant execute on function public.admin_approve_role_request(uuid) to authenticated;
 grant execute on function public.admin_reject_role_request(uuid) to authenticated;
 grant execute on function public.admin_moderate_community(text, text, text) to authenticated;
+
+-- RLS does not protect TRUNCATE, REFERENCES or TRIGGER table privileges.
+revoke truncate, references, trigger on all tables in schema public from public, anon, authenticated;
+revoke all privileges on all tables in schema public from anon;
+revoke all on all sequences in schema public from anon;
+revoke execute on all functions in schema public from anon;
+
+alter default privileges in schema public revoke all on tables from anon;
+alter default privileges in schema public revoke all on sequences from anon;
+alter default privileges in schema public revoke execute on functions from anon;
+alter default privileges in schema public revoke truncate, references, trigger on tables from authenticated;
