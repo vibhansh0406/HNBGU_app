@@ -140,14 +140,12 @@ class CoreCampusRepository @Inject constructor(
         if (!supabaseSync.isSyncedEnabled()) return
 
         // Download timetable independently — failure should not block notices sync
-        val remoteTimetable = runCatching {
-            supabaseSync.downloadStudentTimetable(
-                courseId = profile.courseId,
-                courseName = profile.courseName,
-                semester = profile.semester,
-                section = profile.section
-            )
-        }.getOrDefault(emptyList())
+        val remoteTimetable: List<Map<String, Any>> = supabaseSync.downloadStudentTimetable(
+            courseId = profile.courseId,
+            courseName = profile.courseName,
+            semester = profile.semester,
+            section = profile.section
+        ).getOrDefault(emptyList())
 
         val slots = remoteTimetable.map { map ->
             TimetableSlotEntity(
@@ -186,12 +184,8 @@ class CoreCampusRepository @Inject constructor(
         if (subjects.isNotEmpty()) attendanceDao.upsertSubjects(subjects)
 
         // Download notices independently — failure should not block timetable sync
-        val sectionNotices = runCatching {
-            supabaseSync.downloadNotices(sectionKey)
-        }.getOrDefault(emptyList())
-        val globalNotices = runCatching {
-            supabaseSync.downloadNotices("global")
-        }.getOrDefault(emptyList())
+        val sectionNotices: List<Map<String, Any>> = supabaseSync.downloadNotices(sectionKey).getOrDefault(emptyList())
+        val globalNotices: List<Map<String, Any>> = supabaseSync.downloadNotices("global").getOrDefault(emptyList())
         val remoteNotices = (sectionNotices + globalNotices).distinctBy { it["id"] }
         val readIds = noticeDao.getReadNoticeIds(sectionKey).toSet()
         noticeDao.replaceSectionNotices(sectionKey, remoteNotices.map { map ->
