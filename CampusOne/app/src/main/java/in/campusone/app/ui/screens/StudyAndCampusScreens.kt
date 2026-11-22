@@ -420,7 +420,7 @@ fun MoreHubScreen(
                     )
                     HubActionCard(
                         title = stringResource(R.string.nav_attendance),
-                        subtitle = stringResource(R.string.hub_attendance_sub, Math.round(coreState.overallInsight.percentage)),
+                        subtitle = stringResource(R.string.hub_attendance_sub, Math.round(coreState.overallInsight.currentPercentage)),
                         icon = Icons.Default.CheckCircle,
                         iconColor = extendedColors.success,
                         onClick = { onOpenAttendance() }
