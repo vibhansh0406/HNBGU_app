@@ -4,6 +4,8 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -632,11 +634,16 @@ private fun NoticePreview(
     onOpenNotice: (String) -> Unit
 ) {
     val dateFormat = remember { SimpleDateFormat("d MMM", Locale.getDefault()) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onOpenNotice(notice.id) }
+            .clickable(
+                interactionSource = interactionSource,
+                onClick = onOpenNotice(notice.id)
+            )
             .padding(C1Spacing.lg)
             .semantics(mergeDescendants = true) {},
         verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)
@@ -659,7 +666,7 @@ private fun NoticePreview(
                     )
                     Text(
                         text = stringResource(R.string.home_pinned),
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -675,28 +682,29 @@ private fun NoticePreview(
             }
             Text(
                 text = dateFormat.format(Date(notice.createdAtMillis)),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
         }
         Text(
             text = notice.title,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (pressed) 0.8f else 1f),
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
         Text(
             text = notice.body,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
         Text(
             text = "${notice.authorName} • ${notice.authorRole.name}",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
