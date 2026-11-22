@@ -1,5 +1,7 @@
 package `in`.campusone.app.ui.screens
 
+import android.content.Intent
+import android.provider.Settings as AndroidSettings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +44,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -73,6 +76,7 @@ fun SettingsScreen(
     val examReminders by viewModel.examRemindersEnabled.collectAsStateWithLifecycle()
     val eventReminders by viewModel.eventRemindersEnabled.collectAsStateWithLifecycle()
     var showSignOut by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
 
     LazyColumn(
             modifier = Modifier
@@ -142,6 +146,12 @@ fun SettingsScreen(
                     SettingsSwitchRow("Study material", "New notes and resource uploads", Icons.Default.Info, studyUpdates, notifications) {
                         viewModel.setNotificationCategory("study_material", it)
                     }
+                    SettingsActionRow("Android notification settings", "Manage system permission and notification channels", Icons.Default.Notifications) {
+                        val intent = Intent(AndroidSettings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                            putExtra(AndroidSettings.EXTRA_APP_PACKAGE, context.packageName)
+                        }
+                        context.startActivity(intent)
+                    }
                 }
             }
             item {
@@ -169,6 +179,14 @@ fun SettingsScreen(
             item { C1SectionHeader(title = "Privacy & support") }
             item {
                 C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.md)) {
+                    SettingsActionRow("Send feedback", "Share feedback using an app on your device", Icons.Default.Info) {
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_SUBJECT, "CampusOne feedback")
+                            putExtra(Intent.EXTRA_TEXT, "CampusOne " + BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")\n\nFeedback:\n")
+                        }
+                        context.startActivity(Intent.createChooser(intent, "Send feedback"))
+                    }
                     SettingsActionRow("Privacy policy", "How CampusOne handles your information", Icons.Default.PrivacyTip, onOpenPrivacy)
                 }
             }
