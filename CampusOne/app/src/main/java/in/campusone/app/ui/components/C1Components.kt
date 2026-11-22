@@ -1398,7 +1398,7 @@ fun C1Button(
         .height(height)
         .graphicsLayer { scaleX = scale; scaleY = scale }
 
-    val buttonContent = {
+    val buttonContent = @Composable {
         if (loading) {
             Box(
                 modifier = Modifier.size(20.dp),
