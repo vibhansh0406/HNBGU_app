@@ -44,8 +44,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignmentimport androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -72,6 +71,10 @@ import `in`.campusone.app.ui.theme.C1Motion
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.theme.C1TouchTarget
+
+class CourseSelectionState {
+    var index: Int = 0
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -136,7 +139,7 @@ fun OnboardingScreen(
         "bped" to "B.P.Ed.",
         "blib" to "B.Lib.I.Sc."
     )
-    val selectedCourseIndex: MutableIntState = remember { mutableIntStateOf(0) }
+    val courseSelection = remember { CourseSelectionState() }
     var selectedSemester by rememberSaveable { mutableIntStateOf(3) }
     var selectedSection by rememberSaveable { mutableStateOf("A") }
     var selectedRole by rememberSaveable { mutableStateOf(UserRole.STUDENT) }
@@ -245,8 +248,8 @@ fun OnboardingScreen(
                     selectedCampus = selectedCampus,
                     onCampusChange = { selectedCampus = it },
                     courses = courses,
-                    selectedCourseIndex = selectedCourseIndex.value,
-                    onCourseChange = { selectedCourseIndex.value = it }
+                    selectedCourseIndex = courseSelection.index,
+                    onCourseChange = { courseSelection.index = it }
                 )
                 else -> OnboardingStepClass(
                     selectedSemester = selectedSemester,
@@ -287,7 +290,7 @@ fun OnboardingScreen(
                             step += 1
                         } else {
                             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            val (courseId, courseName) = courses[selectedCourseIndex.value]
+                            val (courseId, courseName) = courses[courseSelection.index]
                             onCompleteSetup(
                                 name,
                                 email,
@@ -443,12 +446,12 @@ private fun OnboardingStepCampusCourse(
                 horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
             ) {
                 items(courses, key = { it.first }) { (courseId, label) ->
-                    val isSelected = selectedCourseIndex.value == courses.indexOfFirst { it.first == courseId }
+                    val isSelected = courseSelection.index == courses.indexOfFirst { it.first == courseId }
                     CourseSelectionCard(
                         label = label,
                         selected = isSelected,
                         onClick = {
-                            selectedCourseIndex.value = courses.indexOfFirst { it.first == courseId }
+                            courseSelection.index = courses.indexOfFirst { it.first == courseId }
                         }
                     )
                 }
