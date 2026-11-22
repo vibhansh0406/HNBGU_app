@@ -401,21 +401,21 @@ fun MoreHubScreen(
                         title = stringResource(R.string.notes_pyq),
                         subtitle = stringResource(R.string.hub_resources_sub, uiState.resources.size),
                         icon = Icons.Default.Description,
-                        iconColor = Color(0xFF8B5CF6),
+                        iconColor = MaterialTheme.colorScheme.tertiary,
                         onClick = { activeScreen = MoreSubScreen.NOTES_PYQ }
                     )
                     HubActionCard(
                         title = stringResource(R.string.assignments_title),
                         subtitle = stringResource(R.string.hub_assignments_sub, uiState.assignments.count { !it.isCompleted && it.isAddedToPersonalList }),
                         icon = Icons.Default.Assignment,
-                        iconColor = Color(0xFFFB923C),
+                        iconColor = MaterialTheme.colorScheme.primary,
                         onClick = { activeScreen = MoreSubScreen.ASSIGNMENTS }
                     )
                     HubActionCard(
                         title = stringResource(R.string.timetable_title),
                         subtitle = stringResource(R.string.hub_timetable_sub, coreState.allTimetableSlots.size),
                         icon = Icons.Default.Schedule,
-                        iconColor = Color(0xFF6366F1),
+                        iconColor = MaterialTheme.colorScheme.secondary,
                         onClick = { onOpenTimetable() }
                     )
                     HubActionCard(
@@ -446,7 +446,7 @@ fun MoreHubScreen(
                         title = stringResource(R.string.community_title),
                         subtitle = stringResource(R.string.hub_community_sub, communityState.posts.size),
                         icon = Icons.Default.Forum,
-                        iconColor = Color(0xFF14B8A6),
+                        iconColor = MaterialTheme.colorScheme.secondary,
                         onClick = { activeScreen = MoreSubScreen.COMMUNITY }
                     )
                     HubActionCard(
@@ -457,14 +457,14 @@ fun MoreHubScreen(
                             stringResource(R.string.notifications_subtitle)
                         },
                         icon = Icons.Default.Notifications,
-                        iconColor = extendedColors.warning,
+                        iconColor = if (unreadNotifications > 0) extendedColors.warning else MaterialTheme.colorScheme.primary,
                         onClick = { activeScreen = MoreSubScreen.NOTIFICATIONS }
                     )
                     HubActionCard(
                         title = stringResource(R.string.events_clubs),
                         subtitle = stringResource(R.string.hub_events_sub, uiState.events.size),
                         icon = Icons.Default.Event,
-                        iconColor = Color(0xFF22D3EE),
+                        iconColor = MaterialTheme.colorScheme.tertiary,
                         onClick = { activeScreen = MoreSubScreen.EVENTS_CLUBS }
                     )
                 }
@@ -502,7 +502,7 @@ fun MoreHubScreen(
                         title = stringResource(R.string.gpa_calculator),
                         subtitle = stringResource(R.string.hub_gpa_sub, uiState.gpaResult.formattedSgpa, uiState.gpaResult.formattedCgpa, uiState.gpaResult.formattedPercentage),
                         icon = Icons.Default.Calculate,
-                        iconColor = extendedColors.success,
+                        iconColor = MaterialTheme.colorScheme.primary,
                         onClick = { activeScreen = MoreSubScreen.GPA_CALCULATOR }
                     )
                 }
@@ -2413,7 +2413,7 @@ fun GpaCalculatorScreen(
                         valueRange = 6.0f..uiState.gpaScaleType.maxScalePoint.toFloat()
                     )
                     val message = when {
-                        req.alreadyAchieved -> "You have already achieved your target CGPA of ${String.format(Locale.US, "%.2f", req.targetCgpa)}! 🎉"
+                        req.alreadyAchieved -> "You have already achieved your target CGPA of ${String.format(Locale.US, "%.2f", req.targetCgpa)}."
                         req.isAchievable -> "You need an SGPA of ${String.format(Locale.US, "%.2f", req.requiredSgpa)} in your next ${req.upcomingCredits} credits to reach ${String.format(Locale.US, "%.2f", req.targetCgpa)} CGPA."
                         else -> "Requires ${String.format(Locale.US, "%.2f", req.requiredSgpa)} SGPA (exceeds max ${req.maxScalePoint}). Try targeting across 2 semesters."
                     }
