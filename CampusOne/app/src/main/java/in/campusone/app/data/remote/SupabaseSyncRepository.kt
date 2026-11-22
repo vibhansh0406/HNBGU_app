@@ -55,7 +55,8 @@ class SupabaseSyncRepository @Inject constructor(
         semester: Int,
         section: String,
         moderatorScope: String = "",
-        isModeratorApproved: Boolean = false
+        isModeratorApproved: Boolean = false,
+        onboardingCompleted: Boolean = false
     ) {
         if (!isSyncedEnabled()) return
         supabaseClient.from("profiles").upsert(mapOf(
@@ -71,6 +72,7 @@ class SupabaseSyncRepository @Inject constructor(
             "section" to section,
             "moderator_scope" to moderatorScope,
             "is_moderator_approved" to isModeratorApproved,
+            "onboarding_completed" to onboardingCompleted,
             "updated_at" to System.currentTimeMillis()
         ))
     }

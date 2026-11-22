@@ -95,21 +95,15 @@ class CoreViewModel @Inject constructor(
         val resolvedUid = uid ?: authManager.currentUserId() ?: return
         val email = sessionEmail ?: authManager.currentUserEmail()
         val isOwner = email?.equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true) == true
-        val alreadyOnboarded = prefs.isOnboarded.first()
         val remote = runCatching { repository.fetchRemoteProfile(resolvedUid) }.getOrNull()
+
         if (remote == null) {
+            // No remote profile exists — create one with onboarding_completed = FALSE.
+            // The server-side trigger or bootstrap_profile RPC handles defaults.
             val local = prefs.userProfile.first()
             val resolvedEmail = email?.takeIf { it.isNotBlank() } ?: local.email
-            if (isOwner && alreadyOnboarded) {
-                if (local.role != UserRole.ADMIN || local.email != resolvedEmail) {
-                    prefs.saveUserProfile(
-                        local.copy(role = UserRole.ADMIN, email = resolvedEmail),
-                        markOnboarded = true
-                    )
-                }
-            }
-            // Every registered auth account must have a profile row. This is the
-            // only path that repairs accounts that skipped or failed onboarding.
+            // Server has no profile: mark local as not onboarded so onboarding is shown.
+            prefs.saveUserProfile(local.copy(onboardingCompleted = false), markOnboarded = false)
             authManager.ensureUserProfile(
                 uid = resolvedUid,
                 email = resolvedEmail,
@@ -118,17 +112,23 @@ class CoreViewModel @Inject constructor(
             )
             return
         }
+
+        // Remote profile exists. Server's onboardingCompleted is the source of truth.
         val remoteRole = if (isOwner) UserRole.ADMIN else remote.role
-        if (!alreadyOnboarded) {
-            prefs.saveUserProfile(remote.copy(role = remoteRole), markOnboarded = true)
-            repository.ensureSeededForSection(remote.sectionKey)
+
+        if (!remote.onboardingCompleted) {
+            // Not onboarded yet — sync profile data but keep local flag as not onboarded.
+            // The UI will show the onboarding screen.
+            prefs.saveUserProfile(remote.copy(role = remoteRole), markOnboarded = false)
             return
         }
+
+        // Onboarded — sync local state to match the server.
         val local = prefs.userProfile.first()
         val resolvedEmail = email?.takeIf { it.isNotBlank() } ?: local.email
-        if (local.role != remoteRole || local.name != remote.name || local.email != resolvedEmail) {
+        if (local.role != remoteRole || local.name != remote.name || local.email != resolvedEmail || !local.onboardingCompleted) {
             prefs.saveUserProfile(
-                local.copy(role = remoteRole, name = remote.name, email = resolvedEmail),
+                local.copy(role = remoteRole, name = remote.name, email = resolvedEmail, onboardingCompleted = true),
                 markOnboarded = true
             )
         }
@@ -221,13 +221,14 @@ class CoreViewModel @Inject constructor(
                 name = name.ifBlank { "HNBGU Student" },
                 email = profileEmail.ifBlank { "student@hnbgu.ac.in" },
                 role = effectiveRole,
-                verifiedRole = true, // Pilot mode: enable immediate CR/Teacher publishing
+                verifiedRole = true,
                 collegeId = "hnbgu",
                 collegeName = collegeName,
                 courseId = courseId,
                 courseName = courseName,
                 semester = semester,
-                section = section
+                section = section,
+                onboardingCompleted = true
             )
             prefs.saveUserProfile(profile, markOnboarded = true)
             repository.ensureSeededForSection(profile.sectionKey)

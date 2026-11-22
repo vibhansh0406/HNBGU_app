@@ -63,9 +63,9 @@ class UserPreferencesRepository @Inject constructor(
             prefs[Keys.USER_PROFILE_JSON] = json.encodeToString(profile)
             prefs[Keys.TARGET_ATTENDANCE_PCT] = profile.targetAttendancePct
             prefs[Keys.REMINDER_LEAD_MINS] = profile.reminderLeadMinutes
-            if (markOnboarded) {
-                prefs[Keys.IS_ONBOARDED] = true
-            }
+            // The server's onboarding_completed flag is the source of truth.
+            // markOnboarded=true (e.g. after local onboarding completion) also sets it.
+            prefs[Keys.IS_ONBOARDED] = profile.onboardingCompleted || markOnboarded
         }
     }
 
