@@ -8,7 +8,8 @@ data class SupabaseConfig(
     val anonKey: String = "",
     val googleClientId: String = "",
     val googleWebClientId: String = "",
-    val oauthCallbackUrl: String = ""
+    val oauthCallbackUrl: String = "",
+    val edgeFunctionUrl: String = ""
 )
 
 object SupabaseConfigLoader {
@@ -26,7 +27,8 @@ object SupabaseConfigLoader {
             anonKey = value(BuildConfig.SUPABASE_ANON_KEY, "supabase.anon.key"),
             googleClientId = value(BuildConfig.GOOGLE_OAUTH_CLIENT_ID, "google.oauth.client_id"),
             googleWebClientId = value(BuildConfig.GOOGLE_OAUTH_WEB_CLIENT_ID, "google.oauth.web_client_id"),
-            oauthCallbackUrl = value(BuildConfig.GOOGLE_OAUTH_CALLBACK_URL, "google.oauth.callback_url")
+            oauthCallbackUrl = value(BuildConfig.GOOGLE_OAUTH_CALLBACK_URL, "google.oauth.callback_url"),
+            edgeFunctionUrl = value(BuildConfig.SUPABASE_EDGE_FUNCTION_URL, "supabase.edge.function.url")
         )
     }
 

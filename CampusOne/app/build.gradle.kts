@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.google.services)
 }
 
 val localProperties = Properties().apply {
@@ -119,6 +120,10 @@ dependencies {
 
     // Google Sign-In
     implementation(libs.play.services.auth)
+
+    // Firebase Cloud Messaging (Supabase remains the backend)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 
     // Hilt DI
     implementation(libs.hilt.android)

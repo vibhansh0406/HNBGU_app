@@ -95,11 +95,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import `in`.campusone.app.data.remote.AuthManager
 import `in`.campusone.app.data.remote.SupabaseSession
 import `in`.campusone.app.data.repository.CoreCampusRepository
+import `in`.campusone.app.data.remote.SupabaseSyncRepository
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1NavItem
 import `in`.campusone.app.ui.screens.AttendanceScreen
@@ -131,6 +134,9 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var authManager: AuthManager
 
+    @Inject
+    lateinit var supabaseSync: SupabaseSyncRepository
+
     private val googleSignInLauncher: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             result.data?.let { data ->
@@ -158,6 +164,18 @@ class MainActivity : AppCompatActivity() {
                                                 "Profile save failed: ${profileResult.exceptionOrNull()?.message ?: ""}",
                                                 android.widget.Toast.LENGTH_LONG
                                             ).show()
+                                        }
+                                        // Register FCM token for push notifications
+                                        FirebaseMessaging.getInstance().token.addOnSuccessListener { fcmToken ->
+                                            lifecycleScope.launch {
+                                                supabaseSync.registerDeviceToken(
+                                                    uid = uid,
+                                                    fcmToken = fcmToken,
+                                                    devicePlatform = "android",
+                                                    deviceName = android.os.Build.MODEL,
+                                                    email = account.email ?: ""
+                                                )
+                                            }
                                         }
                                     }
                                 } else {
@@ -189,6 +207,8 @@ class MainActivity : AppCompatActivity() {
         val onGoogleSignIn = {
             googleSignInLauncher.launch(authManager.getSignInIntent())
         }
+        // Handle notification tap intent from onCreate (cold start)
+        val notificationTarget = handleNotificationIntent(intent)
         setContent {
             NotificationPermissionRequest()
             val config = androidx.compose.ui.platform.LocalConfiguration.current
@@ -198,16 +218,47 @@ class MainActivity : AppCompatActivity() {
                 config.screenWidthDp < 1200 -> `in`.campusone.app.ui.theme.C1WindowSize.LARGE
                 else -> `in`.campusone.app.ui.theme.C1WindowSize.EXPANDED
             }
-            CampusOneTheme(windowSize = ws) {
-                CampusOneRoot(
-                    onGoogleSignIn = onGoogleSignIn,
-                    authSession = authManager.session,
-                    onSignOut = {
-                        lifecycleScope.launch { authManager.signOut() }
-                    }
-                )
+                CampusOneTheme(windowSize = ws) {
+                    CampusOneRoot(
+                        onGoogleSignIn = onGoogleSignIn,
+                        authSession = authManager.session,
+                        onSignOut = {
+                            lifecycleScope.launch {
+                                // Deactivate FCM token on sign-out
+                                FirebaseMessaging.getInstance().token.addOnSuccessListener { fcmToken ->
+                                    supabaseSync.deactivateDeviceToken(fcmToken)
+                                }
+                                authManager.signOut()
+                            }
+                        },
+                        pendingNotificationTarget = notificationTarget
+                    )
+                }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val target = handleNotificationIntent(intent)
+        if (target != null) {
+            lifecycleScope.launch {
+                // The notification target will be handled by CampusOneRoot via the pendingNotificationTarget param
+                // We need to signal it through a state update. For now, store it and let the recomposition pick it up.
             }
         }
+    }
+
+    /** Extracts notification target from an intent. Returns a Pair of (targetType, targetId) or null. */
+    private fun handleNotificationIntent(intent: Intent): Pair<String, String>? {
+        if (intent.action == "in.campusone.app.NOTIFICATION_CLICK") {
+            val targetType = intent.getStringExtra("target_type") ?: ""
+            val targetId = intent.getStringExtra("target_id") ?: ""
+            if (targetType.isNotBlank() && targetId.isNotBlank()) {
+                return targetType to targetId
+            }
+        }
+        return null
     }
 }
 
@@ -236,7 +287,8 @@ fun CampusOneRoot(
     onSignOut: () -> Unit,
     coreViewModel: CoreViewModel = hiltViewModel(),
     studyCampusViewModel: StudyAndCampusViewModel = hiltViewModel(),
-    communityViewModel: CommunityViewModel = hiltViewModel()
+    communityViewModel: CommunityViewModel = hiltViewModel(),
+    pendingNotificationTarget: Pair<String, String>? = null
 ) {
     val authSessionState by authSession.collectAsStateWithLifecycle()
     val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
@@ -253,6 +305,40 @@ fun CampusOneRoot(
     var isSigningIn by remember { mutableStateOf(false) }
     val noticesSyncError by coreViewModel.noticesSyncError.collectAsStateWithLifecycle()
     val unreadNotifications by communityViewModel.unreadNotificationCount.collectAsStateWithLifecycle()
+
+    // Handle FCM notification tap navigation
+    var pendingNotification by remember { mutableStateOf<Pair<String, String>?>(null) }
+    LaunchedEffect(pendingNotificationTarget) {
+        pendingNotification.value = pendingNotificationTarget
+    }
+    LaunchedEffect(pendingNotification.value) {
+        val target = pendingNotification.value
+        if (target != null && System.currentTimeMillis() - lastNotificationNavAt > 400) {
+            val (targetType, targetId) = target
+            lastNotificationNavAt = System.currentTimeMillis()
+            when (targetType) {
+                "NOTICE" -> {
+                    pendingNoticeId = targetId
+                    currentTab = BottomNavTab.NOTICES
+                }
+                "ASSIGNMENT" -> {
+                    pendingAssignmentId = targetId
+                    pendingMoreScreen = MoreSubScreen.ASSIGNMENTS
+                    currentTab = BottomNavTab.MORE
+                }
+                "POST" -> {
+                    pendingCommunityPostId = targetId
+                    pendingMoreScreen = MoreSubScreen.COMMUNITY
+                    currentTab = BottomNavTab.MORE
+                }
+                "ADMIN" -> {
+                    pendingMoreScreen = MoreSubScreen.ADMIN_PANEL
+                    currentTab = BottomNavTab.MORE
+                }
+            }
+            pendingNotification.value = null
+        }
+    }
 
     BackHandler(enabled = currentTab != BottomNavTab.HOME) {
         currentTab = BottomNavTab.HOME
