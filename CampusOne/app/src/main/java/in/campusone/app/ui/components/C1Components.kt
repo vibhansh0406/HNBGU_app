@@ -1862,4 +1862,3 @@ fun C1SearchBar(
         )
     }
 }
-}
