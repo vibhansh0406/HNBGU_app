@@ -2030,6 +2030,3 @@ fun HubListRow(
         }
     }
 }
-        )
-    }
-}
