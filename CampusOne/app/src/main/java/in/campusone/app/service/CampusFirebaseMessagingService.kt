@@ -85,8 +85,6 @@ class CampusFirebaseMessagingService : FirebaseMessagingService() {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "University-wide announcements from the admin"
-                setEnableLights(true)
-                setEnableVibration(true)
             },
             NotificationChannel(
                 NotificationChannels.NOTICES,
@@ -94,8 +92,6 @@ class CampusFirebaseMessagingService : FirebaseMessagingService() {
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 description = "Section-level notices from CRs and faculty"
-                setEnableLights(true)
-                setEnableVibration(true)
             },
             NotificationChannel(
                 NotificationChannels.EXAMS,
@@ -103,8 +99,6 @@ class CampusFirebaseMessagingService : FirebaseMessagingService() {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Exam schedule and update notifications"
-                setEnableLights(true)
-                setEnableVibration(true)
             },
             NotificationChannel(
                 NotificationChannels.ASSIGNMENTS,
@@ -112,8 +106,6 @@ class CampusFirebaseMessagingService : FirebaseMessagingService() {
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 description = "Assignment and deadline reminders"
-                setEnableLights(true)
-                setEnableVibration(true)
             },
             NotificationChannel(
                 NotificationChannels.STUDY_MATERIAL,
@@ -121,8 +113,6 @@ class CampusFirebaseMessagingService : FirebaseMessagingService() {
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
                 description = "New study material and resource uploads"
-                setEnableLights(false)
-                setEnableVibration(false)
             },
             NotificationChannel(
                 NotificationChannels.ADMIN_ALERTS,
@@ -130,8 +120,6 @@ class CampusFirebaseMessagingService : FirebaseMessagingService() {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Critical administrative alerts"
-                setEnableLights(true)
-                setEnableVibration(true)
             }
         )
         manager.createNotificationChannels(channels)
