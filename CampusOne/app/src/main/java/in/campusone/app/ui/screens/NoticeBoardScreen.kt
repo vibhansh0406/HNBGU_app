@@ -287,60 +287,79 @@ fun NoticeBoardScreen(
                     when {
                         uiState.isLoading && uiState.notices.isEmpty() -> {
                             // State 1: Loading, no cached data yet
-                            C1LoadingState(label = stringResource(R.string.home_loading_announcements))
+                            item {
+                                C1LoadingState(label = stringResource(R.string.home_loading_announcements))
+                            }
                         }
 
                         dataRefreshError && uiState.notices.isEmpty() -> {
                             // State 2: Request failed, no cached data — error state with retry
-                            C1ErrorState(
-                                title = stringResource(R.string.home_announcements_error),
-                                message = stringResource(R.string.home_announcements_error_hint),
-                                retryLabel = stringResource(R.string.home_retry),
-                                onRetry = onRetryRefresh
-                            )
+                            item {
+                                C1ErrorState(
+                                    title = stringResource(R.string.home_announcements_error),
+                                    message = stringResource(R.string.home_announcements_error_hint),
+                                    retryLabel = stringResource(R.string.home_retry),
+                                    onRetry = onRetryRefresh
+                                )
+                            }
                         }
 
                         dataRefreshError && uiState.notices.isNotEmpty() -> {
                             // State 3: Request failed but cached data exists — warning banner + cached notices
-                            Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                                C1Banner(
-                                    text = stringResource(R.string.notices_sync_failed),
-                                    tone = C1Tone.WARNING,
-                                    icon = Icons.Default.Info,
-                                    actionLabel = stringResource(R.string.home_retry),
-                                    onAction = onRetryRefresh
-                                )
+                            item {
+                                Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                                    C1Banner(
+                                        text = stringResource(R.string.notices_sync_failed),
+                                        tone = C1Tone.WARNING,
+                                        icon = Icons.Default.Info,
+                                        actionLabel = stringResource(R.string.home_retry),
+                                        onAction = onRetryRefresh
+                                    )
+                                }
                             }
-                            // Fall through to show cached notices below
-                            showNoticesList(displayedNotices, onMarkNoticeRead) { notice ->
-                                if (!notice.isRead) onMarkNoticeRead(notice.id)
-                                selectedNoticeId = notice.id
+                            items(displayedNotices, key = { it.id }) { notice ->
+                                NoticeListCard(
+                                    notice = notice,
+                                    onClick = {
+                                        if (!notice.isRead) onMarkNoticeRead(notice.id)
+                                        selectedNoticeId = notice.id
+                                    }
+                                )
                             }
                         }
 
                         uiState.notices.isEmpty() -> {
                             // State 4: Successfully loaded, genuinely empty
-                            NoticeEmptyState(
-                                icon = Icons.Default.Campaign,
-                                title = stringResource(R.string.empty_notices),
-                                message = stringResource(R.string.empty_notices_hint)
-                            )
+                            item {
+                                NoticeEmptyState(
+                                    icon = Icons.Default.Campaign,
+                                    title = stringResource(R.string.empty_notices),
+                                    message = stringResource(R.string.empty_notices_hint)
+                                )
+                            }
                         }
 
                         displayedNotices.isEmpty() -> {
                             // State 5: Filter applied, no matches
-                            NoticeEmptyState(
-                                icon = Icons.Default.Search,
-                                title = stringResource(R.string.notices_none_match),
-                                message = stringResource(R.string.notices_none_match_hint)
-                            )
+                            item {
+                                NoticeEmptyState(
+                                    icon = Icons.Default.Search,
+                                    title = stringResource(R.string.notices_none_match),
+                                    message = stringResource(R.string.notices_none_match_hint)
+                                )
+                            }
                         }
 
                         else -> {
                             // State 6: Successfully loaded with announcements
-                            showNoticesList(displayedNotices, onMarkNoticeRead) { notice ->
-                                if (!notice.isRead) onMarkNoticeRead(notice.id)
-                                selectedNoticeId = notice.id
+                            items(displayedNotices, key = { it.id }) { notice ->
+                                NoticeListCard(
+                                    notice = notice,
+                                    onClick = {
+                                        if (!notice.isRead) onMarkNoticeRead(notice.id)
+                                        selectedNoticeId = notice.id
+                                    }
+                                )
                             }
                         }
                     }
@@ -356,23 +375,6 @@ fun NoticeBoardScreen(
             onSubmit = { title, body, url, type, pinned, category, priority, official ->
                 onPostNotice(title, body, url, type, pinned, category, priority, official)
                 showComposer = false
-            }
-        )
-    }
-}
-
-@Composable
-private fun LazyListScope.showNoticesList(
-    displayedNotices: List<NoticeItem>,
-    onMarkNoticeRead: (String) -> Unit,
-    onNoticeClick: (NoticeItem) -> Unit
-) {
-    items(displayedNotices, key = { it.id }) { notice ->
-        NoticeListCard(
-            notice = notice,
-            onClick = {
-                if (!notice.isRead) onMarkNoticeRead(notice.id)
-                onNoticeClick(notice)
             }
         )
     }
