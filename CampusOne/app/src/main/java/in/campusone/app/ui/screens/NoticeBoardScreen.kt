@@ -71,6 +71,7 @@ import `in`.campusone.app.ui.components.C1Banner
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1EmptyState
+import `in`.campusone.app.ui.components.C1ErrorState
 import `in`.campusone.app.ui.components.C1SectionHeader
 import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1LoadingState
@@ -313,7 +314,6 @@ fun NoticeBoardScreen(
                             showNoticesList(displayedNotices, onMarkNoticeRead) { notice ->
                                 if (!notice.isRead) onMarkNoticeRead(notice.id)
                                 selectedNoticeId = notice.id
-                                onOpenNotice(notice.id)
                             }
                         }
 
@@ -340,7 +340,6 @@ fun NoticeBoardScreen(
                             showNoticesList(displayedNotices, onMarkNoticeRead) { notice ->
                                 if (!notice.isRead) onMarkNoticeRead(notice.id)
                                 selectedNoticeId = notice.id
-                                onOpenNotice(notice.id)
                             }
                         }
                     }
