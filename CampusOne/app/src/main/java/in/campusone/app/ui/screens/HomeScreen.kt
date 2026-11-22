@@ -439,8 +439,7 @@ private fun AttendanceSummaryCard(
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(C1Spacing.lg),
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -468,8 +467,7 @@ private data class HomeQuickAction(
     val icon: ImageVector,
     val labelRes: Int,
     val descriptionRes: Int,
-    val screen: MoreSubScreen,
-    val color: Color
+    val screen: MoreSubScreen
 )
 
 @Composable
@@ -477,22 +475,14 @@ private fun QuickActionsSection(onOpenMore: (MoreSubScreen) -> Unit) {
     val ws = windowSize
     val cols = C1Spacing.gridColumns(ws)
 
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val tertiaryColor = MaterialTheme.colorScheme.secondary
-    val secondaryColor = MaterialTheme.colorScheme.tertiary
-    val errorColor = Color(0xFF006E8A)
-    val oakColor = Color(0xFF7A5C4A)
-
-    val actions = remember {
-        listOf(
-            HomeQuickAction(Icons.Default.Assignment, R.string.qa_assignments, R.string.qa_assignments_desc, MoreSubScreen.ASSIGNMENTS, primaryColor),
-            HomeQuickAction(Icons.Default.EventNote, R.string.qa_exams, R.string.qa_exams_desc, MoreSubScreen.EXAMS_SYLLABUS, tertiaryColor),
-            HomeQuickAction(Icons.Default.MenuBook, R.string.qa_notes, R.string.qa_notes_desc, MoreSubScreen.NOTES_PYQ, secondaryColor),
-            HomeQuickAction(Icons.Default.Calculate, R.string.qa_gpa, R.string.qa_gpa_desc, MoreSubScreen.GPA_CALCULATOR, oakColor),
-            HomeQuickAction(Icons.Default.Search, R.string.qa_lost_found, R.string.qa_lost_found_desc, MoreSubScreen.LOST_FOUND, errorColor),
-            HomeQuickAction(Icons.Default.ContactPhone, R.string.qa_directory, R.string.qa_directory_desc, MoreSubScreen.DIRECTORY, tertiaryColor)
-        )
-    }
+    val actions = listOf(
+        HomeQuickAction(Icons.Default.Assignment, R.string.qa_assignments, R.string.qa_assignments_desc, MoreSubScreen.ASSIGNMENTS),
+        HomeQuickAction(Icons.Default.EventNote, R.string.qa_exams, R.string.qa_exams_desc, MoreSubScreen.EXAMS_SYLLABUS),
+        HomeQuickAction(Icons.Default.MenuBook, R.string.qa_notes, R.string.qa_notes_desc, MoreSubScreen.NOTES_PYQ),
+        HomeQuickAction(Icons.Default.Calculate, R.string.qa_gpa, R.string.qa_gpa_desc, MoreSubScreen.GPA_CALCULATOR),
+        HomeQuickAction(Icons.Default.Search, R.string.qa_lost_found, R.string.qa_lost_found_desc, MoreSubScreen.LOST_FOUND),
+        HomeQuickAction(Icons.Default.ContactPhone, R.string.qa_directory, R.string.qa_directory_desc, MoreSubScreen.DIRECTORY)
+    )
 
     Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
         C1SectionHeader(title = stringResource(R.string.home_quick_actions))
@@ -526,7 +516,7 @@ private fun QuickActionTile(
         icon = action.icon,
         title = stringResource(action.labelRes),
         description = stringResource(action.descriptionRes),
-        iconColor = action.color,
+        iconColor = MaterialTheme.colorScheme.primary,
         onClick = { onOpenMore(action.screen) }
     )
 }
