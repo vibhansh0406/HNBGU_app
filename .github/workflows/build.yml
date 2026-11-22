@@ -77,12 +77,12 @@ jobs:
             echo "=== $apk ==="
             # Verify package name and app info
             $AAPT dump badging "$apk" | head -1
-            # Verify cryptographic signature (fails if unsigned or invalid)
-            $APKSIGNER verify --print-certs "$apk" | grep -E "SHA-1|SHA-256"
+            # Verify cryptographic signature (fails with non-zero exit if unsigned or invalid)
+            $APKSIGNER verify --verbose "$apk"
             # Verify APK alignment (4-byte alignment required for installation)
-            $ZIPALIGN -c 4 "$apk" | grep -E "Verification|OK"
-            # Verify signature schemes (V1, V2, V3)
-            $APKSIGNER verify --print-certs "$apk" | grep -E "V1|V2|V3"
+            $ZIPALIGN -c 4 "$apk"
+            # Print certificate info for the record
+            $APKSIGNER verify --print-certs "$apk" | grep -E "SHA-1|SHA-256" || true
           done
       - name: Run unit tests
         run: gradle testDebugUnitTest
