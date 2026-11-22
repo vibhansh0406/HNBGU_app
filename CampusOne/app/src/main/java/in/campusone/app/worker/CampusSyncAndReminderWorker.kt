@@ -40,6 +40,11 @@ class CampusSyncAndReminderWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         val profile = prefs.userProfile.first()
+        val notificationsEnabled = prefs.notificationsEnabled.first()
+        val classRemindersEnabled = notificationsEnabled && prefs.classRemindersEnabled.first()
+        val assignmentRemindersEnabled = notificationsEnabled && prefs.assignmentRemindersEnabled.first()
+        val examRemindersEnabled = notificationsEnabled && prefs.examRemindersEnabled.first()
+        val eventRemindersEnabled = notificationsEnabled && prefs.eventRemindersEnabled.first()
         val nowMillis = System.currentTimeMillis()
 
         // 1. Check upcoming class reminders offline using local Room timetable
@@ -74,7 +79,7 @@ class CampusSyncAndReminderWorker @AssistedInject constructor(
         // 2. Check Assignment Deadlines (1 day before = 1440m, 2 hours before = 120m)
         val pendingAssignments = studyDao.getPendingAssignmentsSnapshot()
         for (task in pendingAssignments) {
-            if (!task.reminderEnabled) continue
+            if (!assignmentRemindersEnabled || !task.reminderEnabled) continue
             val offsets = buildList {
                 if (task.remind1DayBefore) add(1440)
                 if (task.remind2HoursBefore) add(120)
@@ -105,7 +110,7 @@ class CampusSyncAndReminderWorker @AssistedInject constructor(
         // 3. Check Exam Reminders (24 hours & 3 hours before exam)
         val upcomingExams = studyDao.getExamsSnapshot()
         for (exam in upcomingExams) {
-            if (!exam.reminderEnabled) continue
+            if (!examRemindersEnabled || !exam.reminderEnabled) continue
             val specs = ReminderSchedulerLogic.computeReminderSpecs(
                 targetId = exam.id,
                 title = exam.subjectName,
@@ -131,6 +136,7 @@ class CampusSyncAndReminderWorker @AssistedInject constructor(
         // 4. Phase 3: Check Campus Event Reminders (for GOING / INTERESTED events) & 30-Day Lost & Found Auto-Archive
         val rsvpedEvents = campusLifeDao.getRsvpedEventsSnapshot()
         for (event in rsvpedEvents) {
+            if (!eventRemindersEnabled) continue
             val specs = ReminderSchedulerLogic.computeReminderSpecs(
                 targetId = event.id,
                 title = event.title,
