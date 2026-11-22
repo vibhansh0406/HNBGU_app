@@ -531,7 +531,7 @@ fun MoreHubScreen(
                         title = stringResource(R.string.hub_settings_title),
                         subtitle = stringResource(R.string.hub_settings_subtitle),
                         icon = Icons.Default.Settings,
-                        onClick = { /* Settings screen - placeholder */ }
+                        onClick = { activeScreen = MoreSubScreen.SETTINGS }
                     )
                     HubListRow(
                         title = stringResource(R.string.hub_sign_out_title),
@@ -693,7 +693,7 @@ fun MoreHubScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(activeScreen.name.replace("_", " ")) },
+                    title = { Text(if (activeScreen == MoreSubScreen.SETTINGS) "Settings" else activeScreen.name.replace("_", " ")) },
                     navigationIcon = {
                         IconButton(onClick = { activeScreen = MoreSubScreen.HUB }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to Study Hub")
@@ -724,6 +724,12 @@ fun MoreHubScreen(
                     MoreSubScreen.EVENTS_CLUBS -> EventsAndClubsScreen(uiState, viewModel)
                     MoreSubScreen.LOST_FOUND -> LostAndFoundScreen(uiState, viewModel)
                     MoreSubScreen.DIRECTORY -> CampusDirectoryScreen(uiState, viewModel)
+                    MoreSubScreen.SETTINGS -> SettingsScreen(
+                        profile = coreState.profile,
+                        onBack = { activeScreen = MoreSubScreen.HUB },
+                        onSignOut = onSignOut,
+                        onOpenPrivacy = { activeScreen = MoreSubScreen.PRIVACY_POLICY }
+                    )
                     MoreSubScreen.PRIVACY_POLICY -> PrivacyPolicyScreen()
 MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
                         uiState = adminViewModel.uiState.value,
