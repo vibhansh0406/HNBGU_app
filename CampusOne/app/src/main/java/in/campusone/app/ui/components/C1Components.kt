@@ -1814,11 +1814,8 @@ fun C1SearchBar(
     val compColors = componentColors
     val extColors = extendedColors
     val isFocusedState = remember { mutableStateOf<Boolean>(false) }
-    var isFocused: Boolean
-        get() = isFocusedState.value
-        set(value) { isFocusedState.value = value }
     val focusEffect by animateFloatAsState(
-        targetValue = if (isFocused) 1f else 0f,
+        targetValue = if (isFocusedState.value) 1f else 0f,
         animationSpec = tween(durationMillis = C1Motion.fastMillis),
         label = "searchFocus"
     )
