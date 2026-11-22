@@ -34,11 +34,13 @@ create table if not exists public.profiles (
   is_moderator_approved boolean not null default false,
   verified_role boolean not null default false,
   is_suspended boolean not null default false,
+  onboarding_completed boolean not null default false,
   created_at bigint not null default 0,
   updated_at bigint not null default 0
 );
 
 alter table public.profiles add column if not exists is_suspended boolean not null default false;
+alter table public.profiles add column if not exists onboarding_completed boolean not null default false;
 
 -- =========================================================================
 -- PERMISSION MODEL
