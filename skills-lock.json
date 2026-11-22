@@ -17,37 +17,37 @@
     },
     "antislop": {
       "source": "miqdadbadjuber/anti-slop",
-      "commit": "main",
+      "commit": "7f6a03df2931c12cb244dc4ab14ee4866b0ac2ba",
       "sourceType": "github",
       "skillPath": "skills/antislop/SKILL.md"
     },
     "antislop-ui": {
       "source": "miqdadbadjuber/anti-slop",
-      "commit": "main",
+      "commit": "7f6a03df2931c12cb244dc4ab14ee4866b0ac2ba",
       "sourceType": "github",
       "skillPath": "skills/antislop-ui/SKILL.md"
     },
     "antislop-copywriting": {
       "source": "miqdadbadjuber/anti-slop",
-      "commit": "main",
+      "commit": "7f6a03df2931c12cb244dc4ab14ee4866b0ac2ba",
       "sourceType": "github",
       "skillPath": "skills/antislop-copywriting/SKILL.md"
     },
     "antislop-human": {
       "source": "miqdadbadjuber/anti-slop",
-      "commit": "main",
+      "commit": "7f6a03df2931c12cb244dc4ab14ee4866b0ac2ba",
       "sourceType": "github",
       "skillPath": "skills/antislop-human/SKILL.md"
     },
     "antislop-layoutmobile": {
       "source": "miqdadbadjuber/anti-slop",
-      "commit": "main",
+      "commit": "7f6a03df2931c12cb244dc4ab14ee4866b0ac2ba",
       "sourceType": "github",
       "skillPath": "skills/antislop-layoutmobile/SKILL.md"
     },
     "antislop-code": {
       "source": "miqdadbadjuber/anti-slop",
-      "commit": "main",
+      "commit": "7f6a03df2931c12cb244dc4ab14ee4866b0ac2ba",
       "sourceType": "github",
       "skillPath": "skills/antislop-code/SKILL.md"
     }
