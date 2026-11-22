@@ -1,11 +1,11 @@
 -- CampusOne — Supabase schema
--- Run this in the Supabase SQL editor: Dashboard -> SQL Editor -> New query -> paste -> Run.
--- Safe to re-run (uses IF NOT EXISTS / DO blocks).
+-- HISTORICAL BASELINE ONLY. Do NOT rerun this entire file against production:
+-- it contains a legacy DROP TABLE for study_resources. Use reviewed migrations only.
 --
 -- SECURITY MODEL (read before changing anything below)
 -- ---------------------------------------------------
--- * The owner is `vvibhansh@gmail.com`. Owner identity is derived from the
---   Supabase JWT (`auth.jwt() -> 'email'`), never from a client value.
+-- * The owner is bound to the immutable Supabase Auth UUID b2b52ade-0fcc-4e1d-9c39-ca284789c960.
+--   Never derive owner privileges from a mutable profile email or caller parameter.
 -- * Roles live in `public.profiles.role` but can only be changed by
 --   `public.admin_set_role()`, which requires the `MANAGE_ROLES` permission.
 -- * Every privileged mutation goes through a `SECURITY DEFINER` function that
@@ -442,7 +442,7 @@ stable
 security definer
 set search_path = public
 as $$
-  select lower(public.campusone_caller_email()) = 'vvibhansh@gmail.com';
+  select auth.uid() = 'b2b52ade-0fcc-4e1d-9c39-ca284789c960'::uuid;
 $$;
 
 -- Current role of the caller, read from the database (never from the client).
@@ -518,7 +518,7 @@ as $$
 declare
 begin
   -- The owner's row is pinned to SUPER_ADMIN and can never be suspended.
-  if lower(coalesce(new.email, '')) = 'vvibhansh@gmail.com' then
+  if new.id = 'b2b52ade-0fcc-4e1d-9c39-ca284789c960'::uuid then
     new.role := 'SUPER_ADMIN';
     new.is_suspended := false;
     new.is_moderator_approved := true;
@@ -601,33 +601,47 @@ create or replace function public.campusone_bootstrap_profile(
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
   v_uid uuid := auth.uid();
-  v_role text;
   v_email text;
+  v_role text;
 begin
   if v_uid is null then
     return jsonb_build_object('ok', false, 'error', 'Not signed in');
   end if;
 
-  v_email := lower(coalesce(nullif(p_email, ''), public.campusone_caller_email()));
-  v_role := case when v_email = 'vvibhansh@gmail.com' then 'SUPER_ADMIN' else 'STUDENT' end;
+  -- Never trust p_email: use the canonical Supabase Auth user record.
+  select lower(coalesce(u.email, ''))
+    into v_email
+  from auth.users u
+  where u.id = v_uid;
+
+  if not found or v_email = '' then
+    return jsonb_build_object('ok', false, 'error', 'Authenticated user email unavailable');
+  end if;
+
+  v_role := case
+    when v_uid = 'b2b52ade-0fcc-4e1d-9c39-ca284789c960'::uuid then 'SUPER_ADMIN'
+    else 'STUDENT'
+  end;
 
   insert into public.profiles (id, email, full_name, role, created_at, updated_at)
-  values (v_uid, v_email, coalesce(p_name, ''), v_role,
-          (extract(epoch from now()) * 1000)::bigint,
-          (extract(epoch from now()) * 1000)::bigint)
+  values (
+    v_uid, v_email, coalesce(p_name, ''), v_role,
+    (extract(epoch from now()) * 1000)::bigint,
+    (extract(epoch from now()) * 1000)::bigint
+  )
   on conflict (id) do update
     set full_name = coalesce(nullif(excluded.full_name, ''), public.profiles.full_name),
-        email = case
-          when lower(public.profiles.email) = 'vvibhansh@gmail.com' then public.profiles.email
-          else excluded.email
-        end,
+        email = excluded.email,
         updated_at = (extract(epoch from now()) * 1000)::bigint;
 
-  return jsonb_build_object('ok', true, 'role', (select role from public.profiles where id = v_uid));
+  return jsonb_build_object(
+    'ok', true,
+    'role', (select p.role from public.profiles p where p.id = v_uid)
+  );
 end;
 $$;
 
@@ -710,7 +724,7 @@ begin
     return jsonb_build_object('ok', false, 'error', 'User not found');
   end if;
 
-  if lower(v_target.email) = 'vvibhansh@gmail.com' then
+  if v_target.id = 'b2b52ade-0fcc-4e1d-9c39-ca284789c960'::uuid then
     return jsonb_build_object('ok', false, 'error', 'Owner role is protected');
   end if;
 
@@ -1020,7 +1034,7 @@ declare
   v_uid uuid := auth.uid();
   v_email text := public.campusone_caller_email();
 begin
-  if v_uid is null or lower(v_email) <> 'vvibhansh@gmail.com' then
+  if v_uid is null or v_uid <> 'b2b52ade-0fcc-4e1d-9c39-ca284789c960'::uuid then
     return jsonb_build_object('ok', false, 'error', 'Owner identity required');
   end if;
 
@@ -1084,9 +1098,13 @@ create policy "campusone_read_clubs" on public.clubs
 create policy "campusone_read_campus_events" on public.campus_events
   for select using (true);
 create policy "campusone_read_lost_found_items" on public.lost_found_items
-  for select using (true);
+  for select to authenticated
+  using ((coalesce(is_hidden, false) = false)
+      or poster_uid = auth.uid()::text
+      or public.campusone_has_permission('MODERATE_REPORTS'));
 create policy "campusone_read_directory_contacts" on public.directory_contacts
-  for select using (true);
+  for select to authenticated
+  using (true);
 create policy "campusone_read_campus_map_places" on public.campus_map_places
   for select using (true);
 create policy "campusone_read_assignments" on public.assignments
