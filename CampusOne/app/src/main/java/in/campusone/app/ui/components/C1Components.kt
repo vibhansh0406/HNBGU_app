@@ -2053,36 +2053,39 @@ fun C1SearchBar(
                 modifier = Modifier.padding(bottom = C1Spacing.xs)
             )
         }
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = modifier.fillMaxWidth(),
-            enabled = enabled,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            shape = C1Radius.md,
-            leadingIcon = leadingIcon,
-            trailingIcon = {
-                if (value.isNotEmpty() && onClear != null) {
-                    IconButton(onClick = onClear) {
-                        Icon(Icons.Default.Close, contentDescription = "Clear", modifier = Modifier.size(20.dp))
-                    }
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier.fillMaxWidth(),
+        enabled = enabled,
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+        shape = C1Radius.md,
+        leadingIcon = leadingIcon,
+        trailingIcon = {
+            if (value.isNotEmpty() && onClear != null) {
+                IconButton(onClick = onClear) {
+                    Icon(Icons.Default.Close, contentDescription = "Clear", modifier = Modifier.size(20.dp))
                 }
-            },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f + focusEffect * 0.5f),
-                unfocusedBorderColor = compColors.inputBorder,
-                errorBorderColor = MaterialTheme.colorScheme.error,
-                cursorColor = MaterialTheme.colorScheme.primary,
-                focusedContainerColor = compColors.inputBackground,
-                unfocusedContainerColor = compColors.inputBackground,
-                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                disabledBorderColor = extColors.hairline
-            ),
-            textStyle = MaterialTheme.typography.bodyMedium,
-            placeholderTextStyle = MaterialTheme.typography.bodyMedium.copy(
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-            )
+            } else {
+                // Placeholder to maintain layout stability
+                Box(Modifier.size(20.dp))
+            }
+        },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f + focusEffect * 0.5f),
+            unfocusedBorderColor = compColors.inputBorder,
+            errorBorderColor = MaterialTheme.colorScheme.error,
+            cursorColor = MaterialTheme.colorScheme.primary,
+            focusedContainerColor = compColors.inputBackground,
+            unfocusedContainerColor = compColors.inputBackground,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            disabledBorderColor = extColors.hairline
+        ),
+        textStyle = MaterialTheme.typography.bodyMedium,
+        placeholderTextStyle = MaterialTheme.typography.bodyMedium.copy(
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
         )
+    )
     }
 }
