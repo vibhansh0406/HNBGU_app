@@ -49,7 +49,15 @@ private val LightColorScheme = ColorScheme(
     inversePrimary = Color(0xFFCBD5E1),
     surfaceTint = Color(0xFF1E293B),
     outline = Color(0xFFCBD5E1),
-    outlineVariant = Color(0xFFE2E8F0)
+    outlineVariant = Color(0xFFE2E8F0),
+    scrim = Color(0x99000000),
+    surfaceBright = Color.White,
+    surfaceDim = Color(0xFFF1F5F9),
+    surfaceContainer = Color(0xFFF8FAFC),
+    surfaceContainerHigh = Color(0xFFF1F5F9),
+    surfaceContainerHighest = Color(0xFFE2E8F0),
+    surfaceContainerLow = Color(0xFFFAFAF9),
+    surfaceContainerLowest = Color.White
 )
 
 private val DarkColorScheme = ColorScheme(
@@ -80,7 +88,15 @@ private val DarkColorScheme = ColorScheme(
     inversePrimary = Color(0xFF1E293B),
     surfaceTint = Color(0xFFCBD5E1),
     outline = Color(0xFF334155),
-    outlineVariant = Color(0xFF1E293B)
+    outlineVariant = Color(0xFF1E293B),
+    scrim = Color(0xCC000000),
+    surfaceBright = Color(0xFF0F172A),
+    surfaceDim = Color(0xFF0B1120),
+    surfaceContainer = Color(0xFF1E293B),
+    surfaceContainerHigh = Color(0xFF1E293B),
+    surfaceContainerHighest = Color(0xFF334155),
+    surfaceContainerLow = Color(0xFF0F172A),
+    surfaceContainerLowest = Color(0xFF020617)
 )
 
 // ============================================================================
