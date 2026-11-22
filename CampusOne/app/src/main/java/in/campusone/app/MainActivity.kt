@@ -84,6 +84,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.scale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -597,7 +598,7 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
                                 Color(0xFF1B4D3A).copy(alpha = 0.12f * revealProgress),
                                 Color(0x001B4D3A)
                             ),
-                            center = Alignment.Center
+                            center = Offset(0.5f, 0.5f)
                         )
                     )
             )
