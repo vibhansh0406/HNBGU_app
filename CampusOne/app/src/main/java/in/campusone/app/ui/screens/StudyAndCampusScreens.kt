@@ -726,7 +726,6 @@ fun MoreHubScreen(
                     MoreSubScreen.DIRECTORY -> CampusDirectoryScreen(uiState, viewModel)
                     MoreSubScreen.SETTINGS -> SettingsScreen(
                         profile = coreState.profile,
-                        onBack = { activeScreen = MoreSubScreen.HUB },
                         onSignOut = onSignOut,
                         onOpenPrivacy = { activeScreen = MoreSubScreen.PRIVACY_POLICY }
                     )
