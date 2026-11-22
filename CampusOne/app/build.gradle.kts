@@ -52,27 +52,21 @@ android {
     }
 
     signingConfigs {
-        getByName("debug") {
-            storeFile = rootProject.file("ci/debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
-        }
         create("release") {
-            storeFile = file(
-                System.getenv("KEYSTORE_FILE")
-                    ?: rootProject.file("ci/debug.keystore").absolutePath
-            )
-            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "android"
-            keyAlias = System.getenv("KEY_ALIAS") ?: "androiddebugkey"
-            keyPassword = System.getenv("KEY_PASSWORD") ?: "android"
+            val keystorePath = System.getenv("KEYSTORE_FILE")
+                ?: error("KEYSTORE_FILE is required for release signing")
+            storeFile = file(keystorePath)
+            storePassword = System.getenv("KEYSTORE_PASSWORD")
+                ?: error("KEYSTORE_PASSWORD is required for release signing")
+            keyAlias = System.getenv("KEY_ALIAS")
+                ?: error("KEY_ALIAS is required for release signing")
+            keyPassword = System.getenv("KEY_PASSWORD")
+                ?: error("KEY_PASSWORD is required for release signing")
         }
     }
 
     buildTypes {
-        debug {
-            signingConfig = signingConfigs.getByName("debug")
-        }
+        // Debug intentionally uses Android Gradle Plugin's standard debug signing config.
         release {
             isMinifyEnabled = false
             isShrinkResources = false
