@@ -54,13 +54,16 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.ZoomIn
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
@@ -122,9 +125,11 @@ import `in`.campusone.app.data.local.entity.StudyResourceEntity
 import `in`.campusone.app.domain.model.UserRole
 import `in`.campusone.app.domain.usecase.GradingScaleType
 import `in`.campusone.app.domain.usecase.SemesterGpaRecord
+import `in`.campusone.app.ui.components.C1Avatar
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1CompactStatCard
+import `in`.campusone.app.ui.components.C1Dialog
 import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1FeatureCard
 import `in`.campusone.app.ui.components.C1SectionHeader
@@ -237,6 +242,9 @@ fun MoreHubScreen(
     uiState: StudyAndCampusUiState,
     viewModel: StudyAndCampusViewModel,
     onSignOut: () -> Unit = {},
+    onOpenTimetable: () -> Unit = {},
+    onOpenAttendance: () -> Unit = {},
+    onOpenNotices: () -> Unit = {},
     deepLink: MoreSubScreen? = null,
     onDeepLinkConsumed: () -> Unit = {},
     adminViewModel: `in`.campusone.app.ui.viewmodel.AdminViewModel = hiltViewModel(),
@@ -405,17 +413,17 @@ fun MoreHubScreen(
                     )
                     HubActionCard(
                         title = stringResource(R.string.timetable_title),
-                        subtitle = stringResource(R.string.hub_timetable_sub, uiState.allTimetableSlots.size),
+                        subtitle = stringResource(R.string.hub_timetable_sub, coreState.allTimetableSlots.size),
                         icon = Icons.Default.Schedule,
                         iconColor = Color(0xFF6366F1),
-                        onClick = { currentTab = BottomNavTab.TIMETABLE }
+                        onClick = { onOpenTimetable() }
                     )
                     HubActionCard(
                         title = stringResource(R.string.nav_attendance),
                         subtitle = stringResource(R.string.hub_attendance_sub, Math.round(coreState.overallInsight.percentage)),
                         icon = Icons.Default.CheckCircle,
                         iconColor = extendedColors.success,
-                        onClick = { currentTab = BottomNavTab.ATTENDANCE }
+                        onClick = { onOpenAttendance() }
                     )
                 }
             }
@@ -668,7 +676,6 @@ fun MoreHubScreen(
                 confirmLabel = stringResource(R.string.hub_sign_out_dialog_confirm),
                 onConfirm = {
                     onSignOut()
-                    currentTab = BottomNavTab.HOME
                     showLogoutConfirm = false
                 },
                 confirmIntent = C1ButtonIntent.DANGER,
