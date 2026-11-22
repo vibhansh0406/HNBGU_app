@@ -425,8 +425,7 @@ create or replace function public.campusone_caller_email()
 returns text
 language sql
 stable
-security definer
-set search_path = public
+set search_path = ''
 as $$
   select coalesce(
     nullif(auth.jwt() ->> 'email', ''),
@@ -439,8 +438,7 @@ create or replace function public.campusone_is_owner()
 returns boolean
 language sql
 stable
-security definer
-set search_path = public
+set search_path = ''
 as $$
   select auth.uid() = 'b2b52ade-0fcc-4e1d-9c39-ca284789c960'::uuid;
 $$;
@@ -450,8 +448,7 @@ create or replace function public.campusone_caller_role()
 returns text
 language sql
 stable
-security definer
-set search_path = public
+set search_path = ''
 as $$
   select coalesce(
     (select p.role from public.profiles p where p.id = auth.uid()),
@@ -649,8 +646,7 @@ $$;
 create or replace function public.campusone_my_admin_state()
 returns jsonb
 language plpgsql
-security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
   v_uid uuid := auth.uid();
@@ -2573,3 +2569,58 @@ create policy "device_tokens_admin_all" on public.device_tokens
 grant select, insert, update, delete on public.device_tokens to authenticated;
 revoke all on public.device_tokens from anon;
 
+-- =========================================================================
+-- FINAL EXECUTE PRIVILEGE HARDENING
+-- Default-deny anonymous access to SECURITY DEFINER functions. Explicitly
+-- re-grant only app RPCs and RLS helpers that require authenticated execution.
+-- =========================================================================
+do $$
+declare r record;
+begin
+  for r in
+    select p.oid::regprocedure as signature
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and p.prosecdef
+  loop
+    execute format('revoke execute on function %s from public, anon', r.signature);
+  end loop;
+end $$;
+
+-- Trigger/internal-only functions are never exposed as PostgREST RPCs.
+revoke execute on function public.campusone_enforce_role() from public, anon, authenticated;
+revoke execute on function public.campusone_role_allowed(text, uuid) from public, anon, authenticated;
+revoke execute on function public.campusone_audit(text, text, text, jsonb, text) from public, anon, authenticated;
+revoke execute on function public.campusone_handle_new_user() from public, anon, authenticated;
+revoke execute on function public.campusone_guard_study_resource() from public, anon, authenticated;
+revoke execute on function public.campusone_is_admin() from public, anon, authenticated;
+
+-- Read-only caller helpers and the app's identity snapshot are safe for the
+-- authenticated caller; none accepts a target user ID or caller-supplied role.
+revoke execute on function public.campusone_caller_email() from public, anon;
+revoke execute on function public.campusone_caller_role() from public, anon;
+revoke execute on function public.campusone_is_owner() from public, anon;
+revoke execute on function public.campusone_my_admin_state() from public, anon;
+grant execute on function public.campusone_caller_email() to authenticated;
+grant execute on function public.campusone_caller_role() to authenticated;
+grant execute on function public.campusone_is_owner() to authenticated;
+grant execute on function public.campusone_my_admin_state() to authenticated;
+
+-- RLS policy helpers.
+grant execute on function public.campusone_has_permission(text) to authenticated;
+grant execute on function public.campusone_is_staff() to authenticated;
+grant execute on function public.campusone_is_catalog_admin() to authenticated;
+grant execute on function public.campusone_own_section_key() to authenticated;
+
+-- App-facing, permission-checked RPCs.
+grant execute on function public.campusone_bootstrap_profile(text, text) to authenticated;
+grant execute on function public.owner_recover_admin() to authenticated;
+grant execute on function public.campusone_admin_sync_profiles() to authenticated;
+grant execute on function public.admin_set_role(uuid, text) to authenticated;
+grant execute on function public.admin_set_suspended(uuid, boolean) to authenticated;
+grant execute on function public.admin_delete_user(uuid) to authenticated;
+grant execute on function public.admin_update_settings(jsonb) to authenticated;
+grant execute on function public.admin_moderate_content(text, text, text) to authenticated;
+grant execute on function public.admin_approve_role_request(uuid) to authenticated;
+grant execute on function public.admin_reject_role_request(uuid) to authenticated;
+grant execute on function public.admin_moderate_community(text, text, text) to authenticated;
