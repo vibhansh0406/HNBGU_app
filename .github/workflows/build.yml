@@ -16,35 +16,30 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v3
-      - name: Prepare stable debug keystore
-        run: |
-          for d in "$ANDROID_USER_HOME" "$HOME/.config/.android" "$HOME/.android"; do
-            if [ -n "$d" ]; then
-              mkdir -p "$d"
-              cp ci/debug.keystore "$d/debug.keystore"
-            fi
-          done
-          SHA1=$(keytool -list -v -keystore ci/debug.keystore -alias androiddebugkey -storepass android | grep SHA1: | head -1)
-          echo "=== DEBUG SHA-1 (register this in Google Cloud console) ==="
-          echo "$SHA1"
-          echo "::notice title=Debug SHA-1::$SHA1"
-      - name: Decode permanent release keystore
+      - name: Decode and validate permanent release keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          mkdir -p ~/.android
-          if [ -n "$KEYSTORE_BASE64" ]; then
-            echo "$KEYSTORE_BASE64" | base64 -d > ~/.android/release.keystore
-          else
-            cp ci/debug.keystore ~/.android/release.keystore
-          fi
-          echo "KEYSTORE_FILE=$HOME/.android/release.keystore" >> "$GITHUB_ENV"
-          echo "KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
-          echo "KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
-          echo "KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
+          set -euo pipefail
+          for name in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing GitHub Actions secret: $name. Configure the permanent release keystore secrets before building."
+              exit 1
+            fi
+          done
+          mkdir -p "$HOME/.android"
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/campusone-release.jks"
+          test -s "$HOME/.android/campusone-release.jks"
+          keytool -list -keystore "$HOME/.android/campusone-release.jks" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" >/dev/null
+          {
+            echo "KEYSTORE_FILE=$HOME/.android/campusone-release.jks"
+            echo "KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD"
+            echo "KEY_ALIAS=$KEY_ALIAS"
+            echo "KEY_PASSWORD=$KEY_PASSWORD"
+          } >> "$GITHUB_ENV"
       - name: Signing report (SHA-1 of each build variant)
         run: gradle signingReport --console=plain
       - name: Write local.properties
@@ -68,35 +63,43 @@ jobs:
         run: gradle assembleDebug
       - name: Build signed release APK
         run: gradle assembleRelease
-      - name: Verify APK package name, signing certificate, and alignment
+      - name: Verify both APKs, package, signatures, and alignment
         run: |
           APKSIGNER=$(ls -t $ANDROID_HOME/build-tools/*/apksigner | head -1)
           AAPT=$(ls -t $ANDROID_HOME/build-tools/*/aapt | head -1)
           ZIPALIGN=$(ls -t $ANDROID_HOME/build-tools/*/zipalign | head -1)
-          for apk in app/build/outputs/apk/debug/*.apk app/build/outputs/apk/release/*.apk; do
+          set -euo pipefail
+          DEBUG_APK="app/build/outputs/apk/debug/app-debug.apk"
+          RELEASE_APK="app/build/outputs/apk/release/app-release.apk"
+          test -s "$DEBUG_APK"
+          test -s "$RELEASE_APK"
+          DEBUG_CERT=""
+          RELEASE_CERT=""
+          for apk in "$DEBUG_APK" "$RELEASE_APK"; do
             echo "=== $apk ==="
-            # Verify package name and app info
-            $AAPT dump badging "$apk" | head -1
-            # Verify cryptographic signature (fails with non-zero exit if unsigned or invalid)
+            PACKAGE=$($AAPT dump badging "$apk" | sed -n "s/^package: name='\\([^']*\\)'.*/\\1/p")
+            test "$PACKAGE" = "in.campusone.app" || { echo "::error::Unexpected package: $PACKAGE"; exit 1; }
             $APKSIGNER verify --verbose "$apk"
-            # Verify APK alignment (4-byte alignment required for installation)
             $ZIPALIGN -c 4 "$apk"
-            # Print certificate info for the record
-            $APKSIGNER verify --print-certs "$apk" | grep -E "SHA-1|SHA-256" || true
+            CERT=$($APKSIGNER verify --print-certs "$apk" | sed -n "s/^Signer #1 certificate SHA-256 digest: //p")
+            test -n "$CERT"
+            if [ "$apk" = "$DEBUG_APK" ]; then DEBUG_CERT="$CERT"; else RELEASE_CERT="$CERT"; fi
+            echo "Verified package=$PACKAGE signer_sha256=$CERT"
           done
+          if [ "$DEBUG_CERT" = "$RELEASE_CERT" ]; then
+            echo "::error::Release APK is signed with the debug certificate. A separate permanent release keystore is required."
+            exit 1
+          fi
+          echo "Debug and Release signatures are valid and use distinct certificates."
       - name: Run unit tests
         run: gradle testDebugUnitTest
-      - name: Upload keystore artifact (first run only)
-        if: ${{ ! hashFiles('CampusOne/ci/debug.keystore') }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug-keystore
-          path: ~/.android/debug.keystore
       - uses: actions/upload-artifact@v4
         with:
           name: campusone-debug-apk
           path: CampusOne/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
           name: campusone-release-apk
           path: CampusOne/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
