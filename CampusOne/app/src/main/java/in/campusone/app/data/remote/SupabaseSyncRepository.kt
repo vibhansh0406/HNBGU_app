@@ -792,6 +792,52 @@ class SupabaseSyncRepository @Inject constructor(
     }
 
     /**
+     * Sends an authenticated admin broadcast through the server-side FCM gateway.
+     * The Firebase service-account key never enters the Android application.
+     */
+    suspend fun sendPushNotification(
+        title: String,
+        body: String,
+        category: String,
+        targetType: String,
+        targetId: String
+    ): Boolean {
+        val edgeUrl = authManager.config.edgeFunctionUrl
+        val sessionToken = authManager.currentSession()?.accessToken ?: return false
+        if (edgeUrl.isBlank()) return false
+        return try {
+            val connection = (URL("$edgeUrl/send-notification").openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                setRequestProperty("apikey", authManager.config.anonKey)
+                setRequestProperty("Authorization", "Bearer $sessionToken")
+                setRequestProperty("Content-Type", "application/json")
+                connectTimeout = 15000
+                readTimeout = 30000
+                doOutput = true
+            }
+            val payload = org.json.JSONObject()
+                .put("title", title)
+                .put("body", body)
+                .put("category", category)
+                .put("target_type", targetType)
+                .put("target_id", targetId)
+            connection.outputStream.use {
+                it.write(payload.toString().toByteArray(StandardCharsets.UTF_8))
+            }
+            val code = connection.responseCode
+            val stream = if (code in 200..299) connection.inputStream else connection.errorStream
+            val response = stream?.use { it.readBytes().toString(StandardCharsets.UTF_8) }.orEmpty()
+            code in 200..299 && runCatching {
+                val json = org.json.JSONObject(response)
+                json.optBoolean("ok", false) && json.optInt("sent", 0) > 0
+            }.getOrDefault(false)
+        } catch (error: Exception) {
+            Log.w(TAG, "FCM broadcast failed: " + error.message)
+            false
+        }
+    }
+
+    /**
      * Registers an FCM device token with Supabase via Edge Function.
      * The Edge Function validates the caller's JWT and upserts the token
      * into the device_tokens table with RLS enforcement.
