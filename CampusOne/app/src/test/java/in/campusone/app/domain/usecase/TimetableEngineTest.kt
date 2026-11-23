@@ -16,7 +16,7 @@ class TimetableEngineTest {
             subjectId = "CS301",
             subjectName = "Data Structures",
             subjectCode = "CS301",
-            teacherName = "Dr. Rauthan",
+            teacherName = "",
             roomNumber = "104",
             dayOfWeek = 1, // Monday
             startTime = "09:00",
@@ -27,7 +27,7 @@ class TimetableEngineTest {
             subjectId = "CS302",
             subjectName = "Operating Systems",
             subjectCode = "CS302",
-            teacherName = "Dr. Barthwal",
+            teacherName = "",
             roomNumber = "104",
             dayOfWeek = 1, // Monday
             startTime = "10:05",
@@ -38,7 +38,7 @@ class TimetableEngineTest {
             subjectId = "CS303",
             subjectName = "DBMS",
             subjectCode = "CS303",
-            teacherName = "Dr. Rana",
+            teacherName = "",
             roomNumber = "Lab 2",
             dayOfWeek = 1, // Monday
             startTime = "11:15",
