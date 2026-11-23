@@ -7,13 +7,23 @@ const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // FCM configuration - these must be set as Edge Function secrets
 const FCM_PROJECT_ID = Deno.env.get("FCM_PROJECT_ID")!;
 const FCM_SERVICE_ACCOUNT_EMAIL = Deno.env.get("FCM_SERVICE_ACCOUNT_EMAIL")!;
-const FCM_PRIVATE_KEY = Deno.env.get("FCM_PRIVATE_KEY")!; // PEM format private key
+const FCM_PRIVATE_KEY = Deno.env.get("FCM_PRIVATE_KEY") ?? ""; // PEM format private key
 
 // Cache the OAuth2 access token
 let accessToken: string | null = null;
 let tokenExpiry = 0;
 
+function base64Url(value: string): string {
+  const bytes = new TextEncoder().encode(value);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+}
+
 async function getFcmAccessToken(): Promise<string> {
+  if (!FCM_PROJECT_ID || !FCM_SERVICE_ACCOUNT_EMAIL || !FCM_PRIVATE_KEY) {
+    throw new Error("FCM server credentials are not configured");
+  }
   const now = Date.now();
   if (accessToken && now < tokenExpiry - 60000) {
     return accessToken;
@@ -32,12 +42,12 @@ async function getFcmAccessToken(): Promise<string> {
   };
 
   const encoder = new TextEncoder();
-  const headerB64 = btoa(JSON.stringify(header));
-  const payloadB64 = btoa(JSON.stringify(payload));
+  const headerB64 = base64Url(JSON.stringify(header));
+  const payloadB64 = base64Url(JSON.stringify(payload));
   const signingInput = `${headerB64}.${payloadB64}`;
 
   // Sign with the private key (PKCS#8 PKCS#8 PEM)
-  const keyData = FCM_PRIVATE_KEY.replace(/-----BEGIN PRIVATE KEY-----/, "")
+  const keyData = FCM_PRIVATE_KEY.replace(/\\n/g, "\n").replace(/-----BEGIN PRIVATE KEY-----/, "")
     .replace(/-----END PRIVATE KEY-----/, "")
     .replace(/\s/g, "");
   const keyBytes = Uint8Array.from(atob(keyData), (c) => c.charCodeAt(0));
@@ -51,7 +61,10 @@ async function getFcmAccessToken(): Promise<string> {
   );
 
   const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", cryptoKey, encoder.encode(signingInput));
-  const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signature)));
+  const signatureBytes = new Uint8Array(signature);
+  let signatureBinary = "";
+  for (const byte of signatureBytes) signatureBinary += String.fromCharCode(byte);
+  const signatureB64 = btoa(signatureBinary).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
 
   const jwt = `${signingInput}.${signatureB64}`;
 
@@ -66,6 +79,9 @@ async function getFcmAccessToken(): Promise<string> {
   });
 
   const tokenData = await tokenResponse.json();
+  if (!tokenResponse.ok || !tokenData.access_token) {
+    throw new Error("Google OAuth token exchange failed: " + (tokenData.error ?? tokenResponse.status));
+  }
   accessToken = tokenData.access_token;
   tokenExpiry = now + (tokenData.expires_in || 3600) * 1000;
 
@@ -83,17 +99,10 @@ async function sendFcmMessage(
     const message = {
       message: {
         token: fcmToken,
-        notification: {
-          title: title,
-          body: body,
-        },
+        // Data-only payload: Android service renders one notification and applies preferences.
         data: data,
         android: {
-          priority: "high",
-          notification: {
-            channelId: "campusone_notices",
-            icon: "ic_notification",
-          },
+          priority: "HIGH",
         },
         apns: {
           payload: {
@@ -161,7 +170,7 @@ serve(async (req) => {
       .eq("id", user.id)
       .single();
 
-    const isAdmin = profile?.role === "ADMIN" || profile?.role === "SUPER_ADMIN" || user.email === "vvibhansh@gmail.com";
+    const isAdmin = profile?.role === "ADMIN" || profile?.role === "SUPER_ADMIN";
     if (!isAdmin) {
       return new Response(JSON.stringify({ ok: false, error: "Admin access required" }), {
         status: 403,
@@ -173,7 +182,7 @@ serve(async (req) => {
     const body = await req.json();
     const { user_ids, title, body: notificationBody, category, target_type, target_id } = body;
 
-    if (!title || !notificationBody) {
+    if (typeof title !== "string" || typeof notificationBody !== "string" || !title.trim() || !notificationBody.trim() || title.length > 120 || notificationBody.length > 1200) {
       return new Response(JSON.stringify({ ok: false, error: "Missing title or body" }), {
         status: 400,
         headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
@@ -216,13 +225,20 @@ serve(async (req) => {
       target_id: target_id || "",
     };
 
-    const results = await Promise.allSettled(
-      tokens.map((t) => sendFcmMessage(fcmToken, t.fcm_token, title, notificationBody, dataPayload))
-    );
+    let sentCount = 0;
+    let failedCount = 0;
+    for (let offset = 0; offset < tokens.length; offset += 100) {
+      const batch = tokens.slice(offset, offset + 100);
+      const results = await Promise.allSettled(
+        batch.map((t) => sendFcmMessage(fcmToken, t.fcm_token, title, notificationBody, dataPayload))
+      );
+      for (const result of results) {
+        if (result.status === "fulfilled" && result.value === true) sentCount++;
+        else failedCount++;
+      }
+    }
 
-    const sentCount = results.filter((r) => r.status === "fulfilled" && r.value === true).length;
-
-    return new Response(JSON.stringify({ ok: true, message: `Sent ${sentCount}/${tokens.length} notifications`, sent: sentCount, total: tokens.length }), {
+    return new Response(JSON.stringify({ ok: true, message: `Sent ${sentCount}/${tokens.length} notifications`, sent: sentCount, failed: failedCount, total: tokens.length }), {
       status: 200,
       headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
     });
