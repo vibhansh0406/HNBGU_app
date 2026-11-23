@@ -61,7 +61,7 @@ begin
   v_def := replace(
     v_def,
     'if p_role not in (''STUDENT'',''CR'',''TEACHER'',''CLUB_ADMIN'',''MODERATOR'',''ADMIN'') then',
-    'if p_role not in (''STUDENT'',''CR'',''MODERATOR'',''ADMIN'') then'
+    'if p_role not in (''STUDENT'',''CR'',''MODERATOR'') then'
   );
   if position('TEACHER' in v_def) > 0 or position('CLUB_ADMIN' in v_def) > 0 then
     raise exception 'Could not safely remove legacy roles from admin_set_role()';
