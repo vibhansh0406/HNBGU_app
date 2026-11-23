@@ -1,21 +1,30 @@
-name: Build APK
+name: Verify CampusOne Android Release Build
+
 on:
   workflow_dispatch:
   push:
     branches: [main, phase-3]
+
+permissions:
+  contents: read
+
 defaults:
   run:
     working-directory: CampusOne
+
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
+
       - uses: gradle/actions/setup-gradle@v3
+
       - name: Decode and validate permanent release keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -26,23 +35,25 @@ jobs:
           set -euo pipefail
           for name in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
             if [ -z "${!name}" ]; then
-              echo "::error::Missing GitHub Actions secret: $name. Configure the permanent release keystore secrets before building."
+              echo "::error::Missing GitHub Actions secret: $name"
               exit 1
             fi
           done
+
           mkdir -p "$HOME/.android"
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/campusone-release.jks"
           test -s "$HOME/.android/campusone-release.jks"
-          keytool -list -keystore "$HOME/.android/campusone-release.jks" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" >/dev/null
+          keytool -list -keystore "$HOME/.android/campusone-release.jks" \
+            -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" >/dev/null
+
           {
             echo "KEYSTORE_FILE=$HOME/.android/campusone-release.jks"
             echo "KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD"
             echo "KEY_ALIAS=$KEY_ALIAS"
             echo "KEY_PASSWORD=$KEY_PASSWORD"
           } >> "$GITHUB_ENV"
-      - name: Signing report (SHA-1 of each build variant)
-        run: gradle signingReport --console=plain
-      - name: Write local.properties
+
+      - name: Configure app build properties
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
@@ -59,62 +70,81 @@ jobs:
             echo "google.oauth.web_client_secret=$GOOGLE_OAUTH_WEB_CLIENT_SECRET"
             echo "google.oauth.callback_url=$GOOGLE_OAUTH_CALLBACK_URL"
           } > local.properties
-      - name: Build debug APK
-        run: gradle assembleDebug
+
       - name: Build signed release APK
         run: gradle assembleRelease
-      - name: Verify both APKs, package, signatures, and alignment
+
+      - name: Verify release APK, signing identity, schemes and permissions
+        shell: bash
         run: |
-          APKSIGNER=$(ls -t $ANDROID_HOME/build-tools/*/apksigner | head -1)
-          AAPT=$(ls -t $ANDROID_HOME/build-tools/*/aapt | head -1)
-          ZIPALIGN=$(ls -t $ANDROID_HOME/build-tools/*/zipalign | head -1)
           set -euo pipefail
-          DEBUG_APK="app/build/outputs/apk/debug/app-debug.apk"
-          RELEASE_APK="app/build/outputs/apk/release/app-release.apk"
-          test -s "$DEBUG_APK"
-          test -s "$RELEASE_APK"
-          DEBUG_CERT=""
-          RELEASE_CERT=""
-          for apk in "$DEBUG_APK" "$RELEASE_APK"; do
-            echo "=== $apk ==="
-            BADGING=$($AAPT dump badging "$apk")
-            PACKAGE=$(printf '%s\n' "$BADGING" | sed -n "s/^package: name='\([^']*\)'.*/\1/p")
-            test "$PACKAGE" = "in.campusone.app" || { echo "::error::Unexpected package: $PACKAGE"; exit 1; }
-            printf '%s\n' "$BADGING" | grep -Eq "^application:.*icon='[^']+'" || { echo "::error::APK has no launcher icon resource"; exit 1; }
-            printf '%s\n' "$BADGING" | grep "^application:"
-            $APKSIGNER verify --verbose "$apk"
-            $ZIPALIGN -c 4 "$apk"
-            CERT_INFO=$($APKSIGNER verify --print-certs "$apk")
-            CERT=$(printf '%s\n' "$CERT_INFO" | sed -n "s/^Signer #1 certificate SHA-256 digest: //p")
-            test -n "$CERT"
-            if [ "$apk" = "$DEBUG_APK" ]; then
-              DEBUG_CERT="$CERT"
-            else
-              RELEASE_CERT="$CERT"
-              RELEASE_SHA1=$(printf '%s\n' "$CERT_INFO" | sed -n "s/^Signer #1 certificate SHA-1 digest: //p" | tr -d ':' | tr '[:lower:]' '[:upper:]')
-              EXPECTED_RELEASE_SHA1="50341BDAAE1E1CFCC7E26893D3CF8A1F7AFC35A2"
-              if [ "$RELEASE_SHA1" != "$EXPECTED_RELEASE_SHA1" ]; then
-                echo "::error::Release SHA-1 mismatch. Expected $EXPECTED_RELEASE_SHA1, got $RELEASE_SHA1"
-                exit 1
-              fi
-              echo "Verified permanent release SHA-1=$RELEASE_SHA1"
-            fi
-            echo "Verified package=$PACKAGE signer_sha256=$CERT"
-          done
-          if [ "$DEBUG_CERT" = "$RELEASE_CERT" ]; then
-            echo "::error::Release APK is signed with the debug certificate. A separate permanent release keystore is required."
+          APK="app/build/outputs/apk/release/app-release.apk"
+          test -s "$APK"
+
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
+          AAPT=$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -1)
+          ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -1)
+          test -x "$APKSIGNER"
+          test -x "$AAPT"
+          test -x "$ZIPALIGN"
+
+          BADGING="$("$AAPT" dump badging "$APK")"
+          PACKAGE=$(printf '%s\n' "$BADGING" | sed -n "s/^package: name='\\([^']*\\)'.*/\\1/p")
+          test "$PACKAGE" = "in.campusone.app" || {
+            echo "::error::Unexpected APK package: $PACKAGE"
+            exit 1
+          }
+          printf '%s\n' "$BADGING" | grep -Fq "sdkVersion:'26'"
+          printf '%s\n' "$BADGING" | grep -Fq "targetSdkVersion:'35'"
+          printf '%s\n' "$BADGING" | grep -Eq "^application:.*label='CampusOne'.*icon='"
+          if printf '%s\n' "$BADGING" | grep -q '^application-debuggable'; then
+            echo "::error::Release APK is marked debuggable."
             exit 1
           fi
-          echo "Debug and Release signatures are valid and use distinct certificates."
+
+          "$ZIPALIGN" -c 4 "$APK"
+
+          SIGNATURE="$RUNNER_TEMP/campusone-release-signature.txt"
+          "$APKSIGNER" verify --verbose --print-certs "$APK" | tee "$SIGNATURE"
+          for scheme in "v1 scheme (JAR signing)" "v2 scheme (APK Signature Scheme v2)" "v3 scheme (APK Signature Scheme v3)"; do
+            grep -Fq "Verified using $scheme: true" "$SIGNATURE" || {
+              echo "::error::APK is missing required $scheme signature."
+              exit 1
+            }
+          done
+
+          SHA1=$(sed -n 's/^Signer #1 certificate SHA-1 digest: //p' "$SIGNATURE" | tr -d ':' | tr '[:lower:]' '[:upper:]')
+          SHA256=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$SIGNATURE" | tr -d ':' | tr '[:lower:]' '[:upper:]')
+          EXPECTED_SHA1="50341BDAAE1E1CFCC7E26893D3CF8A1F7AFC35A2"
+          EXPECTED_SHA256="E28B7893A26DF63884498AEF018575D3875ACEF2C0DC0DB9A06D4EFFA543F273"
+          test "$SHA1" = "$EXPECTED_SHA1" || {
+            echo "::error::Permanent release SHA-1 mismatch."
+            exit 1
+          }
+          test "$SHA256" = "$EXPECTED_SHA256" || {
+            echo "::error::Permanent release SHA-256 mismatch."
+            exit 1
+          }
+
+          MANIFEST_DUMP="$("$AAPT" dump xmltree "$APK" AndroidManifest.xml)"
+          FORBIDDEN=(
+            "android.permission.READ_SMS"
+            "android.permission.RECEIVE_SMS"
+            "android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            "android.permission.BIND_ACCESSIBILITY_SERVICE"
+            "android.permission.REQUEST_INSTALL_PACKAGES"
+            "android.permission.QUERY_ALL_PACKAGES"
+            "android.permission.MANAGE_EXTERNAL_STORAGE"
+            "android.permission.SYSTEM_ALERT_WINDOW"
+          )
+          for permission in "${FORBIDDEN[@]}"; do
+            if printf '%s\n' "$MANIFEST_DUMP" | grep -Fq "$permission"; then
+              echo "::error::Forbidden install-sensitive permission found: $permission"
+              exit 1
+            fi
+          done
+
+          echo "PASS: package=$PACKAGE; signing schemes v1/v2/v3; permanent certificate; zip alignment; install-sensitive permission audit."
+
       - name: Run unit tests
         run: gradle testDebugUnitTest
-      - uses: actions/upload-artifact@v4
-        with:
-          name: campusone-debug-apk
-          path: CampusOne/app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
-      - uses: actions/upload-artifact@v4
-        with:
-          name: campusone-release-apk
-          path: CampusOne/app/build/outputs/apk/release/*.apk
-          if-no-files-found: error
