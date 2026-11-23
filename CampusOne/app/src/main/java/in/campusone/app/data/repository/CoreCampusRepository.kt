@@ -422,12 +422,6 @@ class CoreCampusRepository @Inject constructor(
     }
 
     /**
-     * CR / Teacher action: Post a new announcement to the section Notice Board.
-     * The creator identity is derived from the active Supabase authenticated
-     * user UUID (auth.uid()), never from a cached profile ID, so a user can
-     * never impersonate another uploader.
-     */
-    /**
      * Upload a notice attachment into the existing authenticated CampusOne storage bucket.
      * The uploaded URL is saved with the notice row so every user sees the same attachment.
      */
@@ -469,6 +463,12 @@ class CoreCampusRepository @Inject constructor(
             }
         }
 
+    /**
+     * CR / Teacher action: Post a new announcement to the section Notice Board.
+     * The creator identity is derived from the active Supabase authenticated
+     * user UUID (auth.uid()), never from a cached profile ID, so a user can
+     * never impersonate another uploader.
+     */
     suspend fun postNotice(
         profile: UserProfile,
         title: String,
