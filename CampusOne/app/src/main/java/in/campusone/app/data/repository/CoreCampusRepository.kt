@@ -59,23 +59,17 @@ class CoreCampusRepository @Inject constructor(
             if (!bootstrapped) {
                 throw IllegalStateException("Profile bootstrap failed on server")
             }
-            val uploaded = supabaseSync.uploadProfile(
+            val uploaded = supabaseSync.updateAcademicProfile(
                 uid = profile.uid,
                 name = profile.name,
-                email = profile.email,
-                role = profile.role.name,
-                collegeId = profile.collegeId,
                 collegeName = profile.collegeName,
                 courseId = profile.courseId,
                 courseName = profile.courseName,
                 semester = profile.semester,
-                section = profile.section,
-                moderatorScope = profile.moderatorScope,
-                isModeratorApproved = profile.role == UserRole.MODERATOR || profile.role == UserRole.ADMIN,
-                onboardingCompleted = profile.onboardingCompleted
+                section = profile.section
             )
             if (!uploaded) {
-                throw IllegalStateException("Profile upload failed on server")
+                throw IllegalStateException("Profile update failed on server")
             }
             Unit
         }
@@ -120,6 +114,30 @@ class CoreCampusRepository @Inject constructor(
             moderatorScope = remote["moderator_scope"] as? String ?: "",
             onboardingCompleted = remote["onboarding_completed"] as? Boolean ?: false
         )
+    }
+
+    /**
+     * Saves only editable student profile fields. Permissions and account identity
+     * remain server-controlled and cannot be changed by this profile form.
+     */
+    suspend fun updateAcademicProfile(profile: UserProfile): Result<Unit> {
+        val uid = authManager.currentUserId()
+            ?: return Result.failure(IllegalStateException("Sign in to update your profile"))
+        if (profile.uid != uid) {
+            return Result.failure(IllegalStateException("Profile does not belong to the signed-in account"))
+        }
+        return runCatching {
+            val updated = supabaseSync.updateAcademicProfile(
+                uid = uid,
+                name = profile.name,
+                collegeName = profile.collegeName,
+                courseId = profile.courseId,
+                courseName = profile.courseName,
+                semester = profile.semester,
+                section = profile.section
+            )
+            if (!updated) throw IllegalStateException("Could not save profile to server")
+        }
     }
 
     suspend fun ensureSeededForSection(
