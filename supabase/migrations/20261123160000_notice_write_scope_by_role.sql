@@ -14,10 +14,20 @@ $$;
 
 drop policy if exists notices_write on public.notices;
 drop policy if exists notices_admin_manage on public.notices;
-create policy notices_admin_manage on public.notices
+drop policy if exists notices_owner_manage on public.notices;
+drop policy if exists notices_moderator_manage on public.notices;
+
+-- Only the owner/Admin may create or modify official notices.
+create policy notices_owner_manage on public.notices
   for all to authenticated
-  using (public.campusone_is_admin())
-  with check (public.campusone_is_admin());
+  using (public.campusone_is_owner() OR public.campusone_caller_role() = 'ADMIN')
+  with check (public.campusone_is_owner() OR public.campusone_caller_role() = 'ADMIN');
+
+-- Moderators can manage normal notices but cannot create or edit official ones.
+create policy notices_moderator_manage on public.notices
+  for all to authenticated
+  using (public.campusone_caller_role() = 'MODERATOR' AND is_official = false)
+  with check (public.campusone_caller_role() = 'MODERATOR' AND is_official = false);
 
 drop policy if exists notices_cr_insert_section on public.notices;
 create policy notices_cr_insert_section on public.notices
