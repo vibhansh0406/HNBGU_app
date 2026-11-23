@@ -447,9 +447,9 @@ class CoreCampusRepository @Inject constructor(
         )
         noticeDao.upsertNotices(listOf(entity))
 
-        // Supabase permanent sync — author_uid is the auth user ID, enforced by RLS.
+        // Supabase is the shared source of truth for notices.
         if (supabaseSync.isSyncedEnabled()) {
-            supabaseSync.uploadNotices(profile.sectionKey, listOf(mapOf<String, Any>(
+            val uploaded = supabaseSync.uploadNotices(targetSectionKey, listOf(mapOf<String, Any>(
                 "id" to entity.id,
                 "section_key" to targetSectionKey,
                 "title" to entity.title,
@@ -467,6 +467,19 @@ class CoreCampusRepository @Inject constructor(
                 "updated_at" to now,
                 "is_read" to entity.isRead
             )))
+            check(uploaded) { "Notice could not be published to the shared campus feed" }
+
+            // Only global admin announcements trigger a campus-wide push.
+            if (profile.role == UserRole.ADMIN &&
+                (isOfficial || priority == "HIGH" || priority == "URGENT")) {
+                supabaseSync.sendPushNotification(
+                    title = entity.title,
+                    body = entity.body,
+                    category = if (isOfficial) "announcement" else "notice",
+                    targetType = "NOTICE",
+                    targetId = entity.id
+                )
+            }
         }
     }
 
