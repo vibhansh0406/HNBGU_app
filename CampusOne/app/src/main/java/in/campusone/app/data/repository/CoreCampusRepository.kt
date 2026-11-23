@@ -487,9 +487,9 @@ class CoreCampusRepository @Inject constructor(
             )))
             check(uploaded) { "Notice could not be published to the shared campus feed" }
 
-            // Only global admin announcements trigger a campus-wide push.
-            val highPriority = priority == "HIGH" || priority == "URGENT"
-            val shouldPush = profile.role == UserRole.ADMIN && (isOfficial || highPriority)
+            // Admin-published notices are time-sensitive for students; send a
+            // section-scoped push for every notice, not only pinned/high-priority ones.
+            val shouldPush = profile.role == UserRole.ADMIN
             if (shouldPush) {
                 supabaseSync.sendPushNotification(
                     title = entity.title,
