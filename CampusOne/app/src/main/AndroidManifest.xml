@@ -20,6 +20,14 @@
         android:theme="@style/Theme.CampusOne"
         tools:targetApi="35">
 
+        <service
+            android:name=".service.CampusFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
