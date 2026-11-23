@@ -1,9 +1,14 @@
 package `in`.campusone.app.data.repository
 
+import android.content.Context
+import android.net.Uri
+import dagger.hilt.android.qualifiers.ApplicationContext
 import `in`.campusone.app.data.local.dao.AttendanceDao
 import `in`.campusone.app.data.local.dao.NoticeDao
 import `in`.campusone.app.data.local.dao.TimetableDao
 import `in`.campusone.app.data.remote.AuthManager
+import `in`.campusone.app.data.remote.FileStore
+import `in`.campusone.app.data.remote.StorageBuckets
 import `in`.campusone.app.data.remote.SupabaseClient
 import `in`.campusone.app.data.remote.SupabaseSyncRepository
 import `in`.campusone.app.data.local.entity.AttendanceLogEntity
@@ -20,7 +25,9 @@ import `in`.campusone.app.domain.model.UserProfile
 import `in`.campusone.app.domain.model.UserRole
 import `in`.campusone.app.util.TimestampUtils
 import `in`.campusone.app.util.security.SecurityUtils
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
@@ -31,13 +38,15 @@ import javax.inject.Singleton
 
 @Singleton
 class CoreCampusRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val attendanceDao: AttendanceDao,
     private val timetableDao: TimetableDao,
     private val noticeDao: NoticeDao,
     private val prefs: UserPreferencesRepository,
     private val supabaseClient: SupabaseClient,
     private val supabaseSync: SupabaseSyncRepository,
-    private val authManager: AuthManager
+    private val authManager: AuthManager,
+    private val fileStore: FileStore
 ) {
 
     companion object {
@@ -418,6 +427,48 @@ class CoreCampusRepository @Inject constructor(
      * user UUID (auth.uid()), never from a cached profile ID, so a user can
      * never impersonate another uploader.
      */
+    /**
+     * Upload a notice attachment into the existing authenticated CampusOne storage bucket.
+     * The uploaded URL is saved with the notice row so every user sees the same attachment.
+     */
+    suspend fun uploadNoticeAttachment(contentUri: String, mimeType: String): Result<String> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val uid = authManager.currentUserId()?.takeIf { it.isNotBlank() }
+                    ?: throw IllegalStateException("Sign in before uploading an attachment")
+                val uri = Uri.parse(contentUri)
+                val suppliedType = mimeType.substringBefore(';').trim().lowercase()
+                val isPdf = suppliedType == "application/pdf" ||
+                    uri.lastPathSegment?.endsWith(".pdf", ignoreCase = true) == true
+                val isImage = suppliedType.startsWith("image/")
+                require(isPdf || isImage) { "Choose a PDF or image file" }
+
+                val contentType = if (isPdf) "application/pdf" else suppliedType.ifBlank { "image/jpeg" }
+                val extension = if (isPdf) {
+                    "pdf"
+                } else {
+                    when (contentType.substringAfter('/', "jpeg").substringBefore('+')) {
+                        "jpeg", "jpg" -> "jpg"
+                        "png" -> "png"
+                        "webp" -> "webp"
+                        else -> "img"
+                    }
+                }
+                val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                    ?: throw IllegalStateException("The selected file could not be read")
+                require(bytes.isNotEmpty()) { "The selected file is empty" }
+                require(bytes.size <= 10 * 1024 * 1024) { "Notice attachments must be 10 MB or smaller" }
+
+                val path = "notices/$uid/notice_${System.currentTimeMillis()}_${java.util.UUID.randomUUID()}.$extension"
+                fileStore.upload(
+                    bucket = StorageBuckets.STUDY_RESOURCES,
+                    path = path,
+                    bytes = bytes,
+                    contentType = contentType
+                ) { }.getOrThrow()
+            }
+        }
+
     suspend fun postNotice(
         profile: UserProfile,
         title: String,
