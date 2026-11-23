@@ -39,7 +39,7 @@ object TimetableCsvParser {
     private val TIME_REGEX = "^([01]\\d|2[0-3]):[0-5]\\d$".toRegex()
 
     fun parse(csvText: String): ParseResult {
-        val lines = csvText.trim().split("\\n").filter { it.isNotBlank() }
+        val lines = csvText.trim().split("\n").filter { it.isNotBlank() }
         if (lines.isEmpty()) return ParseResult(emptyList(), listOf("Empty file"))
 
         val headers = lines[0].toLowerCase(Locale.ROOT).split(",").map { it.trim() }
@@ -106,8 +106,8 @@ object TimetableCsvParser {
     }
 
     fun template(): String =
-        "subject_code,subject_name,room,day,start,end\\n" +
-        "SOET-CS-301,Data Structures & Algorithms,CS Block - Room 104,1,09:00,10:00\\n" +
-        "SOET-CS-302,Computer Organization,CS Block - Room 105,1,10:15,11:15\\n" +
-        "SOET-CS-303,Discrete Mathematics,CS Block - Room 106,2,09:00,10:00\\n"
+        "subject_code,subject_name,room,day,start,end\n" +
+        "SOET-CS-301,Data Structures & Algorithms,CS Block - Room 104,1,09:00,10:00\n" +
+        "SOET-CS-302,Computer Organization,CS Block - Room 105,1,10:15,11:15\n" +
+        "SOET-CS-303,Discrete Mathematics,CS Block - Room 106,2,09:00,10:00\n"
 }
