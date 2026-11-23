@@ -25,12 +25,12 @@ import javax.inject.Inject
 
 /** Notification channel IDs for CampusOne notification categories. */
 object NotificationChannels {
-    const val ANNOUNCEMENTS = "campusone_announcements"
-    const val NOTICES = "campusone_notices"
-    const val EXAMS = "campusone_exams"
-    const val ASSIGNMENTS = "campusone_assignments"
-    const val STUDY_MATERIAL = "campusone_study_material"
-    const val ADMIN_ALERTS = "campusone_admin_alerts"
+    const val ANNOUNCEMENTS = "campusone_announcements_v2"
+    const val NOTICES = "campusone_notices_v2"
+    const val EXAMS = "campusone_exams_v2"
+    const val ASSIGNMENTS = "campusone_assignments_v2"
+    const val STUDY_MATERIAL = "campusone_study_material_v2"
+    const val ADMIN_ALERTS = "campusone_admin_alerts_v2"
 
     const val ANNOUNCEMENTS_NAME = "College Announcements"
     const val NOTICES_NAME = "Section Notices"
@@ -90,13 +90,17 @@ class CampusFirebaseMessagingService : FirebaseMessagingService() {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "University-wide announcements from the admin"
+            enableVibration(true)
+            enableLights(true)
             },
             NotificationChannel(
                 NotificationChannels.NOTICES,
                 NotificationChannels.NOTICES_NAME,
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Section-level notices from CRs and faculty"
+            enableVibration(true)
+            enableLights(true)
             },
             NotificationChannel(
                 NotificationChannels.EXAMS,
@@ -104,20 +108,26 @@ class CampusFirebaseMessagingService : FirebaseMessagingService() {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Exam schedule and update notifications"
+            enableVibration(true)
+            enableLights(true)
             },
             NotificationChannel(
                 NotificationChannels.ASSIGNMENTS,
                 NotificationChannels.ASSIGNMENTS_NAME,
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Assignment and deadline reminders"
+            enableVibration(true)
+            enableLights(true)
             },
             NotificationChannel(
                 NotificationChannels.STUDY_MATERIAL,
                 NotificationChannels.STUDY_MATERIAL_NAME,
-                NotificationManager.IMPORTANCE_LOW
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "New study material and resource uploads"
+            enableVibration(true)
+            enableLights(true)
             },
             NotificationChannel(
                 NotificationChannels.ADMIN_ALERTS,
@@ -185,6 +195,7 @@ class CampusFirebaseMessagingService : FirebaseMessagingService() {
         targetType: String,
         targetId: String
     ) {
+        if (!notificationManagerCompat.areNotificationsEnabled()) return
         if (userPreferencesRepository.isNotificationCategoryEnabled(category)) {
             showNotification(title, body, category, targetType, targetId)
         }
@@ -226,11 +237,10 @@ class CampusFirebaseMessagingService : FirebaseMessagingService() {
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText(body)
-            .setPriority(when (category) {
-                NotificationCategory.ANNOUNCEMENT, NotificationCategory.ADMIN_ALERT,
-                NotificationCategory.EXAM -> NotificationCompat.PRIORITY_HIGH
-                else -> NotificationCompat.PRIORITY_DEFAULT
-            })
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setOnlyAlertOnce(false)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .setCategory(when (category) {
@@ -245,7 +255,7 @@ class CampusFirebaseMessagingService : FirebaseMessagingService() {
             .build()
 
         notificationManagerCompat.notify(
-            (System.currentTimeMillis() / 1000).toInt(),
+            (System.currentTimeMillis() and 0x7FFFFFFF).toInt(),
             notification
         )
     }
