@@ -67,7 +67,7 @@ class SupabaseSyncRepository @Inject constructor(
     ): Boolean {
         if (!isSyncedEnabled()) return false
         return runCatching {
-            supabaseClient.from("profiles").upsert(mapOf(
+            supabaseClient.from("profiles").upsert(mapOf<String, Any>(
                 "id" to uid,
                 "full_name" to name,
                 "email" to email,
@@ -116,7 +116,7 @@ class SupabaseSyncRepository @Inject constructor(
         val result = supabaseClient.from("profiles")
             .eq("id", uid)
             .update(
-                mapOf(
+                mapOf<String, Any>(
                     "full_name" to name.trim(),
                     "college_name" to collegeName,
                     "course_id" to courseId,
