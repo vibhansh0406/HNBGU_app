@@ -234,7 +234,7 @@ serve(async (req) => {
     // Only Admin and Moderator roles may use the college-wide push sender.
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role, college_id, course_id, semester, section, verified_role, is_moderator_approved")
+      .select("role, college_id, course_id, semester, section, academic_session, verified_role, is_moderator_approved")
       .eq("id", user.id)
       .single();
 
@@ -253,7 +253,42 @@ serve(async (req) => {
 
     // Parse request body
     const body = await req.json();
-    const { user_ids, section_key, title, body: notificationBody, category, target_type, target_id } = body;
+    const { user_ids, section_key, title, body: notificationBody, category, target_type, target_id, audience } = body;
+    const audienceObject = audience && typeof audience === "object" && !Array.isArray(audience) ? audience : {};
+    const audienceKeys = ["courses", "years", "semesters", "sections", "subjects", "sessions"];
+    const malformedAudience = audienceKeys.some((key) =>
+      audienceObject[key] !== undefined && !Array.isArray(audienceObject[key])
+    );
+    if (malformedAudience) {
+      return new Response(JSON.stringify({ ok: false, error: "Audience filters must be arrays." }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+    const listOfStrings = (value: unknown): string[] => Array.isArray(value)
+      ? [...new Set(value.filter((item): item is string => typeof item === "string" && item.trim().length > 0).map((item) => item.trim()))]
+      : [];
+    const listOfNumbers = (value: unknown): number[] => Array.isArray(value)
+      ? [...new Set(value.map(Number).filter((item) => Number.isInteger(item) && item > 0))]
+      : [];
+    const audienceCourses = listOfStrings(audienceObject.courses);
+    const audienceYears = listOfNumbers(audienceObject.years);
+    const audienceSemesters = listOfNumbers(audienceObject.semesters);
+    const audienceSections = listOfStrings(audienceObject.sections).map((item) => item.toUpperCase());
+    const audienceSubjects = listOfStrings(audienceObject.subjects);
+    const audienceSessions = listOfStrings(audienceObject.sessions);
+    if (audienceSessions.some((session) => !/^[0-9]{4}-[0-9]{2}$/.test(session))) {
+      return new Response(JSON.stringify({ ok: false, error: "Academic sessions must use YYYY-YY format." }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+    if (isSectionCr && [audienceCourses, audienceYears, audienceSemesters, audienceSections, audienceSubjects, audienceSessions].some((items) => items.length > 0)) {
+      return new Response(JSON.stringify({ ok: false, error: "CR notifications are restricted to the assigned section." }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
 
     if (typeof title !== "string" || typeof notificationBody !== "string" || !title.trim() || !notificationBody.trim() || title.length > 120 || notificationBody.length > 1200) {
       return new Response(JSON.stringify({ ok: false, error: "Missing title or body" }), {
@@ -350,6 +385,42 @@ serve(async (req) => {
       });
     }
 
+    // Apply audience dimensions with OR within a dimension and AND between dimensions.
+    // Resolve against trusted profile rows only; never trust client-supplied user IDs.
+    if (targetUserIds && (audienceCourses.length || audienceYears.length || audienceSemesters.length || audienceSections.length || audienceSubjects.length || audienceSessions.length)) {
+      const profileRows: Array<{ id: string; course_id: string; semester: number; section: string; academic_session: string | null }> = [];
+      for (let offset = 0; offset < targetUserIds.length; offset += 500) {
+        const idBatch = targetUserIds.slice(offset, offset + 500);
+        const rows = await fetchAllRows<{ id: string; course_id: string; semester: number; section: string; academic_session: string | null }>((from, to) =>
+          supabase.from("profiles")
+            .select("id, course_id, semester, section, academic_session")
+            .eq("role", "STUDENT")
+            .eq("college_id", profile?.college_id ?? "")
+            .in("id", idBatch)
+            .order("id", { ascending: true })
+            .range(from, to)
+        );
+        profileRows.push(...rows);
+      }
+      let subjectSectionKeys: Set<string> | null = null;
+      if (audienceSubjects.length > 0) {
+        const { data: subjectRows, error: subjectError } = await supabase.from("subjects").select("id, section_key").in("id", audienceSubjects);
+        if (subjectError) throw new Error("Subject audience lookup failed: " + subjectError.message);
+        subjectSectionKeys = new Set((subjectRows ?? []).map((row: { section_key: string }) => row.section_key));
+      }
+      targetUserIds = profileRows.filter((student) => {
+        const semester = Number(student.semester);
+        const year = Math.ceil(semester / 2);
+        const section = (student.section ?? "").toUpperCase();
+        const studentSectionKey = profile?.college_id + "_" + student.course_id + "_sem" + semester + "_sec" + student.section;
+        return (!audienceCourses.length || audienceCourses.includes(student.course_id))
+          && (!audienceYears.length || audienceYears.includes(year))
+          && (!audienceSemesters.length || audienceSemesters.includes(semester))
+          && (!audienceSections.length || audienceSections.includes(section))
+          && (!subjectSectionKeys || subjectSectionKeys.has(studentSectionKey))
+          && (!audienceSessions.length || (student.academic_session !== null && audienceSessions.includes(student.academic_session)));
+      }).map((student) => student.id);
+    }
     // Fetch tokens in bounded user batches and page each query. This avoids
     // PostgREST's 1,000-row default cap and URL limits for colleges with 4,000+ users.
     if (!targetUserIds || targetUserIds.length === 0) {
