@@ -192,7 +192,7 @@ class CoreCampusRepository @Inject constructor(
                 subjectId = map["subject_id"] as? String ?: "",
                 subjectName = map["subject_name"] as? String ?: "",
                 subjectCode = map["subject_code"] as? String ?: "",
-                teacherName = map["teacher_name"] as? String ?: "",
+                teacherName = "",
                 roomNumber = map["room_number"] as? String ?: "",
                 dayOfWeek = (map["day_of_week"] as? Number)?.toInt() ?: 1,
                 startTime = map["start_time"] as? String ?: "09:00",
@@ -214,7 +214,7 @@ class CoreCampusRepository @Inject constructor(
                     sectionKey = sectionKey,
                     subjectName = slot.subjectName,
                     subjectCode = slot.subjectCode,
-                    teacherName = slot.teacherName,
+                    teacherName = "",
                     isElective = slot.isElective,
                     isEnrolled = true
                 )
@@ -241,7 +241,7 @@ class CoreCampusRepository @Inject constructor(
                 priority = map["priority"] as? String ?: "NORMAL",
                 isOfficial = map["is_official"] == true,
                 authorUid = map["author_uid"] as? String ?: "",
-                authorName = map["author_name"] as? String ?: "Faculty",
+                authorName = map["author_name"] as? String ?: "CampusOne",
                 authorRole = runCatchingDefault({
                     UserRole.valueOf(map["author_role"] as? String ?: "CR")
                 }, UserRole.CR),
@@ -375,7 +375,7 @@ class CoreCampusRepository @Inject constructor(
                     subjectId = entity.subjectId,
                     subjectName = entity.subjectName,
                     subjectCode = entity.subjectCode,
-                    teacherName = entity.teacherName,
+                    teacherName = "",
                     roomNumber = entity.roomNumber,
                     dayOfWeek = entity.dayOfWeek,
                     startTime = entity.startTime,
