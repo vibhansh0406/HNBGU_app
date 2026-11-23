@@ -464,7 +464,7 @@ class CoreCampusRepository @Inject constructor(
         }
 
     /**
-     * CR / Teacher action: Post a new announcement to the section Notice Board.
+     * CR / Moderator action: Post a new announcement to the section Notice Board.
      * The creator identity is derived from the active Supabase authenticated
      * user UUID (auth.uid()), never from a cached profile ID, so a user can
      * never impersonate another uploader.
