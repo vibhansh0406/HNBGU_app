@@ -511,11 +511,14 @@ class AdminRepository @Inject constructor(
         noticeDao.deleteNotice(noticeId)
 
     // Remote notice operations (admin only)
-    suspend fun saveNoticeRemote(notice: NoticeEntity): Boolean {
+    suspend fun saveNoticeRemote(
+        notice: NoticeEntity,
+        shouldNotify: Boolean = true
+    ): Pair<Boolean, Boolean> {
         val synced = supabaseSync.uploadNotices(notice.sectionKey, listOf(noticeToRemoteMap(notice)))
-        if (!synced) return false
+        if (!synced) return false to false
+        if (!shouldNotify) return true to false
 
-        // Every newly published admin notice should reach its intended section.
         // Keep push delivery separate from feed persistence: a push failure must
         // never roll back or hide a notice that is already safely stored.
         val category = if (notice.isOfficial) "announcement" else "notice"
@@ -530,7 +533,7 @@ class AdminRepository @Inject constructor(
         if (!pushed) {
             android.util.Log.w("CampusOneFCM", "Notice saved, but push delivery was not confirmed")
         }
-        return true
+        return true to pushed
     }
 
     suspend fun deleteNoticeRemote(noticeId: String): Boolean =
