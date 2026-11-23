@@ -230,7 +230,7 @@ fun AdminNoticesScreen(
             attachmentUploadError = attachmentUploadError,
             onAttachmentUrlChange = {
                 attachmentUrl = it
-                if (it.isBlank()) attachmentType = AttachmentType.NONE.name
+                attachmentType = AttachmentType.NONE.name
             },
             onUploadAttachment = { mimeType ->
                 attachmentPicker.launch(arrayOf(mimeType))
@@ -253,7 +253,16 @@ fun AdminNoticesScreen(
                     priority = priority,
                     isOfficial = isOfficial,
                     attachmentUrl = attachmentUrl.ifBlank { null },
-                    attachmentType = if (attachmentUrl.isBlank()) AttachmentType.NONE else AttachmentType.valueOf(attachmentType),
+                    attachmentType = when {
+                        attachmentUrl.isBlank() -> AttachmentType.NONE
+                        attachmentType != AttachmentType.NONE.name -> AttachmentType.valueOf(attachmentType)
+                        attachmentUrl.substringBefore('?').endsWith(".pdf", ignoreCase = true) -> AttachmentType.PDF
+                        attachmentUrl.substringBefore('?').let { url ->
+                            url.endsWith(".png", true) || url.endsWith(".jpg", true) ||
+                                url.endsWith(".jpeg", true) || url.endsWith(".webp", true)
+                        } -> AttachmentType.IMAGE
+                        else -> AttachmentType.LINK
+                    },
                     authorUid = uiState.profile.uid,
                     authorName = uiState.profile.name,
                     authorRole = uiState.profile.role,
