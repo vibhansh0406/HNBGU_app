@@ -21,6 +21,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -66,7 +68,7 @@ fun CampusOneUpdatePrompt() {
                         Text(
                             available.notes.take(1200),
                             style = MaterialTheme.typography.bodySmall,
-                            modifier = androidx.compose.ui.Modifier.padding(top = androidx.compose.ui.unit.dp(8))
+                            modifier = androidx.compose.ui.Modifier.padding(top = 8.dp)
                         )
                     }
                     if (downloading) {
