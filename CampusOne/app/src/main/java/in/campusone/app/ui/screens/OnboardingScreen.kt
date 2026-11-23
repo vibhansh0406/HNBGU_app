@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -29,7 +30,10 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -56,6 +60,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import `in`.campusone.app.R
+import `in`.campusone.app.domain.model.HnbguAcademicCatalog
 import `in`.campusone.app.domain.model.UserRole
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
@@ -93,48 +98,11 @@ fun OnboardingScreen(
     var name by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf(initialEmail) }
 
-    val campuses = listOf(
-        "Birla Campus, Srinagar (Garhwal)",
-        "Chauras Campus, Srinagar (Garhwal)"
-    )
+    val campuses = HnbguAcademicCatalog.campuses
     var selectedCampus by rememberSaveable { mutableStateOf(campuses.first()) }
 
-    val courses = listOf(
-        "bsc_cs" to "B.Sc. (Hons) Computer Science",
-        "bsc_life" to "B.Sc. (Hons) Life Science",
-        "bsc_phy" to "B.Sc. (Hons) Physics",
-        "bsc_chem" to "B.Sc. (Hons) Chemistry",
-        "bsc_math" to "B.Sc. (Hons) Mathematics",
-        "bsc_bot" to "B.Sc. (Hons) Botany",
-        "bsc_zoo" to "B.Sc. (Hons) Zoology",
-        "bsc_micro" to "B.Sc. (Hons) Microbiology",
-        "bsc_biochem" to "B.Sc. (Hons) Biochemistry",
-        "bsc_biotech" to "B.Sc. (Hons) Biotechnology",
-        "bsc_geology" to "B.Sc. (Hons) Geology",
-        "bsc_stats" to "B.Sc. (Hons) Statistics",
-        "bsc_geog" to "B.Sc. (Hons) Geography",
-        "bsc_anthro" to "B.Sc. (Hons) Anthropology",
-        "bsc_econ" to "B.Sc. (Hons) Economics",
-        "bsc_defence" to "B.Sc. (Hons) Defence Studies",
-        "bsc_yogic" to "B.Sc. (Hons) Yogic Science",
-        "bsc_forestry" to "B.Sc. Forestry",
-        "bsc_horti" to "B.Sc. Horticulture",
-        "ba_hons" to "B.A. (Hons) Arts & Humanities",
-        "ba_jmc" to "B.A. (Hons) Journalism & Mass Comm.",
-        "bcom" to "B.Com. (Hons)",
-        "bba" to "BBA",
-        "btech_cse" to "B.Tech. Computer Science & Engg.",
-        "btech_ece" to "B.Tech. Electronics & Comm. Engg.",
-        "btech_it" to "B.Tech. Information Technology",
-        "btech_me" to "B.Tech. Mechanical Engineering",
-        "btech_ie" to "B.Tech. Instrumentation Engineering",
-        "bpharm" to "B.Pharm.",
-        "bhm" to "BHM & Catering Technology",
-        "bed" to "B.Ed.",
-        "bped" to "B.P.Ed.",
-        "blib" to "B.Lib.I.Sc."
-    )
-    var selectedCourseIndex = remember { mutableIntStateOf(0) }
+    val courses = HnbguAcademicCatalog.courses
+    var selectedCourseIndex = rememberSaveable { mutableIntStateOf(0) }
     var selectedSemester by rememberSaveable { mutableIntStateOf(3) }
     var selectedSection by rememberSaveable { mutableStateOf("A") }
     // Role selection is transient UI state; it does not need to survive process death.
@@ -442,12 +410,11 @@ private fun OnboardingStepCampusCourse(
             ) {
                 courses.forEach { (courseId, label) ->
                     val isSelected = selectedCourseIndex == courses.indexOfFirst { it.first == courseId }
-                    Box(
-                        modifier = Modifier.weight(1f, fill = false)
-                    ) {
+                    Box(modifier = Modifier.weight(1f)) {
                         CourseSelectionCard(
                             label = label,
                             selected = isSelected,
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 88.dp),
                             onClick = {
                                 onCourseChange(courses.indexOfFirst { it.first == courseId })
                             }
@@ -501,18 +468,27 @@ private fun OnboardingStepClass(
             verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
         ) {
             C1SectionHeader(title = stringResource(R.string.select_semester))
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm),
-                verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
-            ) {
-                (1..8).forEach { sem ->
-                    C1FilterChip(
-                        label = "Sem $sem",
-                        selected = selectedSemester == sem,
-                        onClick = { onSemesterChange(sem) },
-                        modifier = Modifier.weight(1f, fill = false)
-                    )
+            var semesterMenuExpanded by rememberSaveable { mutableStateOf(false) }
+            Box(modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(
+                    onClick = { semesterMenuExpanded = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Semester $selectedSemester  •  Change")
+                }
+                DropdownMenu(
+                    expanded = semesterMenuExpanded,
+                    onDismissRequest = { semesterMenuExpanded = false }
+                ) {
+                    (1..8).forEach { semester ->
+                        DropdownMenuItem(
+                            text = { Text("Semester $semester") },
+                            onClick = {
+                                onSemesterChange(semester)
+                                semesterMenuExpanded = false
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -592,6 +568,7 @@ private fun OnboardingStepClass(
 private fun CourseSelectionCard(
     label: String,
     selected: Boolean,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -602,7 +579,7 @@ private fun CourseSelectionCard(
         label = "courseCardPress"
     )
     C1SurfaceCard(
-        modifier = Modifier
+        modifier = modifier
             .clickable(
                 interactionSource = interactionSource,
                 indication = ripple(),
@@ -624,8 +601,8 @@ private fun CourseSelectionCard(
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
                 color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                maxLines = 3,
+                overflow = TextOverflow.Clip
             )
         }
     }
