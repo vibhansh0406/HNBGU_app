@@ -263,11 +263,16 @@ serve(async (req) => {
         });
       }
       const [, collegeId, courseId, semesterText, section] = match;
+      if (collegeId !== (profile?.college_id ?? "")) {
+        return new Response(JSON.stringify({ ok: false, error: "Cross-college notification targeting is not allowed" }), {
+          status: 403,
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        });
+      }
       const { data: profiles, error: profileError } = await supabase
         .from("profiles")
         .select("id")
         .eq("role", "STUDENT")
-        .eq("college_id", profile?.college_id ?? "")
         .eq("college_id", collegeId)
         .eq("course_id", courseId)
         .eq("semester", Number(semesterText))
