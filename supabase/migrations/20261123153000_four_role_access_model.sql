@@ -66,6 +66,21 @@ begin
   if position('TEACHER' in v_def) > 0 or position('CLUB_ADMIN' in v_def) > 0 then
     raise exception 'Could not safely remove legacy roles from admin_set_role()';
   end if;
+  v_def := regexp_replace(
+    v_def,
+    'update public\\.profiles set role = p_role,',
+    'update public.profiles set role = p_role, verified_role = p_role in (''CR'',''MODERATOR'',''ADMIN''),',
+    'g'
+  );
   execute v_def;
 end;
 $$;
+
+-- Keep the trusted role-verification flag aligned with Admin-approved roles.
+-- Existing Moderator approval is preserved; this also activates the current
+-- approved Moderator for the Firestore rules that consume verified_role.
+update public.profiles
+   set verified_role = true,
+       updated_at = (extract(epoch from now()) * 1000)::bigint
+ where role in ('CR', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN')
+   and verified_role is distinct from true;
