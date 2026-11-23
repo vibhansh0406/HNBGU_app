@@ -62,7 +62,7 @@ data class AssignmentEntity(
     val remind1DayBefore: Boolean = true,
     val remind2HoursBefore: Boolean = true,
     val isCompleted: Boolean = false,
-    val isSharedByCrOrModerator: Boolean = false,
+    val isSharedByCrOrTeacher: Boolean = false,
     val isAddedToPersonalList: Boolean = true,
     val sharedSourceId: String? = null,
     val authorName: String = "Self",
@@ -85,7 +85,7 @@ data class ExamEntity(
     val examDateFormatted: String,
     val roomOrCenter: String,
     val reminderEnabled: Boolean = true,
-    val publishedByCrOrModerator: Boolean = true,
+    val publishedByCrOrTeacher: Boolean = true,
     val updatedAtMillis: Long = System.currentTimeMillis()
 )
 
@@ -102,7 +102,7 @@ data class SyllabusTopicEntity(
     val unitTitle: String = "Unit 1",
     val topicTitle: String,
     val isCompleted: Boolean = false,
-    val publishedByCrOrModerator: Boolean = true,
+    val publishedByCrOrTeacher: Boolean = true,
     val updatedAtMillis: Long = System.currentTimeMillis()
 )
 
