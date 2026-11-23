@@ -498,9 +498,11 @@ class SupabaseSyncRepository @Inject constructor(
     // =========================================================================
     // ASSIGNMENTS SYNC
     // =========================================================================
-    suspend fun uploadAssignments(sectionKey: String, assignments: List<Map<String, Any>>) {
-        if (!isSyncedEnabled() || assignments.isEmpty()) return
-        supabaseClient.from("assignments").upsert(assignments)
+    suspend fun uploadAssignments(sectionKey: String, assignments: List<Map<String, Any>>): Boolean {
+        if (!isSyncedEnabled() || assignments.isEmpty()) return false
+        val result = supabaseClient.from("assignments").upsert(assignments)
+        if (!result.isSuccess) logFailure("assignment upsert", result.error)
+        return result.isSuccess
     }
 
     suspend fun downloadAssignments(sectionKey: String): List<Map<String, Any>> {
@@ -516,9 +518,11 @@ class SupabaseSyncRepository @Inject constructor(
     // =========================================================================
     // EXAMS SYNC
     // =========================================================================
-    suspend fun uploadExams(sectionKey: String, exams: List<Map<String, Any>>) {
-        if (!isSyncedEnabled() || exams.isEmpty()) return
-        supabaseClient.from("exams").upsert(exams)
+    suspend fun uploadExams(sectionKey: String, exams: List<Map<String, Any>>): Boolean {
+        if (!isSyncedEnabled() || exams.isEmpty()) return false
+        val result = supabaseClient.from("exams").upsert(exams)
+        if (!result.isSuccess) logFailure("exam upsert", result.error)
+        return result.isSuccess
     }
 
     suspend fun downloadExams(sectionKey: String): List<Map<String, Any>> {
