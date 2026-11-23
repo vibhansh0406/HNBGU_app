@@ -92,6 +92,40 @@ class SupabaseSyncRepository @Inject constructor(
         return (result.data as? List<Map<String, Any>>)?.firstOrNull()
     }
 
+    /**
+     * Updates only student-editable academic fields.
+     * Role, email, moderation scope and approval flags are deliberately excluded.
+     */
+    suspend fun updateAcademicProfile(
+        uid: String,
+        name: String,
+        collegeName: String,
+        courseId: String,
+        courseName: String,
+        semester: Int,
+        section: String
+    ): Boolean {
+        if (!isSyncedEnabled() || authManager.currentUserId() != uid) return false
+        if (name.isBlank() || courseId.isBlank() || semester !in 1..8 || section !in setOf("A", "B", "C")) {
+            return false
+        }
+        val result = supabaseClient.from("profiles")
+            .eq("id", uid)
+            .update(
+                mapOf(
+                    "full_name" to name.trim(),
+                    "college_name" to collegeName,
+                    "course_id" to courseId,
+                    "course_name" to courseName,
+                    "semester" to semester,
+                    "section" to section,
+                    "onboarding_completed" to true,
+                    "updated_at" to System.currentTimeMillis()
+                )
+            )
+        return result.isSuccess
+    }
+
     // =========================================================================
     // SERVER-VERIFIED ADMIN OPERATIONS
     // Every privileged mutation goes through a SECURITY DEFINER function that
