@@ -14,7 +14,7 @@ class SettingsViewModel @Inject constructor(
     private val preferences: UserPreferencesRepository
 ) : ViewModel() {
     val themeMode = preferences.darkModeOverride.stateIn(
-        viewModelScope, SharingStarted.WhileSubscribed(5_000), "SYSTEM"
+        viewModelScope, SharingStarted.WhileSubscribed(5_000), "LIGHT"
     )
     val languageTag = preferences.languageTag.stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(5_000), "en"
