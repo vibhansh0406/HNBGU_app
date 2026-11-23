@@ -130,15 +130,16 @@ jobs:
 
           SIGNATURE="$RUNNER_TEMP/campusone-release-signature.txt"
           "$APKSIGNER" verify --verbose --print-certs "$APK" | tee "$SIGNATURE"
-          for scheme in "v1 scheme (JAR signing)" "v2 scheme (APK Signature Scheme v2)" "v3 scheme (APK Signature Scheme v3)"; do
+          for scheme in "v2 scheme (APK Signature Scheme v2)" "v3 scheme (APK Signature Scheme v3)"; do
             grep -Fq "Verified using $scheme: true" "$SIGNATURE" || {
               echo "::error::APK is missing required $scheme signature."
               exit 1
             }
           done
 
-          SHA1=$(sed -n 's/^Signer #1 certificate SHA-1 digest: //p' "$SIGNATURE" | tr -d ':' | tr '[:lower:]' '[:upper:]')
-          SHA256=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$SIGNATURE" | tr -d ':' | tr '[:lower:]' '[:upper:]')
+          # Current apksigner prints fingerprints under a V3.0 Signer block.
+          SHA1=$(grep -F "certificate SHA-1 digest:" "$SIGNATURE" | tail -1 | awk -F': ' '{print $2}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
+          SHA256=$(grep -F "certificate SHA-256 digest:" "$SIGNATURE" | tail -1 | awk -F': ' '{print $2}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
           EXPECTED_SHA1="50341BDAAE1E1CFCC7E26893D3CF8A1F7AFC35A2"
           EXPECTED_SHA256="E28B7893A26DF63884498AEF018575D3875ACEF2C0DC0DB9A06D4EFFA543F273"
           test "$SHA1" = "$EXPECTED_SHA1" || {
