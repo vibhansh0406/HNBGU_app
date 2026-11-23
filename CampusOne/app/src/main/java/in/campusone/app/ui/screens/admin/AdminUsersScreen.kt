@@ -55,9 +55,7 @@ import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
 private val assignableRoles = listOf(
     UserRole.STUDENT,
     UserRole.CR,
-    UserRole.TEACHER,
-    UserRole.MODERATOR,
-    UserRole.CLUB_ADMIN
+    UserRole.MODERATOR
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
