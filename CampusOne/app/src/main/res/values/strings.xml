@@ -386,4 +386,5 @@
     <string name="notices_empty">All caught up! No announcements yet.</string>
     <string name="notices_empty_hint">Announcements from your CR, faculty and the university will appear here.</string>
 
+    <string name="home_quick_actions_subtitle">The things you use most, one tap away</string>
 </resources>
