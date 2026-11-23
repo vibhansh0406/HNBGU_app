@@ -196,7 +196,7 @@ serve(async (req) => {
     // Create a Supabase client with the service role key
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Verify the user's JWT and check admin permission
+    // Verify the user's JWT and require Admin/Moderator notification privileges
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
@@ -207,16 +207,17 @@ serve(async (req) => {
       });
     }
 
-    // Check if user has VIEW_USERS permission (admin)
+    // Only Admin and Moderator roles may use the college-wide push sender.
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
 
-    const isAdmin = profile?.role === "ADMIN" || profile?.role === "SUPER_ADMIN";
-    if (!isAdmin) {
-      return new Response(JSON.stringify({ ok: false, error: "Admin access required" }), {
+    const canSendCollegeNotifications = profile?.role === "ADMIN" ||
+      profile?.role === "MODERATOR" || profile?.role === "SUPER_ADMIN";
+    if (!canSendCollegeNotifications) {
+      return new Response(JSON.stringify({ ok: false, error: "Admin or Moderator access required" }), {
         status: 403,
         headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
       });
