@@ -28,6 +28,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -413,7 +416,14 @@ fun CampusOneRoot(
 
     // First launch: silent cinematic intro before sign-in
     if (introSeen != true) {
-        SilentIntroScreen(onFinish = coreViewModel::markIntroSeen)
+        Box(
+            modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Box(modifier = Modifier.widthIn(max = 720.dp).fillMaxSize()) {
+                SilentIntroScreen(onFinish = coreViewModel::markIntroSeen)
+            }
+        }
         return
     }
 
@@ -425,26 +435,40 @@ fun CampusOneRoot(
                 onGoogleSignIn()
             }
         }
-        SignInScreen(
-            onGoogleSignIn = onGoogleSignInWithGuard,
-            isSigningIn = isSigningIn
-        )
+        Box(
+            modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Box(modifier = Modifier.widthIn(max = 560.dp).fillMaxSize()) {
+                SignInScreen(
+                    onGoogleSignIn = onGoogleSignInWithGuard,
+                    isSigningIn = isSigningIn
+                )
+            }
+        }
         return
     }
 
     // If not onboarded locally, show onboarding
     if (!coreState.isOnboarded) {
         val signedInEmail = authSessionState?.user?.email ?: coreState.profile.email
-        OnboardingScreen(
-            onToggleLanguage = coreViewModel::toggleLanguage,
-            initialEmail = signedInEmail,
-            isOwner = signedInEmail.equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true),
-            onCompleteSetup = { name, email, collegeName, courseId, courseName, semester, section, role ->
-                coreViewModel.completeOnboarding(
-                    name, email, collegeName, courseId, courseName, semester, section, role
+        Box(
+            modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Box(modifier = Modifier.widthIn(max = 760.dp).fillMaxSize()) {
+                OnboardingScreen(
+                    onToggleLanguage = coreViewModel::toggleLanguage,
+                    initialEmail = signedInEmail,
+                    isOwner = signedInEmail.equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true),
+                    onCompleteSetup = { name, email, collegeName, courseId, courseName, semester, section, role ->
+                        coreViewModel.completeOnboarding(
+                            name, email, collegeName, courseId, courseName, semester, section, role
+                        )
+                    }
                 )
             }
-        )
+        }
         return
     }
 
