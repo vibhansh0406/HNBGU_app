@@ -60,6 +60,7 @@ class SupabaseSyncRepository @Inject constructor(
         courseName: String,
         semester: Int,
         section: String,
+        academicSession: String = "",
         moderatorScope: String = "",
         isModeratorApproved: Boolean = false,
         onboardingCompleted: Boolean = false
@@ -76,6 +77,7 @@ class SupabaseSyncRepository @Inject constructor(
                 "course_id" to courseId,
                 "course_name" to courseName,
                 "semester" to semester,
+                "academic_session" to academicSession.ifBlank { null },
                 "section" to section,
                 "moderator_scope" to moderatorScope,
                 "is_moderator_approved" to isModeratorApproved,
@@ -103,10 +105,12 @@ class SupabaseSyncRepository @Inject constructor(
         courseId: String,
         courseName: String,
         semester: Int,
-        section: String
+        section: String,
+        academicSession: String = ""
     ): Boolean {
         if (!isSyncedEnabled() || authManager.currentUserId() != uid) return false
-        if (name.isBlank() || courseId.isBlank() || semester !in 1..8 || section !in setOf("A", "B", "C")) {
+        if (name.isBlank() || courseId.isBlank() || semester !in 1..8 || section !in setOf("A", "B", "C") ||
+            (academicSession.isNotBlank() && !academicSession.matches(Regex("^[0-9]{4}-[0-9]{2}$")))) {
             return false
         }
         val result = supabaseClient.from("profiles")
@@ -118,6 +122,7 @@ class SupabaseSyncRepository @Inject constructor(
                     "course_id" to courseId,
                     "course_name" to courseName,
                     "semester" to semester,
+                    "academic_session" to academicSession.ifBlank { null },
                     "section" to section,
                     "onboarding_completed" to true,
                     "updated_at" to System.currentTimeMillis()
