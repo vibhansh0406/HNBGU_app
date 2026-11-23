@@ -86,7 +86,8 @@ on conflict do nothing;
 -- owner-only and are never granted to this role.
 delete from public.role_permissions where role = 'MODERATOR';
 insert into public.role_permissions (role, permission)
-select 'MODERATOR', code from public.admin_permissions where not is_owner_only
+select 'MODERATOR', code from public.admin_permissions
+where not is_owner_only and code not in ('VIEW_USERS', 'MANAGE_USERS')
 on conflict do nothing;
 
 -- =========================================================================
@@ -488,7 +489,7 @@ security definer
 set search_path = public
 as $$
   select public.campusone_is_owner()
-     or public.campusone_caller_role() in ('ADMIN', 'MODERATOR', 'CR');
+     or public.campusone_caller_role() in ('ADMIN', 'MODERATOR');
 $$;
 
 -- Only the owner may hold SUPER_ADMIN. This is the single choke point for
