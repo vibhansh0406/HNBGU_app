@@ -125,6 +125,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 enum class BottomNavTab {
     HOME, ATTENDANCE, TIMETABLE, NOTICES, MORE
@@ -218,16 +219,26 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             authManager.session.collectLatest { session ->
                 val uid = session?.user?.id ?: return@collectLatest
-                FirebaseMessaging.getInstance().token.addOnSuccessListener { fcmToken ->
-                    lifecycleScope.launch {
-                        supabaseSync.registerDeviceToken(
-                            uid = uid,
-                            fcmToken = fcmToken,
-                            devicePlatform = "android",
-                            deviceName = android.os.Build.MODEL,
-                            email = authManager.currentUserEmail() ?: ""
-                        )
+                runCatching {
+                    // Wait until the Supabase session is usable before calling the
+                    // JWT-protected registration endpoint.
+                    authManager.ensureFreshToken()
+                    val fcmToken = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        com.google.firebase.messaging.FirebaseMessaging.getInstance().token.await()
                     }
+                    val registered = supabaseSync.registerDeviceToken(
+                        uid = uid,
+                        fcmToken = fcmToken,
+                        devicePlatform = "android",
+                        deviceName = android.os.Build.MODEL,
+                        email = authManager.currentUserEmail() ?: ""
+                    )
+                    android.util.Log.i(
+                        "CampusOneFCM",
+                        "Device token registration result: $registered"
+                    )
+                }.onFailure { error ->
+                    android.util.Log.e("CampusOneFCM", "Device token registration failed", error)
                 }
             }
         }
