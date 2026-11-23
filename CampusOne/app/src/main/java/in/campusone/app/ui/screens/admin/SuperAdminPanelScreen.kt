@@ -120,7 +120,7 @@ fun SuperAdminPanelScreen(
             return@Scaffold
         }
 
-        if (!identity.isOwner && !identity.can(`in`.campusone.app.data.repository.AdminPermission.VIEW_USERS)) {
+        if (!identity.isOwner) {
             AccessDeniedState(padding = padding, onBack = onBack)
             return@Scaffold
         }
