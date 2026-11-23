@@ -735,7 +735,7 @@ begin
 
   update public.profiles
      set role = p_role,
-         is_moderator_approved = case when p_role in ('MODERATOR','ADMIN') then true else is_moderator_approved end,
+         is_moderator_approved = (p_role = 'MODERATOR'),
          updated_at = v_now
    where id = p_uid;
 
