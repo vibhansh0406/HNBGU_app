@@ -105,7 +105,7 @@ class CoreCampusRepository @Inject constructor(
         val isOwner = (remote["email"] as? String)?.equals(OWNER_EMAIL, ignoreCase = true) == true
         val role = when {
             isOwner || remoteRole == "SUPER_ADMIN" -> UserRole.ADMIN
-            remoteRole == "TEACHER" || remoteRole == "CLUB_ADMIN" -> UserRole.MODERATOR
+            // Legacy/unknown roles must never inherit Moderator privileges.
             else -> UserRole.entries.firstOrNull { it.name == remoteRole } ?: UserRole.STUDENT
         }
         return UserProfile(
