@@ -751,14 +751,27 @@ private fun PostNoticeDialog(
                     },
                     label = stringResource(R.string.notice_composer_attachment)
                 )
-                C1Button(
-                    text = if (isUploadingAttachment) "Uploading attachment..." else "Upload PDF or image",
-                    onClick = { attachmentPicker.launch(arrayOf("application/pdf", "image/*")) },
-                    intent = C1ButtonIntent.OUTLINED,
-                    enabled = !isUploadingAttachment,
-                    loading = isUploadingAttachment,
-                    icon = { Icon(Icons.Default.Attachment, contentDescription = null) }
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+                ) {
+                    C1Button(
+                        text = if (isUploadingAttachment) "Uploading..." else "Upload PDF",
+                        onClick = { attachmentPicker.launch(arrayOf("application/pdf")) },
+                        modifier = Modifier.weight(1f),
+                        intent = C1ButtonIntent.OUTLINED,
+                        enabled = !isUploadingAttachment,
+                        loading = isUploadingAttachment,
+                        icon = { Icon(Icons.Default.Attachment, contentDescription = null) }
+                    )
+                    C1Button(
+                        text = "Upload Image",
+                        onClick = { attachmentPicker.launch(arrayOf("image/*")) },
+                        modifier = Modifier.weight(1f),
+                        intent = C1ButtonIntent.OUTLINED,
+                        enabled = !isUploadingAttachment
+                    )
+                }
                 if (attachmentUrl.isNotBlank() && uploadedAttachmentType != AttachmentType.NONE.name) {
                     Text(
                         text = "Attachment uploaded (${uploadedAttachmentType})",
