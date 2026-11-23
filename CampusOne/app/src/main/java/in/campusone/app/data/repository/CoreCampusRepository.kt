@@ -477,7 +477,8 @@ class CoreCampusRepository @Inject constructor(
                     body = entity.body,
                     category = if (isOfficial) "announcement" else "notice",
                     targetType = "NOTICE",
-                    targetId = entity.id
+                    targetId = entity.id,
+                    sectionKey = targetSectionKey
                 )
             }
         }
