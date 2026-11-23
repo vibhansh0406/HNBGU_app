@@ -1155,7 +1155,7 @@ create policy "own_role_requests_insert" on public.role_requests
   for insert to authenticated
   with check (
     auth.uid()::text = user_id::text
-    and requested_role in ('CR','TEACHER','MODERATOR','CLUB_ADMIN')
+    and requested_role in ('CR')
     and status = 'PENDING'
   );
 
@@ -1873,7 +1873,7 @@ grant execute on function public.admin_moderate_community(text, text, text)
 -- policies with role-scoped ones so authorization is enforced by Postgres.
 --
 -- Rules
---   * Staff = owner, ADMIN, TEACHER, CR, MODERATOR (server-derived role).
+--   * Staff = owner, ADMIN, MODERATOR, CR (server-derived role).
 --   * Students keep the writes the product actually offers them: uploading a
 --     study resource, submitting a directory suggestion, requesting the
 --     owner of a lost-and-found item, marking their own attendance, posting
@@ -1898,7 +1898,7 @@ as $
       or exists (
         select 1 from public.profiles p
         where p.id = auth.uid()
-          and p.role in ('ADMIN', 'TEACHER', 'CR', 'MODERATOR')
+          and p.role in ('ADMIN', 'CR', 'MODERATOR')
           and p.is_suspended = false
       );
 $;
