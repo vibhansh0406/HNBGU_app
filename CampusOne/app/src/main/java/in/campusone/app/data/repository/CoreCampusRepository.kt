@@ -101,7 +101,7 @@ class CoreCampusRepository @Inject constructor(
     suspend fun fetchRemoteProfile(uid: String): UserProfile? {
         val remote = supabaseSync.downloadProfile(uid) ?: return null
         val courseId = remote["course_id"] as? String ?: ""
-        val remoteRole = remote["role"] as? String ?: ""
+        val remoteRole = (remote["role"] as? String).orEmpty().trim().uppercase()
         val isOwner = (remote["email"] as? String)?.equals(OWNER_EMAIL, ignoreCase = true) == true
         val role = when {
             isOwner || remoteRole == "SUPER_ADMIN" -> UserRole.ADMIN
@@ -245,7 +245,7 @@ class CoreCampusRepository @Inject constructor(
                 authorRole = when ((map["author_role"] as? String)?.uppercase()) {
                     "SUPER_ADMIN" -> UserRole.ADMIN
                     else -> runCatchingDefault({
-                        UserRole.valueOf(map["author_role"] as? String ?: "CR")
+                        UserRole.valueOf((map["author_role"] as? String).orEmpty().uppercase().ifBlank { "CR" })
                     }, UserRole.CR)
                 },
                 createdAtMillis = TimestampUtils.toEpochMillis(map["created_at"]) ?: System.currentTimeMillis(),
