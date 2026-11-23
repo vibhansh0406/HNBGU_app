@@ -800,7 +800,8 @@ class SupabaseSyncRepository @Inject constructor(
         body: String,
         category: String,
         targetType: String,
-        targetId: String
+        targetId: String,
+        sectionKey: String
     ): Boolean {
         val edgeUrl = authManager.config.edgeFunctionUrl
         val sessionToken = authManager.currentSession()?.accessToken ?: return false
@@ -821,6 +822,7 @@ class SupabaseSyncRepository @Inject constructor(
                 .put("category", category)
                 .put("target_type", targetType)
                 .put("target_id", targetId)
+                .put("section_key", sectionKey)
             connection.outputStream.use {
                 it.write(payload.toString().toByteArray(StandardCharsets.UTF_8))
             }
