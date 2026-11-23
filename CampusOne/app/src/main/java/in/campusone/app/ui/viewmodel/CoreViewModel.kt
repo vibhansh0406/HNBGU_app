@@ -250,6 +250,7 @@ class CoreViewModel @Inject constructor(
         courseName: String,
         semester: Int,
         section: String,
+        academicSession: String,
         role: UserRole
     ) {
         viewModelScope.launch {
@@ -271,6 +272,7 @@ class CoreViewModel @Inject constructor(
                 courseId = courseId,
                 courseName = courseName,
                 semester = semester,
+                academicSession = academicSession.trim(),
                 section = section,
                 onboardingCompleted = false // Not yet persisted to server
             )
@@ -351,7 +353,8 @@ class CoreViewModel @Inject constructor(
 
             val name = candidate.name.trim()
             if (name.isBlank() || candidate.courseId.isBlank() ||
-                candidate.semester !in 1..8 || candidate.section !in setOf("A", "B", "C")
+                candidate.semester !in 1..8 || candidate.section !in setOf("A", "B", "C") ||
+                (candidate.academicSession.isNotBlank() && !candidate.academicSession.matches(Regex("^[0-9]{4}-[0-9]{2}$")))
             ) {
                 _uiMessages.emit("Please check your name, course, semester and section.")
                 return@launch
@@ -365,6 +368,7 @@ class CoreViewModel @Inject constructor(
                 courseId = candidate.courseId,
                 courseName = candidate.courseName,
                 semester = candidate.semester,
+                academicSession = candidate.academicSession.trim(),
                 section = candidate.section,
                 onboardingCompleted = true
             )
