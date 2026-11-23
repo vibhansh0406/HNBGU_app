@@ -126,7 +126,14 @@ async function sendFcmMessage(
       }
     );
 
-    return response.ok;
+    if (!response.ok) {
+      // Log the FCM error body (never the registration token) so invalid
+      // credentials, disabled APIs and stale device tokens are distinguishable.
+      const errorText = await response.text();
+      console.error("FCM send rejected:", response.status, errorText.slice(0, 1000));
+      return false;
+    }
+    return true;
   } catch (error) {
     console.error("FCM send error:", error);
     return false;
