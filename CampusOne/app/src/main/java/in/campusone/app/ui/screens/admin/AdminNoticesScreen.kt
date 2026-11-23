@@ -117,23 +117,6 @@ fun AdminNoticesScreen(
                 }
             )
         },
-        floatingActionButton = {
-            androidx.compose.material3.FloatingActionButton(onClick = {
-                editingNotice = null
-                title = ""
-                body = ""
-                isPinned = false
-                category = "GENERAL"
-                priority = "NORMAL"
-                isOfficial = false
-                attachmentUrl = ""
-                attachmentType = AttachmentType.NONE.name
-                attachmentUploadError = null
-                showDialog = true
-            }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Notice")
-            }
-        }
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = C1Spacing.lg),
@@ -245,7 +228,7 @@ fun AdminNoticesScreen(
             onSave = {
                 val notice = NoticeEntity(
                     id = editingNotice?.id ?: java.util.UUID.randomUUID().toString(),
-                    sectionKey = if (isOfficial || priority == "HIGH" || priority == "URGENT") "global" else uiState.sectionKey,
+                    sectionKey = editingNotice?.sectionKey ?: uiState.sectionKey,
                     title = title,
                     body = body,
                     isPinned = isPinned,
