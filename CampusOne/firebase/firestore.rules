@@ -71,7 +71,7 @@ service cloud.firestore {
           && (!('posterSizeBytes' in request.resource.data) || request.resource.data.posterSizeBytes <= 5242880);
         allow update: if isSameCollege(collegeId) && (
           isClubAdminFor(resource.data.clubId) ||
-          (isCr() && resource.data.adminUid == request.auth.uid && resource.data.isApproved == false && request.resource.data.isApproved == false) ||
+          (isCr() && resource.data.adminUid == request.auth.uid && request.resource.data.adminUid == request.auth.uid && resource.data.isApproved == false && request.resource.data.isApproved == false) ||
           // Students can update RSVP counters or report abuse
           request.resource.data.diff(resource.data).affectedKeys()
             .hasOnly(['goingCount', 'interestedCount', 'notGoingCount', 'reportCount', 'isFlagged', 'updatedAt'])
