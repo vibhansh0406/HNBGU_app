@@ -424,7 +424,7 @@ class CoreCampusRepository @Inject constructor(
         }
         val targetSectionKey = if (profile.role == UserRole.ADMIN) "global" else profile.sectionKey
         val now = System.currentTimeMillis()
-        val noticeId = "notice_${now}_${profile.uid.take(6)}"
+        val noticeId = java.util.UUID.randomUUID().toString()
         // Derive creator identity from the active Supabase authenticated user UUID,
         // never from a stale cached profile ID. This prevents impersonation.
         val authUid = authManager.currentUserId() ?: throw IllegalStateException("Not signed in to Supabase")
