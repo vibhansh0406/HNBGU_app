@@ -332,7 +332,7 @@ class StudyAndCampusViewModel @Inject constructor(
                 examTimeFormatted = examTime,
                 venue = venue,
                 daysFromNow = daysFromNow,
-                publishedByCr = isCrOrModerator
+                publishedByCr = isStaffPublisher
             )
             _statusMessages.emit("Exam added with countdown & reminder!")
         }
