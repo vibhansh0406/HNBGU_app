@@ -234,13 +234,16 @@ serve(async (req) => {
     // Only Admin and Moderator roles may use the college-wide push sender.
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role, college_id, course_id, semester, section")
+      .select("role, college_id, course_id, semester, section, verified_role, is_moderator_approved")
       .eq("id", user.id)
       .single();
 
-    const canSendCollegeNotifications = profile?.role === "ADMIN" ||
-      profile?.role === "MODERATOR" || profile?.role === "SUPER_ADMIN";
-    const isSectionCr = profile?.role === "CR";
+    const isApprovedModerator = profile?.role === "MODERATOR" &&
+      profile?.verified_role === true && profile?.is_moderator_approved === true;
+    const canSendCollegeNotifications = profile?.role === "SUPER_ADMIN" ||
+      (profile?.role === "ADMIN" && profile?.verified_role === true) ||
+      isApprovedModerator;
+    const isSectionCr = profile?.role === "CR" && profile?.verified_role === true;
     if (!canSendCollegeNotifications && !isSectionCr) {
       return new Response(JSON.stringify({ ok: false, error: "Admin or Moderator access required" }), {
         status: 403,
