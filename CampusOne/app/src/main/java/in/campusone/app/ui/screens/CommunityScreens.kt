@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -1044,6 +1045,7 @@ fun StudentProfileScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
+            .widthIn(max = 720.dp)
             .padding(C1Spacing.lg),
         verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
     ) {
@@ -1115,12 +1117,20 @@ fun StudentProfileScreen(
                 courseName = courseOptions.firstOrNull { it.first == id }?.second.orEmpty()
             }
         )
-        StudentProfileDropdownField(
-            label = "Semester",
-            selectedValue = semester,
-            options = (1..8).map { it.toString() to "Semester $it" },
-            onSelected = { semester = it }
+        Text(
+            "Semester",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+            items((1..8).toList()) { value ->
+                FilterChip(
+                    selected = semester == value.toString(),
+                    onClick = { semester = value.toString() },
+                    label = { Text("Sem $value") }
+                )
+            }
+        }
         StudentProfileDropdownField(
             label = "Section",
             selectedValue = section,
