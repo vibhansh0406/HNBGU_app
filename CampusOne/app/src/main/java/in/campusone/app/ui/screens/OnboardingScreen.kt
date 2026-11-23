@@ -90,6 +90,7 @@ fun OnboardingScreen(
         courseName: String,
         semester: Int,
         section: String,
+        academicSession: String,
         role: UserRole
     ) -> Unit
 ) {
@@ -105,6 +106,7 @@ fun OnboardingScreen(
     var selectedCourseIndex = rememberSaveable { mutableIntStateOf(0) }
     var selectedSemester by rememberSaveable { mutableIntStateOf(3) }
     var selectedSection by rememberSaveable { mutableStateOf("A") }
+    var academicSession by rememberSaveable { mutableStateOf("") }
     // Role selection is transient UI state; it does not need to survive process death.
     // Using rememberSaveable with a UserRole enum risks a missing Saver crash on rotation.
     var selectedRole by remember { mutableStateOf(UserRole.STUDENT) }
@@ -116,6 +118,7 @@ fun OnboardingScreen(
 
     val canContinue = when (step) {
         0 -> name.isNotBlank() && email.isNotBlank()
+        2 -> academicSession.matches(Regex("^[0-9]{4}-[0-9]{2}$"))
         else -> true
     }
 
@@ -219,6 +222,8 @@ fun OnboardingScreen(
                     onSemesterChange = { selectedSemester = it },
                     selectedSection = selectedSection,
                     onSectionChange = { selectedSection = it },
+                    academicSession = academicSession,
+                    onAcademicSessionChange = { academicSession = it },
                     isOwner = isOwner,
                     selectableRoles = selectableRoles,
                     selectedRole = selectedRole,
@@ -262,6 +267,7 @@ fun OnboardingScreen(
                                 courseName,
                                 selectedSemester,
                                 selectedSection,
+                                academicSession.trim(),
                                 selectedRole
                             )
                         }
@@ -431,6 +437,8 @@ private fun OnboardingStepClass(
     onSemesterChange: (Int) -> Unit,
     selectedSection: String,
     onSectionChange: (String) -> Unit,
+    academicSession: String,
+    onAcademicSessionChange: (String) -> Unit,
     isOwner: Boolean,
     selectableRoles: List<UserRole>,
     selectedRole: UserRole,
@@ -511,6 +519,24 @@ private fun OnboardingStepClass(
                     )
                 }
             }
+        }
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+        ) {
+            C1SectionHeader(title = "Academic session")
+            C1TextField(
+                value = academicSession,
+                onValueChange = onAcademicSessionChange,
+                label = "Academic year (e.g. 2026-27)",
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text(
+                "Enter the session shown on your university records. This is used for session-specific notices.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
 
         // Role selection or owner notice
