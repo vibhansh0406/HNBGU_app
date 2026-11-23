@@ -242,9 +242,13 @@ class CoreCampusRepository @Inject constructor(
                 isOfficial = map["is_official"] == true,
                 authorUid = map["author_uid"] as? String ?: "",
                 authorName = map["author_name"] as? String ?: "CampusOne",
-                authorRole = runCatchingDefault({
-                    UserRole.valueOf(map["author_role"] as? String ?: "CR")
-                }, UserRole.CR),
+                authorRole = when ((map["author_role"] as? String)?.uppercase()) {
+                    "TEACHER", "CLUB_ADMIN" -> UserRole.MODERATOR
+                    "SUPER_ADMIN" -> UserRole.ADMIN
+                    else -> runCatchingDefault({
+                        UserRole.valueOf(map["author_role"] as? String ?: "CR")
+                    }, UserRole.CR)
+                },
                 createdAtMillis = TimestampUtils.toEpochMillis(map["created_at"]) ?: System.currentTimeMillis(),
                 isRead = map["is_read"] == true || map["id"] in readIds
             )
