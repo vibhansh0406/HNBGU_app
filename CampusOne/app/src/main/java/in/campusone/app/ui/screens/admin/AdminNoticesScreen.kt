@@ -232,7 +232,9 @@ fun AdminNoticesScreen(
                 attachmentUrl = it
                 if (it.isBlank()) attachmentType = AttachmentType.NONE.name
             },
-            onUploadAttachment = { attachmentPicker.launch(arrayOf("application/pdf", "image/*")) },
+            onUploadAttachment = { mimeType ->
+                attachmentPicker.launch(arrayOf(mimeType))
+            },
             onTitleChange = { title = it },
             onBodyChange = { body = it },
             onPinnedChange = { isPinned = it },
@@ -280,7 +282,7 @@ private fun NoticeDialog(
     isUploadingAttachment: Boolean,
     attachmentUploadError: String?,
     onAttachmentUrlChange: (String) -> Unit,
-    onUploadAttachment: () -> Unit,
+    onUploadAttachment: (mimeType: String) -> Unit,
     onTitleChange: (String) -> Unit,
     onBodyChange: (String) -> Unit,
     onPinnedChange: (Boolean) -> Unit,
@@ -317,13 +319,26 @@ private fun NoticeDialog(
                     label = "Attachment URL (optional)",
                     modifier = Modifier.fillMaxWidth()
                 )
-                C1Button(
-                    text = if (isUploadingAttachment) "Uploading attachment..." else "Upload PDF or image",
-                    onClick = onUploadAttachment,
-                    intent = C1ButtonIntent.OUTLINED,
-                    enabled = !isUploadingAttachment,
-                    loading = isUploadingAttachment
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+                ) {
+                    C1Button(
+                        text = if (isUploadingAttachment) "Uploading..." else "Upload PDF",
+                        onClick = { onUploadAttachment("application/pdf") },
+                        modifier = Modifier.weight(1f),
+                        intent = C1ButtonIntent.OUTLINED,
+                        enabled = !isUploadingAttachment,
+                        loading = isUploadingAttachment
+                    )
+                    C1Button(
+                        text = "Upload Image",
+                        onClick = { onUploadAttachment("image/*") },
+                        modifier = Modifier.weight(1f),
+                        intent = C1ButtonIntent.OUTLINED,
+                        enabled = !isUploadingAttachment
+                    )
+                }
                 if (attachmentUrl.isNotBlank() && attachmentType != AttachmentType.NONE.name) {
                     Text(
                         text = "Attachment added ($attachmentType)",
