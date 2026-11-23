@@ -543,6 +543,41 @@ class AdminRepository @Inject constructor(
     suspend fun upsertAssignments(items: List<AssignmentEntity>) =
         studyDao.upsertAssignments(items)
 
+    suspend fun publishAssignmentRemote(item: AssignmentEntity): Pair<Boolean, Boolean> {
+        val synced = supabaseSync.uploadAssignments(item.sectionKey, listOf(mapOf<String, Any>(
+            "id" to item.id,
+            "section_key" to item.sectionKey,
+            "subject_id" to item.subjectId,
+            "subject_tag" to item.subjectTag,
+            "title" to item.title,
+            "description" to item.description,
+            "priority" to item.priority,
+            "due_date_epoch_millis" to item.dueDateEpochMillis,
+            "due_date_formatted" to item.dueDateFormatted,
+            "reminder_enabled" to item.reminderEnabled,
+            "remind_1_day_before" to item.remind1DayBefore,
+            "remind_2_hours_before" to item.remind2HoursBefore,
+            "is_completed" to item.isCompleted,
+            "is_shared_by_cr_or_teacher" to true,
+            "is_added_to_personal_list" to false,
+            "shared_source_id" to item.sharedSourceId.orEmpty(),
+            "author_name" to item.authorName,
+            "is_synced" to true,
+            "created_at" to item.createdAtMillis,
+            "updated_at" to item.updatedAtMillis
+        )))
+        if (!synced) return false to false
+        val pushed = supabaseSync.sendPushNotification(
+            title = "New assignment: ${item.title}",
+            body = "${item.subjectTag} • Due ${item.dueDateFormatted}",
+            category = "assignment",
+            targetType = "ASSIGNMENT",
+            targetId = item.id,
+            sectionKey = item.sectionKey
+        )
+        return true to pushed
+    }
+
     suspend fun deleteAssignment(id: String) =
         studyDao.deleteAssignment(id)
 
@@ -554,6 +589,35 @@ class AdminRepository @Inject constructor(
 
     suspend fun upsertExams(items: List<ExamEntity>) =
         studyDao.upsertExams(items)
+
+    suspend fun publishExamRemote(item: ExamEntity): Pair<Boolean, Boolean> {
+        val synced = supabaseSync.uploadExams(item.sectionKey, listOf(mapOf<String, Any>(
+            "id" to item.id,
+            "section_key" to item.sectionKey,
+            "subject_id" to item.subjectId,
+            "subject_name" to item.subjectName,
+            "subject_code" to item.subjectCode,
+            "exam_title" to item.examTitle,
+            "exam_date_epoch_millis" to item.examDateEpochMillis,
+            "exam_date_iso" to item.examDateIso,
+            "exam_time_formatted" to item.examTimeFormatted,
+            "exam_date_formatted" to item.examDateFormatted,
+            "room_or_center" to item.roomOrCenter,
+            "reminder_enabled" to item.reminderEnabled,
+            "published_by_cr_or_teacher" to true,
+            "updated_at" to item.updatedAtMillis
+        )))
+        if (!synced) return false to false
+        val pushed = supabaseSync.sendPushNotification(
+            title = "Exam update: ${item.subjectName}",
+            body = "${item.examTitle} • ${item.examDateFormatted} • ${item.examTimeFormatted}",
+            category = "exam",
+            targetType = "EXAM",
+            targetId = item.id,
+            sectionKey = item.sectionKey
+        )
+        return true to pushed
+    }
 
     suspend fun deleteExam(id: String) =
         studyDao.deleteExam(id)
