@@ -47,7 +47,7 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow write: if false;
 
-      // Phase 3.1: Clubs (Moderation: public sees approved clubs; CR/Moderator approves new clubs & assigns Club Admins)
+      // Phase 3.1: Clubs (Moderation: public sees approved clubs; CR/Moderator manages club approvals)
       match /clubs/{clubId} {
         allow read: if isSameCollege(collegeId) && (
           resource.data.isApproved == true || isClubAdminFor(clubId)
@@ -56,7 +56,7 @@ service cloud.firestore {
           && isValidPostSize(request.resource.data.name, 100)
           && (isCrOrModerator() || request.resource.data.isApproved == false);
         allow update: if isSameCollege(collegeId) && isClubAdminFor(clubId);
-        allow delete: if isSameCollege(collegeId) && isCrOrTeacher();
+        allow delete: if isSameCollege(collegeId) && isCrOrModerator();
       }
 
       // Phase 3.1: Events Feed (3-State RSVP, Moderator creation, CR approval)
@@ -80,7 +80,7 @@ service cloud.firestore {
       // Phase 3.2: Privacy-First Lost & Found Board (No public phone numbers; 30-day auto-archive; CR moderation)
       match /lost_found/{itemId} {
         allow read: if isSameCollege(collegeId) && (
-          resource.data.isHidden == false || isCrOrTeacher() || resource.data.reporterUid == request.auth.uid
+          resource.data.isHidden == false || isCrOrModerator() || resource.data.reporterUid == request.auth.uid
         );
         allow create: if isSameCollege(collegeId)
           && request.resource.data.reporterUid == request.auth.uid
@@ -88,11 +88,11 @@ service cloud.firestore {
           && (!('photoSizeBytes' in request.resource.data) || request.resource.data.photoSizeBytes <= 2097152);
         allow update: if isSameCollege(collegeId) && (
           resource.data.reporterUid == request.auth.uid ||
-          isCrOrTeacher() ||
+          isCrOrModerator() ||
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reportCount', 'isFlagged'])
         );
         allow delete: if isSameCollege(collegeId) && (
-          resource.data.reporterUid == request.auth.uid || isCrOrTeacher()
+          resource.data.reporterUid == request.auth.uid || isCrOrModerator()
         );
 
         // Private Claim / Contact Requests: only the requester and the item's poster can read/write
@@ -114,17 +114,17 @@ service cloud.firestore {
       // Phase 3.3: Campus Directory & Student Correction Suggestions
       match /directory/{entryId} {
         allow read: if isSameCollege(collegeId);
-        allow write: if isSameCollege(collegeId) && isCrOrTeacher();
+        allow write: if isSameCollege(collegeId) && isCrOrModerator();
       }
 
       match /directory_suggestions/{suggestionId} {
         allow read: if isSameCollege(collegeId) && (
-          isCrOrTeacher() || resource.data.suggesterUid == request.auth.uid
+          isCrOrModerator() || resource.data.suggesterUid == request.auth.uid
         );
         allow create: if isSameCollege(collegeId)
           && request.resource.data.suggesterUid == request.auth.uid
           && isValidPostSize(request.resource.data.proposedChange, 300);
-        allow update, delete: if isSameCollege(collegeId) && isCrOrTeacher();
+        allow update, delete: if isSameCollege(collegeId) && isCrOrModerator();
       }
     }
 
