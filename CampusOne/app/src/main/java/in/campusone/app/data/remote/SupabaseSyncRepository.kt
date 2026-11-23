@@ -356,6 +356,18 @@ class SupabaseSyncRepository @Inject constructor(
         // Older deployments have not run the announcements migration yet.
         // Retry with only the columns every version of the table has so an
         // announcement is never silently lost.
+        // Never downgrade a targeted notice to a college-wide legacy row.
+        // If the audience column is missing, fail closed rather than widening delivery.
+        val hasTargetedAudience = notices.any { notice ->
+            val audience = notice["audience"] as? Map<*, *>
+            audience != null && audience.values.any { value ->
+                value is Collection<*> && value.isNotEmpty()
+            }
+        }
+        if (hasTargetedAudience) {
+            Log.e(TAG, "Targeted notice upload rejected: audience schema is unavailable")
+            return false
+        }
         val legacy = notices.map { notice ->
             notice.filterKeys { it in LEGACY_NOTICE_COLUMNS }
         }
@@ -843,7 +855,8 @@ class SupabaseSyncRepository @Inject constructor(
         category: String,
         targetType: String,
         targetId: String,
-        sectionKey: String
+        sectionKey: String,
+        audience: Map<String, Any> = emptyMap()
     ): Boolean {
         val edgeUrl = authManager.config.edgeFunctionUrl.trimEnd('/')
         val sessionToken = authManager.currentSession()?.accessToken ?: run {
@@ -877,6 +890,7 @@ class SupabaseSyncRepository @Inject constructor(
                     .put("target_type", targetType)
                     .put("target_id", targetId)
                     .put("section_key", sectionKey)
+                    .put("audience", org.json.JSONObject(audience))
 
                 conn.outputStream.use {
                     it.write(payload.toString().toByteArray(StandardCharsets.UTF_8))
