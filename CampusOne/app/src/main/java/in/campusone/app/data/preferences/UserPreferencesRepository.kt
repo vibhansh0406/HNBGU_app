@@ -70,7 +70,7 @@ class UserPreferencesRepository @Inject constructor(
     val languageTag: Flow<String> = context.dataStore.data.map { it[Keys.LANGUAGE_TAG] ?: "en" }
 
     val darkModeOverride: Flow<String> = context.dataStore.data.map {
-        it[Keys.DARK_MODE_OVERRIDE] ?: "SYSTEM"
+        it[Keys.DARK_MODE_OVERRIDE] ?: "LIGHT"
     }
     val notificationsEnabled: Flow<Boolean> = context.dataStore.data.map {
         it[Keys.NOTIFICATIONS_ENABLED] ?: true
