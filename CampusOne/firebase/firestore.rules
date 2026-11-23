@@ -24,16 +24,16 @@ service cloud.firestore {
 
     function isCrOrModerator() {
       return isSignedIn() &&
-        (userDoc().role == 'CR' || userDoc().role == 'MODERATOR') &&
+        (userDoc().role == 'CR' || userDoc().role == 'MODERATOR' || userDoc().role == 'ADMIN' || userDoc().role == 'SUPER_ADMIN') &&
         userDoc().verifiedRole == true;
     }
 
     function canPublishToSection(sectionKey) {
-      return isModerator() || (isSameSection(sectionKey) && isCrOrModerator());
+      return isModerator() || (isSignedIn() && userDoc().role in ['ADMIN', 'SUPER_ADMIN'] && userDoc().verifiedRole == true) ||\n        (isSameSection(sectionKey) && isCrOrModerator());
     }
 
     function isClubAdminFor(clubId) {
-      return isModerator() || (isSignedIn() && userDoc().role == 'CR' && userDoc().verifiedRole == true);
+      return isCrOrModerator();
     }
 
     // Anti-spam rate limit & payload validation helper
