@@ -320,7 +320,7 @@ class StudyAndCampusViewModel @Inject constructor(
         daysFromNow: Int
     ) {
         val p = uiState.value.profile
-        val isCrOrTeacher = p.role != UserRole.STUDENT
+        val isStaffPublisher = p.role != UserRole.STUDENT
         viewModelScope.launch {
             repository.addOrPublishExam(
                 sectionKey = p.sectionKey,
