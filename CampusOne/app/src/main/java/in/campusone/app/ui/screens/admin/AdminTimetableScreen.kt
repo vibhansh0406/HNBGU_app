@@ -163,7 +163,7 @@ fun AdminTimetableScreen(
                         }
                         Spacer(modifier = Modifier.height(C1Spacing.xs))
                         Text(
-                            "Paste CSV content: Subject Code, Subject Name, Teacher, Room, Day (1-7), Start (HH:mm), End (HH:mm)",
+                            "Paste CSV content: Subject Code, Subject Name, Room, Day (1-7), Start (HH:mm), End (HH:mm)",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -229,7 +229,7 @@ fun AdminTimetableScreen(
                                 ) {
                                     Column {
                                         Text("${slot.subjectName} (${slot.subjectCode})", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-                                        Text("${slot.teacherName} · ${slot.roomNumber} · Day ${slot.dayOfWeek} · ${slot.startTime}–${slot.endTime}",
+                                        Text("${slot.roomNumber} · Day ${slot.dayOfWeek} · ${slot.startTime}–${slot.endTime}",
                                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
@@ -274,7 +274,7 @@ fun AdminTimetableScreen(
                     label = "CSV Content",
                     modifier = Modifier.fillMaxWidth()
                 )
-                Text("Format: subject_code,subject_name,teacher,room,day,start,end", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Format: subject_code,subject_name,room,day,start,end", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text("Example: SOET-CS-301,Data Structures,Dr. Smith,Room 101,1,09:00,10:00", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
                     C1Button(text = "Cancel", onClick = { showUploadDialog = false }, intent = C1ButtonIntent.GHOST)
