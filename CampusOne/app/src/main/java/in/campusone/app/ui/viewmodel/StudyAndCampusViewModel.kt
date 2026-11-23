@@ -455,7 +455,7 @@ class StudyAndCampusViewModel @Inject constructor(
         socialLink: String
     ) {
         val p = uiState.value.profile
-        val isAutoApproved = p.role == UserRole.CR || p.role == UserRole.TEACHER
+        val isAutoApproved = p.role == UserRole.CR || p.role == UserRole.MODERATOR
         viewModelScope.launch {
             val res = repository.createOrProposeClub(
                 collegeId = p.collegeId,
@@ -472,7 +472,7 @@ class StudyAndCampusViewModel @Inject constructor(
             if (res.isSuccess) {
                 _statusMessages.emit(
                     if (isAutoApproved) "Club published!"
-                    else "Club submitted for CR / Faculty approval."
+                    else "Club submitted for CR / Moderator approval."
                 )
             } else {
                 _statusMessages.emit(res.exceptionOrNull()?.message ?: "Could not create club")
