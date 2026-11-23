@@ -349,10 +349,17 @@ class AdminViewModel @Inject constructor(
         }
     }
 
-    fun saveNoticeRemote(notice: NoticeEntity) {
+    fun saveNoticeRemote(notice: NoticeEntity, shouldNotify: Boolean = true) {
         viewModelScope.launch {
-            val ok = repository.saveNoticeRemote(notice)
-            _messages.emit(if (ok) "Notice synced to cloud" else "Failed to sync notice")
+            val (synced, pushed) = repository.saveNoticeRemote(notice, shouldNotify)
+            _messages.emit(
+                when {
+                    !synced -> "Notice could not be saved to cloud"
+                    shouldNotify && pushed -> "Notice published and push notification sent"
+                    shouldNotify -> "Notice saved, but push notification failed. Check FCM setup."
+                    else -> "Notice changes synced to cloud"
+                }
+            )
         }
     }
 
