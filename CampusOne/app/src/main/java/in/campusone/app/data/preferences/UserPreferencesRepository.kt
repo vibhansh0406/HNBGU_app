@@ -28,6 +28,15 @@ class UserPreferencesRepository @Inject constructor(
 ) {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
+    // Normalize roles from older app versions before deserializing the saved profile.
+    // Teacher and Club Admin are retired; their legacy profile records map to Moderator.
+    private fun decodeUserProfile(raw: String): UserProfile {
+        val normalized = Regex("\\\"role\\\"\\s*:\\s*\\\"(?:TEACHER|CLUB_ADMIN)\\\"")
+            .replace(raw, "\\\"role\\\":\\\"MODERATOR\\\"")
+        return runCatching { json.decodeFromString<UserProfile>(normalized) }
+            .getOrDefault(UserProfile())
+    }
+
     private object Keys {
         val IS_ONBOARDED = booleanPreferencesKey("is_onboarded")
         val INTRO_SEEN = booleanPreferencesKey("intro_seen")
@@ -63,7 +72,7 @@ class UserPreferencesRepository @Inject constructor(
         if (raw.isNullOrBlank()) {
             UserProfile()
         } else {
-            runCatching { json.decodeFromString<UserProfile>(raw) }.getOrDefault(UserProfile())
+            decodeUserProfile(raw)
         }
     }
 
@@ -145,7 +154,7 @@ class UserPreferencesRepository @Inject constructor(
     suspend fun updateTargetAttendance(targetPct: Int) {
         context.dataStore.edit { prefs ->
             val current = prefs[Keys.USER_PROFILE_JSON]?.let {
-                runCatching { json.decodeFromString<UserProfile>(it) }.getOrNull()
+                runCatching { decodeUserProfile(it) }.getOrNull()
             } ?: UserProfile()
             val updated = current.copy(targetAttendancePct = targetPct.coerceIn(50, 100))
             prefs[Keys.USER_PROFILE_JSON] = json.encodeToString(updated)
