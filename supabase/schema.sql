@@ -185,7 +185,6 @@ create table if not exists public.timetable_slots (
   subject_id text not null default '',
   subject_name text not null default '',
   subject_code text not null default '',
-  teacher_name text not null default '',
   room_number text not null default '',
   day_of_week integer not null default 1,
   start_time text not null default '09:00',
@@ -2408,7 +2407,7 @@ begin
          v_import_id
     from jsonb_to_recordset(p_slots) as x(
       row_no integer, day integer, subject_code text, subject_name text,
-      start_time text, end_time text, room text, faculty text);
+      start_time text, end_time text, room text);
 
   get diagnostics v_count = row_count;
 
