@@ -152,6 +152,42 @@ class StudyAndCampusRepository @Inject constructor(
                     )
                 })
             }
+            val remoteLostFound = supabaseClient.from("lost_found_items")
+                .select("*")
+                .eq("college_id", collegeId)
+                .order("created_at", ascending = false)
+                .limit(100)
+                .execute()
+            val lostFoundRows = remoteLostFound.data as? List<Map<String, Any>> ?: emptyList()
+            if (lostFoundRows.isNotEmpty()) {
+                campusLifeDao.upsertLostFound(lostFoundRows.mapNotNull { row ->
+                    val itemId = row["id"] as? String ?: return@mapNotNull null
+                    val createdAt = (row["created_at"] as? Number)?.toLong() ?: System.currentTimeMillis()
+                    val resolved = row["is_resolved"] as? Boolean ?: false
+                    LostFoundEntity(
+                        id = itemId,
+                        collegeId = row["college_id"] as? String ?: collegeId,
+                        type = row["type"] as? String ?: "LOST",
+                        category = row["category"] as? String ?: "OTHER",
+                        itemTitle = row["title"] as? String ?: "",
+                        description = row["description"] as? String ?: "",
+                        photoUri = null,
+                        location = row["location"] as? String ?: "",
+                        dateFormatted = "Posted recently",
+                        posterUid = row["poster_uid"] as? String ?: "",
+                        posterName = row["poster_name"] as? String ?: "Campus member",
+                        preferredContactMethod = "",
+                        status = if (resolved) "RESOLVED" else "OPEN",
+                        isResolved = resolved,
+                        isArchived = false,
+                        isHidden = row["is_hidden"] as? Boolean ?: false,
+                        reportCount = (row["report_count"] as? Number)?.toInt() ?: 0,
+                        isFlagged = false,
+                        createdAtMillis = createdAt
+                    )
+                })
+            }
+
             val remoteAssignments = supabaseSync.downloadAssignments(sectionKey)
             if (remoteAssignments.isNotEmpty()) {
                 studyDao.upsertAssignments(remoteAssignments.map { map ->
