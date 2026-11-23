@@ -97,7 +97,9 @@ class CoreViewModel @Inject constructor(
         val isOwner = email?.equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true) == true
         val local = prefs.userProfile.first()
         val resolvedEmail = email?.takeIf { it.isNotBlank() } ?: local.email
-        val localProfileIsComplete = local.onboardingCompleted &&
+        val localBelongsToAccount = local.uid == resolvedUid
+        val localProfileIsComplete = localBelongsToAccount &&
+            local.onboardingCompleted &&
             local.name.isNotBlank() && local.courseId.isNotBlank()
 
         // A temporary network/read failure must never erase a completed local profile.
@@ -112,19 +114,33 @@ class CoreViewModel @Inject constructor(
                     role = if (isOwner) UserRole.ADMIN else local.role,
                     onboardingCompleted = true
                 )
-                val sync = repository.syncProfileToCloud(restored)
-                if (sync.isSuccess) prefs.saveUserProfile(restored, markOnboarded = true)
+                // Bootstrap the row, then repair only academic fields. Never replace
+                // a server-assigned SUPER_ADMIN/ADMIN role with a client enum value.
+                val bootstrap = authManager.ensureUserProfile(
+                    uid = resolvedUid,
+                    email = resolvedEmail,
+                    name = restored.name,
+                    role = if (isOwner) UserRole.ADMIN.name else UserRole.STUDENT.name
+                )
+                if (bootstrap.isSuccess) repository.updateAcademicProfile(restored)
+                prefs.saveUserProfile(restored, markOnboarded = true)
                 return
             }
 
+            val safeLocal = if (localBelongsToAccount) local else UserProfile()
             prefs.saveUserProfile(
-                local.copy(uid = resolvedUid, email = resolvedEmail, onboardingCompleted = false),
+                safeLocal.copy(
+                    uid = resolvedUid,
+                    email = resolvedEmail,
+                    role = if (isOwner) UserRole.ADMIN else safeLocal.role,
+                    onboardingCompleted = false
+                ),
                 markOnboarded = false
             )
             authManager.ensureUserProfile(
                 uid = resolvedUid,
                 email = resolvedEmail,
-                name = local.name,
+                name = safeLocal.name,
                 role = if (isOwner) UserRole.ADMIN.name else UserRole.STUDENT.name
             )
             return
@@ -142,7 +158,7 @@ class CoreViewModel @Inject constructor(
                 role = remoteRole,
                 onboardingCompleted = true
             )
-            val sync = repository.syncProfileToCloud(restored)
+            val sync = repository.updateAcademicProfile(restored)
             if (sync.isSuccess) prefs.saveUserProfile(restored, markOnboarded = true)
             return
         }
@@ -321,6 +337,46 @@ class CoreViewModel @Inject constructor(
         viewModelScope.launch {
             val nextLang = if (uiState.value.languageTag == "hi") "en" else "hi"
             prefs.switchLanguage(nextLang)
+        }
+    }
+
+    fun updateAcademicProfile(candidate: UserProfile) {
+        viewModelScope.launch {
+            val current = prefs.userProfile.first()
+            val signedInUid = authManager.currentUserId()
+            if (signedInUid.isNullOrBlank() || current.uid != signedInUid || candidate.uid != signedInUid) {
+                _uiMessages.emit("Profile update blocked: account verification failed.")
+                return@launch
+            }
+
+            val name = candidate.name.trim()
+            if (name.isBlank() || candidate.courseId.isBlank() ||
+                candidate.semester !in 1..8 || candidate.section !in setOf("A", "B", "C")
+            ) {
+                _uiMessages.emit("Please check your name, course, semester and section.")
+                return@launch
+            }
+
+            // Only editable academic fields are copied from the form. UID, email,
+            // role, moderator scope and approval state remain unchanged.
+            val updated = current.copy(
+                name = name,
+                collegeName = candidate.collegeName,
+                courseId = candidate.courseId,
+                courseName = candidate.courseName,
+                semester = candidate.semester,
+                section = candidate.section,
+                onboardingCompleted = true
+            )
+            val result = repository.updateAcademicProfile(updated)
+            if (result.isFailure) {
+                _uiMessages.emit(result.exceptionOrNull()?.message ?: "Could not save profile. Check your connection.")
+                return@launch
+            }
+
+            prefs.saveUserProfile(updated, markOnboarded = true)
+            repository.ensureSeededForSection(updated.sectionKey, forceRefresh = true)
+            _uiMessages.emit("Profile and academic details saved to your account.")
         }
     }
 
