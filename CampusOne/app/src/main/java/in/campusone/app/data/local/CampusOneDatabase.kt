@@ -52,8 +52,11 @@ class RoomConverters {
     fun fromUserRole(value: UserRole): String = value.name
 
     @TypeConverter
-    fun toUserRole(value: String): UserRole =
-        runCatching { UserRole.valueOf(value) }.getOrDefault(UserRole.STUDENT)
+    fun toUserRole(value: String): UserRole = when (value.uppercase()) {
+        "TEACHER", "CLUB_ADMIN" -> UserRole.MODERATOR
+        "SUPER_ADMIN" -> UserRole.ADMIN
+        else -> runCatching { UserRole.valueOf(value) }.getOrDefault(UserRole.STUDENT)
+    }
 }
 
 @Database(
