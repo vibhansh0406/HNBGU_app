@@ -284,19 +284,18 @@ fun MoreHubScreen(
     }
 
     val isAdmin = uiState.profile.role == `in`.campusone.app.domain.model.UserRole.ADMIN ||
+        uiState.profile.role == `in`.campusone.app.domain.model.UserRole.MODERATOR ||
         uiState.profile.email.equals(
             `in`.campusone.app.data.repository.CoreCampusRepository.OWNER_EMAIL,
             ignoreCase = true
         )
     val isAdminOrStaff = isAdmin ||
-        uiState.profile.role == `in`.campusone.app.domain.model.UserRole.TEACHER ||
         uiState.profile.role == `in`.campusone.app.domain.model.UserRole.CR
     val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
     val communityState by communityViewModel.uiState.collectAsStateWithLifecycle()
     val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
     val unreadNotifications by communityViewModel.unreadNotificationCount.collectAsStateWithLifecycle()
-    val isSuperAdmin = adminState.identity.isOwner ||
-        adminState.identity.can(`in`.campusone.app.data.repository.AdminPermission.VIEW_USERS)
+    val isSuperAdmin = adminState.identity.isOwner
 
     androidx.compose.runtime.LaunchedEffect(uiState.profile) {
         adminViewModel.init(uiState.profile)
