@@ -243,7 +243,6 @@ class CoreCampusRepository @Inject constructor(
                 authorUid = map["author_uid"] as? String ?: "",
                 authorName = map["author_name"] as? String ?: "CampusOne",
                 authorRole = when ((map["author_role"] as? String)?.uppercase()) {
-                    "TEACHER", "CLUB_ADMIN" -> UserRole.MODERATOR
                     "SUPER_ADMIN" -> UserRole.ADMIN
                     else -> runCatchingDefault({
                         UserRole.valueOf(map["author_role"] as? String ?: "CR")
