@@ -1,26 +1,38 @@
--- CampusOne role hierarchy: Admin (owner/Super Admin) > Moderator > CR > Student.
--- Teacher and Club Admin are not supported application roles.
--- Existing Teacher/Club Admin permission grants are removed; no account data is deleted.
+-- CampusOne's four user-facing roles:
+-- Admin (the single owner/SUPER_ADMIN account) > Moderator > CR > Student.
+-- Teacher and Club Admin are not application roles. No profile rows are deleted.
 
+do $$
+begin
+  if exists (
+    select 1 from public.profiles
+    where role in ('TEACHER', 'CLUB_ADMIN')
+  ) then
+    raise exception 'Unsupported Teacher/Club Admin profile rows exist; review and convert them before applying the four-role migration';
+  end if;
+end;
+$$;
+
+-- Remove legacy role grants and any stale Moderator grants before rebuilding
+-- the Moderator's normal Admin Portal permission set.
 delete from public.role_permissions
- where role in ('TEACHER', 'CLUB_ADMIN', 'ADMIN');
+ where role in ('TEACHER', 'CLUB_ADMIN', 'ADMIN', 'MODERATOR');
 
--- Normal Admin Portal permissions for Moderators. Owner-only permissions
--- (MANAGE_ROLES, VIEW_AUDIT_LOGS, MANAGE_SYSTEM_SETTINGS) are excluded.
 insert into public.role_permissions (role, permission)
 select 'MODERATOR', code
   from public.admin_permissions
  where not is_owner_only
+   and code not in ('VIEW_USERS', 'MANAGE_USERS')
 on conflict do nothing;
 
--- Keep the legacy ADMIN permission set for compatibility, but it is not
--- enough to enter the Super Admin Portal; that portal checks is_owner only.
+-- Keep the legacy ADMIN role limited to ordinary capabilities for compatibility.
+-- The actual owner receives all permissions through campusone_is_owner().
 insert into public.role_permissions (role, permission)
 select 'ADMIN', code
   from public.admin_permissions
  where code in (
-   'VIEW_USERS','MANAGE_USERS','MANAGE_NOTICES','MANAGE_RESOURCES',
-   'MANAGE_ASSIGNMENTS','MODERATE_REPORTS','MANAGE_EVENTS','MANAGE_TIMETABLE'
+   'MANAGE_NOTICES', 'MANAGE_RESOURCES', 'MANAGE_ASSIGNMENTS',
+   'MODERATE_REPORTS', 'MANAGE_EVENTS', 'MANAGE_TIMETABLE'
  )
 on conflict do nothing;
 
@@ -32,10 +44,10 @@ security definer
 set search_path = public
 as $$
   select public.campusone_is_owner()
-     or public.campusone_caller_role() in ('ADMIN', 'MODERATOR', 'CR');
+     or public.campusone_caller_role() in ('ADMIN', 'MODERATOR');
 $$;
 
--- Remove obsolete roles from the server-side role assignment allow-list.
+-- Remove unsupported roles from the server-side role assignment allow-list.
 do $$
 declare
   v_def text;
@@ -46,8 +58,8 @@ begin
     'if p_role not in (''STUDENT'',''CR'',''TEACHER'',''CLUB_ADMIN'',''MODERATOR'',''ADMIN'') then',
     'if p_role not in (''STUDENT'',''CR'',''MODERATOR'',''ADMIN'') then'
   );
-  if v_def = pg_get_functiondef('public.admin_set_role(uuid,text)'::regprocedure) then
-    raise exception 'Could not locate legacy role allow-list in admin_set_role';
+  if position('TEACHER' in v_def) > 0 or position('CLUB_ADMIN' in v_def) > 0 then
+    raise exception 'Could not safely remove legacy roles from admin_set_role()';
   end if;
   execute v_def;
 end;
