@@ -138,8 +138,8 @@ jobs:
           done
 
           # Current apksigner prints fingerprints under a V3.0 Signer block.
-          SHA1=$(grep -F "certificate SHA-1 digest:" "$SIGNATURE" | tail -1 | awk -F': ' '{print $2}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
-          SHA256=$(grep -F "certificate SHA-256 digest:" "$SIGNATURE" | tail -1 | awk -F': ' '{print $2}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
+          SHA1=$(grep -F "certificate SHA-1 digest:" "$SIGNATURE" | tail -1 | awk -F': ' '{print $NF}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
+          SHA256=$(grep -F "certificate SHA-256 digest:" "$SIGNATURE" | tail -1 | awk -F': ' '{print $NF}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
           EXPECTED_SHA1="50341BDAAE1E1CFCC7E26893D3CF8A1F7AFC35A2"
           EXPECTED_SHA256="E28B7893A26DF63884498AEF018575D3875ACEF2C0DC0DB9A06D4EFFA543F273"
           test "$SHA1" = "$EXPECTED_SHA1" || {
