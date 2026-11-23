@@ -18,23 +18,25 @@ service cloud.firestore {
       return isSignedIn() && userDoc().sectionKey == sectionKey;
     }
 
-    function isModerator() {
-      return isSignedIn() && userDoc().role == 'MODERATOR' && userDoc().verifiedRole == true;
+    function isAdminOrModerator() {
+      return isSignedIn() && (
+        userDoc().role == 'SUPER_ADMIN' ||
+        (userDoc().role in ['ADMIN', 'MODERATOR'] && userDoc().verifiedRole == true)
+      );
     }
 
-    function isCrOrModerator() {
-      return isSignedIn() &&
-        (userDoc().role == 'CR' || userDoc().role == 'MODERATOR' || userDoc().role == 'ADMIN' || userDoc().role == 'SUPER_ADMIN') &&
-        userDoc().verifiedRole == true;
+    function isCr() {
+      return isSignedIn() && userDoc().role == 'CR' && userDoc().verifiedRole == true;
     }
 
     function canPublishToSection(sectionKey) {
-      return isModerator() || (isSignedIn() && userDoc().role in ['ADMIN', 'SUPER_ADMIN'] && userDoc().verifiedRole == true) ||
-        (isSameSection(sectionKey) && isCrOrModerator());
+      return isAdminOrModerator() || (isSameSection(sectionKey) && isCr());
     }
 
+    // The separate Club Admin role is retired; only Moderators/Admins manage
+    // college-wide club approvals. CRs may submit unapproved proposals.
     function isClubAdminFor(clubId) {
-      return isCrOrModerator();
+      return isAdminOrModerator();
     }
 
     // Anti-spam rate limit & payload validation helper
@@ -54,9 +56,9 @@ service cloud.firestore {
         );
         allow create: if isSameCollege(collegeId)
           && isValidPostSize(request.resource.data.name, 100)
-          && (isCrOrModerator() || request.resource.data.isApproved == false);
+          && (isAdminOrModerator() || (isCr() && request.resource.data.isApproved == false));
         allow update: if isSameCollege(collegeId) && isClubAdminFor(clubId);
-        allow delete: if isSameCollege(collegeId) && isCrOrModerator();
+        allow delete: if isSameCollege(collegeId) && isAdminOrModerator();
       }
 
       // Phase 3.1: Events Feed (3-State RSVP, Moderator creation, CR approval)
@@ -65,7 +67,7 @@ service cloud.firestore {
           resource.data.isApproved == true || isClubAdminFor(resource.data.clubId)
         );
         allow create: if isSameCollege(collegeId)
-          && isClubAdminFor(request.resource.data.clubId)
+          && (isClubAdminFor(request.resource.data.clubId) || (isCr() && request.resource.data.isApproved == false))
           && isValidPostSize(request.resource.data.title, 140)
           && (!('posterSizeBytes' in request.resource.data) || request.resource.data.posterSizeBytes <= 5242880);
         allow update: if isSameCollege(collegeId) && (
@@ -80,7 +82,7 @@ service cloud.firestore {
       // Phase 3.2: Privacy-First Lost & Found Board (No public phone numbers; 30-day auto-archive; CR moderation)
       match /lost_found/{itemId} {
         allow read: if isSameCollege(collegeId) && (
-          resource.data.isHidden == false || isCrOrModerator() || resource.data.reporterUid == request.auth.uid
+          resource.data.isHidden == false || isAdminOrModerator() || resource.data.reporterUid == request.auth.uid
         );
         allow create: if isSameCollege(collegeId)
           && request.resource.data.reporterUid == request.auth.uid
@@ -88,11 +90,11 @@ service cloud.firestore {
           && (!('photoSizeBytes' in request.resource.data) || request.resource.data.photoSizeBytes <= 2097152);
         allow update: if isSameCollege(collegeId) && (
           resource.data.reporterUid == request.auth.uid ||
-          isCrOrModerator() ||
+          isAdminOrModerator() ||
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reportCount', 'isFlagged'])
         );
         allow delete: if isSameCollege(collegeId) && (
-          resource.data.reporterUid == request.auth.uid || isCrOrModerator()
+          resource.data.reporterUid == request.auth.uid || isAdminOrModerator()
         );
 
         // Private Claim / Contact Requests: only the requester and the item's poster can read/write
@@ -114,17 +116,17 @@ service cloud.firestore {
       // Phase 3.3: Campus Directory & Student Correction Suggestions
       match /directory/{entryId} {
         allow read: if isSameCollege(collegeId);
-        allow write: if isSameCollege(collegeId) && isCrOrModerator();
+        allow write: if isSameCollege(collegeId) && isAdminOrModerator();
       }
 
       match /directory_suggestions/{suggestionId} {
         allow read: if isSameCollege(collegeId) && (
-          isCrOrModerator() || resource.data.suggesterUid == request.auth.uid
+          isAdminOrModerator() || resource.data.suggesterUid == request.auth.uid
         );
         allow create: if isSameCollege(collegeId)
           && request.resource.data.suggesterUid == request.auth.uid
           && isValidPostSize(request.resource.data.proposedChange, 300);
-        allow update, delete: if isSameCollege(collegeId) && isCrOrModerator();
+        allow update, delete: if isSameCollege(collegeId) && isAdminOrModerator();
       }
     }
 
