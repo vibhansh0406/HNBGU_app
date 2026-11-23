@@ -123,6 +123,7 @@ import `in`.campusone.app.ui.viewmodel.CoreViewModel
 import `in`.campusone.app.ui.viewmodel.StudyAndCampusViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 enum class BottomNavTab {
@@ -211,6 +212,25 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         authManager.initGoogleSignIn()
+
+        // Re-register the current device on every restored/renewed Supabase session.
+        // This repairs missed token registration after first launch or transient network failure.
+        lifecycleScope.launch {
+            authManager.session.collectLatest { session ->
+                val uid = session?.user?.id ?: return@collectLatest
+                FirebaseMessaging.getInstance().token.addOnSuccessListener { fcmToken ->
+                    lifecycleScope.launch {
+                        supabaseSync.registerDeviceToken(
+                            uid = uid,
+                            fcmToken = fcmToken,
+                            devicePlatform = "android",
+                            deviceName = android.os.Build.MODEL,
+                            email = authManager.currentUserEmail() ?: ""
+                        )
+                    }
+                }
+            }
+        }
         val onGoogleSignIn = {
             googleSignInLauncher.launch(authManager.getSignInIntent())
         }
