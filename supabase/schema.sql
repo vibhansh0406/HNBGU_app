@@ -488,10 +488,21 @@ language sql
 stable
 security definer
 set search_path = public
-as $$
+as $
   select public.campusone_is_owner()
      or public.campusone_caller_role() in ('ADMIN', 'MODERATOR');
-$$;
+$;
+
+-- Backwards-compatible alias used by legacy RLS policies.
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $
+  select public.campusone_is_admin();
+$;
 
 -- Only the owner may hold SUPER_ADMIN. This is the single choke point for
 -- role escalation: the trigger below calls it on every profile write.
