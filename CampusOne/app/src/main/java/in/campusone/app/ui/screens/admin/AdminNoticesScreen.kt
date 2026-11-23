@@ -189,7 +189,7 @@ fun AdminNoticesScreen(
             onDismiss = { showDialog = false },
             onSave = {
                 val notice = NoticeEntity(
-                    id = editingNotice?.id ?: "notice_${System.currentTimeMillis()}",
+                    id = editingNotice?.id ?: java.util.UUID.randomUUID().toString(),
                     sectionKey = uiState.sectionKey,
                     title = title,
                     body = body,
@@ -204,9 +204,8 @@ fun AdminNoticesScreen(
                     isRead = false
                 )
                 viewModel.saveNotice(notice)
-                if (isOfficial || priority == "HIGH" || priority == "URGENT") {
-                    viewModel.saveNoticeRemote(notice)
-                }
+                // Persist every notice centrally; important notices also trigger FCM.
+                viewModel.saveNoticeRemote(notice)
                 showDialog = false
             }
         )
