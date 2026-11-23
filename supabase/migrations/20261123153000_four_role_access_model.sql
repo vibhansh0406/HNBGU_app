@@ -13,6 +13,11 @@ begin
 end;
 $$;
 
+-- Ensure timetable management is represented in the database permission catalogue.
+insert into public.admin_permissions (code, description, is_owner_only)
+values ('MANAGE_TIMETABLE', 'Create and update subject-based timetables', false)
+on conflict (code) do nothing;
+
 -- Remove legacy role grants and any stale Moderator grants before rebuilding
 -- the Moderator's normal Admin Portal permission set.
 delete from public.role_permissions
