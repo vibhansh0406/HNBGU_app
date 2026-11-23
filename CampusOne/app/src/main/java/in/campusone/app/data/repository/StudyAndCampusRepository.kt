@@ -227,6 +227,15 @@ class StudyAndCampusRepository @Inject constructor(
     }
 
     private suspend fun seedOfficialDirectory(collegeId: String) {
+        // Remove retired seed records from Room on existing installs as well as fresh installs.
+        campusLifeDao.deleteDirectoryContacts(
+            listOf(
+                "official_hnbgu_bgr_director",
+                "official_hnbgu_srt_director",
+                "campus_bgr",
+                "campus_srt"
+            )
+        )
         val existingIds = campusLifeDao.observeDirectory(collegeId).first().map { it.id }.toSet()
         val missing = HnbguDirectorySeed.contacts(collegeId).filter { it.id !in existingIds }
         if (missing.isNotEmpty()) campusLifeDao.upsertDirectory(missing)
