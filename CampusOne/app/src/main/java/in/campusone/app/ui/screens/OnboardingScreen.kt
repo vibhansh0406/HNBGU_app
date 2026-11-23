@@ -547,7 +547,7 @@ private fun OnboardingStepClass(
                     }
                 }
                 Text(
-                    text = "CR, Teacher, Moderator and Club Admin access is granted after admin approval. A request is sent automatically.",
+                    text = "CR access requests require Admin approval. Moderator access is assigned by the Admin.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = C1Spacing.sm)
