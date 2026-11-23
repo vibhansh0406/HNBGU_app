@@ -1700,6 +1700,64 @@ alter table public.community_posts enable row level security;
 alter table public.community_comments enable row level security;
 alter table public.community_likes enable row level security;
 alter table public.notifications enable row level security;
+alter table public.notices enable row level security;
+
+drop policy if exists notices_select on public.notices;
+create policy notices_select on public.notices
+  for select to authenticated using (true);
+drop policy if exists notices_write on public.notices;
+drop policy if exists notices_admin_manage on public.notices;
+drop policy if exists notices_owner_manage on public.notices;
+create policy notices_owner_manage on public.notices
+  for all to authenticated
+  using (public.campusone_is_owner() or public.campusone_caller_role() = 'ADMIN')
+  with check (public.campusone_is_owner() or public.campusone_caller_role() = 'ADMIN');
+drop policy if exists notices_moderator_manage on public.notices;
+create policy notices_moderator_manage on public.notices
+  for all to authenticated
+  using (public.campusone_caller_role() = 'MODERATOR' and is_official = false)
+  with check (public.campusone_caller_role() = 'MODERATOR' and is_official = false);
+drop policy if exists notices_cr_insert_section on public.notices;
+create policy notices_cr_insert_section on public.notices
+  for insert to authenticated
+  with check (
+    author_uid = auth.uid()::text and author_role = 'CR' and is_official = false
+    and exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid() and p.role = 'CR' and p.verified_role = true
+        and section_key = p.college_id || '_' || p.course_id || '_sem' || p.semester || '_sec' || p.section
+    )
+  );
+drop policy if exists notices_cr_update_own_section on public.notices;
+create policy notices_cr_update_own_section on public.notices
+  for update to authenticated
+  using (
+    author_uid = auth.uid()::text and author_role = 'CR' and is_official = false
+    and exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid() and p.role = 'CR' and p.verified_role = true
+        and section_key = p.college_id || '_' || p.course_id || '_sem' || p.semester || '_sec' || p.section
+    )
+  )
+  with check (
+    author_uid = auth.uid()::text and author_role = 'CR' and is_official = false
+    and exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid() and p.role = 'CR' and p.verified_role = true
+        and section_key = p.college_id || '_' || p.course_id || '_sem' || p.semester || '_sec' || p.section
+    )
+  );
+drop policy if exists notices_cr_delete_own_section on public.notices;
+create policy notices_cr_delete_own_section on public.notices
+  for delete to authenticated
+  using (
+    author_uid = auth.uid()::text and author_role = 'CR' and is_official = false
+    and exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid() and p.role = 'CR' and p.verified_role = true
+        and section_key = p.college_id || '_' || p.course_id || '_sem' || p.semester || '_sec' || p.section
+    )
+  );
 
 drop policy if exists "community_posts_read" on public.community_posts;
 create policy "community_posts_read" on public.community_posts
