@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -562,92 +563,96 @@ fun CampusDirectoryScreen(
                 it.designation.contains(searchQuery, ignoreCase = true)
         }
 
+    val categories = listOf(
+        "ALL", "IMPORTANT_OFFICE", "FACULTY", "DEPARTMENT",
+        "FACILITY", "CAMPUS", "EMERGENCY", "HOSTEL_MEDICAL"
+    )
+
     Scaffold(
         topBar = {
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                C1AppBar(
-                    title = "Campus Directory",
-                    onBack = { }
-                )
-                C1TextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    label = "Search name / department",
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = C1Spacing.lg)
-                )
+            Column(modifier = Modifier.fillMaxWidth()) {
+                C1AppBar(title = "Campus Directory", onBack = { })
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    C1TextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        label = "Search name / department",
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        modifier = Modifier
+                            .widthIn(max = 900.dp)
+                            .fillMaxWidth()
+                            .padding(horizontal = C1Spacing.lg)
+                    )
+                }
             }
         }
     ) { innerPadding ->
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(innerPadding)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(innerPadding),
+            contentAlignment = Alignment.TopCenter
         ) {
-            C1SurfaceCard(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = C1Spacing.lg, vertical = C1Spacing.sm),
-                containerColor = MaterialTheme.colorScheme.secondaryContainer
+            LazyColumn(
+                modifier = Modifier
+                    .widthIn(max = 900.dp)
+                    .fillMaxWidth()
+                    .fillMaxSize(),
+                contentPadding = PaddingValues(
+                    horizontal = C1Spacing.lg,
+                    vertical = C1Spacing.sm
+                ),
+                verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
             ) {
-                Column(
-                    modifier = Modifier.padding(C1Spacing.md),
-                    verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)
-                ) {
-                    Text("HNBGU verified information", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                    Text(
-                        "Departments, campuses and facilities are seeded from university listings. Check the source for latest contact details.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                        C1Button(
-                            text = "Departments",
-                            onClick = {
-                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.hnbgu.ac.in/index.php/srinagar-campus")))
-                            },
-                            intent = C1ButtonIntent.OUTLINED
+                // Compact source shortcuts replace the tall banner. The whole page,
+                // including this row, remains inside the same scroll container.
+                item(key = "official_sources") {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
+                    ) {
+                        Text(
+                            "HNBGU sources",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.SemiBold
                         )
-                        C1Button(
-                            text = "Officers",
-                            onClick = {
-                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://hnbgu.ac.in/rti-list-of-officers")))
-                            },
-                            intent = C1ButtonIntent.OUTLINED
-                        )
-                        C1Button(
-                            text = "E-Library",
-                            onClick = {
-                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://library.hnbgu.ac.in/pages.pl?p=elibrary")))
-                            },
-                            intent = C1ButtonIntent.GHOST
-                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        TextButton(onClick = {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.hnbgu.ac.in/index.php/srinagar-campus")))
+                        }) { Text("Departments") }
+                        TextButton(onClick = {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://hnbgu.ac.in/rti-list-of-officers")))
+                        }) { Text("Officers") }
+                        TextButton(onClick = {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://library.hnbgu.ac.in/pages.pl?p=elibrary")))
+                        }) { Text("E-Library") }
                     }
                 }
-            }
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = C1Spacing.lg),
-                horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
-            ) {
-                items(listOf("ALL", "IMPORTANT_OFFICE", "FACULTY", "DEPARTMENT", "FACILITY", "CAMPUS", "EMERGENCY", "HOSTEL_MEDICAL")) { cat ->
-                    FilterChip(
-                        selected = selectedCategory == cat,
-                        onClick = { selectedCategory = cat },
-                        label = { Text(if (cat == "ALL") "All" else cat.replace('_', ' ')) }
-                    )
+                item(key = "directory_categories") {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+                    ) {
+                        items(categories, key = { it }) { cat ->
+                            FilterChip(
+                                selected = selectedCategory == cat,
+                                onClick = { selectedCategory = cat },
+                                label = { Text(if (cat == "ALL") "All" else cat.replace('_', ' ')) }
+                            )
+                        }
+                    }
                 }
-            }
-            if (contacts.isEmpty()) {
-                C1EmptyState(
-                    icon = Icons.Default.Search,
-                    title = "No contacts found",
-                    message = "Try another category or search term. Official HNBGU links are available above."
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(C1Spacing.lg),
-                    verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
-                ) {
+                if (contacts.isEmpty()) {
+                    item(key = "directory_empty") {
+                        C1EmptyState(
+                            icon = Icons.Default.Search,
+                            title = "No contacts found",
+                            message = "Try another category or search term. Official HNBGU links are above."
+                        )
+                    }
+                } else {
                     items(contacts, key = { it.id }) { contact ->
                         C1SurfaceCard(
                             modifier = Modifier.fillMaxWidth(),
@@ -655,22 +660,34 @@ fun CampusDirectoryScreen(
                         ) {
                             Column(modifier = Modifier.padding(C1Spacing.lg)) {
                                 Text(contact.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                                Text("${contact.designation}, ${contact.department}", style = MaterialTheme.typography.bodySmall)
+                                Text(
+                                    "${contact.designation}, ${contact.department}",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
                                 Spacer(modifier = Modifier.height(C1Spacing.xs))
                                 Text("Office: ${contact.officeLocation}", style = MaterialTheme.typography.bodySmall)
                                 if (contact.officeHours.isNotBlank()) {
-                                    Text(contact.officeHours, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(
+                                        contact.officeHours,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
                                 if (contact.phone.isNotBlank() || contact.email.isNotBlank()) {
                                     Spacer(modifier = Modifier.height(C1Spacing.sm))
-                                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
                                         if (contact.phone.isNotBlank()) {
                                             C1Button(
                                                 text = "Call",
                                                 onClick = {
-                                                    try {
-                                                        context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${contact.phone}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                                                    } catch (_: Exception) { }
+                                                    runCatching {
+                                                        context.startActivity(
+                                                            Intent(Intent.ACTION_DIAL, Uri.parse("tel:${contact.phone}"))
+                                                        )
+                                                    }
                                                 },
                                                 icon = { Icon(Icons.Default.Call, contentDescription = null, modifier = Modifier.size(18.dp)) }
                                             )
@@ -679,10 +696,11 @@ fun CampusDirectoryScreen(
                                             C1Button(
                                                 text = "Email",
                                                 onClick = {
-                                                    try {
-                                                        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:${contact.email}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                                        context.startActivity(intent)
-                                                    } catch (_: Exception) { }
+                                                    runCatching {
+                                                        context.startActivity(
+                                                            Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:${contact.email}"))
+                                                        )
+                                                    }
                                                 },
                                                 intent = C1ButtonIntent.OUTLINED,
                                                 icon = { Icon(Icons.Default.Email, contentDescription = null, modifier = Modifier.size(18.dp)) }
