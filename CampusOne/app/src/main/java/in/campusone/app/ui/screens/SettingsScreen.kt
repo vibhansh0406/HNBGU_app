@@ -86,18 +86,62 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(C1Spacing.lg)
         ) {
             item {
-                C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.lg)) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
-                        Icon(Icons.Default.AccountCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(profile.name.ifBlank { "CampusOne student" }, style = MaterialTheme.typography.titleLarge)
-                            Text(profile.email.ifBlank { "Account details unavailable" }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text(profile.role.name.replace("_", " "), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+                Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                        Text(
+                            "Settings",
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            "Make CampusOne work the way you do.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    C1SurfaceCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.lg),
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
+                        ) {
+                            Icon(
+                                Icons.Default.AccountCircle,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(44.dp)
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    profile.name.ifBlank { "CampusOne student" },
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Text(
+                                    profile.email.ifBlank { "Account details unavailable" },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.82f)
+                                )
+                                Text(
+                                    profile.role.name.replace("_", " "),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
                         }
                     }
                 }
             }
-            item { C1SectionHeader(title = "Appearance") }
+            item {
+                C1SectionHeader(
+                    title = "Appearance",
+                    subtitle = "Personalise how CampusOne looks and feels"
+                )
+            }
             item {
                 C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.lg)) {
                     SettingsChoiceRow(
@@ -122,7 +166,7 @@ fun SettingsScreen(
             }
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                    C1SectionHeader(title = "Notifications")
+                    C1SectionHeader(title = "Notifications", subtitle = "Choose which updates reach this device")
                     Text("Control the updates CampusOne sends to this device", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
@@ -161,7 +205,7 @@ fun SettingsScreen(
             }
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                    C1SectionHeader(title = "Academic reminders")
+                    C1SectionHeader(title = "Academic reminders", subtitle = "Helpful reminders generated on your device")
                     Text("Local reminders generated on this device", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
@@ -181,7 +225,7 @@ fun SettingsScreen(
                     }
                 }
             }
-            item { C1SectionHeader(title = "Privacy & support") }
+            item { C1SectionHeader(title = "Privacy & support", subtitle = "Get help and understand your data") }
             item {
                 C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.md)) {
                     SettingsActionRow(
@@ -200,7 +244,7 @@ fun SettingsScreen(
                     SettingsActionRow("Privacy policy", "How CampusOne handles your information", Icons.Default.PrivacyTip, onOpenPrivacy)
                 }
             }
-            item { C1SectionHeader(title = "Account") }
+            item { C1SectionHeader(title = "Account", subtitle = "Manage access to this device") }
             item {
                 C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.md)) {
                     SettingsActionRow("Sign out", "Sign out of this device", Icons.Default.Logout, { showSignOut = true }, danger = true)
