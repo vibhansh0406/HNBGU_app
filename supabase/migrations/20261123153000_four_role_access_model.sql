@@ -66,12 +66,14 @@ begin
   if position('TEACHER' in v_def) > 0 or position('CLUB_ADMIN' in v_def) > 0 then
     raise exception 'Could not safely remove legacy roles from admin_set_role()';
   end if;
+  if position('verified_role = p_role in' in v_def) = 0 then
   v_def := regexp_replace(
     v_def,
     'update public\.profiles set role = p_role,',
     'update public.profiles set role = p_role, verified_role = p_role in (''CR'',''MODERATOR'',''ADMIN''),',
     'g'
   );
+  end if;
   v_def := replace(
     v_def,
     'is_moderator_approved = case when p_role in (''MODERATOR'',''ADMIN'') then true else is_moderator_approved end,',
