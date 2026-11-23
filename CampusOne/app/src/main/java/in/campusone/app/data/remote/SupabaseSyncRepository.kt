@@ -846,13 +846,17 @@ class SupabaseSyncRepository @Inject constructor(
         sectionKey: String
     ): Boolean {
         val edgeUrl = authManager.config.edgeFunctionUrl.trimEnd('/')
-        val sessionToken = authManager.currentSession()?.accessToken
-        if (edgeUrl.isBlank() || sessionToken.isNullOrBlank()) {
-            Log.w(TAG, "FCM send skipped: Edge URL or authenticated session unavailable")
+        val sessionToken = authManager.currentSession()?.accessToken ?: run {
+            Log.w(TAG, "FCM broadcast skipped: no active Supabase session")
+            return false
+        }
+        if (edgeUrl.isBlank()) {
+            Log.e(TAG, "FCM broadcast skipped: Edge Functions URL is blank")
             return false
         }
 
-        // HttpURLConnection is blocking; always run the full request on IO.
+        // HttpURLConnection is blocking. Admin publish actions can run from
+        // the UI coroutine, so the entire request must execute on IO.
         return withContext(Dispatchers.IO) {
             var connection: HttpURLConnection? = null
             try {
@@ -865,10 +869,9 @@ class SupabaseSyncRepository @Inject constructor(
                     readTimeout = 30000
                     doOutput = true
                 }
-
                 val payload = org.json.JSONObject()
-                    .put("title", title.trim().take(120))
-                    .put("body", body.trim().take(1200))
+                    .put("title", title)
+                    .put("body", body)
                     .put("category", category)
                     .put("target_type", targetType)
                     .put("target_id", targetId)
@@ -877,23 +880,22 @@ class SupabaseSyncRepository @Inject constructor(
                 connection.outputStream.use {
                     it.write(payload.toString().toByteArray(StandardCharsets.UTF_8))
                 }
-
                 val code = connection.responseCode
                 val stream = if (code in 200..299) connection.inputStream else connection.errorStream
                 val response = stream?.use { it.readBytes().toString(StandardCharsets.UTF_8) }.orEmpty()
-                val result = runCatching { org.json.JSONObject(response) }.getOrNull()
-                val sent = result?.optInt("sent", 0) ?: 0
-                val ok = code in 200..299 && result?.optBoolean("ok", false) == true && sent > 0
+                val parsed = runCatching { org.json.JSONObject(response) }.getOrNull()
+                val sent = parsed?.optInt("sent", 0) ?: 0
+                val success = code in 200..299 && parsed?.optBoolean("ok", false) == true && sent > 0
 
-                if (ok) {
-                    Log.i(TAG, "FCM send accepted by gateway: $sent device(s)")
+                if (success) {
+                    Log.i(TAG, "FCM broadcast accepted: sent=$sent")
                 } else {
-                    // Response is bounded and contains no FCM or Supabase credentials.
-                    Log.w(TAG, "FCM gateway did not deliver: HTTP $code, sent=$sent, response=" + response.take(500))
+                    // Response is safe to log: it contains server diagnostics, never device tokens.
+                    Log.e(TAG, "FCM broadcast rejected: HTTP $code; response=$response")
                 }
-                ok
+                success
             } catch (error: Exception) {
-                Log.e(TAG, "FCM gateway request failed", error)
+                Log.e(TAG, "FCM broadcast request failed", error)
                 false
             } finally {
                 connection?.disconnect()
