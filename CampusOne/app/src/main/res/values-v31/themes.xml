@@ -5,6 +5,5 @@
         <item name="android:windowSplashScreenBackground">@color/campusone_background</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_campusone_c_mark</item>
         <item name="android:windowSplashScreenAnimationDuration">420</item>
-        <item name="android:postSplashScreenTheme">@style/Theme.CampusOne</item>
     </style>
 </resources>
