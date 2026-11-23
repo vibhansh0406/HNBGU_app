@@ -5,6 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,6 +38,9 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -65,6 +70,7 @@ import `in`.campusone.app.domain.model.CommunityCategory
 import `in`.campusone.app.domain.model.CommunityComment
 import `in`.campusone.app.domain.model.CommunityPost
 import `in`.campusone.app.domain.model.CommunitySort
+import `in`.campusone.app.domain.model.HnbguAcademicCatalog
 import `in`.campusone.app.domain.model.UserProfile
 import `in`.campusone.app.domain.model.UserRole
 import `in`.campusone.app.ui.components.C1Avatar
@@ -1014,15 +1020,29 @@ fun StudentProfileScreen(
     uiState: CoreUiState,
     avatarUrl: String? = null,
     onBack: () -> Unit,
-    onSaveName: (String) -> Unit
+    onSaveProfile: (UserProfile) -> Unit
 ) {
     val profile = uiState.profile
     var name by remember(profile.uid) { mutableStateOf(profile.name) }
+    var campus by remember(profile.uid) { mutableStateOf(profile.collegeName) }
+    var courseId by remember(profile.uid) { mutableStateOf(profile.courseId) }
+    var courseName by remember(profile.uid) { mutableStateOf(profile.courseName) }
+    var semester by remember(profile.uid) { mutableStateOf(profile.semester.toString()) }
+    var section by remember(profile.uid) { mutableStateOf(profile.section) }
+
+    val courseOptions = (HnbguAcademicCatalog.courses + (profile.courseId to profile.courseName))
+        .distinctBy { it.first }
+    val hasChanges = name.trim() != profile.name ||
+        campus != profile.collegeName ||
+        courseId != profile.courseId ||
+        semester.toIntOrNull() != profile.semester ||
+        section != profile.section
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(rememberScrollState())
             .padding(C1Spacing.lg),
         verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
     ) {
@@ -1038,15 +1058,13 @@ fun StudentProfileScreen(
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = stringResource(R.string.profile_subtitle),
+                    text = "Keep your academic details correct across devices",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
-        C1SurfaceCard(
-            containerColor = MaterialTheme.colorScheme.surface
-        ) {
+        C1SurfaceCard(containerColor = MaterialTheme.colorScheme.surface) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1060,17 +1078,9 @@ fun StudentProfileScreen(
                     imageUrl = avatarUrl,
                     fontSize = 24
                 )
-                Column {
-                    Text(
-                        text = profile.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = profile.courseName,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                    Text(profile.name.ifBlank { "CampusOne student" }, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text(profile.email, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     C1StatusChip(
                         text = profile.role.name.lowercase().replaceFirstChar { it.uppercase() },
                         tone = if (profile.role == UserRole.STUDENT) C1Tone.NEUTRAL else C1Tone.SUCCESS
@@ -1078,33 +1088,104 @@ fun StudentProfileScreen(
                 }
             }
         }
+
+        C1SectionHeader(
+            title = "Academic profile",
+            subtitle = "Correct these details any time. Saved changes sync to your Google-linked account."
+        )
         C1TextField(
             value = name,
             onValueChange = { name = it },
-            label = stringResource(R.string.profile_name)
-        )
-        C1Button(
-            text = stringResource(R.string.profile_save),
-            onClick = { onSaveName(name) },
-            enabled = name.isNotBlank() && name.trim() != profile.name,
+            label = stringResource(R.string.profile_name),
             modifier = Modifier.fillMaxWidth()
         )
-        ProfileDetailRow(stringResource(R.string.profile_college), profile.collegeName)
-        ProfileDetailRow(stringResource(R.string.profile_course), profile.courseName)
-        ProfileDetailRow(
-            stringResource(R.string.profile_semester),
-            profile.semester.toString()
+        StudentProfileDropdownField(
+            label = "Campus",
+            selectedValue = campus,
+            options = HnbguAcademicCatalog.campuses.map { it to it },
+            onSelected = { campus = it }
         )
-        ProfileDetailRow(stringResource(R.string.profile_section), profile.section)
-        C1SurfaceCard(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        ) {
+        StudentProfileDropdownField(
+            label = "Course",
+            selectedValue = courseId,
+            options = courseOptions,
+            onSelected = { id ->
+                courseId = id
+                courseName = courseOptions.firstOrNull { it.first == id }?.second.orEmpty()
+            }
+        )
+        StudentProfileDropdownField(
+            label = "Semester",
+            selectedValue = semester,
+            options = (1..8).map { it.toString() to "Semester $it" },
+            onSelected = { semester = it }
+        )
+        StudentProfileDropdownField(
+            label = "Section",
+            selectedValue = section,
+            options = listOf("A" to "Section A", "B" to "Section B", "C" to "Section C"),
+            onSelected = { section = it }
+        )
+        C1Button(
+            text = "Save profile changes",
+            onClick = {
+                onSaveProfile(
+                    profile.copy(
+                        name = name.trim(),
+                        collegeName = campus,
+                        courseId = courseId,
+                        courseName = courseName,
+                        semester = semester.toIntOrNull() ?: profile.semester,
+                        section = section
+                    )
+                )
+            },
+            enabled = hasChanges && name.isNotBlank() && courseId.isNotBlank(),
+            modifier = Modifier.fillMaxWidth()
+        )
+        C1SurfaceCard(containerColor = MaterialTheme.colorScheme.secondaryContainer) {
             Text(
-                text = stringResource(R.string.profile_private_note),
+                text = "Your email and access role are managed by your signed-in account. This form only updates your name and academic details.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier.padding(C1Spacing.md)
             )
+        }
+    }
+}
+
+@Composable
+private fun StudentProfileDropdownField(
+    label: String,
+    selectedValue: String,
+    options: List<Pair<String, String>>,
+    onSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedLabel = options.firstOrNull { it.first == selectedValue }?.second ?: selectedValue
+    Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+        Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Box(modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(selectedLabel, maxLines = 2)
+                    Text("Change")
+                }
+            }
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                options.forEach { (value, optionLabel) ->
+                    DropdownMenuItem(
+                        text = { Text(optionLabel) },
+                        onClick = {
+                            onSelected(value)
+                            expanded = false
+                        }
+                    )
+                }
+            }
         }
     }
 }
