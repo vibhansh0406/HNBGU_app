@@ -333,7 +333,7 @@ fun MoreHubScreen(
             uiState = coreState,
             avatarUrl = coreViewModel.currentUserAvatarUrl,
             onBack = { activeScreen = MoreSubScreen.HUB },
-            onSaveName = coreViewModel::updateDisplayName
+            onSaveProfile = coreViewModel::updateAcademicProfile
         )
         return
     }
