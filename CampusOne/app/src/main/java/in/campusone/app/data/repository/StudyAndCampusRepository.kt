@@ -277,10 +277,20 @@ class StudyAndCampusRepository @Inject constructor(
             if (supabaseSync.isSyncedEnabled() && remoteUrl.startsWith("http")) {
                 val isAdmin = prefs.userProfile.first().role == UserRole.ADMIN
                 val syncSectionKey = if (isAdmin) "global" else sectionKey
-                supabaseSync.uploadStudyResources(
+                val published = supabaseSync.uploadStudyResources(
                     syncSectionKey,
                     listOf(studyResourceSyncMap(saved, syncSectionKey))
                 )
+                if (published && saved.isApprovedByCr) {
+                    supabaseSync.sendPushNotification(
+                        title = "New study material: ${saved.title}",
+                        body = "${saved.subjectName} • ${saved.category}",
+                        category = "study_material",
+                        targetType = "STUDY_MATERIAL",
+                        targetId = saved.id,
+                        sectionKey = syncSectionKey
+                    )
+                }
             }
             Result.success(Unit)
         } catch (e: Exception) {
