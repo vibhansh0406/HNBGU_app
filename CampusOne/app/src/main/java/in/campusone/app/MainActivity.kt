@@ -358,6 +358,18 @@ fun CampusOneRoot(
                     pendingMoreScreen = MoreSubScreen.ASSIGNMENTS
                     currentTab = BottomNavTab.MORE
                 }
+                "EXAM" -> {
+                    pendingMoreScreen = MoreSubScreen.EXAMS_SYLLABUS
+                    currentTab = BottomNavTab.MORE
+                }
+                "STUDY_MATERIAL" -> {
+                    pendingMoreScreen = MoreSubScreen.NOTES_PYQ
+                    currentTab = BottomNavTab.MORE
+                }
+                "LOST_FOUND" -> {
+                    pendingMoreScreen = MoreSubScreen.LOST_FOUND
+                    currentTab = BottomNavTab.MORE
+                }
                 "POST" -> {
                     pendingCommunityPostId = targetId
                     pendingMoreScreen = MoreSubScreen.COMMUNITY
