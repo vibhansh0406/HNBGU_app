@@ -111,9 +111,7 @@ fun OnboardingScreen(
 
     val selectableRoles = listOf(
         UserRole.STUDENT,
-        UserRole.CR,
-        UserRole.TEACHER,
-        UserRole.CLUB_ADMIN
+        UserRole.CR
     )
 
     val canContinue = when (step) {
