@@ -83,7 +83,6 @@ fun EventsAndClubsScreen(
     var showCreateEventDialog by remember { mutableStateOf(false) }
 
     val canCreateEvents = uiState.profile.role == UserRole.CR ||
-        uiState.profile.role == UserRole.TEACHER ||
         uiState.profile.role == UserRole.ADMIN ||
         uiState.profile.role == UserRole.MODERATOR
 
