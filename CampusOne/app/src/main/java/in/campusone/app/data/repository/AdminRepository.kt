@@ -159,7 +159,7 @@ data class AdminActionResult(
     val message: String
 )
 
-private val ASSIGNABLE_ROLE_NAMES = setOf("STUDENT", "CR", "TEACHER", "CLUB_ADMIN", "MODERATOR", "ADMIN")
+private val ASSIGNABLE_ROLE_NAMES = setOf("STUDENT", "CR", "MODERATOR")
 
 @Singleton
 class AdminRepository @Inject constructor(
@@ -445,8 +445,11 @@ class AdminRepository @Inject constructor(
         return AdminActionResult(ok, if (ok) "Owner access restored" else "Recovery refused")
     }
 
-    private fun roleOf(name: String?): UserRole =
-        UserRole.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: UserRole.STUDENT
+    private fun roleOf(name: String?): UserRole = when (name?.uppercase()) {
+        "SUPER_ADMIN" -> UserRole.ADMIN
+        "TEACHER", "CLUB_ADMIN" -> UserRole.MODERATOR // legacy cached roles only
+        else -> UserRole.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: UserRole.STUDENT
+    }
 
     private fun Any?.toEpochMillis(): Long = when (this) {
         is Number -> toLong()

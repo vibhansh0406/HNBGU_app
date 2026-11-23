@@ -241,7 +241,7 @@ class StudyAndCampusViewModel @Inject constructor(
     fun reportResource(id: String) {
         viewModelScope.launch {
             repository.reportResourceAbuse(id)
-            _statusMessages.emit("Reported to CR & Faculty moderation queue.")
+            _statusMessages.emit("Reported to CR & Moderator moderation queue.")
         }
     }
 
@@ -320,7 +320,7 @@ class StudyAndCampusViewModel @Inject constructor(
         daysFromNow: Int
     ) {
         val p = uiState.value.profile
-        val isCrOrTeacher = p.role != UserRole.STUDENT
+        val isStaffPublisher = p.role != UserRole.STUDENT
         viewModelScope.launch {
             repository.addOrPublishExam(
                 sectionKey = p.sectionKey,
@@ -332,7 +332,7 @@ class StudyAndCampusViewModel @Inject constructor(
                 examTimeFormatted = examTime,
                 venue = venue,
                 daysFromNow = daysFromNow,
-                publishedByCr = isCrOrTeacher
+                publishedByCr = isStaffPublisher
             )
             _statusMessages.emit("Exam added with countdown & reminder!")
         }
@@ -455,7 +455,7 @@ class StudyAndCampusViewModel @Inject constructor(
         socialLink: String
     ) {
         val p = uiState.value.profile
-        val isAutoApproved = p.role == UserRole.CR || p.role == UserRole.TEACHER
+        val isAutoApproved = p.role == UserRole.MODERATOR || p.role == UserRole.ADMIN
         viewModelScope.launch {
             val res = repository.createOrProposeClub(
                 collegeId = p.collegeId,
@@ -472,7 +472,7 @@ class StudyAndCampusViewModel @Inject constructor(
             if (res.isSuccess) {
                 _statusMessages.emit(
                     if (isAutoApproved) "Club published!"
-                    else "Club submitted for CR / Faculty approval."
+                    else "Club submitted for Moderator approval."
                 )
             } else {
                 _statusMessages.emit(res.exceptionOrNull()?.message ?: "Could not create club")
@@ -511,7 +511,7 @@ class StudyAndCampusViewModel @Inject constructor(
         daysFromNow: Int
     ) {
         val p = uiState.value.profile
-        val isAutoApproved = p.role == UserRole.CR || p.role == UserRole.TEACHER
+        val isAutoApproved = p.role == UserRole.CR || p.role == UserRole.MODERATOR
         viewModelScope.launch {
             val res = repository.createClubEvent(
                 collegeId = p.collegeId,
@@ -528,7 +528,7 @@ class StudyAndCampusViewModel @Inject constructor(
             if (res.isSuccess) {
                 _statusMessages.emit(
                     if (isAutoApproved) "Event published & followers notified!"
-                    else "Event submitted for CR / Teacher approval."
+                    else "Event submitted for Moderator approval."
                 )
             } else {
                 _statusMessages.emit(res.exceptionOrNull()?.message ?: "Rate limit active")
@@ -546,7 +546,7 @@ class StudyAndCampusViewModel @Inject constructor(
     fun reportEvent(eventId: String) {
         viewModelScope.launch {
             repository.reportEvent(eventId)
-            _statusMessages.emit("Event reported to CR / Faculty moderation queue.")
+            _statusMessages.emit("Event reported to CR / Moderator moderation queue.")
         }
     }
 
@@ -608,7 +608,7 @@ class StudyAndCampusViewModel @Inject constructor(
     fun reportLostFound(id: String) {
         viewModelScope.launch {
             repository.reportLostFound(id)
-            _statusMessages.emit("Reported to CR moderation queue.")
+            _statusMessages.emit("Reported to CR & Moderator moderation queue.")
         }
     }
 
@@ -626,7 +626,7 @@ class StudyAndCampusViewModel @Inject constructor(
                 suggesterName = p.name,
                 proposedChange = proposedChange
             )
-            _statusMessages.emit("Correction submitted to Faculty / Admin moderation queue!")
+            _statusMessages.emit("Correction submitted to Moderator / Admin moderation queue!")
         }
     }
 

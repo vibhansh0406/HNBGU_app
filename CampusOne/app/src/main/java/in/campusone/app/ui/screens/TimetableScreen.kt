@@ -367,7 +367,7 @@ private fun TimetableSlotCard(slot: TimetableSlot, evaluated: EvaluatedSlot?) {
                 )
                 Spacer(modifier = Modifier.width(C1Spacing.xs))
                 Text(
-                    text = "${slot.roomNumber} • ${slot.teacherName}",
+                    text = slot.roomNumber,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

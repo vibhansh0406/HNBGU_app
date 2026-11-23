@@ -147,7 +147,6 @@ fun NoticeBoardScreen(
     }
 
     val canPost = uiState.profile.role == UserRole.CR ||
-        uiState.profile.role == UserRole.TEACHER ||
         uiState.profile.role == UserRole.ADMIN ||
         uiState.profile.role == UserRole.MODERATOR
 

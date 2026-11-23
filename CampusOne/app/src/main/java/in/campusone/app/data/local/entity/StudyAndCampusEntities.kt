@@ -137,7 +137,7 @@ data class ClubEntity(
     val adminUid: String,
     val adminName: String,
     val isFollowedByMe: Boolean = false,
-    val isApproved: Boolean = true, // Moderation: new clubs require CR/Teacher approval
+    val isApproved: Boolean = true, // Moderation: new clubs require CR/Moderator approval
     val reportCount: Int = 0,
     val isFlagged: Boolean = false,
     val updatedAtMillis: Long = System.currentTimeMillis()
@@ -164,7 +164,7 @@ data class CampusEventEntity(
     val notGoingCount: Int = 0,
     val myRsvpStatus: String = "NONE", // "NONE", "GOING", "INTERESTED", "NOT_GOING"
     val reminderLeadMinutes: Int = 60, // Configurable event reminder (e.g., 60m before)
-    val isApproved: Boolean = true,     // Moderation: new events require CR/Teacher approval
+    val isApproved: Boolean = true,     // Moderation: new events require CR/Moderator approval
     val reportCount: Int = 0,
     val isFlagged: Boolean = false,
     val updatedAtMillis: Long = System.currentTimeMillis()

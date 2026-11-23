@@ -201,6 +201,7 @@ enum class MoreSubScreen {
     ADMIN_EVENTS,
     ADMIN_LOST_FOUND,
     ADMIN_DIRECTORY,
+    ADMIN_MODERATION,
     SUPER_ADMIN,
     SUPER_ADMIN_USERS,
     SUPER_ADMIN_ROLES,
@@ -210,12 +211,7 @@ enum class MoreSubScreen {
     SUPER_ADMIN_AUDIT
 }
 
-private val requestableRoles = listOf(
-    UserRole.CR,
-    UserRole.TEACHER,
-    UserRole.MODERATOR,
-    UserRole.CLUB_ADMIN
-)
+private val requestableRoles = listOf(UserRole.CR)
 
 /** Each sub-screen's parent for system Back navigation. Screens not listed go to HUB. */
 private val screenParent: Map<MoreSubScreen, MoreSubScreen> = mapOf(
@@ -229,6 +225,7 @@ private val screenParent: Map<MoreSubScreen, MoreSubScreen> = mapOf(
     MoreSubScreen.ADMIN_EVENTS to MoreSubScreen.ADMIN_PANEL,
     MoreSubScreen.ADMIN_LOST_FOUND to MoreSubScreen.ADMIN_PANEL,
     MoreSubScreen.ADMIN_DIRECTORY to MoreSubScreen.ADMIN_PANEL,
+    MoreSubScreen.ADMIN_MODERATION to MoreSubScreen.ADMIN_PANEL,
     MoreSubScreen.SUPER_ADMIN_USERS to MoreSubScreen.SUPER_ADMIN,
     MoreSubScreen.SUPER_ADMIN_ROLES to MoreSubScreen.SUPER_ADMIN,
     MoreSubScreen.SUPER_ADMIN_CONTENT to MoreSubScreen.SUPER_ADMIN,
@@ -288,20 +285,23 @@ fun MoreHubScreen(
         }
     }
 
-    val isAdmin = uiState.profile.role == `in`.campusone.app.domain.model.UserRole.ADMIN ||
-        uiState.profile.email.equals(
-            `in`.campusone.app.data.repository.CoreCampusRepository.OWNER_EMAIL,
-            ignoreCase = true
-        )
-    val isAdminOrStaff = isAdmin ||
-        uiState.profile.role == `in`.campusone.app.domain.model.UserRole.TEACHER ||
-        uiState.profile.role == `in`.campusone.app.domain.model.UserRole.CR
+    // Owner/Admin uses only the Super Admin portal. Moderators use the normal Admin Portal.
+    val isAdminOrStaff = uiState.profile.role == `in`.campusone.app.domain.model.UserRole.MODERATOR
     val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
     val communityState by communityViewModel.uiState.collectAsStateWithLifecycle()
     val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
     val unreadNotifications by communityViewModel.unreadNotificationCount.collectAsStateWithLifecycle()
-    val isSuperAdmin = adminState.identity.isOwner ||
-        adminState.identity.can(`in`.campusone.app.data.repository.AdminPermission.VIEW_USERS)
+    val isSuperAdmin = adminState.identity.isOwner
+
+    androidx.compose.runtime.LaunchedEffect(activeScreen, adminState.identity.isOwner, uiState.profile.role) {
+        if (!adminState.identity.isOwner && activeScreen.name.startsWith("SUPER_ADMIN")) {
+            activeScreen = MoreSubScreen.HUB
+        }
+        if (activeScreen.name.startsWith("ADMIN_") &&
+            (adminState.identity.isOwner || uiState.profile.role != UserRole.MODERATOR)) {
+            activeScreen = MoreSubScreen.HUB
+        }
+    }
 
     androidx.compose.runtime.LaunchedEffect(uiState.profile) {
         adminViewModel.init(uiState.profile)
@@ -748,8 +748,8 @@ MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
                                 "EVENTS" -> MoreSubScreen.ADMIN_EVENTS
                                 "LOST_FOUND" -> MoreSubScreen.ADMIN_LOST_FOUND
                                 "DIRECTORY" -> MoreSubScreen.ADMIN_DIRECTORY
-                                "USERS" -> MoreSubScreen.SUPER_ADMIN_USERS
-                                "REVIEW" -> MoreSubScreen.SUPER_ADMIN_MODERATION
+                                "USERS" -> if (adminState.identity.isOwner) MoreSubScreen.SUPER_ADMIN_USERS else MoreSubScreen.ADMIN_PANEL
+                                "REVIEW" -> MoreSubScreen.ADMIN_MODERATION
                                 else -> MoreSubScreen.ADMIN_PANEL
                             }
                         }
@@ -784,6 +784,9 @@ MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
                         adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
                     )
                     MoreSubScreen.ADMIN_DIRECTORY -> AdminDirectoryScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
+                    )
+                    MoreSubScreen.ADMIN_MODERATION -> SuperAdminModerationScreen(
                         adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
                     )
                     MoreSubScreen.SUPER_ADMIN -> SuperAdminPanelScreen(
@@ -862,7 +865,7 @@ fun NotesAndPyqScreen(
     var showUploadDialog by rememberSaveable { mutableStateOf(false) }
     var viewingResource by remember { mutableStateOf<StudyResourceEntity?>(null) }
 
-    val isCrOrTeacher = uiState.profile.role == UserRole.CR || uiState.profile.role == UserRole.TEACHER
+    val isCrOrModerator = uiState.profile.role == UserRole.CR || uiState.profile.role == UserRole.MODERATOR || uiState.profile.role == UserRole.ADMIN
 
     val filtered = uiState.resources
         .filter { res ->
@@ -944,7 +947,7 @@ fun NotesAndPyqScreen(
             }
 
             // CR / Teacher Moderation Queue
-            if (isCrOrTeacher && uiState.moderationQueue.isNotEmpty()) {
+            if (isCrOrModerator && uiState.moderationQueue.isNotEmpty()) {
                 item {
                     C1SurfaceCard(
                         modifier = Modifier.fillMaxWidth(),
@@ -999,7 +1002,7 @@ fun NotesAndPyqScreen(
             items(filtered, key = { it.id }) { res ->
                 StudyResourceCard(
                     res = res,
-                    isCrOrTeacher = isCrOrTeacher,
+                    isCrOrModerator = isCrOrModerator,
                     onOpenViewer = { viewingResource = res },
                     onUpvote = { viewModel.upvoteResource(res.id) },
                     onToggleBookmark = { viewModel.toggleBookmark(res.id, !res.isBookmarkedOffline) },
@@ -1056,7 +1059,7 @@ fun NotesAndPyqScreen(
 @Composable
 private fun StudyResourceCard(
     res: StudyResourceEntity,
-    isCrOrTeacher: Boolean,
+    isCrOrModerator: Boolean,
     onOpenViewer: () -> Unit,
     onUpvote: () -> Unit,
     onToggleBookmark: () -> Unit,
@@ -1174,7 +1177,7 @@ private fun StudyResourceCard(
                     )
                 }
                 Row {
-                    if (isCrOrTeacher) {
+                    if (isCrOrModerator) {
                         IconButton(onClick = onCrHide) {
                             Icon(Icons.Default.VisibilityOff, contentDescription = "Hide content")
                         }
@@ -1537,7 +1540,7 @@ fun AssignmentsScreen(
 
     val now = System.currentTimeMillis()
     val endOfToday = now + 24 * 3_600_000L
-    val isCrOrTeacher = uiState.profile.role == UserRole.CR || uiState.profile.role == UserRole.TEACHER
+    val isCrOrModerator = uiState.profile.role == UserRole.CR || uiState.profile.role == UserRole.MODERATOR
 
     LaunchedEffect(focusAssignmentId, uiState.assignments) {
         val target = focusAssignmentId?.let { id -> uiState.assignments.firstOrNull { it.id == id } }
@@ -1674,7 +1677,7 @@ fun AssignmentsScreen(
 
     if (showAddDialog) {
         AddAssignmentDialog(
-            isCrOrTeacher = isCrOrTeacher,
+            isCrOrModerator = isCrOrModerator,
             onDismiss = { showAddDialog = false },
             onSave = { subjectId, subjectTag, title, description, priority, dueOffsetDays, dueDateFormatted, remind1Day, remind2Hours, postToSection ->
                 viewModel.saveAssignment(
@@ -1863,7 +1866,7 @@ private fun AssignmentItemCard(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AddAssignmentDialog(
-    isCrOrTeacher: Boolean,
+    isCrOrModerator: Boolean,
     onDismiss: () -> Unit,
     onSave: (
         subjectId: String,
@@ -1963,7 +1966,7 @@ private fun AddAssignmentDialog(
                     Spacer(modifier = Modifier.width(C1Spacing.xs))
                     Text(stringResource(R.string.assignment_remind_2h))
                 }
-                if (isCrOrTeacher) {
+                if (isCrOrModerator) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = postToWholeSection, onCheckedChange = { postToWholeSection = it })
                         Spacer(modifier = Modifier.width(C1Spacing.xs))

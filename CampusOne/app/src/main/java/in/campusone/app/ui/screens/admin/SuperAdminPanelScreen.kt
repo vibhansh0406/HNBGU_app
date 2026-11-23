@@ -120,7 +120,7 @@ fun SuperAdminPanelScreen(
             return@Scaffold
         }
 
-        if (!identity.isOwner && !identity.can(`in`.campusone.app.data.repository.AdminPermission.VIEW_USERS)) {
+        if (!identity.isOwner) {
             AccessDeniedState(padding = padding, onBack = onBack)
             return@Scaffold
         }
@@ -307,16 +307,10 @@ private fun overviewStats(
             secondary
         ),
         StatItem(
-            "Teachers",
-            users.count { it.role == UserRole.TEACHER }.toString(),
-            Icons.Default.Assignment,
+            "Moderators",
+            users.count { it.role == UserRole.MODERATOR }.toString(),
+            Icons.Default.Shield,
             tertiary
-        ),
-        StatItem(
-            "Club admins",
-            users.count { it.role == UserRole.CLUB_ADMIN }.toString(),
-            Icons.Default.Group,
-            primary
         ),
         StatItem(
             "Pending approvals",

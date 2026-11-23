@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -78,6 +77,7 @@ fun AdminNoticesScreen(
     var isOfficial by rememberSaveable { mutableStateOf(false) }
     var attachmentUrl by rememberSaveable { mutableStateOf("") }
     var attachmentType by rememberSaveable { mutableStateOf(AttachmentType.NONE.name) }
+    val canManageOfficialNotices = uiState.identity.isOwner
     var isUploadingAttachment by rememberSaveable { mutableStateOf(false) }
     var attachmentUploadError by rememberSaveable { mutableStateOf<String?>(null) }
     val context = LocalContext.current
@@ -117,23 +117,6 @@ fun AdminNoticesScreen(
                 }
             )
         },
-        floatingActionButton = {
-            androidx.compose.material3.FloatingActionButton(onClick = {
-                editingNotice = null
-                title = ""
-                body = ""
-                isPinned = false
-                category = "GENERAL"
-                priority = "NORMAL"
-                isOfficial = false
-                attachmentUrl = ""
-                attachmentType = AttachmentType.NONE.name
-                attachmentUploadError = null
-                showDialog = true
-            }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Notice")
-            }
-        }
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = C1Spacing.lg),
@@ -183,6 +166,7 @@ fun AdminNoticesScreen(
                                 }
                             }
                         }
+                        if (!notice.isOfficial || canManageOfficialNotices) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                             IconButton(onClick = {
                                 editingNotice = notice
@@ -210,6 +194,7 @@ fun AdminNoticesScreen(
                                 Icon(Icons.Default.CloudUpload, contentDescription = "Sync to cloud")
                             }
                         }
+                        }
                     }
                 }
             }
@@ -224,6 +209,7 @@ fun AdminNoticesScreen(
             category = category,
             priority = priority,
             isOfficial = isOfficial,
+            canMarkOfficial = canManageOfficialNotices,
             attachmentUrl = attachmentUrl,
             attachmentType = attachmentType,
             isUploadingAttachment = isUploadingAttachment,
@@ -245,13 +231,13 @@ fun AdminNoticesScreen(
             onSave = {
                 val notice = NoticeEntity(
                     id = editingNotice?.id ?: java.util.UUID.randomUUID().toString(),
-                    sectionKey = if (isOfficial || priority == "HIGH" || priority == "URGENT") "global" else uiState.sectionKey,
+                    sectionKey = editingNotice?.sectionKey ?: uiState.sectionKey,
                     title = title,
                     body = body,
                     isPinned = isPinned,
                     category = category,
                     priority = priority,
-                    isOfficial = isOfficial,
+                    isOfficial = canManageOfficialNotices && isOfficial,
                     attachmentUrl = attachmentUrl.ifBlank { null },
                     attachmentType = when {
                         attachmentUrl.isBlank() -> AttachmentType.NONE
@@ -286,6 +272,7 @@ private fun NoticeDialog(
     category: String,
     priority: String,
     isOfficial: Boolean,
+    canMarkOfficial: Boolean,
     attachmentUrl: String,
     attachmentType: String,
     isUploadingAttachment: Boolean,
@@ -380,9 +367,11 @@ private fun NoticeDialog(
                         modifier = Modifier.weight(1f)
                     )
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    androidx.compose.material3.Checkbox(checked = isOfficial, onCheckedChange = onOfficialChange)
-                    Text("Official announcement")
+                if (canMarkOfficial) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        androidx.compose.material3.Checkbox(checked = isOfficial, onCheckedChange = onOfficialChange)
+                        Text("Official announcement")
+                    }
                 }
             }
         },

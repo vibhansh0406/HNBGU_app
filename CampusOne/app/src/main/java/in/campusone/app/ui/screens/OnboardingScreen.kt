@@ -111,9 +111,7 @@ fun OnboardingScreen(
 
     val selectableRoles = listOf(
         UserRole.STUDENT,
-        UserRole.CR,
-        UserRole.TEACHER,
-        UserRole.CLUB_ADMIN
+        UserRole.CR
     )
 
     val canContinue = when (step) {
@@ -520,7 +518,7 @@ private fun OnboardingStepClass(
             C1EmptyState(
                 icon = Icons.Default.Shield,
                 title = "Admin Access",
-                message = "Signed in as the app owner. The admin panel will be enabled automatically."
+                message = "Signed in as the app owner. The Super Admin Portal will be enabled automatically."
             )
         } else {
             Column(
@@ -537,8 +535,7 @@ private fun OnboardingStepClass(
                         val label = when (role) {
                             UserRole.STUDENT -> stringResource(R.string.role_student)
                             UserRole.CR -> stringResource(R.string.role_cr)
-                            UserRole.TEACHER -> stringResource(R.string.role_teacher)
-                            UserRole.CLUB_ADMIN -> stringResource(R.string.role_club_admin)
+                             UserRole.MODERATOR -> stringResource(R.string.role_moderator)
                             else -> role.name
                         }
                         C1FilterChip(
@@ -550,7 +547,7 @@ private fun OnboardingStepClass(
                     }
                 }
                 Text(
-                    text = "CR, Teacher, Moderator and Club Admin access is granted after admin approval. A request is sent automatically.",
+                    text = "CR access requests require Admin approval. Moderator access is assigned by the Admin.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = C1Spacing.sm)

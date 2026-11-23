@@ -23,8 +23,6 @@
     <string name="select_role">Your Role</string>
     <string name="role_student">Student</string>
     <string name="role_cr">Class Representative (CR)</string>
-    <string name="role_teacher">Teacher / Faculty</string>
-    <string name="role_club_admin">Club Admin</string>
     <string name="role_admin">App Admin</string>
     <string name="role_moderator">Department Moderator</string>
     <string name="complete_setup">Complete Setup</string>
@@ -74,7 +72,7 @@
     <string name="timetable_starts_in">%1$d min to start</string>
     <string name="timetable_subject_code">Subject code</string>
     <string name="timetable_subject_name">Subject name</string>
-    <string name="timetable_faculty">Faculty name</string>
+    <string name="timetable_faculty">Room number</string>
     <string name="timetable_room">Room / lab</string>
     <string name="timetable_start">Start (HH:mm)</string>
     <string name="timetable_end">End (HH:mm)</string>
@@ -329,7 +327,7 @@
     <string name="hub_directory_sub">HoDs, controller of exams, proctor &amp; emergency helplines</string>
     <string name="hub_superadmin_sub">Owner console • users, roles, content, moderation, audit</string>
     <string name="hub_admin_sub">Manage app data, users, notices, timetable &amp; more</string>
-    <string name="hub_role_sub">CR, teacher, moderator or club admin access — reviewed by the admin</string>
+    <string name="hub_role_sub">CR and Moderator access — reviewed by the Admin</string>
     <string name="hub_privacy_sub">Zero ads, zero trackers, offline-first • MIT open source</string>
     <string name="hub_signout_sub">Sign out of Google &amp; Supabase on this device</string>
     <string name="hub_community_sub">%1$d posts • campus feed and discussions</string>
@@ -355,7 +353,7 @@
     <string name="onboarding_your_class">Your class</string>
     <string name="onboarding_admin_access">Admin access</string>
     <string name="onboarding_signed_in_as_owner">Signed in as the app owner. The admin panel will be enabled automatically.</string>
-    <string name="onboarding_cr_teacher_access">CR, Teacher, Moderator and Club Admin access is granted after admin approval. A request is sent automatically.</string>
+    <string name="onboarding_cr_teacher_access">CR and Moderator access is granted only after Admin approval.</string>
     <string name="hub_campus_life">Campus Life &amp; Utilities</string>
     <string name="hub_request_sent">Your request is sent to the admin. Access is granted only after approval.</string>
     <!-- Timetable Admin -->
@@ -368,7 +366,7 @@
     <!-- Admin Timetable -->
     <string name="admin_timetable_upload">Upload CSV</string>
     <string name="admin_timetable_history">Import History</string>
-    <string name="admin_timetable_template_hint">Template: Subject Code, Subject Name, Teacher, Room, Day (1-7), Start (HH:mm), End (HH:mm)</string>
+    <string name="admin_timetable_template_hint">Template: Subject Code, Subject Name, Room, Day (1-7), Start (HH:mm), End (HH:mm)</string>
     <string name="admin_timetable_no_imports">No imports yet</string>
     <string name="admin_timetable_no_imports_hint">Published timetables will appear here.</string>
 

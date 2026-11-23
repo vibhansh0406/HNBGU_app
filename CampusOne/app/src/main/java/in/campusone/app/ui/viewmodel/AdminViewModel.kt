@@ -146,8 +146,7 @@ class AdminViewModel @Inject constructor(
     fun init(profile: UserProfile) {
         val sectionKey = profile.sectionKey
         val collegeId = profile.collegeId
-        val isAdmin = profile.role == UserRole.ADMIN || profile.role == UserRole.TEACHER ||
-            profile.role == UserRole.CR
+        val isAdmin = profile.role == UserRole.ADMIN || profile.role == UserRole.MODERATOR
 
         _uiState.update {
             it.copy(

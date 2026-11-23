@@ -52,7 +52,8 @@ fun AdminHubScreen(
     val state = uiState
     val visibleActions = remember(state.identity) {
         adminActions.filter { action ->
-            action.permission == null || state.identity.can(action.permission!!)
+            (action.route != "USERS" || state.identity.isOwner) &&
+                (action.permission == null || state.identity.can(action.permission!!))
         }
     }
 

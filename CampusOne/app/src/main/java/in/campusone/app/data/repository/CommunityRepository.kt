@@ -283,8 +283,11 @@ class CommunityRepository @Inject constructor(
         createdAtMillis = createdAtMillis
     )
 
-    private fun role(value: String?): UserRole =
-        runCatching { UserRole.valueOf(value ?: "") }.getOrDefault(UserRole.STUDENT)
+    private fun role(value: String?): UserRole = when (value?.uppercase()) {
+        "TEACHER", "CLUB_ADMIN" -> UserRole.MODERATOR
+        "SUPER_ADMIN" -> UserRole.ADMIN
+        else -> runCatching { UserRole.valueOf(value ?: "") }.getOrDefault(UserRole.STUDENT)
+    }
 
     private fun number(value: Any?): Int = when (value) {
         is Number -> value.toInt()

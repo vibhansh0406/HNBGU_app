@@ -58,7 +58,6 @@ fun AdminSubjectsScreen(
     var editingSubject by rememberSaveable { mutableStateOf<SubjectEntity?>(null) }
     var subjectName by rememberSaveable { mutableStateOf("") }
     var subjectCode by rememberSaveable { mutableStateOf("") }
-    var teacherName by rememberSaveable { mutableStateOf("") }
     var credits by rememberSaveable { mutableIntStateOf(4) }
     var isElective by rememberSaveable { mutableStateOf(false) }
 
@@ -78,7 +77,6 @@ fun AdminSubjectsScreen(
                 editingSubject = null
                 subjectName = ""
                 subjectCode = ""
-                teacherName = ""
                 credits = 4
                 isElective = false
                 showDialog = true
@@ -104,7 +102,7 @@ fun AdminSubjectsScreen(
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column {
                                 Text(text = subject.subjectName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                                Text(text = "${subject.subjectCode} • ${subject.teacherName}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(text = subject.subjectCode, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Text(text = "${subject.credits} credits ${if (subject.isElective) "• Elective" else ""}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -112,7 +110,6 @@ fun AdminSubjectsScreen(
                                     editingSubject = subject
                                     subjectName = subject.subjectName
                                     subjectCode = subject.subjectCode
-                                    teacherName = subject.teacherName
                                     credits = subject.credits
                                     isElective = subject.isElective
                                     showDialog = true
@@ -134,12 +131,10 @@ fun AdminSubjectsScreen(
         SubjectDialog(
             subjectName = subjectName,
             subjectCode = subjectCode,
-            teacherName = teacherName,
             credits = credits,
             isElective = isElective,
             onSubjectNameChange = { subjectName = it },
             onSubjectCodeChange = { subjectCode = it },
-            onTeacherNameChange = { teacherName = it },
             onCreditsChange = { credits = it },
             onElectiveChange = { isElective = it },
             onDismiss = { showDialog = false },
@@ -149,7 +144,7 @@ fun AdminSubjectsScreen(
                     sectionKey = uiState.sectionKey,
                     subjectName = subjectName,
                     subjectCode = subjectCode,
-                    teacherName = teacherName,
+                    teacherName = "",
                     isElective = isElective,
                     isEnrolled = true,
                     credits = credits
@@ -165,12 +160,10 @@ fun AdminSubjectsScreen(
 private fun SubjectDialog(
     subjectName: String,
     subjectCode: String,
-    teacherName: String,
     credits: Int,
     isElective: Boolean,
     onSubjectNameChange: (String) -> Unit,
     onSubjectCodeChange: (String) -> Unit,
-    onTeacherNameChange: (String) -> Unit,
     onCreditsChange: (Int) -> Unit,
     onElectiveChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
@@ -183,7 +176,6 @@ private fun SubjectDialog(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 C1TextField(value = subjectName, onValueChange = onSubjectNameChange, label = "Subject Name", singleLine = true, modifier = Modifier.fillMaxWidth())
                 C1TextField(value = subjectCode, onValueChange = onSubjectCodeChange, label = "Subject Code", singleLine = true, modifier = Modifier.fillMaxWidth())
-                C1TextField(value = teacherName, onValueChange = onTeacherNameChange, label = "Teacher", singleLine = true, modifier = Modifier.fillMaxWidth())
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     C1TextField(value = credits.toString(), onValueChange = { onCreditsChange(it.toIntOrNull() ?: 4) }, label = "Credits", singleLine = true, modifier = Modifier.weight(1f))
                     Checkbox(checked = isElective, onCheckedChange = onElectiveChange)

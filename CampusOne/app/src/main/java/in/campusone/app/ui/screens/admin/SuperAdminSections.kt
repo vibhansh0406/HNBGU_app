@@ -59,11 +59,9 @@ import java.util.Date
 import java.util.Locale
 
 private val assignableRoles = listOf(
-    UserRole.STUDENT,
-    UserRole.CR,
-    UserRole.TEACHER,
     UserRole.MODERATOR,
-    UserRole.CLUB_ADMIN
+    UserRole.CR,
+    UserRole.STUDENT
 )
 
 private val dateFormat: SimpleDateFormat
@@ -621,9 +619,18 @@ private fun PermissionMatrixCard(uiState: AdminUiState) {
             AdminPermission.MANAGE_RESOURCES,
             AdminPermission.MANAGE_ASSIGNMENTS,
             AdminPermission.MODERATE_REPORTS,
-            AdminPermission.MANAGE_EVENTS
+            AdminPermission.MANAGE_EVENTS,
+            AdminPermission.MANAGE_TIMETABLE
         ),
-        "TEACHER / CR" to listOf(
+        "MODERATOR" to listOf(
+            AdminPermission.MANAGE_NOTICES,
+            AdminPermission.MANAGE_RESOURCES,
+            AdminPermission.MANAGE_ASSIGNMENTS,
+            AdminPermission.MODERATE_REPORTS,
+            AdminPermission.MANAGE_EVENTS,
+            AdminPermission.MANAGE_TIMETABLE
+        ),
+        "CR" to listOf(
             AdminPermission.MANAGE_NOTICES,
             AdminPermission.MANAGE_ASSIGNMENTS
         )
@@ -1063,7 +1070,7 @@ fun SuperAdminSettingsScreen(
             item {
                 ToggleRow(
                     title = "Resource uploads",
-                    subtitle = "Allow CRs and teachers to upload files",
+                    subtitle = "Allow CRs and moderators to upload files",
                     checked = draft.resourceUploadsEnabled,
                     onChange = { draft = draft.copy(resourceUploadsEnabled = it) }
                 )

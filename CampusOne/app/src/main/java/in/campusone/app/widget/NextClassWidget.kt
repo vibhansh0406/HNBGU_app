@@ -40,7 +40,7 @@ class NextClassWidget : GlanceAppWidget() {
                 subjectId = it.subjectId,
                 subjectName = it.subjectName,
                 subjectCode = it.subjectCode,
-                teacherName = it.teacherName,
+                teacherName = "",
                 roomNumber = it.roomNumber,
                 dayOfWeek = it.dayOfWeek,
                 startTime = it.startTime,

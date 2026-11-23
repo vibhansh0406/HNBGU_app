@@ -60,6 +60,7 @@ insert into public.admin_permissions (code, description, is_owner_only) values
   ('MANAGE_ASSIGNMENTS',    'Publish, edit and delete assignments', false),
   ('MODERATE_REPORTS',      'Review reports and moderate content', false),
   ('MANAGE_EVENTS',         'Publish, edit and delete events and clubs', false),
+  ('MANAGE_TIMETABLE',      'Create and update subject-based timetables', false),
   ('VIEW_AUDIT_LOGS',       'Read the append-only audit trail', true),
   ('MANAGE_SYSTEM_SETTINGS','Change platform-wide settings', true)
 on conflict (code) do nothing;
@@ -77,8 +78,17 @@ insert into public.role_permissions (role, permission)
 select 'ADMIN', code from public.admin_permissions
 where code in (
   'VIEW_USERS','MANAGE_USERS','MANAGE_NOTICES','MANAGE_RESOURCES',
-  'MANAGE_ASSIGNMENTS','MODERATE_REPORTS','MANAGE_EVENTS'
+  'MANAGE_ASSIGNMENTS','MODERATE_REPORTS','MANAGE_EVENTS','MANAGE_TIMETABLE'
 )
+on conflict do nothing;
+
+-- Moderators use the regular Admin Portal. They receive operational
+-- permissions only; role management, audit logs and system settings remain
+-- owner-only and are never granted to this role.
+delete from public.role_permissions where role = 'MODERATOR';
+insert into public.role_permissions (role, permission)
+select 'MODERATOR', code from public.admin_permissions
+where not is_owner_only and code not in ('VIEW_USERS', 'MANAGE_USERS')
 on conflict do nothing;
 
 -- =========================================================================
@@ -166,7 +176,6 @@ create table if not exists public.subjects (
   section_key text not null default '',
   subject_name text not null default '',
   subject_code text not null default '',
-  teacher_name text not null default '',
   is_elective boolean not null default false,
   is_enrolled boolean not null default true,
   updated_at bigint not null default 0
@@ -178,7 +187,6 @@ create table if not exists public.timetable_slots (
   subject_id text not null default '',
   subject_name text not null default '',
   subject_code text not null default '',
-  teacher_name text not null default '',
   room_number text not null default '',
   day_of_week integer not null default 1,
   start_time text not null default '09:00',
@@ -480,10 +488,21 @@ language sql
 stable
 security definer
 set search_path = public
-as $$
+as $
   select public.campusone_is_owner()
-     or public.campusone_caller_role() in ('ADMIN', 'TEACHER', 'CR');
-$$;
+     or public.campusone_caller_role() in ('ADMIN', 'MODERATOR');
+$;
+
+-- Backwards-compatible alias used by legacy RLS policies.
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $
+  select public.campusone_is_admin();
+$;
 
 -- Only the owner may hold SUPER_ADMIN. This is the single choke point for
 -- role escalation: the trigger below calls it on every profile write.
@@ -689,6 +708,7 @@ end;
 $$;
 
 -- Role change. MANAGE_ROLES only; SUPER_ADMIN can never be granted.
+update public.profiles set verified_role = true, updated_at = (extract(epoch from now()) * 1000)::bigint where role in ('CR','MODERATOR','ADMIN','SUPER_ADMIN') and verified_role is distinct from true;
 create or replace function public.admin_set_role(p_uid uuid, p_role text)
 returns jsonb
 language plpgsql
@@ -711,7 +731,7 @@ begin
     return jsonb_build_object('ok', false, 'error', 'SUPER_ADMIN cannot be granted');
   end if;
 
-  if p_role not in ('STUDENT','CR','TEACHER','CLUB_ADMIN','MODERATOR','ADMIN') then
+  if p_role not in ('STUDENT','CR','MODERATOR') then
     return jsonb_build_object('ok', false, 'error', 'Unknown role');
   end if;
 
@@ -726,7 +746,7 @@ begin
 
   update public.profiles
      set role = p_role,
-         is_moderator_approved = case when p_role in ('MODERATOR','ADMIN') then true else is_moderator_approved end,
+         is_moderator_approved = (p_role = 'MODERATOR'),
          updated_at = v_now
    where id = p_uid;
 
@@ -1149,7 +1169,7 @@ create policy "own_role_requests_insert" on public.role_requests
   for insert to authenticated
   with check (
     auth.uid()::text = user_id::text
-    and requested_role in ('CR','TEACHER','MODERATOR','CLUB_ADMIN')
+    and requested_role in ('CR')
     and status = 'PENDING'
   );
 
@@ -1631,7 +1651,7 @@ begin
          false,
          (extract(epoch from now()) * 1000)::bigint
     from public.profiles p
-   where (new.section_key = 'global'
+   where p.role = 'STUDENT' and (new.section_key = 'global'
           or new.section_key = p.college_id || '_' || p.course_id || '_sem' || p.semester || '_sec' || p.section)
      and p.id <> coalesce(auth.uid(), '00000000-0000-0000-0000-000000000000'::uuid)
   on conflict (id) do nothing;
@@ -1663,7 +1683,7 @@ begin
          false,
          (extract(epoch from now()) * 1000)::bigint
     from public.profiles p
-   where new.section_key = p.college_id || '_' || p.course_id || '_sem' || p.semester || '_sec' || p.section
+   where p.role = 'STUDENT' and new.section_key = p.college_id || '_' || p.course_id || '_sem' || p.semester || '_sec' || p.section
      and p.id <> coalesce(auth.uid(), '00000000-0000-0000-0000-000000000000'::uuid)
   on conflict (id) do nothing;
   return null;
@@ -1680,6 +1700,82 @@ alter table public.community_posts enable row level security;
 alter table public.community_comments enable row level security;
 alter table public.community_likes enable row level security;
 alter table public.notifications enable row level security;
+alter table public.notices enable row level security;
+
+drop policy if exists notices_select on public.notices;
+create policy notices_select on public.notices
+  for select to authenticated using (true);
+drop policy if exists notices_write on public.notices;
+drop policy if exists notices_admin_manage on public.notices;
+drop policy if exists notices_owner_manage on public.notices;
+create policy notices_owner_manage on public.notices
+  for all to authenticated
+  using (public.campusone_is_owner() or public.campusone_caller_role() = 'ADMIN')
+  with check (public.campusone_is_owner() or public.campusone_caller_role() = 'ADMIN');
+drop policy if exists notices_moderator_manage on public.notices;
+create policy notices_moderator_manage on public.notices
+  for all to authenticated
+  using (
+    public.campusone_caller_role() = 'MODERATOR'
+    and is_official = false
+    and exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid()
+        and (section_key = 'global' or left(section_key, length(p.college_id) + 1) = p.college_id || '_')
+    )
+  )
+  with check (
+    public.campusone_caller_role() = 'MODERATOR'
+    and is_official = false
+    and author_uid = auth.uid()::text
+    and author_role = 'MODERATOR'
+    and exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid()
+        and (section_key = 'global' or left(section_key, length(p.college_id) + 1) = p.college_id || '_')
+    )
+  );
+drop policy if exists notices_cr_insert_section on public.notices;
+create policy notices_cr_insert_section on public.notices
+  for insert to authenticated
+  with check (
+    author_uid = auth.uid()::text and author_role = 'CR' and is_official = false
+    and exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid() and p.role = 'CR' and p.verified_role = true
+        and section_key = p.college_id || '_' || p.course_id || '_sem' || p.semester || '_sec' || p.section
+    )
+  );
+drop policy if exists notices_cr_update_own_section on public.notices;
+create policy notices_cr_update_own_section on public.notices
+  for update to authenticated
+  using (
+    author_uid = auth.uid()::text and author_role = 'CR' and is_official = false
+    and exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid() and p.role = 'CR' and p.verified_role = true
+        and section_key = p.college_id || '_' || p.course_id || '_sem' || p.semester || '_sec' || p.section
+    )
+  )
+  with check (
+    author_uid = auth.uid()::text and author_role = 'CR' and is_official = false
+    and exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid() and p.role = 'CR' and p.verified_role = true
+        and section_key = p.college_id || '_' || p.course_id || '_sem' || p.semester || '_sec' || p.section
+    )
+  );
+drop policy if exists notices_cr_delete_own_section on public.notices;
+create policy notices_cr_delete_own_section on public.notices
+  for delete to authenticated
+  using (
+    author_uid = auth.uid()::text and author_role = 'CR' and is_official = false
+    and exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid() and p.role = 'CR' and p.verified_role = true
+        and section_key = p.college_id || '_' || p.course_id || '_sem' || p.semester || '_sec' || p.section
+    )
+  );
 
 drop policy if exists "community_posts_read" on public.community_posts;
 create policy "community_posts_read" on public.community_posts
@@ -1867,7 +1963,7 @@ grant execute on function public.admin_moderate_community(text, text, text)
 -- policies with role-scoped ones so authorization is enforced by Postgres.
 --
 -- Rules
---   * Staff = owner, ADMIN, TEACHER, CR, MODERATOR (server-derived role).
+--   * Staff = owner, ADMIN, MODERATOR, CR (server-derived role).
 --   * Students keep the writes the product actually offers them: uploading a
 --     study resource, submitting a directory suggestion, requesting the
 --     owner of a lost-and-found item, marking their own attendance, posting
@@ -1892,7 +1988,7 @@ as $
       or exists (
         select 1 from public.profiles p
         where p.id = auth.uid()
-          and p.role in ('ADMIN', 'TEACHER', 'CR', 'MODERATOR')
+          and p.role in ('ADMIN', 'CR', 'MODERATOR')
           and p.is_suspended = false
       );
 $;
@@ -2306,8 +2402,7 @@ begin
       subject_name text,
       start_time text,
       end_time text,
-      room text,
-      faculty text
+      room text
     )
   loop
     if v_row.day is null or v_row.day not between 1 and 7 then
@@ -2346,7 +2441,7 @@ begin
     select 1
       from jsonb_to_recordset(p_slots) as x(
         row_no integer, day integer, subject_code text, subject_name text,
-        start_time text, end_time text, room text, faculty text)
+        start_time text, end_time text, room text)
      group by x.day, x.start_time
     having count(*) > 1
   ) then
@@ -2379,7 +2474,7 @@ begin
   );
 
   insert into public.timetable_slots (
-    id, section_key, subject_id, subject_name, subject_code, teacher_name,
+    id, section_key, subject_id, subject_name, subject_code,
     room_number, day_of_week, start_time, end_time, is_elective, updated_at,
     course_code, course_name, semester, section, academic_year, import_id
   )
@@ -2388,7 +2483,6 @@ begin
          coalesce(x.subject_code, ''),
          coalesce(x.subject_name, ''),
          coalesce(x.subject_code, ''),
-         coalesce(x.faculty, ''),
          coalesce(x.room, ''),
          x.day,
          x.start_time,
@@ -2403,7 +2497,7 @@ begin
          v_import_id
     from jsonb_to_recordset(p_slots) as x(
       row_no integer, day integer, subject_code text, subject_name text,
-      start_time text, end_time text, room text, faculty text);
+      start_time text, end_time text, room text);
 
   get diagnostics v_count = row_count;
 

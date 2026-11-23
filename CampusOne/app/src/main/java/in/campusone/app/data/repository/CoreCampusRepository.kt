@@ -104,8 +104,8 @@ class CoreCampusRepository @Inject constructor(
         val remoteRole = remote["role"] as? String ?: ""
         val isOwner = (remote["email"] as? String)?.equals(OWNER_EMAIL, ignoreCase = true) == true
         val role = when {
-            isOwner -> UserRole.ADMIN
-            remoteRole == "SUPER_ADMIN" -> UserRole.ADMIN
+            isOwner || remoteRole == "SUPER_ADMIN" -> UserRole.ADMIN
+            remoteRole == "TEACHER" || remoteRole == "CLUB_ADMIN" -> UserRole.MODERATOR
             else -> UserRole.entries.firstOrNull { it.name == remoteRole } ?: UserRole.STUDENT
         }
         return UserProfile(
@@ -192,7 +192,7 @@ class CoreCampusRepository @Inject constructor(
                 subjectId = map["subject_id"] as? String ?: "",
                 subjectName = map["subject_name"] as? String ?: "",
                 subjectCode = map["subject_code"] as? String ?: "",
-                teacherName = map["teacher_name"] as? String ?: "",
+                teacherName = "",
                 roomNumber = map["room_number"] as? String ?: "",
                 dayOfWeek = (map["day_of_week"] as? Number)?.toInt() ?: 1,
                 startTime = map["start_time"] as? String ?: "09:00",
@@ -214,7 +214,7 @@ class CoreCampusRepository @Inject constructor(
                     sectionKey = sectionKey,
                     subjectName = slot.subjectName,
                     subjectCode = slot.subjectCode,
-                    teacherName = slot.teacherName,
+                    teacherName = "",
                     isElective = slot.isElective,
                     isEnrolled = true
                 )
@@ -241,10 +241,14 @@ class CoreCampusRepository @Inject constructor(
                 priority = map["priority"] as? String ?: "NORMAL",
                 isOfficial = map["is_official"] == true,
                 authorUid = map["author_uid"] as? String ?: "",
-                authorName = map["author_name"] as? String ?: "Faculty",
-                authorRole = runCatchingDefault({
-                    UserRole.valueOf(map["author_role"] as? String ?: "CR")
-                }, UserRole.CR),
+                authorName = map["author_name"] as? String ?: "CampusOne",
+                authorRole = when ((map["author_role"] as? String)?.uppercase()) {
+                    "TEACHER", "CLUB_ADMIN" -> UserRole.MODERATOR
+                    "SUPER_ADMIN" -> UserRole.ADMIN
+                    else -> runCatchingDefault({
+                        UserRole.valueOf(map["author_role"] as? String ?: "CR")
+                    }, UserRole.CR)
+                },
                 createdAtMillis = TimestampUtils.toEpochMillis(map["created_at"]) ?: System.currentTimeMillis(),
                 isRead = map["is_read"] == true || map["id"] in readIds
             )
@@ -375,7 +379,7 @@ class CoreCampusRepository @Inject constructor(
                     subjectId = entity.subjectId,
                     subjectName = entity.subjectName,
                     subjectCode = entity.subjectCode,
-                    teacherName = entity.teacherName,
+                    teacherName = "",
                     roomNumber = entity.roomNumber,
                     dayOfWeek = entity.dayOfWeek,
                     startTime = entity.startTime,
@@ -464,7 +468,7 @@ class CoreCampusRepository @Inject constructor(
         }
 
     /**
-     * CR / Teacher action: Post a new announcement to the section Notice Board.
+     * CR / Moderator action: Post a new announcement to the section Notice Board.
      * The creator identity is derived from the active Supabase authenticated
      * user UUID (auth.uid()), never from a cached profile ID, so a user can
      * never impersonate another uploader.
@@ -482,16 +486,15 @@ class CoreCampusRepository @Inject constructor(
     ): kotlin.Result<Unit> = runCatching {
         require(
             profile.role == UserRole.CR ||
-                profile.role == UserRole.TEACHER ||
                 profile.role == UserRole.ADMIN ||
                 profile.role == UserRole.MODERATOR
         ) {
-            "Only CRs, Teachers, Moderators or Admins can post announcements."
+            "Only CRs, Moderators or Admins can post announcements."
         }
         require(!isOfficial || profile.role == UserRole.ADMIN) {
             "Only administrators can publish official announcements."
         }
-        val targetSectionKey = if (profile.role == UserRole.ADMIN) "global" else profile.sectionKey
+        val targetSectionKey = if (profile.role == UserRole.ADMIN || profile.role == UserRole.MODERATOR) "global" else profile.sectionKey
         val now = System.currentTimeMillis()
         val noticeId = java.util.UUID.randomUUID().toString()
         // Derive creator identity from the active Supabase authenticated user UUID,
@@ -509,7 +512,7 @@ class CoreCampusRepository @Inject constructor(
             priority = priority,
             isOfficial = isOfficial,
             authorUid = authUid,
-            authorName = profile.name.ifBlank { "CR / Faculty" },
+            authorName = profile.name.ifBlank { "CampusOne" },
             authorRole = profile.role,
             createdAtMillis = now,
             isRead = true
@@ -538,9 +541,9 @@ class CoreCampusRepository @Inject constructor(
             )))
             check(uploaded) { "Notice could not be published to the shared campus feed" }
 
-            // Admin-published notices are time-sensitive for students; send a
-            // section-scoped push for every notice, not only pinned/high-priority ones.
-            val shouldPush = profile.role == UserRole.ADMIN
+            // Every authorized publisher sends a push to the exact notice audience.
+            // Admin/Moderator target the college; CR targets only their section.
+            val shouldPush = profile.role in listOf(UserRole.ADMIN, UserRole.MODERATOR, UserRole.CR)
             if (shouldPush) {
                 supabaseSync.sendPushNotification(
                     title = entity.title,
