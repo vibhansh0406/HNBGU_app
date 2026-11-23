@@ -281,7 +281,7 @@ class StudyAndCampusRepository @Inject constructor(
                     syncSectionKey,
                     listOf(studyResourceSyncMap(saved, syncSectionKey))
                 )
-                if (published && saved.isApprovedByCr) {
+                if (published && saved.isApprovedByCr && isAdmin) {
                     supabaseSync.sendPushNotification(
                         title = "New study material: ${saved.title}",
                         body = "${saved.subjectName} • ${saved.category}",
