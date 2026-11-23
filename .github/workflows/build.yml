@@ -77,8 +77,11 @@ jobs:
           RELEASE_CERT=""
           for apk in "$DEBUG_APK" "$RELEASE_APK"; do
             echo "=== $apk ==="
-            PACKAGE=$($AAPT dump badging "$apk" | sed -n "s/^package: name='\\([^']*\\)'.*/\\1/p")
+            BADGING=$($AAPT dump badging "$apk")
+            PACKAGE=$(printf '%s\n' "$BADGING" | sed -n "s/^package: name='\([^']*\)'.*/\1/p")
             test "$PACKAGE" = "in.campusone.app" || { echo "::error::Unexpected package: $PACKAGE"; exit 1; }
+            printf '%s\n' "$BADGING" | grep -Eq "^application:.*icon='[^']+'" || { echo "::error::APK has no launcher icon resource"; exit 1; }
+            printf '%s\n' "$BADGING" | grep "^application:"
             $APKSIGNER verify --verbose "$apk"
             $ZIPALIGN -c 4 "$apk"
             CERT_INFO=$($APKSIGNER verify --print-certs "$apk")
