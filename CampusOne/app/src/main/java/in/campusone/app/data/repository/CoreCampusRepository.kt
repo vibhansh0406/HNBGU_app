@@ -244,11 +244,11 @@ class CoreCampusRepository @Inject constructor(
                 isOfficial = map["is_official"] == true,
                 authorUid = map["author_uid"] as? String ?: "",
                 authorName = map["author_name"] as? String ?: "CampusOne",
-                authorRole = when ((map["author_role"] as? String)?.uppercase()) {
+                authorRole = when ((map["author_role"] as? String)?.trim()?.uppercase()) {
                     "SUPER_ADMIN" -> UserRole.ADMIN
-                    else -> runCatchingDefault({
-                        UserRole.valueOf((map["author_role"] as? String).orEmpty().uppercase().ifBlank { "CR" })
-                    }, UserRole.CR)
+                    else -> UserRole.entries.firstOrNull {
+                        it.name == (map["author_role"] as? String)?.trim()?.uppercase()
+                    } ?: UserRole.STUDENT
                 },
                 createdAtMillis = TimestampUtils.toEpochMillis(map["created_at"]) ?: System.currentTimeMillis(),
                 isRead = map["is_read"] == true || map["id"] in readIds
