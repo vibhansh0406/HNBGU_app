@@ -180,7 +180,7 @@ serve(async (req) => {
 
     // Parse request body
     const body = await req.json();
-    const { user_ids, title, body: notificationBody, category, target_type, target_id } = body;
+    const { user_ids, section_key, title, body: notificationBody, category, target_type, target_id } = body;
 
     if (typeof title !== "string" || typeof notificationBody !== "string" || !title.trim() || !notificationBody.trim() || title.length > 120 || notificationBody.length > 1200) {
       return new Response(JSON.stringify({ ok: false, error: "Missing title or body" }), {
@@ -189,11 +189,55 @@ serve(async (req) => {
       });
     }
 
-    // Get device tokens for target users
-    let query = supabase.from("device_tokens").select("fcm_token, user_id").eq("is_active", true);
+    // Resolve section-scoped recipients from trusted profile columns.
+    // sectionKey format: college_course_semN_secX (course may contain underscores).
+    let targetUserIds: string[] | null = user_ids && Array.isArray(user_ids)
+      ? [...new Set(user_ids.filter((id: unknown) => typeof id === "string"))]
+      : null;
 
-    if (user_ids && Array.isArray(user_ids) && user_ids.length > 0) {
-      query = query.in("user_id", user_ids);
+    if (typeof section_key === "string" && section_key !== "global") {
+      const match = section_key.match(/^([^_]+)_(.+)_sem(\\d+)_sec(.+)$/);
+      if (!match) {
+        return new Response(JSON.stringify({ ok: false, error: "Invalid section_key" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        });
+      }
+      const [, collegeId, courseId, semesterText, section] = match;
+      const { data: profiles, error: profileError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("college_id", collegeId)
+        .eq("course_id", courseId)
+        .eq("semester", Number(semesterText))
+        .eq("section", section);
+
+      if (profileError) {
+        console.error("Recipient profile query failed:", profileError);
+        return new Response(JSON.stringify({ ok: false, error: "Failed to resolve section recipients" }), {
+          status: 500,
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        });
+      }
+      targetUserIds = (profiles ?? []).map((profile: { id: string }) => profile.id);
+      if (targetUserIds.length === 0) {
+        return new Response(JSON.stringify({ ok: true, message: "No users in target section", sent: 0, total: 0 }), {
+          status: 200,
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        });
+      }
+    }
+
+    // Get active device tokens for the resolved audience.
+    let query = supabase.from("device_tokens").select("fcm_token, user_id").eq("is_active", true);
+    if (targetUserIds !== null) {
+      if (targetUserIds.length === 0) {
+        return new Response(JSON.stringify({ ok: true, message: "No target users", sent: 0, total: 0 }), {
+          status: 200,
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        });
+      }
+      query = query.in("user_id", targetUserIds);
     }
 
     const { data: tokens, error: tokensError } = await query;
