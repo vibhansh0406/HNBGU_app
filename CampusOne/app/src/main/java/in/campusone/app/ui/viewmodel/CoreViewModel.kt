@@ -391,6 +391,9 @@ class CoreViewModel @Inject constructor(
         }
     }
 
+    suspend fun uploadNoticeAttachment(contentUri: String, mimeType: String): Result<String> =
+        repository.uploadNoticeAttachment(contentUri, mimeType)
+
     fun postNotice(
         title: String,
         body: String,
