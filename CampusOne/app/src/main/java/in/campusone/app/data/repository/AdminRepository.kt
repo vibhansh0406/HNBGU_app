@@ -447,7 +447,7 @@ class AdminRepository @Inject constructor(
 
     private fun roleOf(name: String?): UserRole = when (name?.uppercase()) {
         "SUPER_ADMIN" -> UserRole.ADMIN
-        "TEACHER", "CLUB_ADMIN" -> UserRole.MODERATOR // legacy cached roles only
+        // Unknown legacy roles must not be upgraded to Moderator.
         else -> UserRole.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: UserRole.STUDENT
     }
 
