@@ -1408,6 +1408,8 @@ fun C1Button(
     val m = modifier
         .height(height)
         .graphicsLayer { scaleX = scale; scaleY = scale }
+    // Preserve natural wrap-content sizing unless a caller explicitly requests full width.
+    val buttonModifier = if (fullWidth) m.fillMaxWidth() else m
 
     val buttonContent = @Composable {
         if (loading) {
@@ -1444,7 +1446,7 @@ fun C1Button(
     when (intent) {
         C1ButtonIntent.OUTLINED -> OutlinedButton(
             onClick = { if (!loading) onClick() },
-            modifier = m.fillMaxWidth(if (fullWidth) 1f else 0f),
+            modifier = buttonModifier,
             enabled = enabled && !loading,
             shape = C1Radius.sm,
             colors = colors,
@@ -1456,7 +1458,7 @@ fun C1Button(
         }
         C1ButtonIntent.GHOST -> TextButton(
             onClick = { if (!loading) onClick() },
-            modifier = m.fillMaxWidth(if (fullWidth) 1f else 0f),
+            modifier = buttonModifier,
             enabled = enabled && !loading,
             shape = C1Radius.sm,
             colors = colors,
@@ -1466,7 +1468,7 @@ fun C1Button(
         }
         else -> Button(
             onClick = { if (!loading) onClick() },
-            modifier = m.fillMaxWidth(if (fullWidth) 1f else 0f),
+            modifier = buttonModifier,
             enabled = enabled && !loading,
             shape = C1Radius.sm,
             colors = colors,
