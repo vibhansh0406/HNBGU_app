@@ -524,7 +524,8 @@ class AdminRepository @Inject constructor(
                 body = notice.body,
                 category = category,
                 targetType = "NOTICE",
-                targetId = notice.id
+                targetId = notice.id,
+                sectionKey = notice.sectionKey
             )
         }
         return true
