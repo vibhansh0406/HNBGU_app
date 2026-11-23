@@ -361,7 +361,7 @@ fun NoticeBoardScreen(
 
     if (showComposer) {
         PostNoticeDialog(
-            isAdmin = uiState.profile.role == UserRole.ADMIN || uiState.profile.role == UserRole.MODERATOR,
+            isAdmin = uiState.profile.role == UserRole.ADMIN,
             onDismiss = { showComposer = false },
             onUploadAttachment = onUploadNoticeAttachment,
             onSubmit = { title, body, url, type, pinned, category, priority, official ->
