@@ -370,8 +370,14 @@ class AdminViewModel @Inject constructor(
 
     fun deleteNoticeRemote(noticeId: String) {
         viewModelScope.launch {
+            // Optimistically remove from Room first so the notice disappears
+            // immediately from the admin list; network deletion runs afterward.
+            repository.deleteNotice(noticeId)
             val ok = repository.deleteNoticeRemote(noticeId)
-            _messages.emit(if (ok) "Notice deleted from cloud" else "Failed to delete notice")
+            _messages.emit(
+                if (ok) "Notice deleted"
+                else "Notice removed on this device, but cloud deletion failed. Check connection and retry."
+            )
         }
     }
 
