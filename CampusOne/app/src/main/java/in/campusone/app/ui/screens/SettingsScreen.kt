@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -31,6 +33,9 @@ import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -50,9 +55,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import `in`.campusone.app.BuildConfig
+import `in`.campusone.app.domain.model.HnbguAcademicCatalog
 import `in`.campusone.app.domain.model.UserProfile
 import `in`.campusone.app.ui.components.C1SectionHeader
 import `in`.campusone.app.ui.components.C1SurfaceCard
+import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.viewmodel.SettingsViewModel
 
@@ -61,6 +68,7 @@ fun SettingsScreen(
     profile: UserProfile,
     onSignOut: () -> Unit,
     onOpenPrivacy: () -> Unit,
+    onSaveProfile: (UserProfile) -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val theme by viewModel.themeMode.collectAsStateWithLifecycle()
@@ -76,6 +84,13 @@ fun SettingsScreen(
     val examReminders by viewModel.examRemindersEnabled.collectAsStateWithLifecycle()
     val eventReminders by viewModel.eventRemindersEnabled.collectAsStateWithLifecycle()
     var showSignOut by rememberSaveable { mutableStateOf(false) }
+    var showEditProfile by rememberSaveable { mutableStateOf(false) }
+    var editedName by rememberSaveable { mutableStateOf(profile.name) }
+    var editedCampus by rememberSaveable { mutableStateOf(profile.collegeName) }
+    var editedCourseId by rememberSaveable { mutableStateOf(profile.courseId) }
+    var editedCourseName by rememberSaveable { mutableStateOf(profile.courseName) }
+    var editedSemester by rememberSaveable { mutableStateOf(profile.semester.toString()) }
+    var editedSection by rememberSaveable { mutableStateOf(profile.section) }
     val context = LocalContext.current
 
     LazyColumn(
@@ -132,6 +147,19 @@ fun SettingsScreen(
                                     color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
+                        }
+                        TextButton(
+                            onClick = {
+                                editedName = profile.name
+                                editedCampus = profile.collegeName
+                                editedCourseId = profile.courseId
+                                editedCourseName = profile.courseName
+                                editedSemester = profile.semester.toString()
+                                editedSection = profile.section
+                                showEditProfile = true
+                            }
+                        ) {
+                            Text("Edit academic profile", color = MaterialTheme.colorScheme.onPrimaryContainer)
                         }
                     }
                 }
@@ -262,6 +290,81 @@ fun SettingsScreen(
             item { Spacer(Modifier.height(C1Spacing.xl)) }
         }
 
+    if (showEditProfile) {
+        val courseOptions = (HnbguAcademicCatalog.courses + (profile.courseId to profile.courseName))
+            .distinctBy { it.first }
+        AlertDialog(
+            onDismissRequest = { showEditProfile = false },
+            title = { Text("Edit academic profile") },
+            text = {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
+                ) {
+                    Text(
+                        "Your changes are saved to your HNBGU account and restored on your next install.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    C1TextField(
+                        value = editedName,
+                        onValueChange = { editedName = it },
+                        label = "Full name",
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    ProfileDropdownField(
+                        label = "Campus",
+                        selectedValue = editedCampus,
+                        options = HnbguAcademicCatalog.campuses.map { it to it },
+                        onSelected = { editedCampus = it }
+                    )
+                    ProfileDropdownField(
+                        label = "Course",
+                        selectedValue = editedCourseId,
+                        options = courseOptions,
+                        onSelected = { id ->
+                            editedCourseId = id
+                            editedCourseName = courseOptions.firstOrNull { it.first == id }?.second.orEmpty()
+                        }
+                    )
+                    ProfileDropdownField(
+                        label = "Semester",
+                        selectedValue = editedSemester,
+                        options = (1..8).map { it.toString() to "Semester $it" },
+                        onSelected = { editedSemester = it }
+                    )
+                    ProfileDropdownField(
+                        label = "Section",
+                        selectedValue = editedSection,
+                        options = listOf("A" to "Section A", "B" to "Section B", "C" to "Section C"),
+                        onSelected = { editedSection = it }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = editedName.isNotBlank() && editedCourseId.isNotBlank(),
+                    onClick = {
+                        onSaveProfile(
+                            profile.copy(
+                                name = editedName.trim(),
+                                collegeName = editedCampus,
+                                courseId = editedCourseId,
+                                courseName = editedCourseName,
+                                semester = editedSemester.toIntOrNull() ?: profile.semester,
+                                section = editedSection
+                            )
+                        )
+                        showEditProfile = false
+                    }
+                ) { Text("Save changes") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditProfile = false }) { Text("Cancel") }
+            }
+        )
+    }
+
     if (showSignOut) {
         AlertDialog(
             onDismissRequest = { showSignOut = false },
@@ -274,6 +377,48 @@ fun SettingsScreen(
                 TextButton(onClick = { showSignOut = false }) { Text("Cancel") }
             }
         )
+    }
+}
+
+@Composable
+private fun ProfileDropdownField(
+    label: String,
+    selectedValue: String,
+    options: List<Pair<String, String>>,
+    onSelected: (String) -> Unit
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    val selectedLabel = options.firstOrNull { it.first == selectedValue }?.second ?: selectedValue
+    Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+        Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Box(modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(
+                onClick = { expanded = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(selectedLabel, maxLines = 2)
+                    Text("Change")
+                }
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                options.forEach { (value, optionLabel) ->
+                    DropdownMenuItem(
+                        text = { Text(optionLabel) },
+                        onClick = {
+                            onSelected(value)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
     }
 }
 
