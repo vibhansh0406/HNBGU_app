@@ -7,6 +7,8 @@ import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -874,7 +876,11 @@ class SupabaseSyncRepository @Inject constructor(
             return false
         }
 
-        return try {
+        // HttpURLConnection is blocking. This repository method is called from
+        // lifecycleScope/Main in multiple places, so keep the complete request off
+        // the Android main thread to avoid NetworkOnMainThreadException.
+        return withContext(Dispatchers.IO) {
+        try {
             val url = URL("$edgeUrl/register-device-token")
             val conn = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
@@ -921,6 +927,7 @@ class SupabaseSyncRepository @Inject constructor(
         } catch (e: Exception) {
             Log.e(TAG, "FCM registration request failed", e)
             false
+        }
         }
     }
 
