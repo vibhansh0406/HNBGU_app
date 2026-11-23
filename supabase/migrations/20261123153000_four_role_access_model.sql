@@ -72,6 +72,11 @@ begin
     'update public.profiles set role = p_role, verified_role = p_role in (''CR'',''MODERATOR'',''ADMIN''),',
     'g'
   );
+  v_def := replace(
+    v_def,
+    'is_moderator_approved = case when p_role in (''MODERATOR'',''ADMIN'') then true else is_moderator_approved end,',
+    'is_moderator_approved = (p_role = ''MODERATOR''),'
+  );
   if position('verified_role = p_role in' in v_def) = 0 then
     raise exception 'Could not add verified_role synchronization to admin_set_role()';
   end if;
