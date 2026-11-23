@@ -106,6 +106,30 @@ async function getFcmAccessToken(): Promise<string> {
   return accessToken;
 }
 
+async function fetchAllRows<T>(
+  queryForRange: (from: number, to: number) => any
+): Promise<T[]> {
+  const rows: T[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await queryForRange(from, from + 999);
+    if (error) throw new Error(`Paginated recipient query failed: ${error.message}`);
+    const page = (data ?? []) as T[];
+    rows.push(...page);
+    if (rows.length > 20000) {
+      throw new Error("Notification audience exceeds the 20,000-recipient safety limit");
+    }
+    if (page.length < 1000) break;
+  }
+  return rows;
+}
+
+async function fetchStudentIds(
+  queryForRange: (from: number, to: number) => any
+): Promise<string[]> {
+  const rows = await fetchAllRows<{ id: string }>(queryForRange);
+  return [...new Set(rows.map((row) => row.id).filter(Boolean))];
+}
+
 async function sendFcmMessage(
   accessToken: string,
   fcmToken: string,
@@ -269,23 +293,17 @@ serve(async (req) => {
           headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
         });
       }
-      const { data: profiles, error: profileError } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("role", "STUDENT")
-        .eq("college_id", collegeId)
-        .eq("course_id", courseId)
-        .eq("semester", Number(semesterText))
-        .eq("section", section);
-
-      if (profileError) {
-        console.error("Recipient profile query failed:", profileError);
-        return new Response(JSON.stringify({ ok: false, error: "Failed to resolve section recipients" }), {
-          status: 500,
-          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-        });
-      }
-      targetUserIds = (profiles ?? []).map((profile: { id: string }) => profile.id);
+      targetUserIds = await fetchStudentIds((from, to) =>
+        supabase.from("profiles")
+          .select("id")
+          .eq("role", "STUDENT")
+          .eq("college_id", collegeId)
+          .eq("course_id", courseId)
+          .eq("semester", Number(semesterText))
+          .eq("section", section)
+          .order("id", { ascending: true })
+          .range(from, to)
+      );
       if (targetUserIds.length === 0) {
         return new Response(JSON.stringify({ ok: true, message: "No users in target section", sent: 0, total: 0 }), {
           status: 200,
@@ -298,34 +316,30 @@ serve(async (req) => {
     // user_ids list is also intersected with student profiles in the sender's
     // college, so this function cannot target staff accounts or arbitrary users.
     if (section_key === "global") {
-      const { data: students, error: studentsError } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("role", "STUDENT")
-        .eq("college_id", profile?.college_id ?? "");
-      if (studentsError) {
-        console.error("College student query failed:", studentsError);
-        return new Response(JSON.stringify({ ok: false, error: "Failed to resolve college students" }), {
-          status: 500,
-          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-        });
-      }
-      targetUserIds = (students ?? []).map((student: { id: string }) => student.id);
+      targetUserIds = await fetchStudentIds((from, to) =>
+        supabase.from("profiles")
+          .select("id")
+          .eq("role", "STUDENT")
+          .eq("college_id", profile?.college_id ?? "")
+          .order("id", { ascending: true })
+          .range(from, to)
+      );
     } else if (targetUserIds !== null) {
-      const { data: students, error: studentsError } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("role", "STUDENT")
-        .eq("college_id", profile?.college_id ?? "")
-        .in("id", targetUserIds);
-      if (studentsError) {
-        console.error("Target student query failed:", studentsError);
-        return new Response(JSON.stringify({ ok: false, error: "Failed to validate target students" }), {
-          status: 500,
-          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-        });
+      const validatedIds = new Set<string>();
+      for (let offset = 0; offset < targetUserIds.length; offset += 500) {
+        const idBatch = targetUserIds.slice(offset, offset + 500);
+        const ids = await fetchStudentIds((from, to) =>
+          supabase.from("profiles")
+            .select("id")
+            .eq("role", "STUDENT")
+            .eq("college_id", profile?.college_id ?? "")
+            .in("id", idBatch)
+            .order("id", { ascending: true })
+            .range(from, to)
+        );
+        ids.forEach((id) => validatedIds.add(id));
       }
-      targetUserIds = (students ?? []).map((student: { id: string }) => student.id);
+      targetUserIds = [...validatedIds];
     } else {
       return new Response(JSON.stringify({ ok: false, error: "An explicit notification audience is required" }), {
         status: 400,
@@ -333,26 +347,26 @@ serve(async (req) => {
       });
     }
 
-    // Get active device tokens for the resolved student audience.
-    let query = supabase.from("device_tokens").select("fcm_token, user_id").eq("is_active", true);
-    if (targetUserIds !== null) {
-      if (targetUserIds.length === 0) {
-        return new Response(JSON.stringify({ ok: true, message: "No target users", sent: 0, total: 0 }), {
-          status: 200,
-          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-        });
-      }
-      query = query.in("user_id", targetUserIds);
-    }
-
-    const { data: tokens, error: tokensError } = await query;
-
-    if (tokensError) {
-      console.error("Token query error:", tokensError);
-      return new Response(JSON.stringify({ ok: false, error: "Failed to query device tokens" }), {
-        status: 500,
+    // Fetch tokens in bounded user batches and page each query. This avoids
+    // PostgREST's 1,000-row default cap and URL limits for colleges with 4,000+ users.
+    if (!targetUserIds || targetUserIds.length === 0) {
+      return new Response(JSON.stringify({ ok: true, message: "No target users", sent: 0, total: 0 }), {
+        status: 200,
         headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
       });
+    }
+    const tokens: Array<{ fcm_token: string; user_id: string }> = [];
+    for (let offset = 0; offset < targetUserIds.length; offset += 500) {
+      const idBatch = targetUserIds.slice(offset, offset + 500);
+      const pageTokens = await fetchAllRows<{ fcm_token: string; user_id: string }>((from, to) =>
+        supabase.from("device_tokens")
+          .select("fcm_token, user_id")
+          .eq("is_active", true)
+          .in("user_id", idBatch)
+          .order("id", { ascending: true })
+          .range(from, to)
+      );
+      tokens.push(...pageTokens);
     }
 
     if (!tokens || tokens.length === 0) {
