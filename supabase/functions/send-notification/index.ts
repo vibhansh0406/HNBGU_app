@@ -267,6 +267,7 @@ serve(async (req) => {
         .from("profiles")
         .select("id")
         .eq("role", "STUDENT")
+        .eq("college_id", profile?.college_id ?? "")
         .eq("college_id", collegeId)
         .eq("course_id", courseId)
         .eq("semester", Number(semesterText))
