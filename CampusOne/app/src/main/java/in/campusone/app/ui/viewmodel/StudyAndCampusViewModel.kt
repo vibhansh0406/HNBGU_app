@@ -511,7 +511,7 @@ class StudyAndCampusViewModel @Inject constructor(
         daysFromNow: Int
     ) {
         val p = uiState.value.profile
-        val isAutoApproved = p.role == UserRole.CR || p.role == UserRole.TEACHER
+        val isAutoApproved = p.role == UserRole.CR || p.role == UserRole.MODERATOR
         viewModelScope.launch {
             val res = repository.createClubEvent(
                 collegeId = p.collegeId,
