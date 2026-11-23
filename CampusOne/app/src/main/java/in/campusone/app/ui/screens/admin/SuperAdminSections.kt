@@ -61,9 +61,7 @@ import java.util.Locale
 private val assignableRoles = listOf(
     UserRole.STUDENT,
     UserRole.CR,
-    UserRole.TEACHER,
-    UserRole.MODERATOR,
-    UserRole.CLUB_ADMIN
+    UserRole.MODERATOR
 )
 
 private val dateFormat: SimpleDateFormat
