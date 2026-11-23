@@ -190,7 +190,7 @@ fun AdminNoticesScreen(
             onSave = {
                 val notice = NoticeEntity(
                     id = editingNotice?.id ?: java.util.UUID.randomUUID().toString(),
-                    sectionKey = uiState.sectionKey,
+                    sectionKey = if (isOfficial || priority == "HIGH" || priority == "URGENT") "global" else uiState.sectionKey,
                     title = title,
                     body = body,
                     isPinned = isPinned,
