@@ -289,8 +289,7 @@ fun MoreHubScreen(
             `in`.campusone.app.data.repository.CoreCampusRepository.OWNER_EMAIL,
             ignoreCase = true
         )
-    val isAdminOrStaff = isAdmin ||
-        uiState.profile.role == `in`.campusone.app.domain.model.UserRole.CR
+    val isAdminOrStaff = isAdmin
     val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
     val communityState by communityViewModel.uiState.collectAsStateWithLifecycle()
     val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
@@ -742,7 +741,7 @@ MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
                                 "EVENTS" -> MoreSubScreen.ADMIN_EVENTS
                                 "LOST_FOUND" -> MoreSubScreen.ADMIN_LOST_FOUND
                                 "DIRECTORY" -> MoreSubScreen.ADMIN_DIRECTORY
-                                "USERS" -> MoreSubScreen.SUPER_ADMIN_USERS
+                                "USERS" -> if (adminState.identity.isOwner) MoreSubScreen.SUPER_ADMIN_USERS else MoreSubScreen.ADMIN_PANEL
                                 "REVIEW" -> MoreSubScreen.SUPER_ADMIN_MODERATION
                                 else -> MoreSubScreen.ADMIN_PANEL
                             }
