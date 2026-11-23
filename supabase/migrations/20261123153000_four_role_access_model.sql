@@ -68,10 +68,13 @@ begin
   end if;
   v_def := regexp_replace(
     v_def,
-    'update public\\.profiles set role = p_role,',
+    'update public\.profiles set role = p_role,',
     'update public.profiles set role = p_role, verified_role = p_role in (''CR'',''MODERATOR'',''ADMIN''),',
     'g'
   );
+  if position('verified_role = p_role in' in v_def) = 0 then
+    raise exception 'Could not add verified_role synchronization to admin_set_role()';
+  end if;
   execute v_def;
 end;
 $$;
