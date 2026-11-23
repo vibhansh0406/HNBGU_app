@@ -60,6 +60,7 @@ insert into public.admin_permissions (code, description, is_owner_only) values
   ('MANAGE_ASSIGNMENTS',    'Publish, edit and delete assignments', false),
   ('MODERATE_REPORTS',      'Review reports and moderate content', false),
   ('MANAGE_EVENTS',         'Publish, edit and delete events and clubs', false),
+  ('MANAGE_TIMETABLE',      'Create and update subject-based timetables', false),
   ('VIEW_AUDIT_LOGS',       'Read the append-only audit trail', true),
   ('MANAGE_SYSTEM_SETTINGS','Change platform-wide settings', true)
 on conflict (code) do nothing;
