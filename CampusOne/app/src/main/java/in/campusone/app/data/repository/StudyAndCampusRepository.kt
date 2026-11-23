@@ -97,6 +97,9 @@ class StudyAndCampusRepository @Inject constructor(
             ).getOrElse { }
         }
 
+        // Curated official HNBGU directory is available offline on every fresh install.
+        if (collegeId == "hnbgu") seedOfficialDirectory(collegeId)
+
         // Sync from Supabase if user is signed in (permanent backend)
         if (supabaseSync.isSyncedEnabled()) {
             val remoteExams = supabaseSync.downloadExams(sectionKey)
@@ -221,6 +224,12 @@ class StudyAndCampusRepository @Inject constructor(
         // Supabase (admin-published data) and user-created records.
         val cutoff = System.currentTimeMillis() - CampusLifeEngine.AUTO_ARCHIVE_WINDOW_MILLIS
         campusLifeDao.autoArchiveOldLostFound(cutoff)
+    }
+
+    private suspend fun seedOfficialDirectory(collegeId: String) {
+        val existingIds = campusLifeDao.observeDirectory(collegeId).first().map { it.id }.toSet()
+        val missing = HnbguDirectorySeed.contacts(collegeId).filter { it.id !in existingIds }
+        if (missing.isNotEmpty()) campusLifeDao.upsertDirectory(missing)
     }
 
     // =========================================================================
