@@ -174,7 +174,6 @@ create table if not exists public.subjects (
   section_key text not null default '',
   subject_name text not null default '',
   subject_code text not null default '',
-  teacher_name text not null default '',
   is_elective boolean not null default false,
   is_enrolled boolean not null default true,
   updated_at bigint not null default 0
@@ -2314,8 +2313,7 @@ begin
       subject_name text,
       start_time text,
       end_time text,
-      room text,
-      faculty text
+      room text
     )
   loop
     if v_row.day is null or v_row.day not between 1 and 7 then
@@ -2354,7 +2352,7 @@ begin
     select 1
       from jsonb_to_recordset(p_slots) as x(
         row_no integer, day integer, subject_code text, subject_name text,
-        start_time text, end_time text, room text, faculty text)
+        start_time text, end_time text, room text)
      group by x.day, x.start_time
     having count(*) > 1
   ) then
@@ -2387,7 +2385,7 @@ begin
   );
 
   insert into public.timetable_slots (
-    id, section_key, subject_id, subject_name, subject_code, teacher_name,
+    id, section_key, subject_id, subject_name, subject_code,
     room_number, day_of_week, start_time, end_time, is_elective, updated_at,
     course_code, course_name, semester, section, academic_year, import_id
   )
@@ -2396,7 +2394,6 @@ begin
          coalesce(x.subject_code, ''),
          coalesce(x.subject_name, ''),
          coalesce(x.subject_code, ''),
-         coalesce(x.faculty, ''),
          coalesce(x.room, ''),
          x.day,
          x.start_time,
