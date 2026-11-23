@@ -481,7 +481,8 @@ class CoreCampusRepository @Inject constructor(
         isPinned: Boolean,
         category: String = "GENERAL",
         priority: String = "NORMAL",
-        isOfficial: Boolean = false
+        isOfficial: Boolean = false,
+        audience: Map<String, Any> = emptyMap()
     ): kotlin.Result<Unit> = runCatching {
         require(
             profile.role == UserRole.CR ||
@@ -536,7 +537,8 @@ class CoreCampusRepository @Inject constructor(
                 "author_role" to entity.authorRole.name,
                 "created_at" to entity.createdAtMillis,
                 "updated_at" to now,
-                "is_read" to entity.isRead
+                "is_read" to entity.isRead,
+                "audience" to audience
             )))
             check(uploaded) { "Notice could not be published to the shared campus feed" }
 
@@ -550,7 +552,8 @@ class CoreCampusRepository @Inject constructor(
                     category = if (isOfficial) "announcement" else "notice",
                     targetType = "NOTICE",
                     targetId = entity.id,
-                    sectionKey = targetSectionKey
+                    sectionKey = targetSectionKey,
+                    audience = audience
                 )
             }
         }
