@@ -719,7 +719,7 @@ begin
     return jsonb_build_object('ok', false, 'error', 'SUPER_ADMIN cannot be granted');
   end if;
 
-  if p_role not in ('STUDENT','CR','MODERATOR','ADMIN') then
+  if p_role not in ('STUDENT','CR','MODERATOR') then
     return jsonb_build_object('ok', false, 'error', 'Unknown role');
   end if;
 
