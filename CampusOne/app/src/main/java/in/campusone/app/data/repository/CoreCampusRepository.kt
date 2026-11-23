@@ -482,11 +482,10 @@ class CoreCampusRepository @Inject constructor(
     ): kotlin.Result<Unit> = runCatching {
         require(
             profile.role == UserRole.CR ||
-                profile.role == UserRole.TEACHER ||
                 profile.role == UserRole.ADMIN ||
                 profile.role == UserRole.MODERATOR
         ) {
-            "Only CRs, Teachers, Moderators or Admins can post announcements."
+            "Only CRs, Moderators or Admins can post announcements."
         }
         require(!isOfficial || profile.role == UserRole.ADMIN) {
             "Only administrators can publish official announcements."
@@ -509,7 +508,7 @@ class CoreCampusRepository @Inject constructor(
             priority = priority,
             isOfficial = isOfficial,
             authorUid = authUid,
-            authorName = profile.name.ifBlank { "CR / Faculty" },
+            authorName = profile.name.ifBlank { "CampusOne" },
             authorRole = profile.role,
             createdAtMillis = now,
             isRead = true
