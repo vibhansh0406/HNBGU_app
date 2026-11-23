@@ -1,6 +1,6 @@
 # CampusOne — Offline-First Android Companion for Indian College Students
 
-**CampusOne** is an open-source (MIT), native Android app built with **Kotlin**, **Jetpack Compose (Material 3 Expressive)**, **Room DB (v3, 16 tables)**, **Hilt**, **WorkManager (Reboot-Safe)**, **Jetpack Glance**, and **Firebase (Spark Free Tier)**. Designed for undergraduate students at Indian universities (pilot: **HNB Garhwal University — Chauras, Birla & BGR/SRT Campuses**), it works 100% offline on mid-range Android devices with patchy connectivity and supports instant **English (`en`)** and **Hindi (`hi`)** switching.
+**CampusOne** is an open-source (MIT), native Android app built with **Kotlin**, **Jetpack Compose (Material 3 Expressive)**, **Room DB (v3, 16 tables)**, **Hilt**, **WorkManager (Reboot-Safe)**, **Jetpack Glance**, and **Firebase (Spark Free Tier)**. Designed for undergraduate students at Indian universities (pilot: **HNB Garhwal University — Birla and Chauras campuses**), it works 100% offline on mid-range Android devices with patchy connectivity and supports instant **English (`en`)** and **Hindi (`hi`)** switching.
 
 ## Complete Phased Feature Matrix (Phases 1, 2 & 3 Unified)
 
