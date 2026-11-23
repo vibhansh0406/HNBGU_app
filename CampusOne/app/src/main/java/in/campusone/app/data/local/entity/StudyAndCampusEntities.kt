@@ -137,7 +137,7 @@ data class ClubEntity(
     val adminUid: String,
     val adminName: String,
     val isFollowedByMe: Boolean = false,
-    val isApproved: Boolean = true, // Moderation: new clubs require CR/Teacher approval
+    val isApproved: Boolean = true, // Moderation: new clubs require CR/Moderator approval
     val reportCount: Int = 0,
     val isFlagged: Boolean = false,
     val updatedAtMillis: Long = System.currentTimeMillis()
