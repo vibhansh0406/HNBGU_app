@@ -623,8 +623,6 @@ private fun PermissionMatrixCard(uiState: AdminUiState) {
             AdminPermission.MANAGE_TIMETABLE
         ),
         "MODERATOR" to listOf(
-            AdminPermission.VIEW_USERS,
-            AdminPermission.MANAGE_USERS,
             AdminPermission.MANAGE_NOTICES,
             AdminPermission.MANAGE_RESOURCES,
             AdminPermission.MANAGE_ASSIGNMENTS,
