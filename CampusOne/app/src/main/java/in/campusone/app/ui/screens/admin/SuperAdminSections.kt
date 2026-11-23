@@ -619,9 +619,20 @@ private fun PermissionMatrixCard(uiState: AdminUiState) {
             AdminPermission.MANAGE_RESOURCES,
             AdminPermission.MANAGE_ASSIGNMENTS,
             AdminPermission.MODERATE_REPORTS,
-            AdminPermission.MANAGE_EVENTS
+            AdminPermission.MANAGE_EVENTS,
+            AdminPermission.MANAGE_TIMETABLE
         ),
-        "MODERATOR" to listOf(\n            AdminPermission.VIEW_USERS,\n            AdminPermission.MANAGE_USERS,\n            AdminPermission.MANAGE_NOTICES,\n            AdminPermission.MANAGE_RESOURCES,\n            AdminPermission.MANAGE_ASSIGNMENTS,\n            AdminPermission.MODERATE_REPORTS,\n            AdminPermission.MANAGE_EVENTS\n        ),\n        "CR" to listOf(
+        "MODERATOR" to listOf(
+            AdminPermission.VIEW_USERS,
+            AdminPermission.MANAGE_USERS,
+            AdminPermission.MANAGE_NOTICES,
+            AdminPermission.MANAGE_RESOURCES,
+            AdminPermission.MANAGE_ASSIGNMENTS,
+            AdminPermission.MODERATE_REPORTS,
+            AdminPermission.MANAGE_EVENTS,
+            AdminPermission.MANAGE_TIMETABLE
+        ),
+        "CR" to listOf(
             AdminPermission.MANAGE_NOTICES,
             AdminPermission.MANAGE_ASSIGNMENTS
         )
@@ -1061,7 +1072,7 @@ fun SuperAdminSettingsScreen(
             item {
                 ToggleRow(
                     title = "Resource uploads",
-                    subtitle = "Allow CRs and teachers to upload files",
+                    subtitle = "Allow CRs and moderators to upload files",
                     checked = draft.resourceUploadsEnabled,
                     onChange = { draft = draft.copy(resourceUploadsEnabled = it) }
                 )
