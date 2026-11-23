@@ -845,39 +845,59 @@ class SupabaseSyncRepository @Inject constructor(
         targetId: String,
         sectionKey: String
     ): Boolean {
-        val edgeUrl = authManager.config.edgeFunctionUrl
-        val sessionToken = authManager.currentSession()?.accessToken ?: return false
-        if (edgeUrl.isBlank()) return false
-        return try {
-            val connection = (URL("$edgeUrl/send-notification").openConnection() as HttpURLConnection).apply {
-                requestMethod = "POST"
-                setRequestProperty("apikey", authManager.config.anonKey)
-                setRequestProperty("Authorization", "Bearer $sessionToken")
-                setRequestProperty("Content-Type", "application/json")
-                connectTimeout = 15000
-                readTimeout = 30000
-                doOutput = true
+        val edgeUrl = authManager.config.edgeFunctionUrl.trimEnd('/')
+        val sessionToken = authManager.currentSession()?.accessToken
+        if (edgeUrl.isBlank() || sessionToken.isNullOrBlank()) {
+            Log.w(TAG, "FCM send skipped: Edge URL or authenticated session unavailable")
+            return false
+        }
+
+        // HttpURLConnection is blocking; always run the full request on IO.
+        return withContext(Dispatchers.IO) {
+            var connection: HttpURLConnection? = null
+            try {
+                connection = (URL("$edgeUrl/send-notification").openConnection() as HttpURLConnection).apply {
+                    requestMethod = "POST"
+                    setRequestProperty("apikey", authManager.config.anonKey)
+                    setRequestProperty("Authorization", "Bearer $sessionToken")
+                    setRequestProperty("Content-Type", "application/json")
+                    connectTimeout = 15000
+                    readTimeout = 30000
+                    doOutput = true
+                }
+
+                val payload = org.json.JSONObject()
+                    .put("title", title.trim().take(120))
+                    .put("body", body.trim().take(1200))
+                    .put("category", category)
+                    .put("target_type", targetType)
+                    .put("target_id", targetId)
+                    .put("section_key", sectionKey)
+
+                connection.outputStream.use {
+                    it.write(payload.toString().toByteArray(StandardCharsets.UTF_8))
+                }
+
+                val code = connection.responseCode
+                val stream = if (code in 200..299) connection.inputStream else connection.errorStream
+                val response = stream?.use { it.readBytes().toString(StandardCharsets.UTF_8) }.orEmpty()
+                val result = runCatching { org.json.JSONObject(response) }.getOrNull()
+                val sent = result?.optInt("sent", 0) ?: 0
+                val ok = code in 200..299 && result?.optBoolean("ok", false) == true && sent > 0
+
+                if (ok) {
+                    Log.i(TAG, "FCM send accepted by gateway: $sent device(s)")
+                } else {
+                    // Response is bounded and contains no FCM or Supabase credentials.
+                    Log.w(TAG, "FCM gateway did not deliver: HTTP $code, sent=$sent, response=" + response.take(500))
+                }
+                ok
+            } catch (error: Exception) {
+                Log.e(TAG, "FCM gateway request failed", error)
+                false
+            } finally {
+                connection?.disconnect()
             }
-            val payload = org.json.JSONObject()
-                .put("title", title)
-                .put("body", body)
-                .put("category", category)
-                .put("target_type", targetType)
-                .put("target_id", targetId)
-                .put("section_key", sectionKey)
-            connection.outputStream.use {
-                it.write(payload.toString().toByteArray(StandardCharsets.UTF_8))
-            }
-            val code = connection.responseCode
-            val stream = if (code in 200..299) connection.inputStream else connection.errorStream
-            val response = stream?.use { it.readBytes().toString(StandardCharsets.UTF_8) }.orEmpty()
-            code in 200..299 && runCatching {
-                val json = org.json.JSONObject(response)
-                json.optBoolean("ok", false) && json.optInt("sent", 0) > 0
-            }.getOrDefault(false)
-        } catch (error: Exception) {
-            Log.w(TAG, "FCM broadcast failed: " + error.message)
-            false
         }
     }
 
