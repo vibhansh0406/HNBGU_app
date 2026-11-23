@@ -586,11 +586,50 @@ fun CampusDirectoryScreen(
             .background(MaterialTheme.colorScheme.background)
             .padding(innerPadding)
         ) {
+            C1SurfaceCard(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = C1Spacing.lg, vertical = C1Spacing.sm),
+                containerColor = MaterialTheme.colorScheme.secondaryContainer
+            ) {
+                Column(
+                    modifier = Modifier.padding(C1Spacing.md),
+                    verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)
+                ) {
+                    Text("HNBGU verified information", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Text(
+                        "Departments, campuses and facilities are seeded from university listings. Check the source for latest contact details.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                        C1Button(
+                            text = "Departments",
+                            onClick = {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.hnbgu.ac.in/index.php/srinagar-campus")))
+                            },
+                            intent = C1ButtonIntent.OUTLINED
+                        )
+                        C1Button(
+                            text = "Officers",
+                            onClick = {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://hnbgu.ac.in/rti-list-of-officers")))
+                            },
+                            intent = C1ButtonIntent.OUTLINED
+                        )
+                        C1Button(
+                            text = "E-Library",
+                            onClick = {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://library.hnbgu.ac.in/pages.pl?p=elibrary")))
+                            },
+                            intent = C1ButtonIntent.GHOST
+                        )
+                    }
+                }
+            }
             LazyRow(
                 contentPadding = PaddingValues(horizontal = C1Spacing.lg),
                 horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
             ) {
-                items(listOf("ALL", "FACULTY", "IMPORTANT_OFFICE", "EMERGENCY", "HOSTEL_MEDICAL")) { cat ->
+                items(listOf("ALL", "IMPORTANT_OFFICE", "FACULTY", "DEPARTMENT", "FACILITY", "CAMPUS", "EMERGENCY", "HOSTEL_MEDICAL")) { cat ->
                     FilterChip(
                         selected = selectedCategory == cat,
                         onClick = { selectedCategory = cat },
@@ -602,7 +641,7 @@ fun CampusDirectoryScreen(
                 C1EmptyState(
                     icon = Icons.Default.Search,
                     title = "No contacts found",
-                    message = "Directory contacts will appear here."
+                    message = "Try another category or search term. Official HNBGU links are available above."
                 )
             } else {
                 LazyColumn(
@@ -618,31 +657,45 @@ fun CampusDirectoryScreen(
                                 Text(contact.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                                 Text("${contact.designation}, ${contact.department}", style = MaterialTheme.typography.bodySmall)
                                 Spacer(modifier = Modifier.height(C1Spacing.xs))
-                                Text("Office: ${contact.officeLocation} | ${contact.officeHours}", style = MaterialTheme.typography.bodySmall)
-                                Spacer(modifier = Modifier.height(C1Spacing.sm))
-                                Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
-                                    C1Button(
-                                        text = "Call",
-                                        onClick = {
-                                            try {
-                                                context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${contact.phone}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                                            } catch (_: Exception) { }
-                                        },
-                                        icon = { Icon(Icons.Default.Call, contentDescription = null, modifier = Modifier.size(18.dp)) }
-                                    )
-                                    C1Button(
-                                        text = "Email",
-                                        onClick = {
-                                            try {
-                                                val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:${contact.email}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                                context.startActivity(intent)
-                                            } catch (_: Exception) { }
-                                        },
-                                        intent = C1ButtonIntent.OUTLINED,
-                                        icon = { Icon(Icons.Default.Email, contentDescription = null, modifier = Modifier.size(18.dp)) }
-                                    )
-                                    C1Button(text = "Suggest fix", onClick = { correctionContact = contact }, intent = C1ButtonIntent.GHOST)
+                                Text("Office: ${contact.officeLocation}", style = MaterialTheme.typography.bodySmall)
+                                if (contact.officeHours.isNotBlank()) {
+                                    Text(contact.officeHours, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
+                                if (contact.phone.isNotBlank() || contact.email.isNotBlank()) {
+                                    Spacer(modifier = Modifier.height(C1Spacing.sm))
+                                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                                        if (contact.phone.isNotBlank()) {
+                                            C1Button(
+                                                text = "Call",
+                                                onClick = {
+                                                    try {
+                                                        context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${contact.phone}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                                                    } catch (_: Exception) { }
+                                                },
+                                                icon = { Icon(Icons.Default.Call, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                                            )
+                                        }
+                                        if (contact.email.isNotBlank()) {
+                                            C1Button(
+                                                text = "Email",
+                                                onClick = {
+                                                    try {
+                                                        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:${contact.email}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                        context.startActivity(intent)
+                                                    } catch (_: Exception) { }
+                                                },
+                                                intent = C1ButtonIntent.OUTLINED,
+                                                icon = { Icon(Icons.Default.Email, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                                            )
+                                        }
+                                    }
+                                }
+                                C1Button(
+                                    text = "Suggest correction",
+                                    onClick = { correctionContact = contact },
+                                    intent = C1ButtonIntent.GHOST,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
                             }
                         }
                     }
