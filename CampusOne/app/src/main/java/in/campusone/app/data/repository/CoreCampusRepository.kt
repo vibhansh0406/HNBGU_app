@@ -75,7 +75,8 @@ class CoreCampusRepository @Inject constructor(
                 courseId = profile.courseId,
                 courseName = profile.courseName,
                 semester = profile.semester,
-                section = profile.section
+                section = profile.section,
+                academicSession = profile.academicSession
             )
             if (!uploaded) {
                 throw IllegalStateException("Profile update failed on server")
@@ -119,6 +120,7 @@ class CoreCampusRepository @Inject constructor(
             courseId = courseId,
             courseName = remote["course_name"] as? String ?: "",
             semester = (remote["semester"] as? Number)?.toInt() ?: 3,
+            academicSession = remote["academic_session"] as? String ?: "",
             section = remote["section"] as? String ?: "A",
             moderatorScope = remote["moderator_scope"] as? String ?: "",
             onboardingCompleted = remote["onboarding_completed"] as? Boolean ?: false
