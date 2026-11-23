@@ -779,22 +779,55 @@ class StudyAndCampusRepository @Inject constructor(
         preferredContactMethod: String
     ): Result<Unit> = runCatching {
         checkRateLimit().getOrThrow()
+        // Never trust the profile's display UID or a client-provided poster UID.
+        val verifiedUid = authManager.currentUserId()
+            ?: throw IllegalStateException("Sign in before posting a Lost & Found item")
+        val now = System.currentTimeMillis()
+        val itemId = "lf_$now"
+        val title = itemTitle.trim()
+        val details = description.trim()
+        val place = location.trim()
+        require(title.isNotBlank() && details.isNotBlank() && place.isNotBlank()) {
+            "Add the item name, description and location"
+        }
+
+        val remote = supabaseClient.from("lost_found_items").insert(mapOf(
+            "id" to itemId,
+            "college_id" to collegeId,
+            "type" to type,
+            "category" to category,
+            "title" to title,
+            "description" to details,
+            "location" to place,
+            "poster_uid" to verifiedUid,
+            "poster_name" to posterName,
+            "poster_phone" to "",
+            "poster_email" to "",
+            "is_resolved" to false,
+            "is_hidden" to false,
+            "report_count" to 0,
+            "created_at" to now,
+            "updated_at" to now
+        ))
+        check(remote.isSuccess) { remote.error ?: "Could not publish item to CampusOne server" }
+
         val entity = LostFoundEntity(
-            id = "lf_${System.currentTimeMillis()}",
+            id = itemId,
             collegeId = collegeId,
             type = type,
             category = category,
-            itemTitle = itemTitle.trim(),
-            description = description.trim(),
-            photoUri = "content://campusone/compressed_${System.currentTimeMillis()}.jpg",
-            location = location.trim(),
+            itemTitle = title,
+            description = details,
+            photoUri = null,
+            location = place,
             dateFormatted = "Just now",
-            posterUid = posterUid,
+            posterUid = verifiedUid,
             posterName = posterName,
             preferredContactMethod = preferredContactMethod.trim(),
             status = "OPEN",
             isResolved = false,
-            isArchived = false
+            isArchived = false,
+            createdAtMillis = now
         )
         campusLifeDao.upsertLostFound(listOf(entity))
     }
