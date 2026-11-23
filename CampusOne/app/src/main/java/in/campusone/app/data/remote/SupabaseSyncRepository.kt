@@ -868,13 +868,13 @@ class SupabaseSyncRepository @Inject constructor(
             conn.readTimeout = 15000
             conn.doOutput = true
 
-            val body = """{
-                "uid": "$uid",
-                "fcm_token": "$fcmToken",
-                "device_platform": "$devicePlatform",
-                "device_name": "$deviceName",
-                "email": "$email"
-            }""".trimIndent()
+            val body = org.json.JSONObject()
+                .put("uid", uid)
+                .put("fcm_token", fcmToken)
+                .put("device_platform", devicePlatform)
+                .put("device_name", deviceName)
+                .put("email", email)
+                .toString()
 
             conn.outputStream.use { it.write(body.toByteArray(StandardCharsets.UTF_8)) }
 
