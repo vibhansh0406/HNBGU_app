@@ -865,7 +865,7 @@ fun NotesAndPyqScreen(
     var showUploadDialog by rememberSaveable { mutableStateOf(false) }
     var viewingResource by remember { mutableStateOf<StudyResourceEntity?>(null) }
 
-    val isCrOrModerator = uiState.profile.role == UserRole.CR || uiState.profile.role == UserRole.MODERATOR
+    val isCrOrModerator = uiState.profile.role == UserRole.CR || uiState.profile.role == UserRole.MODERATOR || uiState.profile.role == UserRole.ADMIN
 
     val filtered = uiState.resources
         .filter { res ->
