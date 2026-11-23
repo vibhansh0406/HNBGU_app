@@ -697,6 +697,7 @@ end;
 $$;
 
 -- Role change. MANAGE_ROLES only; SUPER_ADMIN can never be granted.
+update public.profiles set verified_role = true, updated_at = (extract(epoch from now()) * 1000)::bigint where role in ('CR','MODERATOR','ADMIN','SUPER_ADMIN') and verified_role is distinct from true;
 create or replace function public.admin_set_role(p_uid uuid, p_role text)
 returns jsonb
 language plpgsql
