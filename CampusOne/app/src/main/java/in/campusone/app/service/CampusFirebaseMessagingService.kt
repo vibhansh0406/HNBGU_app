@@ -135,6 +135,8 @@ class CampusFirebaseMessagingService : FirebaseMessagingService() {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Critical administrative alerts"
+                enableVibration(true)
+                enableLights(true)
             }
         )
         manager.createNotificationChannels(channels)
