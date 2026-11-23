@@ -369,7 +369,14 @@ class AdminViewModel @Inject constructor(
     fun saveAssignment(assignment: AssignmentEntity) {
         viewModelScope.launch {
             repository.upsertAssignments(listOf(assignment))
-            _messages.emit("Assignment saved: ${assignment.title}")
+            val (synced, pushed) = repository.publishAssignmentRemote(assignment)
+            _messages.emit(
+                when {
+                    !synced -> "Assignment saved locally, but cloud publishing failed"
+                    pushed -> "Assignment published to its section and push notification sent"
+                    else -> "Assignment published to its section; push not delivered (check FCM setup/devices)"
+                }
+            )
         }
     }
 
@@ -386,7 +393,14 @@ class AdminViewModel @Inject constructor(
     fun saveExam(exam: ExamEntity) {
         viewModelScope.launch {
             repository.upsertExams(listOf(exam))
-            _messages.emit("Exam saved: ${exam.subjectName}")
+            val (synced, pushed) = repository.publishExamRemote(exam)
+            _messages.emit(
+                when {
+                    !synced -> "Exam saved locally, but cloud publishing failed"
+                    pushed -> "Exam published to its section and push notification sent"
+                    else -> "Exam published to its section; push not delivered (check FCM setup/devices)"
+                }
+            )
         }
     }
 
