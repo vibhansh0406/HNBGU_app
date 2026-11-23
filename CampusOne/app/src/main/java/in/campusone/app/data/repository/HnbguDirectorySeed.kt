@@ -106,32 +106,6 @@ object HnbguDirectorySeed {
                 isEmergencyOrImportant = true
             ),
             DirectoryContactEntity(
-                id = "official_hnbgu_bgr_director",
-                collegeId = collegeId,
-                category = "IMPORTANT_OFFICE",
-                department = "Campus Administration",
-                name = "B.G.R. Campus Director",
-                designation = "Director, B.G.R. Campus",
-                phone = "9412079434",
-                email = "",
-                officeLocation = "B.G.R. Campus, Pauri",
-                officeHours = "University officer listing last updated 30 April 2025; verify before calling",
-                isEmergencyOrImportant = true
-            ),
-            DirectoryContactEntity(
-                id = "official_hnbgu_srt_director",
-                collegeId = collegeId,
-                category = "IMPORTANT_OFFICE",
-                department = "Campus Administration",
-                name = "S.R.T. Campus Director",
-                designation = "Director, Swami Ram Tirth Campus",
-                phone = "8755551936",
-                email = "",
-                officeLocation = "S.R.T. Campus, Tehri",
-                officeHours = "University officer listing last updated 30 April 2025; verify before calling",
-                isEmergencyOrImportant = true
-            ),
-            DirectoryContactEntity(
                 id = "official_hnbgu_education_contact",
                 collegeId = collegeId,
                 category = "FACULTY",
@@ -166,15 +140,15 @@ object HnbguDirectorySeed {
                 designation = "Campus network, Wi-Fi and digital services",
                 phone = "",
                 email = "web.portal@hnbgu.ac.in",
-                officeLocation = "Birla / Chauras and university campuses",
-                officeHours = "HNBGU lists campus Wi-Fi at Srinagar, Pauri and Tehri; use official Computer Centre page",
+                officeLocation = "Birla and Chauras campuses",
+                officeHours = "HNBGU lists campus Wi-Fi at Srinagar; use the official Computer Centre page",
                 isEmergencyOrImportant = true
             ),
             facility(
                 id = "wifi",
                 name = "Campus Wi-Fi",
                 department = "Central IT Services",
-                location = "Birla, Chauras, B.G.R. Pauri and S.R.T. Tehri campuses",
+                location = "Birla and Chauras campuses",
                 details = "Wireless network access is listed by HNBGU Computer Centre; ask campus IT staff for current student access steps"
             ),
             facility(
@@ -216,7 +190,7 @@ object HnbguDirectorySeed {
                 id = "central_library",
                 name = "Central Library",
                 department = "Library System",
-                location = "Srinagar, with campus libraries at Chauras, Pauri and Tehri",
+                location = "Srinagar and Chauras",
                 details = "Library services and digital resources are listed on the official HNBGU Library website"
             ),
             facility(
@@ -233,22 +207,6 @@ object HnbguDirectorySeed {
                 department = "Campus",
                 location = "Across the Alaknanda river from Birla Main Campus",
                 details = "HNBGU lists Chauras approximately 4.5 km from the Main Campus, connected by a bridge",
-                category = "CAMPUS"
-            ),
-            facility(
-                id = "campus_bgr",
-                name = "B.G.R. Campus",
-                department = "Campus",
-                location = "Pauri, Uttarakhand",
-                details = "Official HNBGU campus; see the B.G.R. campus page for departments and contact details",
-                category = "CAMPUS"
-            ),
-            facility(
-                id = "campus_srt",
-                name = "S.R.T. Campus",
-                department = "Campus",
-                location = "Badshahithaul, Tehri, Uttarakhand",
-                details = "Official HNBGU campus; see the S.R.T. campus page for departments and contact details",
                 category = "CAMPUS"
             ),
 
