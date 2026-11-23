@@ -145,7 +145,8 @@ class CoreCampusRepository @Inject constructor(
                 courseId = profile.courseId,
                 courseName = profile.courseName,
                 semester = profile.semester,
-                section = profile.section
+                section = profile.section,
+                academicSession = profile.academicSession
             )
             if (!updated) throw IllegalStateException("Could not save profile to server")
         }
