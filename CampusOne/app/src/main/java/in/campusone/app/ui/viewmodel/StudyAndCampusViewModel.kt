@@ -546,7 +546,7 @@ class StudyAndCampusViewModel @Inject constructor(
     fun reportEvent(eventId: String) {
         viewModelScope.launch {
             repository.reportEvent(eventId)
-            _statusMessages.emit("Event reported to CR / Faculty moderation queue.")
+            _statusMessages.emit("Event reported to CR / Moderator moderation queue.")
         }
     }
 
