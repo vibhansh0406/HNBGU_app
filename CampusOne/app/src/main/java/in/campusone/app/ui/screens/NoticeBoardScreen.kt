@@ -677,14 +677,18 @@ private fun PostNoticeDialog(
     var audienceYears by rememberSaveable { mutableStateOf("") }
     var audienceSemesters by rememberSaveable { mutableStateOf("") }
     var audienceSections by rememberSaveable { mutableStateOf("") }
+    var audienceSessions by rememberSaveable { mutableStateOf("") }
     var uploadedAttachmentType by rememberSaveable { mutableStateOf(AttachmentType.NONE.name) }
     var isUploadingAttachment by rememberSaveable { mutableStateOf(false) }
     var attachmentUploadError by rememberSaveable { mutableStateOf<String?>(null) }
-    val audienceNumbersValid = remember(audienceYears, audienceSemesters) {
-        listOf(audienceYears, audienceSemesters).all { raw ->
+    val audienceNumbersValid = remember(audienceYears, audienceSemesters, audienceSessions) {
+        val numericValid = listOf(audienceYears, audienceSemesters).all { raw ->
             raw.split(",").map { it.trim() }.filter { it.isNotEmpty() }
                 .all { token -> token.toIntOrNull()?.let { it > 0 } == true }
         }
+        val sessionsValid = audienceSessions.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+            .all { it.matches(Regex("^[0-9]{4}-[0-9]{2}$")) }
+        numericValid && sessionsValid
     }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -788,6 +792,11 @@ private fun PostNoticeDialog(
                         onValueChange = { audienceSections = it },
                         label = "Sections (e.g. A, B)"
                     )
+                    C1TextField(
+                        value = audienceSessions,
+                        onValueChange = { audienceSessions = it },
+                        label = "Academic sessions (e.g. 2026-27, 2025-26)"
+                    )
                     Text(
                         text = "Academic session and individual elective targeting are not available yet.",
                         style = MaterialTheme.typography.labelSmall,
@@ -877,10 +886,12 @@ private fun PostNoticeDialog(
                             val years = audienceYears.split(",").mapNotNull { it.trim().toIntOrNull() }.distinct()
                             val semesters = audienceSemesters.split(",").mapNotNull { it.trim().toIntOrNull() }.distinct()
                             val sections = audienceSections.split(",").map { it.trim().uppercase() }.filter { it.isNotEmpty() }.distinct()
+                            val sessions = audienceSessions.split(",").map { it.trim() }.filter { it.isNotEmpty() }.distinct()
                             if (courses.isNotEmpty()) put("courses", courses)
                             if (years.isNotEmpty()) put("years", years)
                             if (semesters.isNotEmpty()) put("semesters", semesters)
                             if (sections.isNotEmpty()) put("sections", sections)
+                            if (sessions.isNotEmpty()) put("sessions", sessions)
                         }
                     )
                 },
