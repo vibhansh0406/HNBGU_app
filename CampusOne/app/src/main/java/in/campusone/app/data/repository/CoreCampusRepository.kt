@@ -104,8 +104,8 @@ class CoreCampusRepository @Inject constructor(
         val remoteRole = remote["role"] as? String ?: ""
         val isOwner = (remote["email"] as? String)?.equals(OWNER_EMAIL, ignoreCase = true) == true
         val role = when {
-            isOwner -> UserRole.ADMIN
-            remoteRole == "SUPER_ADMIN" -> UserRole.ADMIN
+            isOwner || remoteRole == "SUPER_ADMIN" -> UserRole.ADMIN
+            remoteRole == "TEACHER" || remoteRole == "CLUB_ADMIN" -> UserRole.MODERATOR
             else -> UserRole.entries.firstOrNull { it.name == remoteRole } ?: UserRole.STUDENT
         }
         return UserProfile(
