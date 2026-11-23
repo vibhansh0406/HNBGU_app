@@ -29,7 +29,8 @@ service cloud.firestore {
     }
 
     function canPublishToSection(sectionKey) {
-      return isModerator() || (isSignedIn() && userDoc().role in ['ADMIN', 'SUPER_ADMIN'] && userDoc().verifiedRole == true) ||\n        (isSameSection(sectionKey) && isCrOrModerator());
+      return isModerator() || (isSignedIn() && userDoc().role in ['ADMIN', 'SUPER_ADMIN'] && userDoc().verifiedRole == true) ||
+        (isSameSection(sectionKey) && isCrOrModerator());
     }
 
     function isClubAdminFor(clubId) {
