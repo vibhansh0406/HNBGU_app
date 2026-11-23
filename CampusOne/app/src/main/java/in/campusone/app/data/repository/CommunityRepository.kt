@@ -284,7 +284,7 @@ class CommunityRepository @Inject constructor(
     )
 
     private fun role(value: String?): UserRole = when (value?.uppercase()) {
-        "TEACHER", "CLUB_ADMIN" -> UserRole.MODERATOR
+        // Unknown legacy roles must not be upgraded to Moderator.
         "SUPER_ADMIN" -> UserRole.ADMIN
         else -> runCatching { UserRole.valueOf(value ?: "") }.getOrDefault(UserRole.STUDENT)
     }
