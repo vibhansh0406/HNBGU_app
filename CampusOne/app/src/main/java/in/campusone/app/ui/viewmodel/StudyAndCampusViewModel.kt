@@ -567,7 +567,7 @@ class StudyAndCampusViewModel @Inject constructor(
                 itemTitle = title,
                 description = desc,
                 location = location,
-                posterUid = "uid_aarav_me", // Associates with current student for immediate testing
+                posterUid = p.uid,
                 posterName = p.name,
                 preferredContactMethod = preferredContactMethod
             )
