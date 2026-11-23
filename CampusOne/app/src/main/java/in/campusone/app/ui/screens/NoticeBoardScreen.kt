@@ -747,7 +747,7 @@ private fun PostNoticeDialog(
                     value = attachmentUrl,
                     onValueChange = {
                         attachmentUrl = it
-                        if (it.isBlank()) uploadedAttachmentType = AttachmentType.NONE.name
+                        uploadedAttachmentType = AttachmentType.NONE.name
                     },
                     label = stringResource(R.string.notice_composer_attachment)
                 )
