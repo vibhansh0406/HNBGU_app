@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -107,6 +109,7 @@ fun NoticeBoardScreen(
         priority: String,
         isOfficial: Boolean
     ) -> Unit,
+    onUploadNoticeAttachment: suspend (contentUri: String, mimeType: String) -> Result<String>,
     dataRefreshError: Boolean = false,
     onRetryRefresh: () -> Unit = {},
     focusNoticeId: String? = null,
@@ -361,6 +364,7 @@ fun NoticeBoardScreen(
         PostNoticeDialog(
             isAdmin = uiState.profile.role == UserRole.ADMIN,
             onDismiss = { showComposer = false },
+            onUploadAttachment = onUploadNoticeAttachment,
             onSubmit = { title, body, url, type, pinned, category, priority, official ->
                 onPostNotice(title, body, url, type, pinned, category, priority, official)
                 showComposer = false
@@ -646,6 +650,7 @@ private fun NoticeDetail(
 private fun PostNoticeDialog(
     isAdmin: Boolean,
     onDismiss: () -> Unit,
+    onUploadAttachment: suspend (contentUri: String, mimeType: String) -> Result<String>,
     onSubmit: (
         title: String,
         body: String,
@@ -664,6 +669,34 @@ private fun PostNoticeDialog(
     var category by rememberSaveable { mutableStateOf("GENERAL") }
     var priority by rememberSaveable { mutableStateOf("NORMAL") }
     var isOfficial by rememberSaveable { mutableStateOf(false) }
+    var uploadedAttachmentType by rememberSaveable { mutableStateOf(AttachmentType.NONE.name) }
+    var isUploadingAttachment by rememberSaveable { mutableStateOf(false) }
+    var attachmentUploadError by rememberSaveable { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val attachmentPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { selectedUri ->
+        if (selectedUri != null) {
+            val mimeType = context.contentResolver.getType(selectedUri).orEmpty()
+            scope.launch {
+                isUploadingAttachment = true
+                attachmentUploadError = null
+                val result = onUploadAttachment(selectedUri.toString(), mimeType)
+                if (result.isSuccess) {
+                    attachmentUrl = result.getOrNull().orEmpty()
+                    uploadedAttachmentType = if (
+                        mimeType.equals("application/pdf", ignoreCase = true) ||
+                        selectedUri.lastPathSegment?.endsWith(".pdf", ignoreCase = true) == true
+                    ) AttachmentType.PDF.name else AttachmentType.IMAGE.name
+                } else {
+                    attachmentUploadError = result.exceptionOrNull()?.message
+                        ?: "Attachment upload failed"
+                }
+                isUploadingAttachment = false
+            }
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -712,9 +745,34 @@ private fun PostNoticeDialog(
                 }
                 C1TextField(
                     value = attachmentUrl,
-                    onValueChange = { attachmentUrl = it },
+                    onValueChange = {
+                        attachmentUrl = it
+                        if (it.isBlank()) uploadedAttachmentType = AttachmentType.NONE.name
+                    },
                     label = stringResource(R.string.notice_composer_attachment)
                 )
+                C1Button(
+                    text = if (isUploadingAttachment) "Uploading attachment..." else "Upload PDF or image",
+                    onClick = { attachmentPicker.launch(arrayOf("application/pdf", "image/*")) },
+                    intent = C1ButtonIntent.OUTLINED,
+                    enabled = !isUploadingAttachment,
+                    loading = isUploadingAttachment,
+                    icon = { Icon(Icons.Default.Attachment, contentDescription = null) }
+                )
+                if (attachmentUrl.isNotBlank() && uploadedAttachmentType != AttachmentType.NONE.name) {
+                    Text(
+                        text = "Attachment uploaded (${uploadedAttachmentType})",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                if (!attachmentUploadError.isNullOrBlank()) {
+                    Text(
+                        text = attachmentUploadError.orEmpty(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = isPinned, onCheckedChange = { isPinned = it })
                     Spacer(modifier = Modifier.width(C1Spacing.xs))
@@ -735,6 +793,8 @@ private fun PostNoticeDialog(
                 onClick = {
                     val attType = when {
                         attachmentUrl.isBlank() -> AttachmentType.NONE
+                        uploadedAttachmentType != AttachmentType.NONE.name ->
+                            AttachmentType.valueOf(uploadedAttachmentType)
                         attachmentUrl.endsWith(".pdf", ignoreCase = true) -> AttachmentType.PDF
                         attachmentUrl.endsWith(".png", true) || attachmentUrl.endsWith(".jpg", true) -> AttachmentType.IMAGE
                         else -> AttachmentType.LINK
@@ -750,7 +810,7 @@ private fun PostNoticeDialog(
                         isOfficial
                     )
                 },
-                enabled = title.isNotBlank() && body.isNotBlank()
+                enabled = title.isNotBlank() && body.isNotBlank() && !isUploadingAttachment
             )
         },
         dismissButton = {
