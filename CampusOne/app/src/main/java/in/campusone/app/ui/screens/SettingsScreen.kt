@@ -51,6 +51,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -93,6 +99,19 @@ fun SettingsScreen(
     var editedSemester by rememberSaveable { mutableStateOf(profile.semester.toString()) }
     var editedSection by rememberSaveable { mutableStateOf(profile.section) }
     val context = LocalContext.current
+    var systemNotificationsEnabled by remember {
+        mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled())
+    }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, context) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                systemNotificationsEnabled = NotificationManagerCompat.from(context).areNotificationsEnabled()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     LazyColumn(
             modifier = Modifier
@@ -220,15 +239,20 @@ fun SettingsScreen(
                         viewModel.setNotificationCategory("study_material", it)
                     }
                     SettingsActionRow(
-                        title = "Android notification settings",
-                        subtitle = "Manage system permission and notification channels",
+                        title = if (systemNotificationsEnabled) "Pop-up notifications are enabled" else "Enable pop-up notifications",
+                        subtitle = if (systemNotificationsEnabled) {
+                            "Android allows CampusOne alerts. Set each channel to Alerting for heads-up banners."
+                        } else {
+                            "Android is blocking CampusOne alerts on this device. Open system settings to allow them."
+                        },
                         icon = Icons.Default.Notifications,
                         onClick = {
                             val intent = Intent(AndroidSettings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
                                 putExtra(AndroidSettings.EXTRA_APP_PACKAGE, context.packageName)
                             }
                             context.startActivity(intent)
-                        }
+                        },
+                        danger = !systemNotificationsEnabled
                     )
                 }
             }
