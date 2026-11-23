@@ -219,6 +219,9 @@ interface CampusLifeDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertDirectory(items: List<DirectoryContactEntity>)
 
+    @Query("DELETE FROM directory_contacts WHERE id IN (:ids)")
+    suspend fun deleteDirectoryContacts(ids: List<String>)
+
     @Query("SELECT * FROM directory_suggestions WHERE collegeId = :collegeId AND status = 'PENDING' ORDER BY createdAtMillis DESC")
     fun observePendingDirectorySuggestions(collegeId: String): Flow<List<DirectorySuggestionEntity>>
 
