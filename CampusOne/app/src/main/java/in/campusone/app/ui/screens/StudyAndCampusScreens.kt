@@ -201,6 +201,7 @@ enum class MoreSubScreen {
     ADMIN_EVENTS,
     ADMIN_LOST_FOUND,
     ADMIN_DIRECTORY,
+    ADMIN_MODERATION,
     SUPER_ADMIN,
     SUPER_ADMIN_USERS,
     SUPER_ADMIN_ROLES,
@@ -224,6 +225,7 @@ private val screenParent: Map<MoreSubScreen, MoreSubScreen> = mapOf(
     MoreSubScreen.ADMIN_EVENTS to MoreSubScreen.ADMIN_PANEL,
     MoreSubScreen.ADMIN_LOST_FOUND to MoreSubScreen.ADMIN_PANEL,
     MoreSubScreen.ADMIN_DIRECTORY to MoreSubScreen.ADMIN_PANEL,
+    MoreSubScreen.ADMIN_MODERATION to MoreSubScreen.ADMIN_PANEL,
     MoreSubScreen.SUPER_ADMIN_USERS to MoreSubScreen.SUPER_ADMIN,
     MoreSubScreen.SUPER_ADMIN_ROLES to MoreSubScreen.SUPER_ADMIN,
     MoreSubScreen.SUPER_ADMIN_CONTENT to MoreSubScreen.SUPER_ADMIN,
@@ -283,13 +285,8 @@ fun MoreHubScreen(
         }
     }
 
-    val isAdmin = uiState.profile.role == `in`.campusone.app.domain.model.UserRole.ADMIN ||
-        uiState.profile.role == `in`.campusone.app.domain.model.UserRole.MODERATOR ||
-        uiState.profile.email.equals(
-            `in`.campusone.app.data.repository.CoreCampusRepository.OWNER_EMAIL,
-            ignoreCase = true
-        )
-    val isAdminOrStaff = isAdmin
+    // Owner/Admin uses only the Super Admin portal. Moderators use the normal Admin Portal.
+    val isAdminOrStaff = uiState.profile.role == `in`.campusone.app.domain.model.UserRole.MODERATOR
     val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
     val communityState by communityViewModel.uiState.collectAsStateWithLifecycle()
     val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
@@ -297,9 +294,7 @@ fun MoreHubScreen(
     val isSuperAdmin = adminState.identity.isOwner
 
     androidx.compose.runtime.LaunchedEffect(activeScreen, adminState.identity.isOwner) {
-        if (!adminState.identity.isOwner && activeScreen.name.startsWith("SUPER_ADMIN") &&
-            activeScreen != MoreSubScreen.SUPER_ADMIN_MODERATION &&
-            activeScreen != MoreSubScreen.SUPER_ADMIN_CONTENT) {
+        if (!adminState.identity.isOwner && activeScreen.name.startsWith("SUPER_ADMIN")) {
             activeScreen = MoreSubScreen.HUB
         }
     }
@@ -750,7 +745,7 @@ MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
                                 "LOST_FOUND" -> MoreSubScreen.ADMIN_LOST_FOUND
                                 "DIRECTORY" -> MoreSubScreen.ADMIN_DIRECTORY
                                 "USERS" -> if (adminState.identity.isOwner) MoreSubScreen.SUPER_ADMIN_USERS else MoreSubScreen.ADMIN_PANEL
-                                "REVIEW" -> MoreSubScreen.SUPER_ADMIN_MODERATION
+                                "REVIEW" -> MoreSubScreen.ADMIN_MODERATION
                                 else -> MoreSubScreen.ADMIN_PANEL
                             }
                         }
@@ -785,6 +780,9 @@ MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
                         adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
                     )
                     MoreSubScreen.ADMIN_DIRECTORY -> AdminDirectoryScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
+                    )
+                    MoreSubScreen.ADMIN_MODERATION -> SuperAdminModerationScreen(
                         adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.ADMIN_PANEL }
                     )
                     MoreSubScreen.SUPER_ADMIN -> SuperAdminPanelScreen(
