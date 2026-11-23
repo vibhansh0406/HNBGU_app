@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="campusone_background">#F6F7FB</color>
-    <color name="campusone_background_dark">#11131D</color>
-    <color name="campusone_primary">#3156D9</color>
-    <color name="campusone_primary_container">#E5EAFE</color>
-    <color name="campusone_surface">#FFFFFF</color>
-    <color name="campusone_surface_dark">#191D2B</color>
+    <color name="campusone_background">#F6F7F2</color>
+    <color name="campusone_background_dark">#101B16</color>
+    <color name="campusone_primary">#1E634B</color>
+    <color name="campusone_primary_container">#E4F0E7</color>
+    <color name="campusone_surface">#FFFEFA</color>
+    <color name="campusone_surface_dark">#18241E</color>
 </resources>
