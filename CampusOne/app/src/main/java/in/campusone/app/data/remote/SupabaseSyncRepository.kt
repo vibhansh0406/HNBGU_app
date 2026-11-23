@@ -538,9 +538,11 @@ class SupabaseSyncRepository @Inject constructor(
     // =========================================================================
     // STUDY RESOURCES SYNC
     // =========================================================================
-    suspend fun uploadStudyResources(sectionKey: String, resources: List<Map<String, Any>>) {
-        if (!isSyncedEnabled() || resources.isEmpty()) return
-        supabaseClient.from("study_resources").upsert(resources)
+    suspend fun uploadStudyResources(sectionKey: String, resources: List<Map<String, Any>>): Boolean {
+        if (!isSyncedEnabled() || resources.isEmpty()) return false
+        val result = supabaseClient.from("study_resources").upsert(resources)
+        if (!result.isSuccess) logFailure("study resource upsert", result.error)
+        return result.isSuccess
     }
 
     suspend fun downloadStudyResources(sectionKey: String): List<Map<String, Any>> {
