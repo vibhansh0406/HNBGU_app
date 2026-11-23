@@ -515,18 +515,20 @@ class AdminRepository @Inject constructor(
         val synced = supabaseSync.uploadNotices(notice.sectionKey, listOf(noticeToRemoteMap(notice)))
         if (!synced) return false
 
-        // Routine notices stay in the shared feed. Official/high-priority notices
-        // also send a campus-wide push, with the notice ID as the tap destination.
-        if (notice.isOfficial || notice.priority == "HIGH" || notice.priority == "URGENT") {
-            val category = if (notice.isOfficial) "announcement" else "notice"
-            supabaseSync.sendPushNotification(
-                title = notice.title,
-                body = notice.body,
-                category = category,
-                targetType = "NOTICE",
-                targetId = notice.id,
-                sectionKey = notice.sectionKey
-            )
+        // Every newly published admin notice should reach its intended section.
+        // Keep push delivery separate from feed persistence: a push failure must
+        // never roll back or hide a notice that is already safely stored.
+        val category = if (notice.isOfficial) "announcement" else "notice"
+        val pushed = supabaseSync.sendPushNotification(
+            title = notice.title,
+            body = notice.body,
+            category = category,
+            targetType = "NOTICE",
+            targetId = notice.id,
+            sectionKey = notice.sectionKey
+        )
+        if (!pushed) {
+            android.util.Log.w("CampusOneFCM", "Notice saved, but push delivery was not confirmed")
         }
         return true
     }
