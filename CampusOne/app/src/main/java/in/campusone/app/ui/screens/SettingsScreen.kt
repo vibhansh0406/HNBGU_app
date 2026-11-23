@@ -1,6 +1,7 @@
 package `in`.campusone.app.ui.screens
 
 import android.content.Intent
+import android.net.Uri
 import android.provider.Settings as AndroidSettings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -276,6 +277,23 @@ fun SettingsScreen(
                     SettingsSwitchRow("Campus events", "Reminders for events you joined", Icons.Default.Event, eventReminders, notifications) {
                         viewModel.setLocalReminder("event", it)
                     }
+                }
+            }
+            item { C1SectionHeader(title = "App updates", subtitle = "Get the verified Android installer from the official release page") }
+            item {
+                C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.md)) {
+                    SettingsActionRow(
+                        title = "Download latest CampusOne version",
+                        subtitle = "Open the official GitHub Releases page. Install only the signed APK asset.",
+                        icon = Icons.Default.Info,
+                        onClick = {
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse("https://github.com/vibhansh0406/HNBGU_app/releases/latest")
+                            )
+                            context.startActivity(Intent.createChooser(intent, "Open CampusOne releases"))
+                        }
+                    )
                 }
             }
             item { C1SectionHeader(title = "Privacy & support", subtitle = "Get help and understand your data") }
