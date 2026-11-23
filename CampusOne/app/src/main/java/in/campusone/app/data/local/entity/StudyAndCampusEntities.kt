@@ -62,7 +62,7 @@ data class AssignmentEntity(
     val remind1DayBefore: Boolean = true,
     val remind2HoursBefore: Boolean = true,
     val isCompleted: Boolean = false,
-    val isSharedByCrOrTeacher: Boolean = false,
+    val isSharedByCrOrModerator: Boolean = false,
     val isAddedToPersonalList: Boolean = true,
     val sharedSourceId: String? = null,
     val authorName: String = "Self",
@@ -85,7 +85,7 @@ data class ExamEntity(
     val examDateFormatted: String,
     val roomOrCenter: String,
     val reminderEnabled: Boolean = true,
-    val publishedByCrOrTeacher: Boolean = true,
+    val publishedByCrOrModerator: Boolean = true,
     val updatedAtMillis: Long = System.currentTimeMillis()
 )
 
@@ -102,7 +102,7 @@ data class SyllabusTopicEntity(
     val unitTitle: String = "Unit 1",
     val topicTitle: String,
     val isCompleted: Boolean = false,
-    val publishedByCrOrTeacher: Boolean = true,
+    val publishedByCrOrModerator: Boolean = true,
     val updatedAtMillis: Long = System.currentTimeMillis()
 )
 
@@ -164,7 +164,7 @@ data class CampusEventEntity(
     val notGoingCount: Int = 0,
     val myRsvpStatus: String = "NONE", // "NONE", "GOING", "INTERESTED", "NOT_GOING"
     val reminderLeadMinutes: Int = 60, // Configurable event reminder (e.g., 60m before)
-    val isApproved: Boolean = true,     // Moderation: new events require CR/Teacher approval
+    val isApproved: Boolean = true,     // Moderation: new events require CR/Moderator approval
     val reportCount: Int = 0,
     val isFlagged: Boolean = false,
     val updatedAtMillis: Long = System.currentTimeMillis()
