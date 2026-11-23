@@ -7,9 +7,7 @@ package `in`.campusone.app.domain.model
 object HnbguAcademicCatalog {
     val campuses = listOf(
         "Birla Campus, Srinagar (Garhwal)",
-        "Chauras Campus, Srinagar (Garhwal)",
-        "B.G.R. Campus, Pauri",
-        "S.R.T. Campus, Tehri"
+        "Chauras Campus, Srinagar (Garhwal)"
     )
 
     val courses = listOf(
