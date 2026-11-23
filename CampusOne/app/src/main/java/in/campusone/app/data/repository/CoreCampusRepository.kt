@@ -471,8 +471,7 @@ class CoreCampusRepository @Inject constructor(
 
             // Only global admin announcements trigger a campus-wide push.
             val highPriority = priority == "HIGH" || priority == "URGENT"
-            val shouldPush = (profile.role == UserRole.ADMIN && (isOfficial || highPriority)) ||
-                (profile.role in listOf(UserRole.CR, UserRole.TEACHER, UserRole.MODERATOR) && highPriority)
+            val shouldPush = profile.role == UserRole.ADMIN && (isOfficial || highPriority)
             if (shouldPush) {
                 supabaseSync.sendPushNotification(
                     title = entity.title,
