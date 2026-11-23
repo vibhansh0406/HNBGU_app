@@ -165,7 +165,7 @@ fun AdminExamsScreen(
                     examDateFormatted = "${examDate.ifEmpty { "TBD" }} • $examTime",
                     roomOrCenter = venue.ifEmpty { "TBD" },
                     reminderEnabled = true,
-                    publishedByCrOrModerator = true,
+                    publishedByCrOrTeacher = true,
                     updatedAtMillis = System.currentTimeMillis()
                 )
                 viewModel.saveExam(exam)
