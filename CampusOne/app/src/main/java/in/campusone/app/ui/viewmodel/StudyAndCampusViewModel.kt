@@ -290,7 +290,7 @@ class StudyAndCampusViewModel @Inject constructor(
                 dueDateFormatted = dueDateFormatted,
                 remind1Day = remind1Day,
                 remind2Hours = remind2Hours,
-                isSharedByCrOrModerator = postToSection,
+                isSharedByCrOrTeacher = postToSection,
                 authorName = if (postToSection) "${p.name} (${p.role.name})" else "Self"
             )
             _statusMessages.emit("Assignment saved with offline reminders!")
@@ -455,7 +455,7 @@ class StudyAndCampusViewModel @Inject constructor(
         socialLink: String
     ) {
         val p = uiState.value.profile
-        val isAutoApproved = p.role == UserRole.CR || p.role == UserRole.MODERATOR
+        val isAutoApproved = p.role == UserRole.CR || p.role == UserRole.MODERATOR || p.role == UserRole.ADMIN
         viewModelScope.launch {
             val res = repository.createOrProposeClub(
                 collegeId = p.collegeId,
@@ -608,7 +608,7 @@ class StudyAndCampusViewModel @Inject constructor(
     fun reportLostFound(id: String) {
         viewModelScope.launch {
             repository.reportLostFound(id)
-            _statusMessages.emit("Reported to CR moderation queue.")
+            _statusMessages.emit("Reported to CR & Moderator moderation queue.")
         }
     }
 
