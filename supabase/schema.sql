@@ -77,8 +77,16 @@ insert into public.role_permissions (role, permission)
 select 'ADMIN', code from public.admin_permissions
 where code in (
   'VIEW_USERS','MANAGE_USERS','MANAGE_NOTICES','MANAGE_RESOURCES',
-  'MANAGE_ASSIGNMENTS','MODERATE_REPORTS','MANAGE_EVENTS'
+  'MANAGE_ASSIGNMENTS','MODERATE_REPORTS','MANAGE_EVENTS','MANAGE_TIMETABLE'
 )
+on conflict do nothing;
+
+-- Moderators use the regular Admin Portal. They receive operational
+-- permissions only; role management, audit logs and system settings remain
+-- owner-only and are never granted to this role.
+delete from public.role_permissions where role = 'MODERATOR';
+insert into public.role_permissions (role, permission)
+select 'MODERATOR', code from public.admin_permissions where not is_owner_only
 on conflict do nothing;
 
 -- =========================================================================
@@ -482,7 +490,7 @@ security definer
 set search_path = public
 as $$
   select public.campusone_is_owner()
-     or public.campusone_caller_role() in ('ADMIN', 'TEACHER', 'CR');
+     or public.campusone_caller_role() in ('ADMIN', 'MODERATOR', 'CR');
 $$;
 
 -- Only the owner may hold SUPER_ADMIN. This is the single choke point for
@@ -711,7 +719,7 @@ begin
     return jsonb_build_object('ok', false, 'error', 'SUPER_ADMIN cannot be granted');
   end if;
 
-  if p_role not in ('STUDENT','CR','TEACHER','CLUB_ADMIN','MODERATOR','ADMIN') then
+  if p_role not in ('STUDENT','CR','MODERATOR','ADMIN') then
     return jsonb_build_object('ok', false, 'error', 'Unknown role');
   end if;
 
