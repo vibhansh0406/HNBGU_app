@@ -430,7 +430,7 @@ class CoreCampusRepository @Inject constructor(
         val authUid = authManager.currentUserId() ?: throw IllegalStateException("Not signed in to Supabase")
         val entity = NoticeEntity(
             id = noticeId,
-            sectionKey = profile.sectionKey,
+            sectionKey = targetSectionKey,
             title = title.trim(),
             body = body.trim(),
             attachmentUrl = attachmentUrl?.takeIf { it.isNotBlank() },
