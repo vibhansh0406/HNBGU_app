@@ -50,6 +50,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,7 +79,6 @@ import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1CompactStatCard
 import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1ErrorState
-import `in`.campusone.app.ui.components.C1FeatureCard
 import `in`.campusone.app.ui.components.C1FilterChip
 import `in`.campusone.app.ui.components.C1SkeletonRows
 import `in`.campusone.app.ui.components.C1SectionHeader
@@ -505,7 +505,7 @@ private fun QuickActionsSection(onOpenMore: (MoreSubScreen) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
         C1SectionHeader(
             title = stringResource(R.string.home_quick_actions),
-            subtitle = "The things you use most, one tap away"
+            subtitle = stringResource(R.string.home_quick_actions_subtitle)
         )
         actions.chunked(cols).forEach { rowActions ->
             Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
