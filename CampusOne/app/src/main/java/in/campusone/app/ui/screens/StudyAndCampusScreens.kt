@@ -297,7 +297,9 @@ fun MoreHubScreen(
     val isSuperAdmin = adminState.identity.isOwner
 
     androidx.compose.runtime.LaunchedEffect(activeScreen, adminState.identity.isOwner) {
-        if (!adminState.identity.isOwner && activeScreen.name.startsWith("SUPER_ADMIN") &&\n            activeScreen != MoreSubScreen.SUPER_ADMIN_MODERATION &&\n            activeScreen != MoreSubScreen.SUPER_ADMIN_CONTENT) {
+        if (!adminState.identity.isOwner && activeScreen.name.startsWith("SUPER_ADMIN") &&
+            activeScreen != MoreSubScreen.SUPER_ADMIN_MODERATION &&
+            activeScreen != MoreSubScreen.SUPER_ADMIN_CONTENT) {
             activeScreen = MoreSubScreen.HUB
         }
     }
