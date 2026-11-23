@@ -860,7 +860,7 @@ class SupabaseSyncRepository @Inject constructor(
         return withContext(Dispatchers.IO) {
             var connection: HttpURLConnection? = null
             try {
-                connection = (URL("$edgeUrl/send-notification").openConnection() as HttpURLConnection).apply {
+                val conn = (URL("$edgeUrl/send-notification").openConnection() as HttpURLConnection).apply {
                     requestMethod = "POST"
                     setRequestProperty("apikey", authManager.config.anonKey)
                     setRequestProperty("Authorization", "Bearer $sessionToken")
@@ -869,6 +869,7 @@ class SupabaseSyncRepository @Inject constructor(
                     readTimeout = 30000
                     doOutput = true
                 }
+                connection = conn
                 val payload = org.json.JSONObject()
                     .put("title", title)
                     .put("body", body)
@@ -877,11 +878,11 @@ class SupabaseSyncRepository @Inject constructor(
                     .put("target_id", targetId)
                     .put("section_key", sectionKey)
 
-                connection.outputStream.use {
+                conn.outputStream.use {
                     it.write(payload.toString().toByteArray(StandardCharsets.UTF_8))
                 }
-                val code = connection.responseCode
-                val stream = if (code in 200..299) connection.inputStream else connection.errorStream
+                val code = conn.responseCode
+                val stream = if (code in 200..299) conn.inputStream else conn.errorStream
                 val response = stream?.use { it.readBytes().toString(StandardCharsets.UTF_8) }.orEmpty()
                 val parsed = runCatching { org.json.JSONObject(response) }.getOrNull()
                 val sent = parsed?.optInt("sent", 0) ?: 0
