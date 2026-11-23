@@ -18,6 +18,7 @@ import `in`.campusone.app.data.local.entity.TimetableSlotEntity
 import `in`.campusone.app.data.remote.SupabaseSession
 import `in`.campusone.app.data.remote.AuthManager
 import `in`.campusone.app.data.repository.AdminIdentity
+import `in`.campusone.app.data.repository.CoreCampusRepository
 import `in`.campusone.app.data.repository.AdminPermission
 import `in`.campusone.app.data.repository.AdminRepository
 import `in`.campusone.app.data.repository.AdminUserRecord
@@ -44,7 +45,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AdminViewModel @Inject constructor(
     val repository: AdminRepository,
-    private val authManager: AuthManager
+    private val authManager: AuthManager,
+    private val coreCampusRepository: CoreCampusRepository
 ) : ViewModel() {
 
     private val _messages = MutableSharedFlow<String>()
@@ -342,6 +344,9 @@ class AdminViewModel @Inject constructor(
     // =========================================================================
     // NOTICES
     // =========================================================================
+    suspend fun uploadNoticeAttachment(contentUri: String, mimeType: String): Result<String> =
+        coreCampusRepository.uploadNoticeAttachment(contentUri, mimeType)
+
     fun saveNotice(notice: NoticeEntity) {
         viewModelScope.launch {
             repository.upsertNotices(listOf(notice))

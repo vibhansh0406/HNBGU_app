@@ -594,6 +594,7 @@ fun CampusOneRoot(
                         onMarkNoticeRead = coreViewModel::markNoticeRead,
                         onMarkAllRead = coreViewModel::markAllNoticesRead,
                         onPostNotice = coreViewModel::postNotice,
+                        onUploadNoticeAttachment = coreViewModel::uploadNoticeAttachment,
                         dataRefreshError = noticesSyncError,
                         onRetryRefresh = coreViewModel::refreshNotices,
                         focusNoticeId = pendingNoticeId,
