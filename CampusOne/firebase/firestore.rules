@@ -15,27 +15,25 @@ service cloud.firestore {
     }
 
     function isSameSection(sectionKey) {
-      return isSignedIn() && (
-        userDoc().sectionKey == sectionKey ||
-        (userDoc().role == 'TEACHER' && sectionKey in userDoc().assignedSectionKeys)
-      );
+      return isSignedIn() && userDoc().sectionKey == sectionKey;
     }
 
-    function isCrOrTeacher() {
+    function isModerator() {
+      return isSignedIn() && userDoc().role == 'MODERATOR' && userDoc().verifiedRole == true;
+    }
+
+    function isCrOrModerator() {
       return isSignedIn() &&
-        (userDoc().role == 'CR' || userDoc().role == 'TEACHER') &&
+        (userDoc().role == 'CR' || userDoc().role == 'MODERATOR') &&
         userDoc().verifiedRole == true;
     }
 
     function canPublishToSection(sectionKey) {
-      return isSameSection(sectionKey) && isCrOrTeacher();
+      return isModerator() || (isSameSection(sectionKey) && isCrOrModerator());
     }
 
     function isClubAdminFor(clubId) {
-      return isSignedIn() && (
-        isCrOrTeacher() ||
-        (userDoc().role == 'CLUB_ADMIN' && clubId in userDoc().managedClubIds)
-      );
+      return isModerator() || (isSignedIn() && userDoc().role == 'CR' && userDoc().verifiedRole == true);
     }
 
     // Anti-spam rate limit & payload validation helper
@@ -48,19 +46,19 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow write: if false;
 
-      // Phase 3.1: Clubs (Moderation: public sees approved clubs; CR/Teacher approves new clubs & assigns Club Admins)
+      // Phase 3.1: Clubs (Moderation: public sees approved clubs; CR/Moderator approves new clubs & assigns Club Admins)
       match /clubs/{clubId} {
         allow read: if isSameCollege(collegeId) && (
           resource.data.isApproved == true || isClubAdminFor(clubId)
         );
         allow create: if isSameCollege(collegeId)
           && isValidPostSize(request.resource.data.name, 100)
-          && (isCrOrTeacher() || request.resource.data.isApproved == false);
+          && (isCrOrModerator() || request.resource.data.isApproved == false);
         allow update: if isSameCollege(collegeId) && isClubAdminFor(clubId);
         allow delete: if isSameCollege(collegeId) && isCrOrTeacher();
       }
 
-      // Phase 3.1: Events Feed (3-State RSVP, Club Admin creation, CR/Teacher approval)
+      // Phase 3.1: Events Feed (3-State RSVP, Moderator creation, CR approval)
       match /events/{eventId} {
         allow read: if isSameCollege(collegeId) && (
           resource.data.isApproved == true || isClubAdminFor(resource.data.clubId)
