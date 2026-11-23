@@ -353,9 +353,6 @@ fun CampusOneRoot(
     val noticesSyncError by coreViewModel.noticesSyncError.collectAsStateWithLifecycle()
     val unreadNotifications by communityViewModel.unreadNotificationCount.collectAsStateWithLifecycle()
 
-    // Check public GitHub Releases for a signed, checksum-verified APK update.
-    CampusOneUpdatePrompt()
-
     // Handle FCM notification tap navigation
     val pendingNotification = remember { mutableStateOf<Pair<String, String>?>(null) }
     LaunchedEffect(pendingNotificationTarget) {
