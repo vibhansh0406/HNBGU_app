@@ -210,13 +210,14 @@ serve(async (req) => {
     // Only Admin and Moderator roles may use the college-wide push sender.
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role, college_id")
+      .select("role, college_id, course_id, semester, section")
       .eq("id", user.id)
       .single();
 
     const canSendCollegeNotifications = profile?.role === "ADMIN" ||
       profile?.role === "MODERATOR" || profile?.role === "SUPER_ADMIN";
-    if (!canSendCollegeNotifications) {
+    const isSectionCr = profile?.role === "CR";
+    if (!canSendCollegeNotifications && !isSectionCr) {
       return new Response(JSON.stringify({ ok: false, error: "Admin or Moderator access required" }), {
         status: 403,
         headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
@@ -232,6 +233,19 @@ serve(async (req) => {
         status: 400,
         headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
       });
+    }
+
+    // CRs may notify only students in their own assigned section. Admins and
+    // Moderators may choose a broader audience, but every recipient is still
+    // resolved from trusted student profiles in the sender's college.
+    if (isSectionCr) {
+      const ownSectionKey = `${profile?.college_id}_${profile?.course_id}_sem${profile?.semester}_sec${profile?.section}`;
+      if (section_key !== ownSectionKey || (user_ids && Array.isArray(user_ids))) {
+        return new Response(JSON.stringify({ ok: false, error: "CR notifications are restricted to the assigned section" }), {
+          status: 403,
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        });
+      }
     }
 
     // Resolve section-scoped recipients from trusted profile columns.
