@@ -48,10 +48,27 @@ async function getFcmAccessToken(): Promise<string> {
   const signingInput = `${headerB64}.${payloadB64}`;
 
   // Sign with the private key (PKCS#8 PKCS#8 PEM)
-  const keyData = FCM_PRIVATE_KEY.replace(/\\n/g, "\n").replace(/-----BEGIN PRIVATE KEY-----/, "")
-    .replace(/-----END PRIVATE KEY-----/, "")
+  // Accept PEM values pasted with real newlines, escaped newlines, or
+  // JSON-style surrounding quotes. Strip PEM boundaries and whitespace
+  // before base64 decoding; never log the private key itself.
+  const normalizedPrivateKey = FCM_PRIVATE_KEY.trim()
+    .replace(/^["']|["']$/g, "")
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\\n/g, "\n")
+    .replace(/\\r/g, "\n");
+  const keyData = normalizedPrivateKey
+    .replace(/-----BEGIN [^-]+-----/g, "")
+    .replace(/-----END [^-]+-----/g, "")
     .replace(/\s/g, "");
-  const keyBytes = Uint8Array.from(atob(keyData), (c) => c.charCodeAt(0));
+  if (!keyData || !/^[A-Za-z0-9+/]+={0,2}$/.test(keyData)) {
+    throw new Error("FCM_PRIVATE_KEY is not valid PEM/base64; re-save the Google service-account private_key secret");
+  }
+  let keyBytes: Uint8Array;
+  try {
+    keyBytes = Uint8Array.from(atob(keyData), (c) => c.charCodeAt(0));
+  } catch {
+    throw new Error("FCM_PRIVATE_KEY base64 decoding failed; re-save the unquoted PEM private_key from Firebase service account JSON");
+  }
 
   const cryptoKey = await crypto.subtle.importKey(
     "pkcs8",
