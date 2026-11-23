@@ -307,16 +307,10 @@ private fun overviewStats(
             secondary
         ),
         StatItem(
-            "Teachers",
-            users.count { it.role == UserRole.TEACHER }.toString(),
-            Icons.Default.Assignment,
+            "Moderators",
+            users.count { it.role == UserRole.MODERATOR }.toString(),
+            Icons.Default.Shield,
             tertiary
-        ),
-        StatItem(
-            "Club admins",
-            users.count { it.role == UserRole.CLUB_ADMIN }.toString(),
-            Icons.Default.Group,
-            primary
         ),
         StatItem(
             "Pending approvals",
