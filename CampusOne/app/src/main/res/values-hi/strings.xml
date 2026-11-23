@@ -22,8 +22,6 @@
     <string name="select_role">आपकी भूमिका</string>
     <string name="role_student">छात्र (Student)</string>
     <string name="role_cr">क्लास रिप्रेजेंटेटिव (CR)</string>
-    <string name="role_teacher">शिक्षक / प्राध्यापक (Teacher)</string>
-    <string name="role_club_admin">क्लब एडमिन (Club Admin)</string>
     <string name="role_admin">ऐप एडमिन (App Admin)</string>
     <string name="role_moderator">विभागीय मॉडरेटर (Department Moderator)</string>
     <string name="complete_setup">सेटअप पूरा करें</string>
@@ -73,7 +71,7 @@
     <string name="timetable_starts_in">शुरू होने में %1$d मिनट</string>
     <string name="timetable_subject_code">विषय कोड</string>
     <string name="timetable_subject_name">विषय का नाम</string>
-    <string name="timetable_faculty">शिक्षक का नाम</string>
+    <string name="timetable_faculty">कमरे का नंबर</string>
     <string name="timetable_room">कक्ष / लैब</string>
     <string name="timetable_start">प्रारंभ (HH:mm)</string>
     <string name="timetable_end">समाप्ति (HH:mm)</string>
@@ -333,7 +331,7 @@
     <string name="onboarding_your_class">आपकी कक्षा</string>
     <string name="onboarding_admin_access">एडमिन एक्सेस</string>
     <string name="onboarding_signed_in_as_owner">आप ऐप के मालिक के रूप में साइन इन हैं। एडमिन पैनल स्वचालित रूप से सक्षम हो जाएगा।</string>
-    <string name="onboarding_cr_teacher_access">CR, शिक्षक, मॉडरेटर और क्लब एडमिन एक्सेस एडमिन मंजूरी के बाद दिया जाता है। एक अनुरोध स्वचालित रूप से भेजा जाता है।</string>
+    <string name="onboarding_cr_teacher_access">CR और Moderator एक्सेस केवल Admin की मंजूरी के बाद मिलेगा।</string>
     <string name="hub_campus_life">कैंपस लाइफ और उपयोगिताएं</string>
     <string name="hub_request_sent">आपका अनुरोध एडमिन को भेज दिया गया है। एक्सेस केवल मंजूरी के बाद दिया जाता है।</string>
     <string name="home_quick_actions_subtitle">आपके सबसे ज़रूरी काम, एक टैप में</string>
