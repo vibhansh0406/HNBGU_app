@@ -490,7 +490,7 @@ class CoreCampusRepository @Inject constructor(
         require(!isOfficial || profile.role == UserRole.ADMIN) {
             "Only administrators can publish official announcements."
         }
-        val targetSectionKey = if (profile.role == UserRole.ADMIN) "global" else profile.sectionKey
+        val targetSectionKey = if (profile.role == UserRole.ADMIN || profile.role == UserRole.MODERATOR) "global" else profile.sectionKey
         val now = System.currentTimeMillis()
         val noticeId = java.util.UUID.randomUUID().toString()
         // Derive creator identity from the active Supabase authenticated user UUID,
