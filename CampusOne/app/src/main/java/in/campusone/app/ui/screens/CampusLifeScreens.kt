@@ -608,27 +608,34 @@ fun CampusDirectoryScreen(
                 // Compact source shortcuts replace the tall banner. The whole page,
                 // including this row, remains inside the same scroll container.
                 item(key = "official_sources") {
-                    Row(
+                    LazyRow(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
+                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            "HNBGU sources",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Spacer(modifier = Modifier.weight(1f))
-                        TextButton(onClick = {
-                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.hnbgu.ac.in/index.php/srinagar-campus")))
-                        }) { Text("Departments") }
-                        TextButton(onClick = {
-                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://hnbgu.ac.in/rti-list-of-officers")))
-                        }) { Text("Officers") }
-                        TextButton(onClick = {
-                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://library.hnbgu.ac.in/pages.pl?p=elibrary")))
-                        }) { Text("E-Library") }
+                        item {
+                            Text(
+                                "HNBGU sources",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                        item {
+                            TextButton(onClick = {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.hnbgu.ac.in/index.php/srinagar-campus")))
+                            }) { Text("Departments") }
+                        }
+                        item {
+                            TextButton(onClick = {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://hnbgu.ac.in/rti-list-of-officers")))
+                            }) { Text("Officers") }
+                        }
+                        item {
+                            TextButton(onClick = {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://library.hnbgu.ac.in/pages.pl?p=elibrary")))
+                            }) { Text("E-Library") }
+                        }
                     }
                 }
                 item(key = "directory_categories") {
