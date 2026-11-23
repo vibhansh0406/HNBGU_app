@@ -210,12 +210,7 @@ enum class MoreSubScreen {
     SUPER_ADMIN_AUDIT
 }
 
-private val requestableRoles = listOf(
-    UserRole.CR,
-    UserRole.TEACHER,
-    UserRole.MODERATOR,
-    UserRole.CLUB_ADMIN
-)
+private val requestableRoles = listOf(UserRole.CR)
 
 /** Each sub-screen's parent for system Back navigation. Screens not listed go to HUB. */
 private val screenParent: Map<MoreSubScreen, MoreSubScreen> = mapOf(
