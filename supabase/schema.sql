@@ -19,17 +19,6 @@
 -- =========================================================================
 -- PROFILES
 -- =========================================================================
--- Existing HNBGU users created by older bootstrap paths may have blank college metadata.
-update public.profiles
-   set college_id = 'hnbgu',
-       college_name = coalesce(nullif(college_name, ''), 'HNB Garhwal University (A Central University)')
- where coalesce(btrim(college_id), '') = ''
-    or coalesce(btrim(college_name), '') = '';
-
-alter table public.profiles
-  alter column college_id set default 'hnbgu',
-  alter column college_name set default 'HNB Garhwal University (A Central University)';
-
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text not null default '',
@@ -49,6 +38,17 @@ create table if not exists public.profiles (
   created_at bigint not null default 0,
   updated_at bigint not null default 0
 );
+
+-- Existing HNBGU users created by older bootstrap paths may have blank college metadata.
+update public.profiles
+   set college_id = 'hnbgu',
+       college_name = coalesce(nullif(college_name, ''), 'HNB Garhwal University (A Central University)')
+ where coalesce(btrim(college_id), '') = ''
+    or coalesce(btrim(college_name), '') = '';
+
+alter table public.profiles
+  alter column college_id set default 'hnbgu',
+  alter column college_name set default 'HNB Garhwal University (A Central University)';
 
 alter table public.profiles add column if not exists is_suspended boolean not null default false;
 alter table public.profiles add column if not exists onboarding_completed boolean not null default false;
