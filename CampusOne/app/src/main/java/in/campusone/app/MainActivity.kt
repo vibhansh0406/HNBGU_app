@@ -461,9 +461,9 @@ fun CampusOneRoot(
                     onToggleLanguage = coreViewModel::toggleLanguage,
                     initialEmail = signedInEmail,
                     isOwner = signedInEmail.equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true),
-                    onCompleteSetup = { name, email, collegeName, courseId, courseName, semester, section, role ->
+                    onCompleteSetup = { name, email, collegeName, courseId, courseName, semester, section, academicSession, role ->
                         coreViewModel.completeOnboarding(
-                            name, email, collegeName, courseId, courseName, semester, section, role
+                            name, email, collegeName, courseId, courseName, semester, section, academicSession, role
                         )
                     }
                 )
