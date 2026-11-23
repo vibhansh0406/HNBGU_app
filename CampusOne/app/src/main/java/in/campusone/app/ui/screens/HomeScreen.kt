@@ -183,7 +183,14 @@ private fun HomeHeader(
     val courseLine = "${uiState.profile.courseName} • Sem ${uiState.profile.semester} (${uiState.profile.section})"
     val languageCd = stringResource(R.string.language_toggle)
     val profileCd = stringResource(R.string.home_open_profile)
+    var headerVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { headerVisible = true }
 
+    AnimatedVisibility(
+        visible = headerVisible,
+        enter = fadeIn(animationSpec = tween(420)) +
+            slideInVertically(animationSpec = tween(420), initialOffsetY = { it / 5 })
+    ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -247,6 +254,7 @@ private fun HomeHeader(
                 )
             }
         }
+    }
     }
 }
 
