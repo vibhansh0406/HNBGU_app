@@ -293,8 +293,12 @@ fun MoreHubScreen(
     val unreadNotifications by communityViewModel.unreadNotificationCount.collectAsStateWithLifecycle()
     val isSuperAdmin = adminState.identity.isOwner
 
-    androidx.compose.runtime.LaunchedEffect(activeScreen, adminState.identity.isOwner) {
+    androidx.compose.runtime.LaunchedEffect(activeScreen, adminState.identity.isOwner, uiState.profile.role) {
         if (!adminState.identity.isOwner && activeScreen.name.startsWith("SUPER_ADMIN")) {
+            activeScreen = MoreSubScreen.HUB
+        }
+        if (activeScreen.name.startsWith("ADMIN_") &&
+            (adminState.identity.isOwner || uiState.profile.role != UserRole.MODERATOR)) {
             activeScreen = MoreSubScreen.HUB
         }
     }
