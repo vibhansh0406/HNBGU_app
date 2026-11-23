@@ -1,6 +1,9 @@
 package `in`.campusone.app.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,6 +29,7 @@ import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ContactPhone
 import androidx.compose.material.icons.filled.EventNote
 import androidx.compose.material.icons.filled.MenuBook
@@ -43,11 +47,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -173,7 +180,6 @@ private fun HomeHeader(
 ) {
     val ws = windowSize
     val firstName = uiState.profile.name.trim().substringBefore(" ").ifBlank { "Student" }
-    val initial = firstName.first().uppercase()
     val courseLine = "${uiState.profile.courseName} • Sem ${uiState.profile.semester} (${uiState.profile.section})"
     val languageCd = stringResource(R.string.language_toggle)
     val profileCd = stringResource(R.string.home_open_profile)
@@ -193,6 +199,13 @@ private fun HomeHeader(
         )
         Spacer(modifier = Modifier.width(C1Spacing.md))
         Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "CAMPUSONE  /  HNBGU",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1
+            )
             Text(
                 text = stringResource(R.string.home_greeting, firstName),
                 style = MaterialTheme.typography.headlineMedium,
@@ -472,7 +485,13 @@ private data class HomeQuickAction(
 @Composable
 private fun QuickActionsSection(onOpenMore: (MoreSubScreen) -> Unit) {
     val ws = windowSize
-    val cols = C1Spacing.gridColumns(ws)
+    // Keep the phone dashboard compact; widen the grid only when space is available.
+    val cols = when (ws) {
+        C1WindowSize.COMPACT -> 2
+        C1WindowSize.MEDIUM -> 3
+        C1WindowSize.LARGE -> 3
+        C1WindowSize.EXPANDED -> 4
+    }
 
     val actions = listOf(
         HomeQuickAction(Icons.Default.Assignment, R.string.qa_assignments, R.string.qa_assignments_desc, MoreSubScreen.ASSIGNMENTS),
@@ -484,20 +503,21 @@ private fun QuickActionsSection(onOpenMore: (MoreSubScreen) -> Unit) {
     )
 
     Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
-        C1SectionHeader(title = stringResource(R.string.home_quick_actions))
+        C1SectionHeader(
+            title = stringResource(R.string.home_quick_actions),
+            subtitle = "The things you use most, one tap away"
+        )
         actions.chunked(cols).forEach { rowActions ->
-            Row(
-                modifier = Modifier.heightIn(min = 120.dp),
-                horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
-            ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                 rowActions.forEach { action ->
                     QuickActionTile(
                         action = action,
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
+                        modifier = Modifier.weight(1f),
                         onOpenMore = onOpenMore
                     )
+                }
+                repeat((cols - rowActions.size).coerceAtLeast(0)) {
+                    Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }
@@ -510,22 +530,67 @@ private fun QuickActionTile(
     modifier: Modifier = Modifier,
     onOpenMore: (MoreSubScreen) -> Unit
 ) {
-    C1FeatureCard(
-        modifier = modifier.heightIn(min = 120.dp),
-        icon = action.icon,
-        title = stringResource(action.labelRes),
-        description = stringResource(action.descriptionRes),
-        iconColor = when (action.screen) {
-            MoreSubScreen.ASSIGNMENTS -> MaterialTheme.colorScheme.tertiary
-            MoreSubScreen.EXAMS_SYLLABUS -> extendedColors.warning
-            MoreSubScreen.NOTES_PYQ -> MaterialTheme.colorScheme.secondary
-            MoreSubScreen.GPA_CALCULATOR -> MaterialTheme.colorScheme.primary
-            MoreSubScreen.LOST_FOUND -> extendedColors.info
-            MoreSubScreen.DIRECTORY -> MaterialTheme.colorScheme.onSurfaceVariant
-            else -> MaterialTheme.colorScheme.primary
-        },
-        onClick = { onOpenMore(action.screen) }
-    )
+    val iconColor = when (action.screen) {
+        MoreSubScreen.ASSIGNMENTS -> MaterialTheme.colorScheme.tertiary
+        MoreSubScreen.EXAMS_SYLLABUS -> extendedColors.warning
+        MoreSubScreen.NOTES_PYQ -> MaterialTheme.colorScheme.secondary
+        MoreSubScreen.GPA_CALCULATOR -> MaterialTheme.colorScheme.primary
+        MoreSubScreen.LOST_FOUND -> extendedColors.info
+        MoreSubScreen.DIRECTORY -> MaterialTheme.colorScheme.onSurfaceVariant
+        else -> MaterialTheme.colorScheme.primary
+    }
+    var entered by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { entered = true }
+
+    AnimatedVisibility(
+        visible = entered,
+        enter = fadeIn(animationSpec = tween(C1Motion.normalMillis)) +
+            slideInVertically(animationSpec = tween(C1Motion.normalMillis)) { it / 10 },
+        modifier = modifier
+    ) {
+        C1SurfaceCard(
+            modifier = Modifier.heightIn(min = 76.dp),
+            onClick = { onOpenMore(action.screen) },
+            contentPadding = PaddingValues(horizontal = C1Spacing.md, vertical = C1Spacing.md),
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(C1Radius.sm)
+                        .background(iconColor.copy(alpha = 0.11f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = action.icon,
+                        contentDescription = null,
+                        tint = iconColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                Text(
+                    text = stringResource(action.labelRes),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
+                    modifier = Modifier.size(17.dp)
+                )
+            }
+        }
+    }
 }
 
 @Composable
