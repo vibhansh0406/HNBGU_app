@@ -147,7 +147,6 @@ fun NoticeBoardScreen(
     }
 
     val canPost = uiState.profile.role == UserRole.CR ||
-        uiState.profile.role == UserRole.TEACHER ||
         uiState.profile.role == UserRole.ADMIN ||
         uiState.profile.role == UserRole.MODERATOR
 
@@ -362,7 +361,7 @@ fun NoticeBoardScreen(
 
     if (showComposer) {
         PostNoticeDialog(
-            isAdmin = uiState.profile.role == UserRole.ADMIN,
+            isAdmin = uiState.profile.role == UserRole.ADMIN || uiState.profile.role == UserRole.MODERATOR,
             onDismiss = { showComposer = false },
             onUploadAttachment = onUploadNoticeAttachment,
             onSubmit = { title, body, url, type, pinned, category, priority, official ->
