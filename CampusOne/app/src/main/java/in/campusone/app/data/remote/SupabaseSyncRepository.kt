@@ -77,7 +77,7 @@ class SupabaseSyncRepository @Inject constructor(
                 "course_id" to courseId,
                 "course_name" to courseName,
                 "semester" to semester,
-                "academic_session" to academicSession.ifBlank { null },
+                "academic_session" to academicSession.ifBlank { "" },
                 "section" to section,
                 "moderator_scope" to moderatorScope,
                 "is_moderator_approved" to isModeratorApproved,
@@ -122,7 +122,7 @@ class SupabaseSyncRepository @Inject constructor(
                     "course_id" to courseId,
                     "course_name" to courseName,
                     "semester" to semester,
-                    "academic_session" to academicSession.ifBlank { null },
+                    "academic_session" to academicSession.ifBlank { "" },
                     "section" to section,
                     "onboarding_completed" to true,
                     "updated_at" to System.currentTimeMillis()
