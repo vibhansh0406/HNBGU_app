@@ -445,9 +445,11 @@ class AdminRepository @Inject constructor(
         return AdminActionResult(ok, if (ok) "Owner access restored" else "Recovery refused")
     }
 
-    private fun roleOf(name: String?): UserRole =
-        if (name.equals("SUPER_ADMIN", ignoreCase = true)) UserRole.ADMIN
-        else UserRole.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: UserRole.STUDENT
+    private fun roleOf(name: String?): UserRole = when (name?.uppercase()) {
+        "SUPER_ADMIN" -> UserRole.ADMIN
+        "TEACHER", "CLUB_ADMIN" -> UserRole.MODERATOR // legacy cached roles only
+        else -> UserRole.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: UserRole.STUDENT
+    }
 
     private fun Any?.toEpochMillis(): Long = when (this) {
         is Number -> toLong()
