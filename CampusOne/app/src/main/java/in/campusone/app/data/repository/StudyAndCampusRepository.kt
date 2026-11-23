@@ -118,7 +118,7 @@ class StudyAndCampusRepository @Inject constructor(
                         examDateFormatted = map["exam_date_formatted"] as? String ?: "",
                         roomOrCenter = map["room_or_center"] as? String ?: "",
                         reminderEnabled = map["reminder_enabled"] as? Boolean ?: true,
-                        publishedByCrOrModerator = map["published_by_cr_or_teacher"] as? Boolean ?: true,
+                        publishedByCrOrTeacher = map["published_by_cr_or_teacher"] as? Boolean ?: true,
                         updatedAtMillis = System.currentTimeMillis()
                     )
                 })
@@ -208,7 +208,7 @@ class StudyAndCampusRepository @Inject constructor(
                         remind1DayBefore = map["remind_1_day_before"] as? Boolean ?: true,
                         remind2HoursBefore = map["remind_2_hours_before"] as? Boolean ?: true,
                         isCompleted = map["is_completed"] as? Boolean ?: false,
-                        isSharedByCrOrModerator = map["is_shared_by_cr_or_teacher"] as? Boolean ?: false,
+                        isSharedByCrOrTeacher = map["is_shared_by_cr_or_teacher"] as? Boolean ?: false,
                         isAddedToPersonalList = map["is_added_to_personal_list"] as? Boolean ?: true,
                         sharedSourceId = map["shared_source_id"] as? String?,
                         authorName = map["author_name"] as? String ?: "Self",
@@ -497,7 +497,7 @@ class StudyAndCampusRepository @Inject constructor(
         dueDateFormatted: String,
         remind1Day: Boolean,
         remind2Hours: Boolean,
-        isSharedByCrOrModerator: Boolean,
+        isSharedByCrOrTeacher: Boolean,
         authorName: String
     ) {
         val actualId = id ?: "assign_${System.currentTimeMillis()}"
@@ -515,9 +515,9 @@ class StudyAndCampusRepository @Inject constructor(
             remind1DayBefore = remind1Day,
             remind2HoursBefore = remind2Hours,
             isCompleted = false,
-            isSharedByCrOrModerator = isSharedByCrOrModerator,
+            isSharedByCrOrTeacher = isSharedByCrOrTeacher,
             isAddedToPersonalList = true,
-            sharedSourceId = if (isSharedByCrOrModerator) actualId else null,
+            sharedSourceId = if (isSharedByCrOrTeacher) actualId else null,
             authorName = authorName
         )
         studyDao.upsertAssignments(listOf(entity))
@@ -538,7 +538,7 @@ class StudyAndCampusRepository @Inject constructor(
                 "remind_1_day_before" to entity.remind1DayBefore,
                 "remind_2_hours_before" to entity.remind2HoursBefore,
                 "is_completed" to entity.isCompleted,
-                "is_shared_by_cr_or_teacher" to entity.isSharedByCrOrModerator,
+                "is_shared_by_cr_or_teacher" to entity.isSharedByCrOrTeacher,
                 "is_added_to_personal_list" to entity.isAddedToPersonalList,
                 "shared_source_id" to (entity.sharedSourceId ?: ""),
                 "author_name" to entity.authorName,
@@ -587,7 +587,7 @@ class StudyAndCampusRepository @Inject constructor(
             examDateFormatted = "$examDateIso • $examTimeFormatted",
             roomOrCenter = venue.trim(),
             reminderEnabled = true,
-            publishedByCrOrModerator = publishedByCr
+            publishedByCrOrTeacher = publishedByCr
         )
         studyDao.upsertExams(listOf(entity))
 
@@ -606,7 +606,7 @@ class StudyAndCampusRepository @Inject constructor(
                 "exam_date_formatted" to entity.examDateFormatted,
                 "room_or_center" to entity.roomOrCenter,
                 "reminder_enabled" to entity.reminderEnabled,
-                "published_by_cr_or_teacher" to entity.publishedByCrOrModerator,
+                "published_by_cr_or_teacher" to entity.publishedByCrOrTeacher,
                 "updated_at" to entity.updatedAtMillis
             )))
         }
@@ -630,7 +630,7 @@ class StudyAndCampusRepository @Inject constructor(
             unitTitle = unitTitle.trim(),
             topicTitle = topicTitle.trim(),
             isCompleted = false,
-            publishedByCrOrModerator = publishedByCr
+            publishedByCrOrTeacher = publishedByCr
         )
         studyDao.upsertSyllabusTopics(listOf(entity))
     }
