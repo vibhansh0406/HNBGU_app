@@ -2,6 +2,19 @@
 
 **CampusOne** is an open-source (MIT), native Android app built with **Kotlin**, **Jetpack Compose (Material 3 Expressive)**, **Room DB (v3, 16 tables)**, **Hilt**, **WorkManager (Reboot-Safe)**, **Jetpack Glance**, and **Firebase (Spark Free Tier)**. Designed for undergraduate students at Indian universities (pilot: **HNB Garhwal University — Birla and Chauras campuses**), it works 100% offline on mid-range Android devices with patchy connectivity and supports instant **English (`en`)** and **Hindi (`hi`)** switching.
 
+
+## Official APK distribution (GitHub Releases)
+
+CampusOne is distributed directly from this repository's **GitHub Releases**. It is not distributed through Google Play.
+
+- Download only the `CampusOne-vX.Y.Z.apk` asset attached to a published GitHub Release. Do not install the debug APK or use temporary GitHub Actions build files.
+- Releases are created from version tags in the form `vMAJOR.MINOR.PATCH` (for example, `v1.0.1`). A normal source-code push runs verification; a version tag creates the public release asset.
+- Every release is signed with the same permanent CampusOne release keystore. The CI checks the package ID, version, Android SDK levels, APK alignment, signing certificate fingerprints, v1/v2/v3 signatures and install-sensitive permissions before publishing.
+- Keep Google Play Protect enabled. On Android 8 and later, allow installs only from the browser or file manager you intentionally use to open the GitHub APK. CampusOne itself does not request permission to install packages.
+- If a debug-signed CampusOne build is already installed, Android will reject a release-signed APK as an in-place update because their signing certificates differ. Remove that debug build once before switching to the official release. Removing an app can delete its local-only data. Once on the release-signed build, install future releases over it without uninstalling, as long as the permanent signing key is preserved and the version code increases.
+
+GitHub Releases page: https://github.com/vibhansh0406/HNBGU_app/releases/latest
+
 ## Complete Phased Feature Matrix (Phases 1, 2 & 3 Unified)
 
 | Phase | Feature | Highlights |

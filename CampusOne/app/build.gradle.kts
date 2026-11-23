@@ -62,12 +62,18 @@ android {
                 ?: error("KEY_ALIAS is required for release signing")
             keyPassword = System.getenv("KEY_PASSWORD")
                 ?: error("KEY_PASSWORD is required for release signing")
+
+            // Keep all Android APK signing schemes available for broad device compatibility.
+            enableV1Signing = true
+            enableV2Signing = true
+            enableV3Signing = true
         }
     }
 
     buildTypes {
         // Debug intentionally uses Android Gradle Plugin's standard debug signing config.
         release {
+            isDebuggable = false
             isMinifyEnabled = false
             isShrinkResources = false
             signingConfig = signingConfigs.getByName("release")
