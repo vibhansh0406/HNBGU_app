@@ -13,9 +13,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import `in`.campusone.app.MainActivity
 import `in`.campusone.app.R
 import `in`.campusone.app.data.remote.AuthManager
@@ -175,18 +175,28 @@ class CampusFirebaseMessagingService : FirebaseMessagingService() {
         super.onMessageReceived(remoteMessage)
 
         val data = remoteMessage.data
-        // Server sends data-only messages so the app owns category filtering,
-        // channel selection and deep-link construction in foreground and background.
-        if (data.isEmpty()) return
+        // Server sends data-only messages. Complete rendering before this FCM
+        // callback returns; a detached coroutine can be killed with the service
+        // process and silently drop the heads-up notification.
+        if (data.isEmpty()) {
+            android.util.Log.w("CampusOneFCM", "Received FCM message without data payload")
+            return
+        }
 
-        CoroutineScope(Dispatchers.IO).launch {
-            showNotificationIfEnabled(
-                title = data["title"] ?: "CampusOne",
-                body = data["body"] ?: "New notification",
-                category = data["category"] ?: NotificationCategory.NOTICE,
-                targetType = data["target_type"] ?: "",
-                targetId = data["target_id"] ?: ""
-            )
+        runBlocking {
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    showNotificationIfEnabled(
+                        title = data["title"] ?: "CampusOne",
+                        body = data["body"] ?: "New notification",
+                        category = data["category"] ?: NotificationCategory.NOTICE,
+                        targetType = data["target_type"] ?: "",
+                        targetId = data["target_id"] ?: ""
+                    )
+                }.onFailure { error ->
+                    android.util.Log.e("CampusOneFCM", "Failed to display incoming push notification", error)
+                }
+            }
         }
     }
 
@@ -197,10 +207,15 @@ class CampusFirebaseMessagingService : FirebaseMessagingService() {
         targetType: String,
         targetId: String
     ) {
-        if (!notificationManagerCompat.areNotificationsEnabled()) return
-        if (userPreferencesRepository.isNotificationCategoryEnabled(category)) {
-            showNotification(title, body, category, targetType, targetId)
+        if (!notificationManagerCompat.areNotificationsEnabled()) {
+            android.util.Log.w("CampusOneFCM", "Notifications are disabled at Android app level")
+            return
         }
+        if (!userPreferencesRepository.isNotificationCategoryEnabled(category)) {
+            android.util.Log.i("CampusOneFCM", "Notification suppressed by in-app category preference: $category")
+            return
+        }
+        showNotification(title, body, category, targetType, targetId)
     }
 
     /** Displays a local notification with deep-link support. */
