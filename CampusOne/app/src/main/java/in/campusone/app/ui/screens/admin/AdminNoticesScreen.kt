@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -161,7 +164,7 @@ fun AdminNoticesScreen(
                                 Icon(Icons.Default.Delete, contentDescription = "Delete from cloud")
                             }
                             IconButton(onClick = {
-                                viewModel.saveNoticeRemote(notice)
+                                viewModel.saveNoticeRemote(notice, shouldNotify = editingNotice == null)
                             }) {
                                 Icon(Icons.Default.CloudUpload, contentDescription = "Sync to cloud")
                             }
@@ -233,7 +236,10 @@ private fun NoticeDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (title.isNotBlank()) "Edit Notice" else "Add Notice") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+            Column(
+                modifier = Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+            ) {
                 C1TextField(
                     value = title,
                     onValueChange = onTitleChange,
@@ -273,7 +279,7 @@ private fun NoticeDialog(
         },
         confirmButton = {
             C1Button(
-                text = "Save",
+                text = "Publish notice",
                 onClick = onSave,
                 enabled = title.isNotBlank() && body.isNotBlank()
             )
