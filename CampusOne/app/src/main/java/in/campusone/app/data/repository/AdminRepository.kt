@@ -511,8 +511,24 @@ class AdminRepository @Inject constructor(
         noticeDao.deleteNotice(noticeId)
 
     // Remote notice operations (admin only)
-    suspend fun saveNoticeRemote(notice: NoticeEntity): Boolean =
-        supabaseSync.uploadNotices(notice.sectionKey, listOf(noticeToRemoteMap(notice)))
+    suspend fun saveNoticeRemote(notice: NoticeEntity): Boolean {
+        val synced = supabaseSync.uploadNotices(notice.sectionKey, listOf(noticeToRemoteMap(notice)))
+        if (!synced) return false
+
+        // Routine notices stay in the shared feed. Official/high-priority notices
+        // also send a campus-wide push, with the notice ID as the tap destination.
+        if (notice.isOfficial || notice.priority == "HIGH" || notice.priority == "URGENT") {
+            val category = if (notice.isOfficial) "announcement" else "notice"
+            supabaseSync.sendPushNotification(
+                title = notice.title,
+                body = notice.body,
+                category = category,
+                targetType = "NOTICE",
+                targetId = notice.id
+            )
+        }
+        return true
+    }
 
     suspend fun deleteNoticeRemote(noticeId: String): Boolean =
         supabaseSync.deleteNotice(noticeId)
