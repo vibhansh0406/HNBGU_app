@@ -728,7 +728,8 @@ fun MoreHubScreen(
                     MoreSubScreen.SETTINGS -> SettingsScreen(
                         profile = coreState.profile,
                         onSignOut = onSignOut,
-                        onOpenPrivacy = { activeScreen = MoreSubScreen.PRIVACY_POLICY }
+                        onOpenPrivacy = { activeScreen = MoreSubScreen.PRIVACY_POLICY },
+                        onSaveProfile = coreViewModel::updateAcademicProfile
                     )
                     MoreSubScreen.PRIVACY_POLICY -> PrivacyPolicyScreen()
 MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
@@ -1973,7 +1974,7 @@ private fun AddAssignmentDialog(
         },
         confirmButton = {
             C1Button(
-                text = stringResource(R.string.assignment_save),
+                text = if (postToWholeSection) "Publish to section" else "Save assignment",
                 onClick = {
                     onSave(
                         subjectTag.substringAfterLast("•").trim(),
@@ -1988,7 +1989,8 @@ private fun AddAssignmentDialog(
                         postToWholeSection
                     )
                 },
-                enabled = title.isNotBlank()
+                enabled = title.isNotBlank() && subjectTag.isNotBlank(),
+                modifier = Modifier.fillMaxWidth()
             )
         },
         dismissButton = {
