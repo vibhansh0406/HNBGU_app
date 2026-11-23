@@ -159,7 +159,7 @@ data class AdminActionResult(
     val message: String
 )
 
-private val ASSIGNABLE_ROLE_NAMES = setOf("STUDENT", "CR", "TEACHER", "CLUB_ADMIN", "MODERATOR", "ADMIN")
+private val ASSIGNABLE_ROLE_NAMES = setOf("STUDENT", "CR", "MODERATOR", "ADMIN")
 
 @Singleton
 class AdminRepository @Inject constructor(
