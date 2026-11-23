@@ -518,7 +518,7 @@ private fun OnboardingStepClass(
             C1EmptyState(
                 icon = Icons.Default.Shield,
                 title = "Admin Access",
-                message = "Signed in as the app owner. The admin panel will be enabled automatically."
+                message = "Signed in as the app owner. The Super Admin Portal will be enabled automatically."
             )
         } else {
             Column(
