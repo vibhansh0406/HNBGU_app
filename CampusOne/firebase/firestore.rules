@@ -132,10 +132,12 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if isSignedIn() && request.auth.uid == uid;
       allow create: if isSignedIn() && request.auth.uid == uid
-        && (request.resource.data.role == 'STUDENT' || request.resource.data.verifiedRole == false);
+        && request.resource.data.role == 'STUDENT'
+        && request.resource.data.verifiedRole == false;
       allow update: if isSignedIn() && request.auth.uid == uid
-        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['verifiedRole'])
-            || resource.data.verifiedRole == request.resource.data.verifiedRole);
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'role', 'verifiedRole', 'assignedSectionKeys', 'managedClubIds', 'moderatorScope'
+        ]);
 
       match /attendance/{subjectId} {
         allow read, write: if isSignedIn() && request.auth.uid == uid;
