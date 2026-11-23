@@ -241,7 +241,7 @@ class StudyAndCampusViewModel @Inject constructor(
     fun reportResource(id: String) {
         viewModelScope.launch {
             repository.reportResourceAbuse(id)
-            _statusMessages.emit("Reported to CR & Faculty moderation queue.")
+            _statusMessages.emit("Reported to CR & Moderator moderation queue.")
         }
     }
 
@@ -290,7 +290,7 @@ class StudyAndCampusViewModel @Inject constructor(
                 dueDateFormatted = dueDateFormatted,
                 remind1Day = remind1Day,
                 remind2Hours = remind2Hours,
-                isSharedByCrOrTeacher = postToSection,
+                isSharedByCrOrModerator = postToSection,
                 authorName = if (postToSection) "${p.name} (${p.role.name})" else "Self"
             )
             _statusMessages.emit("Assignment saved with offline reminders!")
@@ -332,7 +332,7 @@ class StudyAndCampusViewModel @Inject constructor(
                 examTimeFormatted = examTime,
                 venue = venue,
                 daysFromNow = daysFromNow,
-                publishedByCr = isCrOrTeacher
+                publishedByCr = isCrOrModerator
             )
             _statusMessages.emit("Exam added with countdown & reminder!")
         }
@@ -528,7 +528,7 @@ class StudyAndCampusViewModel @Inject constructor(
             if (res.isSuccess) {
                 _statusMessages.emit(
                     if (isAutoApproved) "Event published & followers notified!"
-                    else "Event submitted for CR / Teacher approval."
+                    else "Event submitted for CR / Moderator approval."
                 )
             } else {
                 _statusMessages.emit(res.exceptionOrNull()?.message ?: "Rate limit active")
@@ -626,7 +626,7 @@ class StudyAndCampusViewModel @Inject constructor(
                 suggesterName = p.name,
                 proposedChange = proposedChange
             )
-            _statusMessages.emit("Correction submitted to Faculty / Admin moderation queue!")
+            _statusMessages.emit("Correction submitted to Moderator / Admin moderation queue!")
         }
     }
 
