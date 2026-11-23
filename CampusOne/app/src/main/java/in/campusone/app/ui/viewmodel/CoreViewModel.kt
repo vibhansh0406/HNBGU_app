@@ -402,7 +402,8 @@ class CoreViewModel @Inject constructor(
         isPinned: Boolean,
         category: String = "GENERAL",
         priority: String = "NORMAL",
-        isOfficial: Boolean = false
+        isOfficial: Boolean = false,
+        audience: Map<String, Any> = emptyMap()
     ) {
         viewModelScope.launch {
             val result = repository.postNotice(
@@ -414,7 +415,8 @@ class CoreViewModel @Inject constructor(
                 isPinned = isPinned,
                 category = category,
                 priority = priority,
-                isOfficial = isOfficial
+                isOfficial = isOfficial,
+                audience = audience
             )
             if (result.isSuccess) {
                 _uiMessages.emit("Notice published to section!")
