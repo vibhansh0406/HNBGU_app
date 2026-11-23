@@ -446,7 +446,8 @@ class AdminRepository @Inject constructor(
     }
 
     private fun roleOf(name: String?): UserRole =
-        UserRole.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: UserRole.STUDENT
+        if (name.equals("SUPER_ADMIN", ignoreCase = true)) UserRole.ADMIN
+        else UserRole.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: UserRole.STUDENT
 
     private fun Any?.toEpochMillis(): Long = when (this) {
         is Number -> toLong()
