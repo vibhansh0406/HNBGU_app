@@ -680,6 +680,12 @@ private fun PostNoticeDialog(
     var uploadedAttachmentType by rememberSaveable { mutableStateOf(AttachmentType.NONE.name) }
     var isUploadingAttachment by rememberSaveable { mutableStateOf(false) }
     var attachmentUploadError by rememberSaveable { mutableStateOf<String?>(null) }
+    val audienceNumbersValid = remember(audienceYears, audienceSemesters) {
+        listOf(audienceYears, audienceSemesters).all { raw ->
+            raw.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                .all { token -> token.toIntOrNull()?.let { it > 0 } == true }
+        }
+    }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val attachmentPicker = rememberLauncherForActivityResult(
@@ -878,7 +884,7 @@ private fun PostNoticeDialog(
                         }
                     )
                 },
-                enabled = title.isNotBlank() && body.isNotBlank() && !isUploadingAttachment
+                enabled = title.isNotBlank() && body.isNotBlank() && !isUploadingAttachment && audienceNumbersValid
             )
         },
         dismissButton = {
