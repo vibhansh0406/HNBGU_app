@@ -535,8 +535,7 @@ private fun OnboardingStepClass(
                         val label = when (role) {
                             UserRole.STUDENT -> stringResource(R.string.role_student)
                             UserRole.CR -> stringResource(R.string.role_cr)
-                            UserRole.TEACHER -> stringResource(R.string.role_teacher)
-                            UserRole.CLUB_ADMIN -> stringResource(R.string.role_club_admin)
+                             UserRole.MODERATOR -> stringResource(R.string.role_moderator)
                             else -> role.name
                         }
                         C1FilterChip(
