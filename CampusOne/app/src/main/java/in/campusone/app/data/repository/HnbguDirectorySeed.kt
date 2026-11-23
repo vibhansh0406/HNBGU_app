@@ -30,11 +30,18 @@ object HnbguDirectorySeed {
                 isEmergencyOrImportant = false
             )
 
-        fun facility(id: String, name: String, department: String, location: String, details: String) =
+        fun facility(
+            id: String,
+            name: String,
+            department: String,
+            location: String,
+            details: String,
+            category: String = "FACILITY"
+        ) =
             DirectoryContactEntity(
                 id = "official_hnbgu_facility_$id",
                 collegeId = collegeId,
-                category = "FACILITY",
+                category = category,
                 department = department,
                 name = name,
                 designation = "University facility",
@@ -217,28 +224,32 @@ object HnbguDirectorySeed {
                 name = "Birla Main Campus",
                 department = "Campus",
                 location = "Srinagar, Uttarakhand",
-                details = "Part of Birla Campus; see the official campus page for location and departments"
+                details = "Part of Birla Campus; see the official campus page for location and departments",
+                category = "CAMPUS"
             ),
             facility(
                 id = "campus_chauras",
                 name = "Chauras Campus",
                 department = "Campus",
                 location = "Across the Alaknanda river from Birla Main Campus",
-                details = "HNBGU lists Chauras approximately 4.5 km from the Main Campus, connected by a bridge"
+                details = "HNBGU lists Chauras approximately 4.5 km from the Main Campus, connected by a bridge",
+                category = "CAMPUS"
             ),
             facility(
                 id = "campus_bgr",
                 name = "B.G.R. Campus",
                 department = "Campus",
                 location = "Pauri, Uttarakhand",
-                details = "Official HNBGU campus; see the B.G.R. campus page for departments and contact details"
+                details = "Official HNBGU campus; see the B.G.R. campus page for departments and contact details",
+                category = "CAMPUS"
             ),
             facility(
                 id = "campus_srt",
                 name = "S.R.T. Campus",
                 department = "Campus",
                 location = "Badshahithaul, Tehri, Uttarakhand",
-                details = "Official HNBGU campus; see the S.R.T. campus page for departments and contact details"
+                details = "Official HNBGU campus; see the S.R.T. campus page for departments and contact details",
+                category = "CAMPUS"
             ),
 
             department("forestry", "School of Agriculture and Allied Sciences", "Forestry & Natural Resources"),
