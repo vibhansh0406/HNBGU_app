@@ -537,9 +537,9 @@ class CoreCampusRepository @Inject constructor(
             )))
             check(uploaded) { "Notice could not be published to the shared campus feed" }
 
-            // Admin-published notices are time-sensitive for students; send a
-            // section-scoped push for every notice, not only pinned/high-priority ones.
-            val shouldPush = profile.role == UserRole.ADMIN
+            // Every authorized publisher sends a push to the exact notice audience.
+            // Admin/Moderator target the college; CR targets only their section.
+            val shouldPush = profile.role in listOf(UserRole.ADMIN, UserRole.MODERATOR, UserRole.CR)
             if (shouldPush) {
                 supabaseSync.sendPushNotification(
                     title = entity.title,
