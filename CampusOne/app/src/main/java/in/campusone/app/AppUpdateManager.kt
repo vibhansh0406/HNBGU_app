@@ -182,7 +182,8 @@ private suspend fun downloadVerifyAndInstall(
     val manager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
     val downloadId = manager.enqueue(request)
     var apkFile: File? = null
-    repeat(180) {
+    var attempts = 0
+    while (apkFile == null && attempts < 180) {
         val query = DownloadManager.Query().setFilterById(downloadId)
         manager.query(query)?.use { cursor ->
             if (cursor.moveToFirst()) {
@@ -190,7 +191,6 @@ private suspend fun downloadVerifyAndInstall(
                     DownloadManager.STATUS_SUCCESSFUL -> {
                         val path = cursor.getString(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))
                         apkFile = File(Uri.parse(path).path ?: "")
-                        return@repeat
                     }
                     DownloadManager.STATUS_FAILED -> {
                         val reason = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON))
@@ -202,6 +202,7 @@ private suspend fun downloadVerifyAndInstall(
         if (apkFile == null) {
             onProgress("Downloading update…")
             delay(1000)
+            attempts++
         }
     }
     val apk = apkFile ?: throw IllegalStateException("Download timed out. Please try again.")
@@ -209,7 +210,7 @@ private suspend fun downloadVerifyAndInstall(
 
     onProgress("Verifying APK integrity…")
     val expected = URL(release.checksumUrl).openStream().bufferedReader().use { it.readText() }
-        .trim().substringBefore(Regex("\\s"))
+        .trim().split(Regex("\\s+")).first()
     val digest = MessageDigest.getInstance("SHA-256")
     val actual = apk.inputStream().use { input ->
         val buffer = ByteArray(8192)
