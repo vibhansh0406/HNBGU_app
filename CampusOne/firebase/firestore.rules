@@ -79,7 +79,7 @@ service cloud.firestore {
         allow delete: if isSameCollege(collegeId) && isClubAdminFor(resource.data.clubId);
       }
 
-      // Phase 3.2: Privacy-First Lost & Found Board (No public phone numbers; 30-day auto-archive; CR moderation)
+      // Phase 3.2: Privacy-First Lost & Found Board (No public phone numbers; 30-day auto-archive; Moderator/Admin moderation)
       match /lost_found/{itemId} {
         allow read: if isSameCollege(collegeId) && (
           resource.data.isHidden == false || isAdminOrModerator() || resource.data.reporterUid == request.auth.uid
