@@ -254,13 +254,25 @@ serve(async (req) => {
     // Parse request body
     const body = await req.json();
     const { user_ids, section_key, title, body: notificationBody, category, target_type, target_id, audience } = body;
-    const audienceObject = audience && typeof audience === "object" && !Array.isArray(audience) ? audience : {};
     const audienceKeys = ["courses", "years", "semesters", "sections", "subjects", "sessions"];
-    const malformedAudience = audienceKeys.some((key) =>
-      audienceObject[key] !== undefined && !Array.isArray(audienceObject[key])
-    );
+    const stringAudienceKeys = ["courses", "sections", "subjects", "sessions"];
+    const numberAudienceKeys = ["years", "semesters"];
+    if (audience !== undefined && (audience === null || typeof audience !== "object" || Array.isArray(audience))) {
+      return new Response(JSON.stringify({ ok: false, error: "Audience must be an object of supported filter arrays." }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+    const audienceObject = audience ?? {};
+    const malformedAudience =
+      Object.keys(audienceObject).some((key) => !audienceKeys.includes(key)) ||
+      audienceKeys.some((key) => audienceObject[key] !== undefined && !Array.isArray(audienceObject[key])) ||
+      stringAudienceKeys.some((key) => Array.isArray(audienceObject[key]) &&
+        audienceObject[key].some((item: unknown) => typeof item !== "string" || item.trim().length === 0)) ||
+      numberAudienceKeys.some((key) => Array.isArray(audienceObject[key]) &&
+        audienceObject[key].some((item: unknown) => typeof item !== "number" || !Number.isInteger(item) || item <= 0));
     if (malformedAudience) {
-      return new Response(JSON.stringify({ ok: false, error: "Audience filters must be arrays." }), {
+      return new Response(JSON.stringify({ ok: false, error: "Audience filters contain an unsupported key or invalid value." }), {
         status: 400,
         headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
       });
