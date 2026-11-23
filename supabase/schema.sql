@@ -1715,8 +1715,26 @@ create policy notices_owner_manage on public.notices
 drop policy if exists notices_moderator_manage on public.notices;
 create policy notices_moderator_manage on public.notices
   for all to authenticated
-  using (public.campusone_caller_role() = 'MODERATOR' and is_official = false)
-  with check (public.campusone_caller_role() = 'MODERATOR' and is_official = false);
+  using (
+    public.campusone_caller_role() = 'MODERATOR'
+    and is_official = false
+    and exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid()
+        and (section_key = 'global' or left(section_key, length(p.college_id) + 1) = p.college_id || '_')
+    )
+  )
+  with check (
+    public.campusone_caller_role() = 'MODERATOR'
+    and is_official = false
+    and author_uid = auth.uid()::text
+    and author_role = 'MODERATOR'
+    and exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid()
+        and (section_key = 'global' or left(section_key, length(p.college_id) + 1) = p.college_id || '_')
+    )
+  );
 drop policy if exists notices_cr_insert_section on public.notices;
 create policy notices_cr_insert_section on public.notices
   for insert to authenticated
