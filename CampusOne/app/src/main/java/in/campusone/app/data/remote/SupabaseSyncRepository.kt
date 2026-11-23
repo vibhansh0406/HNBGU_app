@@ -857,25 +857,37 @@ class SupabaseSyncRepository @Inject constructor(
         deviceName: String,
         email: String
     ): Boolean {
-        val edgeUrl = authManager.config.edgeFunctionUrl
-        if (edgeUrl.isBlank()) return false
+        val edgeUrl = authManager.config.edgeFunctionUrl.trimEnd('/')
+        if (edgeUrl.isBlank()) {
+            Log.e(TAG, "FCM registration skipped: Supabase Edge Functions URL is blank")
+            return false
+        }
 
         val session = authManager.currentSession()
         val token = session?.accessToken
-            ?: return false
-        val anonKey = authManager.config.anonKey
+        if (token.isNullOrBlank()) {
+            Log.w(TAG, "FCM registration deferred: no active Supabase access token")
+            return false
+        }
+        if (fcmToken.isBlank()) {
+            Log.e(TAG, "FCM registration failed: Firebase returned an empty token")
+            return false
+        }
 
         return try {
             val url = URL("$edgeUrl/register-device-token")
-            val conn = url.openConnection() as HttpURLConnection
-            conn.requestMethod = "POST"
-            conn.setRequestProperty("apikey", anonKey)
-            conn.setRequestProperty("Authorization", "Bearer $token")
-            conn.setRequestProperty("Content-Type", "application/json")
-            conn.connectTimeout = 15000
-            conn.readTimeout = 15000
-            conn.doOutput = true
+            val conn = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                setRequestProperty("apikey", authManager.config.anonKey)
+                setRequestProperty("Authorization", "Bearer $token")
+                setRequestProperty("Content-Type", "application/json")
+                connectTimeout = 15000
+                readTimeout = 15000
+                doOutput = true
+            }
 
+            // The server derives the user ID from the verified JWT. The supplied
+            // uid is retained for backward compatibility and is never trusted.
             val body = org.json.JSONObject()
                 .put("uid", uid)
                 .put("fcm_token", fcmToken)
@@ -884,18 +896,30 @@ class SupabaseSyncRepository @Inject constructor(
                 .put("email", email)
                 .toString()
 
-            conn.outputStream.use { it.write(body.toByteArray(StandardCharsets.UTF_8)) }
+            conn.outputStream.use {
+                it.write(body.toByteArray(StandardCharsets.UTF_8))
+            }
 
             val responseCode = conn.responseCode
             val responseStream = if (responseCode in 200..299) conn.inputStream else conn.errorStream
-            val responseBody = responseStream?.use { it.readBytes() } ?: ByteArray(0)
-            val response = String(responseBody, StandardCharsets.UTF_8)
+            val response = responseStream?.use {
+                it.readBytes().toString(StandardCharsets.UTF_8)
+            }.orEmpty()
+            conn.disconnect()
 
-            responseCode in 200..299 && runCatching {
+            val success = responseCode in 200..299 && runCatching {
                 org.json.JSONObject(response).optBoolean("ok", false)
             }.getOrDefault(false)
+
+            if (success) {
+                Log.i(TAG, "FCM device token registered successfully")
+            } else {
+                // Never log the FCM token or access token.
+                Log.e(TAG, "FCM registration rejected: HTTP $responseCode; response=$response")
+            }
+            success
         } catch (e: Exception) {
-            Log.w(TAG, "registerDeviceToken failed: ${e.message}")
+            Log.e(TAG, "FCM registration request failed", e)
             false
         }
     }
