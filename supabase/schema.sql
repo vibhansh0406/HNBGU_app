@@ -1637,7 +1637,7 @@ begin
          false,
          (extract(epoch from now()) * 1000)::bigint
     from public.profiles p
-   where (new.section_key = 'global'
+   where p.role = 'STUDENT' and (new.section_key = 'global'
           or new.section_key = p.college_id || '_' || p.course_id || '_sem' || p.semester || '_sec' || p.section)
      and p.id <> coalesce(auth.uid(), '00000000-0000-0000-0000-000000000000'::uuid)
   on conflict (id) do nothing;
@@ -1669,7 +1669,7 @@ begin
          false,
          (extract(epoch from now()) * 1000)::bigint
     from public.profiles p
-   where new.section_key = p.college_id || '_' || p.course_id || '_sem' || p.semester || '_sec' || p.section
+   where p.role = 'STUDENT' and new.section_key = p.college_id || '_' || p.course_id || '_sem' || p.semester || '_sec' || p.section
      and p.id <> coalesce(auth.uid(), '00000000-0000-0000-0000-000000000000'::uuid)
   on conflict (id) do nothing;
   return null;
