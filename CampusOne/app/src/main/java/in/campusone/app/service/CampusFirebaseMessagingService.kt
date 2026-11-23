@@ -163,26 +163,18 @@ class CampusFirebaseMessagingService : FirebaseMessagingService() {
         super.onMessageReceived(remoteMessage)
 
         val data = remoteMessage.data
+        // Server sends data-only messages so the app owns category filtering,
+        // channel selection and deep-link construction in foreground and background.
+        if (data.isEmpty()) return
+
         CoroutineScope(Dispatchers.IO).launch {
-            if (data.isNotEmpty()) {
-                showNotificationIfEnabled(
-                    title = data["title"] ?: data["body"] ?: "CampusOne",
-                    body = data["body"] ?: "New notification",
-                    category = data["category"] ?: NotificationCategory.NOTICE,
-                    targetType = data["target_type"] ?: "",
-                    targetId = data["target_id"] ?: ""
-                )
-            }
-            remoteMessage.notification?.let { notification ->
-                val category = data["category"] ?: NotificationCategory.NOTICE
-                showNotificationIfEnabled(
-                    title = notification.title ?: "CampusOne",
-                    body = notification.body ?: "New notification",
-                    category = category,
-                    targetType = data["target_type"] ?: "",
-                    targetId = data["target_id"] ?: ""
-                )
-            }
+            showNotificationIfEnabled(
+                title = data["title"] ?: "CampusOne",
+                body = data["body"] ?: "New notification",
+                category = data["category"] ?: NotificationCategory.NOTICE,
+                targetType = data["target_type"] ?: "",
+                targetId = data["target_id"] ?: ""
+            )
         }
     }
 
