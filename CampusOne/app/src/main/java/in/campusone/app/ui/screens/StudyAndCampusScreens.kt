@@ -296,6 +296,12 @@ fun MoreHubScreen(
     val unreadNotifications by communityViewModel.unreadNotificationCount.collectAsStateWithLifecycle()
     val isSuperAdmin = adminState.identity.isOwner
 
+    androidx.compose.runtime.LaunchedEffect(activeScreen, adminState.identity.isOwner) {
+        if (!adminState.identity.isOwner && activeScreen.name.startsWith("SUPER_ADMIN")) {
+            activeScreen = MoreSubScreen.HUB
+        }
+    }
+
     androidx.compose.runtime.LaunchedEffect(uiState.profile) {
         adminViewModel.init(uiState.profile)
         moderatorViewModel.init()
@@ -937,7 +943,7 @@ fun NotesAndPyqScreen(
             }
 
             // CR / Teacher Moderation Queue
-            if (isCrOrTeacher && uiState.moderationQueue.isNotEmpty()) {
+            if (isCrOrModerator && uiState.moderationQueue.isNotEmpty()) {
                 item {
                     C1SurfaceCard(
                         modifier = Modifier.fillMaxWidth(),
@@ -992,7 +998,7 @@ fun NotesAndPyqScreen(
             items(filtered, key = { it.id }) { res ->
                 StudyResourceCard(
                     res = res,
-                    isCrOrTeacher = isCrOrTeacher,
+                    isCrOrModerator = isCrOrModerator,
                     onOpenViewer = { viewingResource = res },
                     onUpvote = { viewModel.upvoteResource(res.id) },
                     onToggleBookmark = { viewModel.toggleBookmark(res.id, !res.isBookmarkedOffline) },
@@ -1049,7 +1055,7 @@ fun NotesAndPyqScreen(
 @Composable
 private fun StudyResourceCard(
     res: StudyResourceEntity,
-    isCrOrTeacher: Boolean,
+    isCrOrModerator: Boolean,
     onOpenViewer: () -> Unit,
     onUpvote: () -> Unit,
     onToggleBookmark: () -> Unit,
@@ -1167,7 +1173,7 @@ private fun StudyResourceCard(
                     )
                 }
                 Row {
-                    if (isCrOrTeacher) {
+                    if (isCrOrModerator) {
                         IconButton(onClick = onCrHide) {
                             Icon(Icons.Default.VisibilityOff, contentDescription = "Hide content")
                         }
@@ -1530,7 +1536,7 @@ fun AssignmentsScreen(
 
     val now = System.currentTimeMillis()
     val endOfToday = now + 24 * 3_600_000L
-    val isCrOrTeacher = uiState.profile.role == UserRole.CR || uiState.profile.role == UserRole.TEACHER
+    val isCrOrModerator = uiState.profile.role == UserRole.CR || uiState.profile.role == UserRole.MODERATOR
 
     LaunchedEffect(focusAssignmentId, uiState.assignments) {
         val target = focusAssignmentId?.let { id -> uiState.assignments.firstOrNull { it.id == id } }
@@ -1667,7 +1673,7 @@ fun AssignmentsScreen(
 
     if (showAddDialog) {
         AddAssignmentDialog(
-            isCrOrTeacher = isCrOrTeacher,
+            isCrOrModerator = isCrOrModerator,
             onDismiss = { showAddDialog = false },
             onSave = { subjectId, subjectTag, title, description, priority, dueOffsetDays, dueDateFormatted, remind1Day, remind2Hours, postToSection ->
                 viewModel.saveAssignment(
@@ -1856,7 +1862,7 @@ private fun AssignmentItemCard(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AddAssignmentDialog(
-    isCrOrTeacher: Boolean,
+    isCrOrModerator: Boolean,
     onDismiss: () -> Unit,
     onSave: (
         subjectId: String,
@@ -1956,7 +1962,7 @@ private fun AddAssignmentDialog(
                     Spacer(modifier = Modifier.width(C1Spacing.xs))
                     Text(stringResource(R.string.assignment_remind_2h))
                 }
-                if (isCrOrTeacher) {
+                if (isCrOrModerator) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = postToWholeSection, onCheckedChange = { postToWholeSection = it })
                         Spacer(modifier = Modifier.width(C1Spacing.xs))
