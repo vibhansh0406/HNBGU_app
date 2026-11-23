@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+ native launch screen. Keep the same CampusOne mark as the launcher icon. -->
+    <style name="Theme.CampusOne" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowSplashScreenBackground">@color/campusone_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_campusone_c_mark</item>
+        <item name="android:windowSplashScreenAnimationDuration">420</item>
+        <item name="android:postSplashScreenTheme">@style/Theme.CampusOne</item>
+    </style>
+</resources>
