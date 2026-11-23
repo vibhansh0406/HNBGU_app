@@ -621,7 +621,7 @@ private fun PermissionMatrixCard(uiState: AdminUiState) {
             AdminPermission.MODERATE_REPORTS,
             AdminPermission.MANAGE_EVENTS
         ),
-        "TEACHER / CR" to listOf(
+        "MODERATOR" to listOf(\n            AdminPermission.VIEW_USERS,\n            AdminPermission.MANAGE_USERS,\n            AdminPermission.MANAGE_NOTICES,\n            AdminPermission.MANAGE_RESOURCES,\n            AdminPermission.MANAGE_ASSIGNMENTS,\n            AdminPermission.MODERATE_REPORTS,\n            AdminPermission.MANAGE_EVENTS\n        ),\n        "CR" to listOf(
             AdminPermission.MANAGE_NOTICES,
             AdminPermission.MANAGE_ASSIGNMENTS
         )
