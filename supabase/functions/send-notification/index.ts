@@ -210,7 +210,7 @@ serve(async (req) => {
     // Only Admin and Moderator roles may use the college-wide push sender.
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role")
+      .select("role, college_id")
       .eq("id", user.id)
       .single();
 
@@ -252,6 +252,7 @@ serve(async (req) => {
       const { data: profiles, error: profileError } = await supabase
         .from("profiles")
         .select("id")
+        .eq("role", "STUDENT")
         .eq("college_id", collegeId)
         .eq("course_id", courseId)
         .eq("semester", Number(semesterText))
@@ -273,7 +274,46 @@ serve(async (req) => {
       }
     }
 
-    // Get active device tokens for the resolved audience.
+    // Resolve college-wide sends to student accounts only. A caller-supplied
+    // user_ids list is also intersected with student profiles in the sender's
+    // college, so this function cannot target staff accounts or arbitrary users.
+    if (section_key === "global") {
+      const { data: students, error: studentsError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("role", "STUDENT")
+        .eq("college_id", profile?.college_id ?? "");
+      if (studentsError) {
+        console.error("College student query failed:", studentsError);
+        return new Response(JSON.stringify({ ok: false, error: "Failed to resolve college students" }), {
+          status: 500,
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        });
+      }
+      targetUserIds = (students ?? []).map((student: { id: string }) => student.id);
+    } else if (targetUserIds !== null) {
+      const { data: students, error: studentsError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("role", "STUDENT")
+        .eq("college_id", profile?.college_id ?? "")
+        .in("id", targetUserIds);
+      if (studentsError) {
+        console.error("Target student query failed:", studentsError);
+        return new Response(JSON.stringify({ ok: false, error: "Failed to validate target students" }), {
+          status: 500,
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        });
+      }
+      targetUserIds = (students ?? []).map((student: { id: string }) => student.id);
+    } else {
+      return new Response(JSON.stringify({ ok: false, error: "An explicit notification audience is required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      });
+    }
+
+    // Get active device tokens for the resolved student audience.
     let query = supabase.from("device_tokens").select("fcm_token, user_id").eq("is_active", true);
     if (targetUserIds !== null) {
       if (targetUserIds.length === 0) {
