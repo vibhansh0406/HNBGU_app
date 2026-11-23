@@ -95,15 +95,32 @@ class CoreViewModel @Inject constructor(
         val resolvedUid = uid ?: authManager.currentUserId() ?: return
         val email = sessionEmail ?: authManager.currentUserEmail()
         val isOwner = email?.equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true) == true
+        val local = prefs.userProfile.first()
+        val resolvedEmail = email?.takeIf { it.isNotBlank() } ?: local.email
+        val localProfileIsComplete = local.onboardingCompleted &&
+            local.name.isNotBlank() && local.courseId.isNotBlank()
+
+        // A temporary network/read failure must never erase a completed local profile.
+        // Restore it to Supabase when possible; otherwise keep the user inside the app.
         val remote = runCatching { repository.fetchRemoteProfile(resolvedUid) }.getOrNull()
 
         if (remote == null) {
-            // No remote profile exists — create one with onboarding_completed = FALSE.
-            // The server-side trigger or bootstrap_profile RPC handles defaults.
-            val local = prefs.userProfile.first()
-            val resolvedEmail = email?.takeIf { it.isNotBlank() } ?: local.email
-            // Server has no profile: mark local as not onboarded so onboarding is shown.
-            prefs.saveUserProfile(local.copy(onboardingCompleted = false), markOnboarded = false)
+            if (localProfileIsComplete) {
+                val restored = local.copy(
+                    uid = resolvedUid,
+                    email = resolvedEmail,
+                    role = if (isOwner) UserRole.ADMIN else local.role,
+                    onboardingCompleted = true
+                )
+                val sync = repository.syncProfileToCloud(restored)
+                if (sync.isSuccess) prefs.saveUserProfile(restored, markOnboarded = true)
+                return
+            }
+
+            prefs.saveUserProfile(
+                local.copy(uid = resolvedUid, email = resolvedEmail, onboardingCompleted = false),
+                markOnboarded = false
+            )
             authManager.ensureUserProfile(
                 uid = resolvedUid,
                 email = resolvedEmail,
@@ -113,25 +130,36 @@ class CoreViewModel @Inject constructor(
             return
         }
 
-        // Remote profile exists. Server's onboardingCompleted is the source of truth.
         val remoteRole = if (isOwner) UserRole.ADMIN else remote.role
 
-        if (!remote.onboardingCompleted) {
-            // Not onboarded yet — sync profile data but keep local flag as not onboarded.
-            // The UI will show the onboarding screen.
-            prefs.saveUserProfile(remote.copy(role = remoteRole), markOnboarded = false)
+        // If the device already has a completed profile but the server row is stale
+        // (e.g. bootstrap happened before the full profile upload), repair the server
+        // instead of sending the student through onboarding again.
+        if (!remote.onboardingCompleted && localProfileIsComplete) {
+            val restored = local.copy(
+                uid = resolvedUid,
+                email = resolvedEmail,
+                role = remoteRole,
+                onboardingCompleted = true
+            )
+            val sync = repository.syncProfileToCloud(restored)
+            if (sync.isSuccess) prefs.saveUserProfile(restored, markOnboarded = true)
             return
         }
 
-        // Onboarded — sync local state to match the server.
-        val local = prefs.userProfile.first()
-        val resolvedEmail = email?.takeIf { it.isNotBlank() } ?: local.email
-        if (local.role != remoteRole || local.name != remote.name || local.email != resolvedEmail || !local.onboardingCompleted) {
-            prefs.saveUserProfile(
-                local.copy(role = remoteRole, name = remote.name, email = resolvedEmail, onboardingCompleted = true),
-                markOnboarded = true
-            )
+        if (!remote.onboardingCompleted) {
+            prefs.saveUserProfile(remote.copy(uid = resolvedUid, role = remoteRole), markOnboarded = false)
+            return
         }
+
+        // Server-confirmed profile: hydrate all saved academic details on this device.
+        val hydrated = remote.copy(
+            uid = resolvedUid,
+            role = remoteRole,
+            email = resolvedEmail,
+            onboardingCompleted = true
+        )
+        prefs.saveUserProfile(hydrated, markOnboarded = true)
     }
 
     val uiState: StateFlow<CoreUiState> = combine(
