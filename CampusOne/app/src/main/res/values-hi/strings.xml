@@ -336,4 +336,5 @@
     <string name="onboarding_cr_teacher_access">CR, शिक्षक, मॉडरेटर और क्लब एडमिन एक्सेस एडमिन मंजूरी के बाद दिया जाता है। एक अनुरोध स्वचालित रूप से भेजा जाता है।</string>
     <string name="hub_campus_life">कैंपस लाइफ और उपयोगिताएं</string>
     <string name="hub_request_sent">आपका अनुरोध एडमिन को भेज दिया गया है। एक्सेस केवल मंजूरी के बाद दिया जाता है।</string>
+    <string name="home_quick_actions_subtitle">आपके सबसे ज़रूरी काम, एक टैप में</string>
 </resources>
