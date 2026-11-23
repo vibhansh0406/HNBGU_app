@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -497,7 +498,13 @@ fun CampusOneRoot(
             }
         }
     ) { innerPadding ->
-        androidx.compose.foundation.layout.Box(modifier = Modifier.padding(innerPadding)) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            androidx.compose.foundation.layout.Box(
+                modifier = Modifier.widthIn(max = 1120.dp).fillMaxSize()
+            ) {
             AnimatedContent(
                 targetState = currentTab,
                 transitionSpec = {
@@ -609,6 +616,7 @@ fun CampusOneRoot(
                     )
                     }
                 }
+            }
             }
         }
     }
