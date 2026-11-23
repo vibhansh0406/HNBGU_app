@@ -1,5 +1,7 @@
 package `in`.campusone.app.ui.screens.admin
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,12 +41,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.data.local.entity.NoticeEntity
+import `in`.campusone.app.domain.model.AttachmentType
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
 import `in`.campusone.app.ui.components.C1Button
@@ -54,6 +59,7 @@ import `in`.campusone.app.ui.theme.C1Spacing
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,6 +76,35 @@ fun AdminNoticesScreen(
     var category by rememberSaveable { mutableStateOf("GENERAL") }
     var priority by rememberSaveable { mutableStateOf("NORMAL") }
     var isOfficial by rememberSaveable { mutableStateOf(false) }
+    var attachmentUrl by rememberSaveable { mutableStateOf("") }
+    var attachmentType by rememberSaveable { mutableStateOf(AttachmentType.NONE.name) }
+    var isUploadingAttachment by rememberSaveable { mutableStateOf(false) }
+    var attachmentUploadError by rememberSaveable { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val attachmentPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { selectedUri ->
+        if (selectedUri != null) {
+            val mimeType = context.contentResolver.getType(selectedUri).orEmpty()
+            scope.launch {
+                isUploadingAttachment = true
+                attachmentUploadError = null
+                val result = viewModel.uploadNoticeAttachment(selectedUri.toString(), mimeType)
+                if (result.isSuccess) {
+                    attachmentUrl = result.getOrNull().orEmpty()
+                    attachmentType = if (
+                        mimeType.equals("application/pdf", ignoreCase = true) ||
+                        selectedUri.lastPathSegment?.endsWith(".pdf", ignoreCase = true) == true
+                    ) AttachmentType.PDF.name else AttachmentType.IMAGE.name
+                } else {
+                    attachmentUploadError = result.exceptionOrNull()?.message
+                        ?: "Attachment upload failed"
+                }
+                isUploadingAttachment = false
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -91,6 +126,9 @@ fun AdminNoticesScreen(
                 category = "GENERAL"
                 priority = "NORMAL"
                 isOfficial = false
+                attachmentUrl = ""
+                attachmentType = AttachmentType.NONE.name
+                attachmentUploadError = null
                 showDialog = true
             }) {
                 Icon(Icons.Default.Add, contentDescription = "Add Notice")
@@ -154,6 +192,9 @@ fun AdminNoticesScreen(
                                 category = notice.category
                                 priority = notice.priority
                                 isOfficial = notice.isOfficial
+                                attachmentUrl = notice.attachmentUrl.orEmpty()
+                                attachmentType = notice.attachmentType.name
+                                attachmentUploadError = null
                                 showDialog = true
                             }) {
                                 Icon(Icons.Default.Edit, contentDescription = "Edit")
@@ -183,6 +224,15 @@ fun AdminNoticesScreen(
             category = category,
             priority = priority,
             isOfficial = isOfficial,
+            attachmentUrl = attachmentUrl,
+            attachmentType = attachmentType,
+            isUploadingAttachment = isUploadingAttachment,
+            attachmentUploadError = attachmentUploadError,
+            onAttachmentUrlChange = {
+                attachmentUrl = it
+                if (it.isBlank()) attachmentType = AttachmentType.NONE.name
+            },
+            onUploadAttachment = { attachmentPicker.launch(arrayOf("application/pdf", "image/*")) },
             onTitleChange = { title = it },
             onBodyChange = { body = it },
             onPinnedChange = { isPinned = it },
@@ -200,6 +250,8 @@ fun AdminNoticesScreen(
                     category = category,
                     priority = priority,
                     isOfficial = isOfficial,
+                    attachmentUrl = attachmentUrl.ifBlank { null },
+                    attachmentType = if (attachmentUrl.isBlank()) AttachmentType.NONE else AttachmentType.valueOf(attachmentType),
                     authorUid = uiState.profile.uid,
                     authorName = uiState.profile.name,
                     authorRole = uiState.profile.role,
@@ -223,6 +275,12 @@ private fun NoticeDialog(
     category: String,
     priority: String,
     isOfficial: Boolean,
+    attachmentUrl: String,
+    attachmentType: String,
+    isUploadingAttachment: Boolean,
+    attachmentUploadError: String?,
+    onAttachmentUrlChange: (String) -> Unit,
+    onUploadAttachment: () -> Unit,
     onTitleChange: (String) -> Unit,
     onBodyChange: (String) -> Unit,
     onPinnedChange: (Boolean) -> Unit,
@@ -253,6 +311,33 @@ private fun NoticeDialog(
                     label = "Body / Details",
                     modifier = Modifier.fillMaxWidth()
                 )
+                C1TextField(
+                    value = attachmentUrl,
+                    onValueChange = onAttachmentUrlChange,
+                    label = "Attachment URL (optional)",
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1Button(
+                    text = if (isUploadingAttachment) "Uploading attachment..." else "Upload PDF or image",
+                    onClick = onUploadAttachment,
+                    intent = C1ButtonIntent.OUTLINED,
+                    enabled = !isUploadingAttachment,
+                    loading = isUploadingAttachment
+                )
+                if (attachmentUrl.isNotBlank() && attachmentType != AttachmentType.NONE.name) {
+                    Text(
+                        text = "Attachment added ($attachmentType)",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                if (!attachmentUploadError.isNullOrBlank()) {
+                    Text(
+                        text = attachmentUploadError.orEmpty(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     androidx.compose.material3.Checkbox(checked = isPinned, onCheckedChange = onPinnedChange)
                     Text("Pin to top")
@@ -281,7 +366,7 @@ private fun NoticeDialog(
             C1Button(
                 text = "Publish notice",
                 onClick = onSave,
-                enabled = title.isNotBlank() && body.isNotBlank()
+                enabled = title.isNotBlank() && body.isNotBlank() && !isUploadingAttachment
             )
         },
         dismissButton = {
