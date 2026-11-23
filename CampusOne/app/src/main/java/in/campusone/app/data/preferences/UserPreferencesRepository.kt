@@ -31,8 +31,8 @@ class UserPreferencesRepository @Inject constructor(
     // Normalize roles from older app versions before deserializing the saved profile.
     // Teacher and Club Admin are retired; their legacy profile records map to Moderator.
     private fun decodeUserProfile(raw: String): UserProfile {
-        val normalized = Regex("\\\"role\\\"\\s*:\\s*\\\"(?:TEACHER|CLUB_ADMIN)\\\"")
-            .replace(raw, "\\\"role\\\":\\\"MODERATOR\\\"")
+        val normalized = Regex("\"role\"\\s*:\\s*\"(?:TEACHER|CLUB_ADMIN)\"")
+            .replace(raw, "\"role\":\"MODERATOR\"")
         return runCatching { json.decodeFromString<UserProfile>(normalized) }
             .getOrDefault(UserProfile())
     }
