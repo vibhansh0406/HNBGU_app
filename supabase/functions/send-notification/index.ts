@@ -5,7 +5,8 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 // FCM configuration - these must be set as Edge Function secrets
-const FCM_PROJECT_ID = Deno.env.get("FCM_PROJECT_ID")!;
+// Keep this aligned with CampusOne/app/google-services.json. An explicit secret can override it per environment.
+const FCM_PROJECT_ID = Deno.env.get("FCM_PROJECT_ID") || "campusone-67aba";
 const FCM_SERVICE_ACCOUNT_EMAIL = Deno.env.get("FCM_SERVICE_ACCOUNT_EMAIL")!;
 const FCM_PRIVATE_KEY = Deno.env.get("FCM_PRIVATE_KEY") ?? ""; // PEM format private key
 
@@ -96,13 +97,32 @@ async function sendFcmMessage(
   data: Record<string, string>
 ): Promise<boolean> {
   try {
+    const category = data.category || "notice";
+    const channelId = category === "announcement"
+      ? "campusone_announcements_v2"
+      : category === "exam"
+        ? "campusone_exams_v2"
+        : category === "assignment"
+          ? "campusone_assignments_v2"
+          : category === "study_material"
+            ? "campusone_study_material_v2"
+            : category === "admin_alert"
+              ? "campusone_admin_alerts_v2"
+              : "campusone_notices_v2";
+
     const message = {
       message: {
         token: fcmToken,
-        // Data-only payload: Android service renders one notification and applies preferences.
-        data: data,
+        // Include both notification + data: Android displays it automatically
+        // while the app is backgrounded, and the app handles it itself in foreground.
+        notification: { title, body },
+        data,
         android: {
           priority: "HIGH",
+          notification: {
+            channel_id: channelId,
+            sound: "default",
+          },
         },
         apns: {
           payload: {
