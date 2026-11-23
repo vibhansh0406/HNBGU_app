@@ -196,7 +196,7 @@ serve(async (req) => {
       : null;
 
     if (typeof section_key === "string" && section_key !== "global") {
-      const match = section_key.match(/^([^_]+)_(.+)_sem(\\d+)_sec(.+)$/);
+      const match = section_key.match(/^([^_]+)_(.+)_sem(\d+)_sec(.+)$/);
       if (!match) {
         return new Response(JSON.stringify({ ok: false, error: "Invalid section_key" }), {
           status: 400,
