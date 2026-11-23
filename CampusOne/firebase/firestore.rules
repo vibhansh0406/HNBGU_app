@@ -51,27 +51,27 @@ service cloud.firestore {
       // Phase 3.1: Clubs (Moderators approve; CRs can submit their own proposals)
       match /clubs/{clubId} {
         allow read: if isSameCollege(collegeId) && (
-          resource.data.isApproved == true || isClubAdminFor(clubId) || (isCr() && resource.data.creatorUid == request.auth.uid)
+          resource.data.isApproved == true || isClubAdminFor(clubId) || (isCr() && resource.data.adminUid == request.auth.uid)
         );
         allow create: if isSameCollege(collegeId)
           && isValidPostSize(request.resource.data.name, 100)
-          && (isAdminOrModerator() || (isCr() && request.resource.data.isApproved == false));
-        allow update: if isSameCollege(collegeId) && (isClubAdminFor(clubId) || (isCr() && resource.data.creatorUid == request.auth.uid && resource.data.isApproved == false && request.resource.data.isApproved == false));
+          && (isAdminOrModerator() || (isCr() && request.resource.data.isApproved == false && request.resource.data.adminUid == request.auth.uid));
+        allow update: if isSameCollege(collegeId) && (isClubAdminFor(clubId) || (isCr() && resource.data.adminUid == request.auth.uid && request.resource.data.adminUid == request.auth.uid && resource.data.isApproved == false && request.resource.data.isApproved == false));
         allow delete: if isSameCollege(collegeId) && isAdminOrModerator();
       }
 
       // Phase 3.1: Events Feed (Moderators approve; CRs can submit their own proposals)
       match /events/{eventId} {
         allow read: if isSameCollege(collegeId) && (
-          resource.data.isApproved == true || isClubAdminFor(resource.data.clubId) || (isCr() && resource.data.creatorUid == request.auth.uid)
+          resource.data.isApproved == true || isClubAdminFor(resource.data.clubId) || (isCr() && resource.data.adminUid == request.auth.uid)
         );
         allow create: if isSameCollege(collegeId)
-          && (isClubAdminFor(request.resource.data.clubId) || (isCr() && request.resource.data.isApproved == false))
+          && (isClubAdminFor(request.resource.data.clubId) || (isCr() && request.resource.data.isApproved == false && request.resource.data.adminUid == request.auth.uid))
           && isValidPostSize(request.resource.data.title, 140)
           && (!('posterSizeBytes' in request.resource.data) || request.resource.data.posterSizeBytes <= 5242880);
         allow update: if isSameCollege(collegeId) && (
           isClubAdminFor(resource.data.clubId) ||
-          (isCr() && resource.data.creatorUid == request.auth.uid && resource.data.isApproved == false && request.resource.data.isApproved == false) ||
+          (isCr() && resource.data.adminUid == request.auth.uid && resource.data.isApproved == false && request.resource.data.isApproved == false) ||
           // Students can update RSVP counters or report abuse
           request.resource.data.diff(resource.data).affectedKeys()
             .hasOnly(['goingCount', 'interestedCount', 'notGoingCount', 'reportCount', 'isFlagged', 'updatedAt'])
