@@ -166,7 +166,7 @@ fun AdminAssignmentsScreen(
                     remind1DayBefore = true,
                     remind2HoursBefore = true,
                     isCompleted = false,
-                    isSharedByCrOrModerator = false,
+                    isSharedByCrOrTeacher = false,
                     isAddedToPersonalList = true,
                     authorName = uiState.profile.name,
                     isSynced = false,
