@@ -65,7 +65,9 @@ import java.util.Locale
 fun TimetableScreen(
     uiState: CoreUiState,
     onUpdateReminderMinutes: (Int) -> Unit,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    onOpenNotifications: () -> Unit = {},
+    onOpenProfile: () -> Unit = {}
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var selectedDayOfWeek by rememberSaveable {
@@ -101,6 +103,12 @@ fun TimetableScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
         ) {
+            FlagshipAppHeader(
+                campusName = uiState.profile.collegeName,
+                userName = uiState.profile.name,
+                onNotifications = onOpenNotifications,
+                onProfile = onOpenProfile
+            )
             // Tab row
             Surface(
                 modifier = Modifier.fillMaxWidth(),
