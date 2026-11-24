@@ -113,7 +113,9 @@ fun NoticeBoardScreen(
     dataRefreshError: Boolean = false,
     onRetryRefresh: () -> Unit = {},
     focusNoticeId: String? = null,
-    onFocusConsumed: () -> Unit = {}
+    onFocusConsumed: () -> Unit = {},
+    onOpenNotifications: () -> Unit = {},
+    onOpenProfile: () -> Unit = {}
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var filterIndex by rememberSaveable { mutableIntStateOf(0) }
@@ -189,6 +191,14 @@ fun NoticeBoardScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
         ) {
+            item {
+                FlagshipAppHeader(
+                    campusName = uiState.profile.collegeName,
+                    userName = uiState.profile.name,
+                    onNotifications = onOpenNotifications,
+                    onProfile = onOpenProfile
+                )
+            }
             // Header item: title, search, filters
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
