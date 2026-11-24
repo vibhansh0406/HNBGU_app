@@ -340,7 +340,7 @@
     <string name="home_today_overview">आज</string>
     <string name="home_today_classes">कक्षाएं</string>
     <string name="home_today_attendance">उपस्थिति</string>
-    <string name="home_today_due">जल्द देय</string>
+    <string name="home_today_due">बाकी</string>
     <string name="home_today_unread">अपठित</string>
     <string name="home_today_no_classes">आज कोई कक्षा नहीं</string>
     <string name="home_today_event">आज · %1$s</string>
@@ -375,8 +375,7 @@
     <string name="home_showing_saved_data">सहेजा गया डेटा दिख रहा है।</string>
     <string name="home_loading_dashboard">आपका डैशबोर्ड लोड हो रहा है…</string>
     <string name="home_today_subtitle">आज की कक्षाएं, उपस्थिति और प्राथमिकताएं</string>
-    <string name="home_live_snapshot">लाइव सारांश</string>
     <string name="home_priority_high">उच्च प्राथमिकता</string>
     <string name="home_resource_error">संसाधन रीफ़्रेश नहीं हो सके</string>
-    <string name="home_resource_error_hint">सहेजी गई सामग्री दिख रही है। रीफ़्रेश करें या फिर से प्रयास करें।</string>
+    <string name="home_resource_error_hint">कनेक्शन जांचें और फिर से प्रयास करें।</string>
 </resources>

@@ -390,7 +390,7 @@
     <string name="home_today_overview">Today</string>
     <string name="home_today_classes">Classes</string>
     <string name="home_today_attendance">Attendance</string>
-    <string name="home_today_due">Due soon</string>
+    <string name="home_today_due">Pending</string>
     <string name="home_today_unread">Unread</string>
     <string name="home_today_no_classes">No classes today</string>
     <string name="home_today_event">Today · %1$s</string>
@@ -425,8 +425,7 @@
     <string name="home_showing_saved_data">Showing saved data.</string>
     <string name="home_loading_dashboard">Loading your dashboard…</string>
     <string name="home_today_subtitle">Your classes, attendance and priorities for today</string>
-    <string name="home_live_snapshot">Live snapshot</string>
     <string name="home_priority_high">High priority</string>
     <string name="home_resource_error">Couldn’t refresh resources</string>
-    <string name="home_resource_error_hint">Showing saved material. Pull to refresh or try again.</string>
+    <string name="home_resource_error_hint">Check your connection and try again.</string>
 </resources>

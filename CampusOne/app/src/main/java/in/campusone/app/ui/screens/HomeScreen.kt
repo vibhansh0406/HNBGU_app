@@ -344,11 +344,6 @@ private fun TodayOverviewCard(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(modifier = Modifier.weight(1f))
-                C1StatusChip(
-                    text = stringResource(R.string.home_live_snapshot),
-                    tone = C1Tone.INFO
-                )
             }
             Spacer(modifier = Modifier.height(C1Spacing.md))
             Row(
@@ -573,11 +568,11 @@ private fun SmartRecommendationsSection(
     } ?: studyState.recentResources.firstOrNull()
     val resourceRecommendation = if (resource != null) {
         HomeRecommendation(
-            title = stringResource(R.string.home_recommendation_resource_title, resource.title),
+            title = stringResource(R.string.home_recommendation_resource_title, resource.subjectName),
             message = stringResource(
                 R.string.home_recommendation_resource_body,
                 resource.category.lowercase(Locale.getDefault()),
-                resource.subjectName
+                resource.title
             ),
             actionLabel = stringResource(R.string.home_view_all),
             icon = Icons.Default.MenuBook,
