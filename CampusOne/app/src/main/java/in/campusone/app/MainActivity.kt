@@ -111,6 +111,7 @@ import `in`.campusone.app.data.preferences.UserPreferencesRepository
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1NavItem
 import `in`.campusone.app.ui.screens.AttendanceScreen
+import `in`.campusone.app.ui.screens.FlagshipAttendanceScreen
 import `in`.campusone.app.ui.screens.HomeScreen
 import `in`.campusone.app.ui.screens.MoreHubScreen
 import `in`.campusone.app.ui.screens.MoreSubScreen
@@ -576,10 +577,18 @@ fun CampusOneRoot(
                         },
                         onRetryRefresh = coreViewModel::refreshNotices
                     )
-                        BottomNavTab.ATTENDANCE -> AttendanceScreen(
+                        BottomNavTab.ATTENDANCE -> FlagshipAttendanceScreen(
                         uiState = coreState,
                         onMarkAttendance = coreViewModel::markAttendance,
-                        onTargetPctChange = coreViewModel::updateTargetPercentage
+                        onTargetPctChange = coreViewModel::updateTargetPercentage,
+                        onOpenNotifications = {
+                            pendingMoreScreen = MoreSubScreen.NOTIFICATIONS
+                            currentTab = BottomNavTab.MORE
+                        },
+                        onOpenProfile = {
+                            pendingMoreScreen = MoreSubScreen.PROFILE
+                            currentTab = BottomNavTab.MORE
+                        }
                         )
                         BottomNavTab.TIMETABLE -> TimetableScreen(
                         uiState = coreState,
