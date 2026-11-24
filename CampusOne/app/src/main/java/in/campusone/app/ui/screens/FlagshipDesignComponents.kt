@@ -510,7 +510,9 @@ private fun RhythmLegend(label: String, color: Color) {
 fun FlagshipNotificationsScreen(
     viewModel: CommunityViewModel,
     onBack: () -> Unit,
-    onNavigate: (targetType: String, targetId: String) -> Unit
+    onNavigate: (targetType: String, targetId: String) -> Unit,
+    onOpenNotifications: () -> Unit = {},
+    onOpenProfile: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var filter by rememberSaveable { mutableStateOf("ALL") }
@@ -536,7 +538,7 @@ fun FlagshipNotificationsScreen(
     val order = listOf("Today", "Yesterday", "Earlier this week", "Earlier")
 
     Column(modifier = Modifier.fillMaxSize().background(FlagshipCanvas)) {
-        FlagshipAppHeader(uiState.profile.collegeName, uiState.profile.name, onNotifications = {}, onProfile = {}, showActions = false)
+        FlagshipAppHeader(uiState.profile.collegeName, uiState.profile.name, onNotifications = onOpenNotifications, onProfile = onOpenProfile)
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             FlagshipPageTitle(
                 "Activity Feed",
