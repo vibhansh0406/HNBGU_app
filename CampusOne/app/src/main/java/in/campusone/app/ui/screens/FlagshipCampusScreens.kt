@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -166,16 +167,14 @@ fun FlagshipCampusCommunityOverview(
 private fun onLostFoundSafe(action: () -> Unit): (() -> Unit) = action
 
 @Composable
-private fun OverviewMetric(value: String, label: String) {
-    Surface(modifier = Modifier.weightHack(), color = Color.White, shape = RoundedCornerShape(12.dp)) {
+private fun RowScope.OverviewMetric(value: String, label: String) {
+    Surface(modifier = Modifier.weight(1f), color = Color.White, shape = RoundedCornerShape(12.dp)) {
         Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 9.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(value, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = CampusPageGreen)
             Text(label, fontSize = 9.sp, color = CampusPageMuted)
         }
     }
 }
-
-private fun Modifier.weightHack(): Modifier = this
 
 @Composable
 private fun OverviewEventRow(event: CampusEventEntity) {
