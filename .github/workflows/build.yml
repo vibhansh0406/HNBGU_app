@@ -10,6 +10,11 @@ on:
 permissions:
   contents: read
 
+# PR updates replace older build attempts; verify only the latest revision.
+concurrency:
+  group: campusone-verify-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 defaults:
   run:
     working-directory: CampusOne
