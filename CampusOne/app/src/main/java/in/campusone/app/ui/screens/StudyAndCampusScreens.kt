@@ -756,6 +756,7 @@ fun MoreHubScreen(
                     .padding(innerPadding)
             ) {
                 when (activeScreen) {
+                    MoreSubScreen.CAMPUS_COMMUNITY,
                     MoreSubScreen.COMMUNITY,
                     MoreSubScreen.NOTIFICATIONS,
                     MoreSubScreen.PROFILE -> Unit
