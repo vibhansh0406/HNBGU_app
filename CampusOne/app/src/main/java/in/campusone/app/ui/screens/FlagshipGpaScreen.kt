@@ -72,7 +72,9 @@ private val GpaOchre = Color(0xFFF5EAD5)
 @Composable
 fun FlagshipGpaCalculatorScreen(
     uiState: StudyAndCampusUiState,
-    viewModel: StudyAndCampusViewModel
+    viewModel: StudyAndCampusViewModel,
+    onOpenNotifications: () -> Unit = {},
+    onOpenProfile: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var showAdd by rememberSaveable { mutableStateOf(false) }
@@ -84,7 +86,7 @@ fun FlagshipGpaCalculatorScreen(
     val maximum = uiState.gpaScaleType.maxScalePoint.toFloat()
 
     Column(modifier = Modifier.fillMaxSize().background(GpaCanvas)) {
-        FlagshipAppHeader(uiState.profile.collegeName, uiState.profile.name, showActions = false)
+        FlagshipAppHeader(uiState.profile.collegeName, uiState.profile.name, onNotifications = onOpenNotifications, onProfile = onOpenProfile)
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(horizontal = 15.dp, vertical = 10.dp),
