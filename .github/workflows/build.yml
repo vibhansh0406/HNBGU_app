@@ -184,6 +184,11 @@ jobs:
           script: |
             set -euo pipefail
             PACKAGE="in.campusone.app"
+
+            # Exercise the real v3 -> v4 -> v5 Room migration on the Android 12 emulator.
+            gradle connectedDebugAndroidTest
+            adb uninstall "$PACKAGE" >/dev/null 2>&1 || true
+            adb uninstall "$PACKAGE.test" >/dev/null 2>&1 || true
             PREVIOUS_APK="app/build/outputs/apk/release/app-previous-release.apk"
             RELEASE_APK="app/build/outputs/apk/release/app-release.apk"
 
