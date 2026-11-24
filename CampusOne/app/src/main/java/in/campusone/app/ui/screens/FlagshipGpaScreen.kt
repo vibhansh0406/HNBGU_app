@@ -315,12 +315,12 @@ private fun FlagshipCourseGradeCard(
 ) {
     var expanded by rememberSaveable(course.id) { mutableStateOf(false) }
     var creditsText by rememberSaveable(course.id) { mutableStateOf(course.credits.toString()) }
-    val options = when (scale) {
-        GradingScaleType.TEN_POINT_INDIAN -> GpaCalculator.standardGradeScale.toList()
-        GradingScaleType.FOUR_POINT_WES -> listOf("A (4)" to 4, "A- (3.7)" to 3.7, "B+ (3.3)" to 3.3, "B (3)" to 3, "C (2)" to 2, "D (1)" to 1, "F (0)" to 0)
-        GradingScaleType.DIRECT_PERCENTAGE -> listOf("90–100" to 95, "80–89" to 85, "70–79" to 75, "60–69" to 65, "50–59" to 55, "40–49" to 45, "Below 40" to 0)
+    val options: List<Pair<String, Double>> = when (scale) {
+        GradingScaleType.TEN_POINT_INDIAN -> GpaCalculator.standardGradeScale.map { it.key to it.value.toDouble() }
+        GradingScaleType.FOUR_POINT_WES -> listOf("A (4)" to 4.0, "A- (3.7)" to 3.7, "B+ (3.3)" to 3.3, "B (3)" to 3.0, "C (2)" to 2.0, "D (1)" to 1.0, "F (0)" to 0.0)
+        GradingScaleType.DIRECT_PERCENTAGE -> listOf("90–100" to 95.0, "80–89" to 85.0, "70–79" to 75.0, "60–69" to 65.0, "50–59" to 55.0, "40–49" to 45.0, "Below 40" to 0.0)
     }
-    val gradeLabel = options.minByOrNull { kotlin.math.abs(it.second.toDouble() - course.gradePoint) }?.first ?: course.gradePoint.toString()
+    val gradeLabel = options.minByOrNull { kotlin.math.abs(it.second - course.gradePoint) }?.first ?: course.gradePoint.toString()
     FlagshipCard(contentPadding = PaddingValues(14.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
@@ -343,7 +343,7 @@ private fun FlagshipCourseGradeCard(
                     }
                     DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                         options.forEach { option ->
-                            DropdownMenuItem(text = { Text(option.first) }, onClick = { onGrade(option.second.toDouble()); expanded = false })
+                            DropdownMenuItem(text = { Text(option.first) }, onClick = { onGrade(option.second); expanded = false })
                         }
                     }
                 }
