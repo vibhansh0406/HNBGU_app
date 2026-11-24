@@ -152,8 +152,8 @@ jobs:
             --ks-pass pass:android \
             --key-pass pass:android \
             --next-signer \
-            --v1-signing-enabled false \
-            --v2-signing-enabled false \
+            --v1-signing-enabled true \
+            --v2-signing-enabled true \
             --v3-signing-enabled true \
             --ks "$KEYSTORE_FILE" \
             --ks-key-alias "$KEY_ALIAS" \
