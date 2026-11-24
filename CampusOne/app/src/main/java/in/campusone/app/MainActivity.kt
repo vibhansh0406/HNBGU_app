@@ -593,7 +593,15 @@ fun CampusOneRoot(
                         BottomNavTab.TIMETABLE -> TimetableScreen(
                         uiState = coreState,
                         onUpdateReminderMinutes = coreViewModel::updateReminderLeadMinutes,
-                        onRefresh = coreViewModel::refreshTimetable
+                        onRefresh = coreViewModel::refreshTimetable,
+                        onOpenNotifications = {
+                            pendingMoreScreen = MoreSubScreen.NOTIFICATIONS
+                            currentTab = BottomNavTab.MORE
+                        },
+                        onOpenProfile = {
+                            pendingMoreScreen = MoreSubScreen.PROFILE
+                            currentTab = BottomNavTab.MORE
+                        }
                         )
                         BottomNavTab.NOTICES -> NoticeBoardScreen(
                         uiState = coreState,
@@ -604,7 +612,15 @@ fun CampusOneRoot(
                         dataRefreshError = noticesSyncError,
                         onRetryRefresh = coreViewModel::refreshNotices,
                         focusNoticeId = pendingNoticeId,
-                        onFocusConsumed = { pendingNoticeId = null }
+                        onFocusConsumed = { pendingNoticeId = null },
+                        onOpenNotifications = {
+                            pendingMoreScreen = MoreSubScreen.NOTIFICATIONS
+                            currentTab = BottomNavTab.MORE
+                        },
+                        onOpenProfile = {
+                            pendingMoreScreen = MoreSubScreen.PROFILE
+                            currentTab = BottomNavTab.MORE
+                        }
                         )
                         BottomNavTab.MORE -> MoreHubScreen(
                         uiState = studyCampusState,
