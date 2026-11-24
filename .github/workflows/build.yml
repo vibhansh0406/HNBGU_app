@@ -225,7 +225,7 @@ jobs:
             exit 1
           }
 
-          LINEAGE_VERIFY="$("$APKSIGNER" lineage --in "$APK" --print-certs)"
+          LINEAGE_VERIFY="$("$APKSIGNER" lineage --in "$RUNNER_TEMP/campusone-signing-lineage.bin" --print-certs)"
           printf '%s\n' "$LINEAGE_VERIFY"
           printf '%s\n' "$LINEAGE_VERIFY" | grep -Fqi "$LEGACY_SHA1"
           printf '%s\n' "$LINEAGE_VERIFY" | grep -Fqi "$EXPECTED_SHA1"
