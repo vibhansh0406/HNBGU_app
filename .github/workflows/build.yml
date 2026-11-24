@@ -270,13 +270,34 @@ jobs:
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          emulator-options: -no-window -no-audio -no-boot-anim -camera-back none -camera-front none
+          emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot -camera-back none -camera-front none
           working-directory: CampusOne
           script: |
             set -euo pipefail
             PACKAGE="in.campusone.app"
 
-            # Exercise the real v3 -> v4 -> v5 Room migration on the Android 12 emulator.
+            # Wait until ADB can consistently read Android properties before Gradle
+            # queries the emulator. The emulator runner can report "booted" while
+            # the guest shell is still temporarily unresponsive.
+            adb wait-for-device
+            API_LEVEL=""
+            for attempt in $(seq 1 36); do
+              API_LEVEL="$(timeout 12s adb shell getprop ro.build.version.sdk 2>/dev/null | tr -d '\r' || true)"
+              if [ "$API_LEVEL" = "31" ]; then
+                break
+              fi
+              echo "Waiting for Android 12 ADB readiness (attempt $attempt/36; API='$API_LEVEL')"
+              adb reconnect offline >/dev/null 2>&1 || true
+              sleep 5
+            done
+            if [ "$API_LEVEL" != "31" ]; then
+              echo "::error::Android 12 emulator never became ADB-responsive; last API level='$API_LEVEL'."
+              adb devices -l || true
+              exit 1
+            fi
+            echo "Android 12 emulator is responsive (API $API_LEVEL)."
+
+            # Exercise the real instrumentation suite only after the device is ready.
             gradle connectedDebugAndroidTest
             adb uninstall "$PACKAGE" >/dev/null 2>&1 || true
             adb uninstall "$PACKAGE.test" >/dev/null 2>&1 || true
