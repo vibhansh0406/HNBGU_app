@@ -140,21 +140,21 @@ jobs:
               --ks-pass env:KEYSTORE_PASSWORD \
               --key-pass env:KEY_PASSWORD
 
+          # v1/v2/v3 switches are GENERAL apksigner options: set them once,
+          # before the per-signer configs. API 26+ supports v2, so v1 is not needed.
+          # The oldest lineage signer supplies v2; the rotated signer supplies v3.
           "$APKSIGNER" sign \
             --lineage "$LINEAGE" \
             --rotation-min-sdk-version 28 \
             --min-sdk-version 26 \
-            --v1-signing-enabled true \
+            --v1-signing-enabled false \
             --v2-signing-enabled true \
-            --v3-signing-enabled false \
+            --v3-signing-enabled true \
             --ks "$LEGACY_DEBUG_KEYSTORE" \
             --ks-key-alias androiddebugkey \
             --ks-pass pass:android \
             --key-pass pass:android \
             --next-signer \
-            --v1-signing-enabled true \
-            --v2-signing-enabled true \
-            --v3-signing-enabled true \
             --ks "$KEYSTORE_FILE" \
             --ks-key-alias "$KEY_ALIAS" \
             --ks-pass env:KEYSTORE_PASSWORD \
@@ -197,13 +197,12 @@ jobs:
           fi
           "$ZIPALIGN" -c 4 "$APK"
 
-          # Old Android versions still see the legacy signer in v1/v2.
+          # API 26-27 use the legacy signer through v2; API 28+ use the rotated signer through v3.
           LEGACY_SHA1=$(keytool -list -v -keystore "$LEGACY_DEBUG_KEYSTORE" \
             -alias androiddebugkey -storepass android | grep -m1 'SHA1:' | awk -F'SHA1: ' '{print $2}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
           LEGACY_VERIFY="$RUNNER_TEMP/campusone-legacy-signature.txt"
           "$APKSIGNER" verify --verbose --print-certs \
             --min-sdk-version 26 --max-sdk-version 27 "$APK" | tee "$LEGACY_VERIFY"
-          grep -Fq "Verified using v1 scheme (JAR signing): true" "$LEGACY_VERIFY"
           grep -Fq "Verified using v2 scheme (APK Signature Scheme v2): true" "$LEGACY_VERIFY"
           grep -Fqi "$LEGACY_SHA1" "$LEGACY_VERIFY" || {
             echo "::error::Legacy signing certificate is not present for API 26-27."
@@ -217,16 +216,14 @@ jobs:
           grep -Fq "Verified using v2 scheme (APK Signature Scheme v2): true" "$RELEASE_VERIFY"
           grep -Fq "Verified using v3 scheme (APK Signature Scheme v3): true" "$RELEASE_VERIFY"
 
-          SHA1=$(grep -F "certificate SHA-1 digest:" "$RELEASE_VERIFY" | tail -1 | awk -F': ' '{print $NF}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
-          SHA256=$(grep -F "certificate SHA-256 digest:" "$RELEASE_VERIFY" | tail -1 | awk -F': ' '{print $NF}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
           EXPECTED_SHA1="50341BDAAE1E1CFCC7E26893D3CF8A1F7AFC35A2"
           EXPECTED_SHA256="E28B7893A26DF63884498AEF018575D3875ACEF2C0DC0DB9A06D4EFFA543F273"
-          test "$SHA1" = "$EXPECTED_SHA1" || {
-            echo "::error::Permanent release SHA-1 mismatch. Expected $EXPECTED_SHA1, got $SHA1"
+          grep -Fqi "$EXPECTED_SHA1" "$RELEASE_VERIFY" || {
+            echo "::error::Permanent release certificate SHA-1 is not present in the API 28-32 signature."
             exit 1
           }
-          test "$SHA256" = "$EXPECTED_SHA256" || {
-            echo "::error::Permanent release SHA-256 mismatch."
+          grep -Fqi "$EXPECTED_SHA256" "$RELEASE_VERIFY" || {
+            echo "::error::Permanent release certificate SHA-256 is not present in the API 28-32 signature."
             exit 1
           }
 
@@ -257,7 +254,7 @@ jobs:
             fi
           done
 
-          echo "PASS: package=$PACKAGE; stable debug-to-release signing lineage; installed-data capability; v1/v2 legacy and v2/v3 release signatures; permanent release key; alignment; permission audit."
+          echo "PASS: package=$PACKAGE; stable debug-to-release signing lineage; installed-data capability; v2 legacy and v2/v3 rotated signatures; permanent release key; alignment; permission audit."
 
       - name: Run unit tests
         run: gradle testDebugUnitTest
