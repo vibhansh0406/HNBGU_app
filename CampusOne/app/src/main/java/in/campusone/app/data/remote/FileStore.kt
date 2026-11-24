@@ -156,7 +156,7 @@ class SupabaseFileStore @Inject constructor(
                 if (code !in 200..299) {
                     throw IllegalStateException("Storage upload failed ($code): ${body.take(200)}")
                 }
-                "$storageBase/object/public/$bucket/$path"
+                "$storageBase/object/authenticated/$bucket/$path"
             } finally {
                 conn.disconnect()
             }
