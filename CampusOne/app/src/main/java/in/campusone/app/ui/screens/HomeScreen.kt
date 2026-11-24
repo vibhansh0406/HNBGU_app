@@ -138,9 +138,7 @@ fun HomeScreen(
         item {
             HomeHeader(
                 uiState = uiState,
-                onToggleLanguage = onToggleLanguage,
-                onOpenProfile = onOpenProfile,
-                onOpenNotices = onOpenNotices
+                onToggleLanguage = onToggleLanguage
             )
         }
         item {
@@ -182,87 +180,37 @@ fun HomeScreen(
 @Composable
 private fun HomeHeader(
     uiState: CoreUiState,
-    onToggleLanguage: () -> Unit,
-    onOpenProfile: () -> Unit,
-    onOpenNotices: () -> Unit
+    onToggleLanguage: () -> Unit
 ) {
-    val ws = windowSize
     val firstName = uiState.profile.name.trim().substringBefore(" ").ifBlank { "Student" }
     val courseLine = "${uiState.profile.courseName} • Sem ${uiState.profile.semester} (${uiState.profile.section})"
-    val languageCd = stringResource(R.string.language_toggle)
-    val profileCd = stringResource(R.string.home_open_profile)
-    var headerVisible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { headerVisible = true }
 
-    AnimatedVisibility(
-        visible = headerVisible,
-        enter = fadeIn(animationSpec = tween(420)) +
-            slideInVertically(animationSpec = tween(420), initialOffsetY = { it / 5 })
-    ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Profile avatar with subtle ring
-        C1Avatar(
-            name = uiState.profile.name,
-            modifier = Modifier
-                .size(C1TouchTarget)
-                .clickable(onClick = onOpenProfile)
-                .semantics { contentDescription = profileCd },
-            size = C1TouchTarget,
-        )
-        Spacer(modifier = Modifier.width(C1Spacing.md))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = "CAMPUSONE  /  HNBGU",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1
-            )
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 text = stringResource(R.string.home_greeting, firstName),
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = courseLine,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
         }
-        // Language toggle
         C1FilterChip(
             label = if (uiState.languageTag == "hi") "EN" else "हिन्दी",
             selected = false,
             onClick = onToggleLanguage
         )
-        // Notifications
-        IconButton(onClick = onOpenNotices) {
-            BadgedBox(
-                badge = {
-                    if (uiState.unreadNoticeCount > 0) {
-                        Badge {
-                            Text(
-                                if (uiState.unreadNoticeCount > 9) "9+" else uiState.unreadNoticeCount.toString()
-                            )
-                        }
-                    }
-                }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.NotificationsNone,
-                    contentDescription = stringResource(R.string.nav_notices),
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-        }
-    }
     }
 }
 
