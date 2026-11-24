@@ -141,24 +141,21 @@ jobs:
               --key-pass env:KEY_PASSWORD
 
           "$APKSIGNER" sign \
-            --ks "$LEGACY_DEBUG_KEYSTORE" \
-            --ks-key-alias androiddebugkey \
-            --ks-pass pass:android \
-            --key-pass pass:android \
-            --min-sdk-version 26 \
-            --v1-signing-enabled true \
-            --v2-signing-enabled true \
-            --next-signer \
-              --ks "$KEYSTORE_FILE" \
-              --ks-key-alias "$KEY_ALIAS" \
-              --ks-pass env:KEYSTORE_PASSWORD \
-              --key-pass env:KEY_PASSWORD \
             --lineage "$LINEAGE" \
             --rotation-min-sdk-version 28 \
             --min-sdk-version 26 \
             --v1-signing-enabled true \
             --v2-signing-enabled true \
             --v3-signing-enabled true \
+            --ks "$LEGACY_DEBUG_KEYSTORE" \
+            --ks-key-alias androiddebugkey \
+            --ks-pass pass:android \
+            --key-pass pass:android \
+            --next-signer \
+              --ks "$KEYSTORE_FILE" \
+              --ks-key-alias "$KEY_ALIAS" \
+              --ks-pass env:KEYSTORE_PASSWORD \
+              --key-pass env:KEY_PASSWORD \
             --out "$RUNNER_TEMP/campusone-release-rotated.apk" \
             "$RUNNER_TEMP/campusone-release-pre-rotation.apk"
 
