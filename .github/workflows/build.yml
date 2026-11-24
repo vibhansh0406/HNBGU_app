@@ -128,10 +128,10 @@ jobs:
               --ks-pass pass:android \
               --key-pass pass:android \
               --set-installed-data true \
-              --set-shared-uid true \
-              --set-permission true \
+              --set-shared-uid false \
+              --set-permission false \
               --set-rollback false \
-              --set-auth true \
+              --set-auth false \
             --new-signer \
               --ks "$KEYSTORE_FILE" \
               --ks-key-alias "$KEY_ALIAS" \
