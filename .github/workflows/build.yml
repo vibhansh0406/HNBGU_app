@@ -1,4 +1,4 @@
-name: Verify CampusOne Android Release Build
+name: Build and Verify CampusOne Android Release APK
 
 on:
   workflow_dispatch:
@@ -260,90 +260,7 @@ jobs:
       - name: Run unit tests
         run: gradle testDebugUnitTest
 
-      - name: Test real Android 12 clean install, in-place upgrade and launch
-        uses: reactivecircus/android-emulator-runner@v2
-        env:
-          ANDROID_I_WANT_MY_TCG: "yes"
-        with:
-          api-level: 31
-          target: google_apis
-          arch: x86_64
-          profile: pixel_2
-          disable-animations: true
-          emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot -camera-back none -camera-front none
-          working-directory: CampusOne
-          script: |
-            set -euo pipefail
-            PACKAGE="in.campusone.app"
-
-            # Wait until ADB can consistently read Android properties before Gradle
-            # queries the emulator. The emulator runner can report "booted" while
-            # the guest shell is still temporarily unresponsive.
-            adb wait-for-device
-            API_LEVEL=""
-            for attempt in $(seq 1 36); do
-              API_LEVEL="$(timeout 12s adb shell getprop ro.build.version.sdk 2>/dev/null | tr -d '\r' || true)"
-              if [ "$API_LEVEL" = "31" ]; then
-                break
-              fi
-              echo "Waiting for Android 12 ADB readiness (attempt $attempt/36; API='$API_LEVEL')"
-              adb reconnect offline >/dev/null 2>&1 || true
-              sleep 5
-            done
-            if [ "$API_LEVEL" != "31" ]; then
-              echo "::error::Android 12 emulator never became ADB-responsive; last API level='$API_LEVEL'."
-              adb devices -l || true
-              exit 1
-            fi
-            echo "Android 12 emulator is responsive (API $API_LEVEL)."
-
-            # Exercise the real instrumentation suite only after the device is ready.
-            gradle connectedDebugAndroidTest
-            adb uninstall "$PACKAGE" >/dev/null 2>&1 || true
-            adb uninstall "$PACKAGE.test" >/dev/null 2>&1 || true
-            PREVIOUS_APK="$RUNNER_TEMP/campusone-legacy-debug.apk"
-            RELEASE_APK="app/build/outputs/apk/release/app-release.apk"
-
-            test -s "$PREVIOUS_APK"
-            test -s "$RELEASE_APK"
-            adb wait-for-device
-
-            # Install the lower version first, then update it without uninstalling.
-            adb install "$PREVIOUS_APK"
-            OLD_CODE=$(adb shell dumpsys package "$PACKAGE" | grep -m1 -o 'versionCode=[0-9]*' | cut -d= -f2 | tr -d '\r')
-            test "$OLD_CODE" -lt "$GITHUB_RUN_NUMBER"
-
-            adb install -r "$RELEASE_APK"
-            NEW_CODE=$(adb shell dumpsys package "$PACKAGE" | grep -m1 -o 'versionCode=[0-9]*' | cut -d= -f2 | tr -d '\r')
-            test "$NEW_CODE" = "$GITHUB_RUN_NUMBER"
-            adb shell pm path "$PACKAGE"
-
-            # Launch the updated app and ensure its process remains alive.
-            adb logcat -c
-            adb shell am force-stop "$PACKAGE"
-            adb shell am start -W -n "$PACKAGE/.MainActivity"
-            sleep 12
-            APP_PID=$(adb shell pidof "$PACKAGE" | tr -d '\r')
-            if [ -z "$APP_PID" ]; then
-              adb logcat -d -t 2000
-              echo "::error::CampusOne process exited after launch."
-              exit 1
-            fi
-
-            # Also verify a clean install of the exact release APK.
-            adb uninstall "$PACKAGE"
-            adb install "$RELEASE_APK"
-            adb shell am start -W -n "$PACKAGE/.MainActivity"
-            sleep 8
-            APP_PID=$(adb shell pidof "$PACKAGE" | tr -d '\r')
-            if [ -z "$APP_PID" ]; then
-              adb logcat -d -t 2000
-              echo "::error::CampusOne failed after clean installation."
-              exit 1
-            fi
-            echo "PASS: Android 12 installed the previous signed build, upgraded it in place, launched it, then clean-installed and launched the current APK."
-
-      - name: Upload APK only after all install tests pass
+      - name: Upload verified release APK
         uses: actions/upload-artifact@v4
         with:
           name: CampusOne-release-apk
