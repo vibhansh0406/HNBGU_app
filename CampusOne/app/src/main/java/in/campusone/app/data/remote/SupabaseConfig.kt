@@ -26,8 +26,11 @@ object SupabaseConfigLoader {
         return SupabaseConfig(
             url = value(BuildConfig.SUPABASE_URL, "supabase.url"),
             anonKey = value(BuildConfig.SUPABASE_ANON_KEY, "supabase.anon.key"),
+            // GOOGLE_OAUTH_CLIENT_ID is the Web application OAuth client ID in the current repository secrets.
+            // Keep the explicitly named WEB secret as a fallback for older configurations.
             googleClientId = value(BuildConfig.GOOGLE_OAUTH_CLIENT_ID, "google.oauth.client_id"),
-            googleWebClientId = value(BuildConfig.GOOGLE_OAUTH_WEB_CLIENT_ID, "google.oauth.web_client_id"),
+            googleWebClientId = value(BuildConfig.GOOGLE_OAUTH_CLIENT_ID, "google.oauth.client_id")
+                .ifBlank { value(BuildConfig.GOOGLE_OAUTH_WEB_CLIENT_ID, "google.oauth.web_client_id") },
             oauthCallbackUrl = value(BuildConfig.GOOGLE_OAUTH_CALLBACK_URL, "google.oauth.callback_url"),
             edgeFunctionUrl = value(BuildConfig.SUPABASE_EDGE_FUNCTION_URL, "supabase.edge.function.url")
                 .ifBlank { value(BuildConfig.SUPABASE_URL, "supabase.url").trimEnd('/') + "/functions/v1" },
