@@ -29,8 +29,10 @@ import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ContactPhone
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.EventNote
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.NotificationsNone
@@ -39,6 +41,7 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,6 +49,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -54,6 +58,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
@@ -65,7 +70,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.R
 import `in`.campusone.app.data.local.entity.AssignmentEntity
+import `in`.campusone.app.data.local.entity.CampusEventEntity
 import `in`.campusone.app.data.local.entity.ExamEntity
+import `in`.campusone.app.data.local.entity.StudyResourceEntity
 import `in`.campusone.app.domain.model.NoticeItem
 import `in`.campusone.app.domain.model.TimetableSlot
 import `in`.campusone.app.domain.usecase.AttendanceHealth
@@ -93,18 +100,24 @@ import `in`.campusone.app.ui.theme.C1WindowSize
 import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.theme.windowSize
 import `in`.campusone.app.ui.viewmodel.CoreUiState
+import `in`.campusone.app.ui.viewmodel.StudyAndCampusUiState
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.TextStyle
 import java.util.Date
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     uiState: CoreUiState,
-    nextThreeDeadlines: List<AssignmentEntity> = emptyList(),
-    nextUpcomingExam: ExamEntity? = null,
+    studyState: StudyAndCampusUiState,
     dataRefreshError: Boolean = false,
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit,
     onToggleLanguage: () -> Unit,
     onOpenProfile: () -> Unit,
     onOpenAttendance: () -> Unit,
@@ -115,56 +128,91 @@ fun HomeScreen(
     onRetryRefresh: () -> Unit
 ) {
     val ws = windowSize
-    val isCompact = ws == C1WindowSize.COMPACT
+    val hasComingUp = studyState.nextThreeDeadlines.isNotEmpty() ||
+        studyState.nextUpcomingExam != null ||
+        studyState.upcomingEvents.isNotEmpty()
 
-    LazyColumn(
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentPadding = PaddingValues(
-            horizontal = C1Spacing.pagePadding(ws),
-            vertical = C1Spacing.lg
-        ),
-        verticalArrangement = Arrangement.spacedBy(C1Spacing.sectionGap(ws))
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        item {
-            HomeHeader(
-                uiState = uiState,
-                onToggleLanguage = onToggleLanguage,
-                onOpenProfile = onOpenProfile,
-                onOpenNotices = onOpenNotices
-            )
-        }
-        item {
-            NextClassCard(
-                uiState = uiState,
-                onOpenTimetable = onOpenTimetable
-            )
-        }
-        item {
-            AttendanceSummaryCard(
-                insight = uiState.overallInsight,
-                onClick = onOpenAttendance
-            )
-        }
-        item {
-            QuickActionsSection(onOpenMore = onOpenMore)
-        }
-        item {
-            AnnouncementsSection(
-                uiState = uiState,
-                dataRefreshError = dataRefreshError,
-                onOpenNotice = onOpenNotice,
-                onOpenNotices = onOpenNotices,
-                onRetryRefresh = onRetryRefresh
-            )
-        }
-        if (nextThreeDeadlines.isNotEmpty() || nextUpcomingExam != null) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                horizontal = C1Spacing.pagePadding(ws),
+                vertical = C1Spacing.lg
+            ),
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.sectionGap(ws))
+        ) {
             item {
-                AtAGlanceSection(
-                    deadlines = nextThreeDeadlines,
-                    exam = nextUpcomingExam,
+                HomeHeader(
+                    uiState = uiState,
+                    onToggleLanguage = onToggleLanguage,
+                    onOpenProfile = onOpenProfile,
+                    onOpenNotices = onOpenNotices
+                )
+            }
+            item {
+                TodayOverviewCard(
+                    uiState = uiState,
+                    studyState = studyState,
+                    onOpenTimetable = onOpenTimetable,
+                    onOpenAttendance = onOpenAttendance,
+                    onOpenNotices = onOpenNotices,
                     onOpenMore = onOpenMore
+                )
+            }
+            item {
+                NextClassCard(
+                    uiState = uiState,
+                    onOpenTimetable = onOpenTimetable
+                )
+            }
+            item {
+                AttendanceSummaryCard(
+                    insight = uiState.overallInsight,
+                    onClick = onOpenAttendance
+                )
+            }
+            item {
+                SmartRecommendationsSection(
+                    uiState = uiState,
+                    studyState = studyState,
+                    onOpenAttendance = onOpenAttendance,
+                    onOpenMore = onOpenMore
+                )
+            }
+            item {
+                QuickActionsSection(onOpenMore = onOpenMore)
+            }
+            item {
+                AnnouncementsSection(
+                    uiState = uiState,
+                    dataRefreshError = dataRefreshError,
+                    onOpenNotice = onOpenNotice,
+                    onOpenNotices = onOpenNotices,
+                    onRetryRefresh = onRetryRefresh
+                )
+            }
+            if (hasComingUp) {
+                item {
+                    AtAGlanceSection(
+                        deadlines = studyState.nextThreeDeadlines,
+                        exam = studyState.nextUpcomingExam,
+                        events = studyState.upcomingEvents,
+                        onOpenMore = onOpenMore
+                    )
+                }
+            }
+            item {
+                RecentResourcesSection(
+                    studyState = studyState,
+                    dataRefreshError = dataRefreshError,
+                    onOpenMore = onOpenMore,
+                    onRetryRefresh = onRefresh
                 )
             }
         }
@@ -257,6 +305,533 @@ private fun HomeHeader(
     }
     }
 }
+
+@Composable
+private fun TodayOverviewCard(
+    uiState: CoreUiState,
+    studyState: StudyAndCampusUiState,
+    onOpenTimetable: () -> Unit,
+    onOpenAttendance: () -> Unit,
+    onOpenNotices: () -> Unit,
+    onOpenMore: (MoreSubScreen) -> Unit
+) {
+    val dateLabel = remember { SimpleDateFormat("EEE, d MMM", Locale.getDefault()).format(Date()) }
+    val attendance = uiState.overallInsight
+    val attendanceText = if (attendance.totalConducted == 0) {
+        "—"
+    } else {
+        String.format(Locale.getDefault(), "%.1f%%", attendance.currentPercentage)
+    }
+    val todayEvent = studyState.upcomingEvents.firstOrNull { isToday(it.eventEpochMillis) }
+    val hairline = extendedColors.hairline
+
+    Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
+        C1SectionHeader(
+            title = stringResource(R.string.home_today_overview),
+            subtitle = stringResource(R.string.home_today_subtitle)
+        )
+        C1SurfaceCard(
+            contentPadding = PaddingValues(C1Spacing.lg),
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = dateLabel,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                C1StatusChip(
+                    text = stringResource(R.string.home_live_snapshot),
+                    tone = C1Tone.INFO
+                )
+            }
+            Spacer(modifier = Modifier.height(C1Spacing.md))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
+            ) {
+                OverviewMetric(
+                    icon = Icons.Default.Schedule,
+                    value = uiState.todaySchedule.size.toString(),
+                    label = stringResource(R.string.home_today_classes),
+                    tint = MaterialTheme.colorScheme.primary,
+                    onClick = onOpenTimetable,
+                    modifier = Modifier.weight(1f)
+                )
+                OverviewMetric(
+                    icon = Icons.Default.CheckCircle,
+                    value = attendanceText,
+                    label = stringResource(R.string.home_today_attendance),
+                    tint = extendedColors.success,
+                    onClick = onOpenAttendance,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
+            ) {
+                OverviewMetric(
+                    icon = Icons.Default.Assignment,
+                    value = studyState.pendingAssignmentCount.toString(),
+                    label = stringResource(R.string.home_today_due),
+                    tint = extendedColors.warning,
+                    onClick = { onOpenMore(MoreSubScreen.ASSIGNMENTS) },
+                    modifier = Modifier.weight(1f)
+                )
+                OverviewMetric(
+                    icon = Icons.Default.NotificationsNone,
+                    value = uiState.unreadNoticeCount.toString(),
+                    label = stringResource(R.string.home_today_unread),
+                    tint = extendedColors.info,
+                    onClick = onOpenNotices,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            if (todayEvent != null) {
+                Spacer(modifier = Modifier.height(C1Spacing.sm))
+                HorizontalDivider(color = hairline)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(C1Radius.sm)
+                        .clickable { onOpenMore(MoreSubScreen.EVENTS_CLUBS) }
+                        .padding(vertical = C1Spacing.sm),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Event,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = todayEvent.title,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = "${todayEvent.eventDateFormatted} • ${todayEvent.venue}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OverviewMetric(
+    icon: ImageVector,
+    value: String,
+    label: String,
+    tint: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .clip(C1Radius.sm)
+            .clickable(onClick = onClick)
+            .padding(vertical = C1Spacing.xs, horizontal = C1Spacing.xs),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(34.dp)
+                .background(tint.copy(alpha = 0.12f), C1Radius.sm)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = tint,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+private data class HomeRecommendation(
+    val title: String,
+    val message: String,
+    val actionLabel: String,
+    val icon: ImageVector,
+    val tone: C1Tone,
+    val onClick: () -> Unit
+)
+
+@Composable
+private fun SmartRecommendationsSection(
+    uiState: CoreUiState,
+    studyState: StudyAndCampusUiState,
+    onOpenAttendance: () -> Unit,
+    onOpenMore: (MoreSubScreen) -> Unit
+) {
+    val target = uiState.profile.targetAttendancePct
+    val weakSubject = uiState.subjectInsights
+        .filter { it.summary.totalClasses > 0 && it.insight.currentPercentage < target }
+        .minByOrNull { it.insight.currentPercentage }
+    val attendanceRecommendation = if (weakSubject != null) {
+        HomeRecommendation(
+            title = stringResource(
+                R.string.home_recommendation_attendance_title,
+                weakSubject.summary.subjectName
+            ),
+            message = stringResource(
+                R.string.home_recommendation_attendance_body,
+                weakSubject.insight.classesMustAttendToRecover.coerceAtLeast(1),
+                target
+            ),
+            actionLabel = stringResource(R.string.home_action_attendance),
+            icon = Icons.Default.Schedule,
+            tone = C1Tone.WARNING,
+            onClick = onOpenAttendance
+        )
+    } else {
+        null
+    }
+    val deadline = studyState.nextThreeDeadlines.firstOrNull()
+    val deadlineRecommendation = if (deadline != null) {
+        HomeRecommendation(
+            title = stringResource(R.string.home_recommendation_deadline_title, deadline.title),
+            message = stringResource(
+                R.string.home_recommendation_deadline_body,
+                deadline.subjectTag,
+                deadline.dueDateFormatted
+            ),
+            actionLabel = stringResource(R.string.home_view_all),
+            icon = Icons.Default.Assignment,
+            tone = if (deadline.priority.equals("HIGH", ignoreCase = true)) C1Tone.DANGER else C1Tone.WARNING,
+            onClick = { onOpenMore(MoreSubScreen.ASSIGNMENTS) }
+        )
+    } else {
+        null
+    }
+    val exam = studyState.nextUpcomingExam
+    val examRecommendation = if (exam != null) {
+        val daysLeft = ((exam.examDateEpochMillis - System.currentTimeMillis()) / 86_400_000L)
+            .coerceAtLeast(0L)
+        val countdown = if (daysLeft == 0L) {
+            stringResource(R.string.due_today)
+        } else {
+            stringResource(R.string.in_days, daysLeft.toInt())
+        }
+        HomeRecommendation(
+            title = stringResource(R.string.home_recommendation_exam_title, exam.subjectName),
+            message = stringResource(
+                R.string.home_recommendation_exam_body,
+                exam.examDateFormatted,
+                countdown
+            ),
+            actionLabel = stringResource(R.string.home_view_all),
+            icon = Icons.Default.CalendarMonth,
+            tone = if (daysLeft <= 3L) C1Tone.DANGER else C1Tone.INFO,
+            onClick = { onOpenMore(MoreSubScreen.EXAMS_SYLLABUS) }
+        )
+    } else {
+        null
+    }
+    val weakSubjectId = weakSubject?.summary?.subjectId
+    val resource = studyState.recentResources.firstOrNull {
+        weakSubjectId == null || it.subjectId == weakSubjectId
+    } ?: studyState.recentResources.firstOrNull()
+    val resourceRecommendation = if (resource != null) {
+        HomeRecommendation(
+            title = stringResource(R.string.home_recommendation_resource_title, resource.title),
+            message = stringResource(
+                R.string.home_recommendation_resource_body,
+                resource.category.lowercase(Locale.getDefault()),
+                resource.subjectName
+            ),
+            actionLabel = stringResource(R.string.home_view_all),
+            icon = Icons.Default.MenuBook,
+            tone = C1Tone.INFO,
+            onClick = { onOpenMore(MoreSubScreen.NOTES_PYQ) }
+        )
+    } else {
+        null
+    }
+    val event = studyState.upcomingEvents.firstOrNull()
+    val eventRecommendation = if (event != null) {
+        HomeRecommendation(
+            title = stringResource(R.string.home_recommendation_event_title, event.title),
+            message = stringResource(
+                R.string.home_recommendation_event_body,
+                event.eventDateFormatted,
+                event.venue
+            ),
+            actionLabel = stringResource(R.string.home_view_all),
+            icon = Icons.Default.Event,
+            tone = C1Tone.NEUTRAL,
+            onClick = { onOpenMore(MoreSubScreen.EVENTS_CLUBS) }
+        )
+    } else {
+        null
+    }
+    val recommendations = listOfNotNull(
+        attendanceRecommendation,
+        deadlineRecommendation,
+        examRecommendation,
+        resourceRecommendation,
+        eventRecommendation
+    ).take(3)
+
+    Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
+        C1SectionHeader(
+            title = stringResource(R.string.home_smart_for_you),
+            subtitle = stringResource(R.string.home_smart_subtitle)
+        )
+        if (recommendations.isEmpty()) {
+            C1SurfaceCard(contentPadding = PaddingValues(C1Spacing.lg)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = extendedColors.success,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.home_no_recommendations_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        } else {
+            recommendations.forEach { recommendation ->
+                RecommendationCard(recommendation)
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecommendationCard(recommendation: HomeRecommendation) {
+    val tint = toneContentColor(recommendation.tone)
+    C1SurfaceCard(
+        onClick = recommendation.onClick,
+        contentPadding = PaddingValues(C1Spacing.lg),
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(tint.copy(alpha = 0.12f), C1Radius.sm)
+            ) {
+                Icon(
+                    imageVector = recommendation.icon,
+                    contentDescription = null,
+                    tint = tint,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = recommendation.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = recommendation.message,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = recommendation.actionLabel,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun RecentResourcesSection(
+    studyState: StudyAndCampusUiState,
+    dataRefreshError: Boolean,
+    onOpenMore: (MoreSubScreen) -> Unit,
+    onRetryRefresh: () -> Unit
+) {
+    val hairline = extendedColors.hairline
+    Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
+        C1SectionHeader(
+            title = stringResource(R.string.home_recent_resources),
+            actionLabel = stringResource(R.string.home_view_all),
+            onAction = { onOpenMore(MoreSubScreen.NOTES_PYQ) }
+        )
+        when {
+            studyState.isLoading && studyState.recentResources.isEmpty() -> C1SurfaceCard(
+                contentPadding = PaddingValues(C1Spacing.lg)
+            ) {
+                C1SkeletonRows(rows = 2)
+            }
+
+            dataRefreshError && studyState.recentResources.isEmpty() -> C1SurfaceCard(
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                C1ErrorState(
+                    title = stringResource(R.string.home_resource_error),
+                    message = stringResource(R.string.home_resource_error_hint),
+                    retryLabel = stringResource(R.string.home_retry),
+                    onRetry = onRetryRefresh
+                )
+            }
+
+            studyState.recentResources.isEmpty() -> C1SurfaceCard(
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                C1EmptyState(
+                    icon = Icons.Default.MenuBook,
+                    title = stringResource(R.string.home_resources_empty),
+                    message = stringResource(R.string.home_resources_empty_hint)
+                )
+            }
+
+            else -> Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                if (dataRefreshError) {
+                    C1Banner(
+                        text = stringResource(R.string.home_showing_saved_data),
+                        tone = C1Tone.WARNING
+                    )
+                }
+                C1SurfaceCard(contentPadding = PaddingValues(0.dp)) {
+                    Column {
+                        studyState.recentResources.forEachIndexed { index, resource ->
+                            ResourceRow(
+                                resource = resource,
+                                onClick = { onOpenMore(MoreSubScreen.NOTES_PYQ) }
+                            )
+                            if (index != studyState.recentResources.lastIndex) {
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = C1Spacing.lg),
+                                    color = hairline
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ResourceRow(
+    resource: StudyResourceEntity,
+    onClick: () -> Unit
+) {
+    val dateFormat = remember { SimpleDateFormat("d MMM", Locale.getDefault()) }
+    val categoryLabel = resource.category.lowercase(Locale.getDefault())
+        .replaceFirstChar { it.uppercase() }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(C1Spacing.lg),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(38.dp)
+                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+        ) {
+            Icon(
+                imageVector = Icons.Default.MenuBook,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(19.dp)
+            )
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = resource.title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "$categoryLabel • ${resource.subjectName}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        Text(
+            text = dateFormat.format(Date(resource.createdAtMillis)),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+        )
+    }
+}
+
+@Composable
+private fun toneContentColor(tone: C1Tone): Color {
+    val extended = extendedColors
+    return when (tone) {
+        C1Tone.SUCCESS -> extended.success
+        C1Tone.WARNING -> extended.warning
+        C1Tone.DANGER -> MaterialTheme.colorScheme.error
+        C1Tone.INFO -> extended.info
+        C1Tone.NEUTRAL -> MaterialTheme.colorScheme.primary
+    }
+}
+
+private fun isToday(epochMillis: Long): Boolean =
+    Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault()).toLocalDate() == LocalDate.now()
 
 @Composable
 private fun NextClassCard(
@@ -608,6 +1183,7 @@ private fun AnnouncementsSection(
         uiState.notices
             .sortedWith(
                 compareByDescending<NoticeItem> { it.isPinned }
+                    .thenBy { priorityRank(it.priority) }
                     .thenByDescending { it.createdAtMillis }
             )
             .take(3)
@@ -617,7 +1193,8 @@ private fun AnnouncementsSection(
         C1SectionHeader(
             title = stringResource(R.string.home_announcements),
             actionLabel = stringResource(R.string.home_view_all),
-            onAction = onOpenNotices
+            onAction = onOpenNotices,
+            subtitle = stringResource(R.string.home_announcements_subtitle)
         )
         when {
             uiState.isLoading && visibleNotices.isEmpty() -> C1SurfaceCard(
@@ -660,7 +1237,7 @@ private fun AnnouncementsSection(
                 if (dataRefreshError) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         C1Banner(
-                            text = stringResource(R.string.home_showing_saved),
+                            text = stringResource(R.string.home_showing_saved_data),
                             tone = C1Tone.WARNING,
                             modifier = Modifier.weight(1f)
                         )
@@ -732,6 +1309,12 @@ private fun NoticePreview(
                     )
                 }
             }
+            if (notice.priority.equals("HIGH", ignoreCase = true)) {
+                C1StatusChip(
+                    text = stringResource(R.string.home_priority_high),
+                    tone = C1Tone.DANGER
+                )
+            }
             Spacer(modifier = Modifier.weight(1f))
             if (!notice.isRead) {
                 Box(
@@ -775,10 +1358,72 @@ private fun NoticePreview(
 private fun AtAGlanceSection(
     deadlines: List<AssignmentEntity>,
     exam: ExamEntity?,
+    events: List<CampusEventEntity>,
     onOpenMore: (MoreSubScreen) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
-        C1SectionHeader(title = stringResource(R.string.home_at_a_glance))
+        C1SectionHeader(title = stringResource(R.string.home_coming_up))
+
+        if (events.isNotEmpty()) {
+            C1SurfaceCard(
+                onClick = { onOpenMore(MoreSubScreen.EVENTS_CLUBS) },
+                contentPadding = PaddingValues(0.dp),
+                containerColor = MaterialTheme.colorScheme.surface
+            ) {
+                Column(
+                    modifier = Modifier.padding(C1Spacing.lg),
+                    verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Event,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(
+                            text = stringResource(R.string.home_upcoming_events),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    events.take(3).forEach { event ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = event.title,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = "${event.clubName} • ${event.eventDateFormatted} • ${event.venue}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(C1Spacing.sm))
+                            Icon(
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
 
         if (deadlines.isNotEmpty()) {
             C1SurfaceCard(
@@ -908,6 +1553,12 @@ private fun priorityTone(priority: String): C1Tone = when (priority.uppercase(Lo
     "HIGH" -> C1Tone.DANGER
     "MEDIUM" -> C1Tone.WARNING
     else -> C1Tone.NEUTRAL
+}
+
+private fun priorityRank(priority: String): Int = when (priority.uppercase(Locale.getDefault())) {
+    "HIGH" -> 0
+    "MEDIUM" -> 1
+    else -> 2
 }
 
 private fun dayShort(slot: TimetableSlot): String =

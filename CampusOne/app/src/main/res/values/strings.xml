@@ -385,4 +385,48 @@
     <string name="notices_empty_hint">Announcements from your CR, faculty and the university will appear here.</string>
 
     <string name="home_quick_actions_subtitle">The things you use most, one tap away</string>
+
+    <!-- Intelligent Dashboard -->
+    <string name="home_today_overview">Today</string>
+    <string name="home_today_classes">Classes</string>
+    <string name="home_today_attendance">Attendance</string>
+    <string name="home_today_due">Due soon</string>
+    <string name="home_today_unread">Unread</string>
+    <string name="home_today_no_classes">No classes today</string>
+    <string name="home_today_event">Today · %1$s</string>
+    <string name="home_smart_for_you">Smart for you</string>
+    <string name="home_smart_subtitle">Personalised from your timetable, attendance and deadlines</string>
+    <string name="home_recommendation_attendance_title">Lift %1$s attendance</string>
+    <string name="home_recommendation_attendance_body">Attend %1$d more classes to reach %2$d%%.</string>
+    <string name="home_recommendation_deadline_title">Finish %1$s</string>
+    <string name="home_recommendation_deadline_body">%1$s · due %2$s</string>
+    <string name="home_recommendation_exam_title">Revise for %1$s</string>
+    <string name="home_recommendation_exam_body">%1$s · %2$s</string>
+    <string name="home_recommendation_resource_title">New notes for %1$s</string>
+    <string name="home_recommendation_resource_body">%1$s · %2$s</string>
+    <string name="home_recommendation_event_title">%1$s</string>
+    <string name="home_recommendation_event_body">%1$s · %2$s</string>
+    <string name="home_action_attendance">Open attendance</string>
+    <string name="home_action_assignment">View assignment</string>
+    <string name="home_action_exam">View exam</string>
+    <string name="home_action_notes">Open notes</string>
+    <string name="home_action_event">View event</string>
+    <string name="home_no_recommendations">You’re all caught up</string>
+    <string name="home_no_recommendations_hint">No urgent actions from your attendance, deadlines or exams.</string>
+    <string name="home_upcoming_events">Upcoming events</string>
+    <string name="home_events_empty">No upcoming events</string>
+    <string name="home_events_empty_hint">Club and campus events will appear here.</string>
+    <string name="home_recent_resources">Recently uploaded</string>
+    <string name="home_resources_empty">No study material yet</string>
+    <string name="home_resources_empty_hint">Notes and previous year papers for your section will appear here.</string>
+    <string name="home_resource_meta">%1$s · %2$s</string>
+    <string name="home_coming_up">Coming up</string>
+    <string name="home_announcements_subtitle">Pinned and high-priority updates first</string>
+    <string name="home_showing_saved_data">Showing saved data.</string>
+    <string name="home_loading_dashboard">Loading your dashboard…</string>
+    <string name="home_today_subtitle">Your classes, attendance and priorities for today</string>
+    <string name="home_live_snapshot">Live snapshot</string>
+    <string name="home_priority_high">High priority</string>
+    <string name="home_resource_error">Couldn’t refresh resources</string>
+    <string name="home_resource_error_hint">Showing saved material. Pull to refresh or try again.</string>
 </resources>

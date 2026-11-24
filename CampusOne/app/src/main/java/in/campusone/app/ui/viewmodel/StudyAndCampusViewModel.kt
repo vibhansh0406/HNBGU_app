@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -40,8 +41,12 @@ import javax.inject.Inject
 
 data class StudyAndCampusUiState(
     val profile: UserProfile = UserProfile(),
+    val isLoading: Boolean = true,
+    val syncError: Boolean = false,
     // Phase 2: Study
     val resources: List<StudyResourceEntity> = emptyList(),
+    val recentResources: List<StudyResourceEntity> = emptyList(),
+    val pendingAssignmentCount: Int = 0,
     val moderationQueue: List<StudyResourceEntity> = emptyList(),
     val assignments: List<AssignmentEntity> = emptyList(),
     val nextThreeDeadlines: List<AssignmentEntity> = emptyList(),
@@ -58,6 +63,7 @@ data class StudyAndCampusUiState(
     // Phase 3: Campus Life
     val clubs: List<ClubEntity> = emptyList(),
     val events: List<CampusEventEntity> = emptyList(),
+    val upcomingEvents: List<CampusEventEntity> = emptyList(),
     val lostFoundItems: List<LostFoundEntity> = emptyList(),
     val contactRequests: List<LostFoundContactRequestEntity> = emptyList(),
     val directoryContacts: List<DirectoryContactEntity> = emptyList(),
@@ -75,6 +81,8 @@ class StudyAndCampusViewModel @Inject constructor(
     private val _statusMessages = MutableSharedFlow<String>()
     val statusMessages = _statusMessages.asSharedFlow()
 
+    private val _syncError = MutableStateFlow(false)
+
     private val _gpaScaleType = MutableStateFlow(GradingScaleType.TEN_POINT_INDIAN)
     private val _gpaCourses = MutableStateFlow<List<CourseGradeInput>>(emptyList())
     private val _gpaMultiplier = MutableStateFlow(9.5)
@@ -83,7 +91,7 @@ class StudyAndCampusViewModel @Inject constructor(
 
     val uiState: StateFlow<StudyAndCampusUiState> = prefs.userProfile.flatMapLatest { profile ->
         viewModelScope.launch {
-            repository.ensureStudyAndCampusSeeded(profile.sectionKey, profile.collegeId)
+            refreshDashboard()
         }
         val studyFlows = combine(
             repository.observeResources(profile.sectionKey),
@@ -123,7 +131,7 @@ class StudyAndCampusViewModel @Inject constructor(
             Quintuple(scale, courses, mult, targetCgpa, upCredits)
         }
 
-        combine(studyFlows, campusFlows1, campusFlows2, gpaInputFlows) { studyPart, campus1, campus2, gpaInputs ->
+        combine(studyFlows, campusFlows1, campusFlows2, gpaInputFlows, _syncError) { studyPart, campus1, campus2, gpaInputs, syncError ->
             val scale = gpaInputs.a
             val courses = gpaInputs.b
             val mult = gpaInputs.c
@@ -153,10 +161,29 @@ class StudyAndCampusViewModel @Inject constructor(
             val nextExam = studyPart.d
                 .filter { it.examDateEpochMillis >= now - 86_400_000L }
                 .minByOrNull { it.examDateEpochMillis }
+            val pendingAssignmentCount = studyPart.c.count { !it.isCompleted && it.isAddedToPersonalList }
+            val upcomingEvents = campus1.c
+                .filter {
+                    it.isApproved && !it.isFlagged &&
+                        it.eventEpochMillis >= now - 6 * 60 * 60 * 1000L
+                }
+                .sortedBy { it.eventEpochMillis }
+                .take(3)
+            val recentResources = studyPart.a
+                .filter {
+                    !it.isHidden &&
+                        (it.uploadStatus == "COMPLETED" || it.uploadStatus == "PUBLISHED")
+                }
+                .sortedByDescending { it.createdAtMillis }
+                .take(3)
 
             StudyAndCampusUiState(
                 profile = profile,
+                isLoading = false,
+                syncError = syncError,
                 resources = studyPart.a,
+                recentResources = recentResources,
+                pendingAssignmentCount = pendingAssignmentCount,
                 moderationQueue = studyPart.b,
                 assignments = studyPart.c,
                 nextThreeDeadlines = pendingDeadlines,
@@ -172,6 +199,7 @@ class StudyAndCampusViewModel @Inject constructor(
                 targetCgpaRequirement = targetReq,
                 clubs = campus1.b,
                 events = campus1.c,
+                upcomingEvents = upcomingEvents,
                 lostFoundItems = campus1.d,
                 contactRequests = campus1.e,
                 directoryContacts = campus2.first,
@@ -184,6 +212,13 @@ class StudyAndCampusViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = StudyAndCampusUiState()
     )
+
+    suspend fun refreshDashboard() {
+        val profile = prefs.userProfile.first()
+        _syncError.value = runCatching {
+            repository.ensureStudyAndCampusSeeded(profile.sectionKey, profile.collegeId)
+        }.isFailure
+    }
 
     // =========================================================================
     // Phase 2 Actions (Notes/PYQ, Assignments, Exams/Syllabus, GPA/PDF)

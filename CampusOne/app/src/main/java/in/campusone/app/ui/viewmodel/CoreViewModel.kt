@@ -442,12 +442,14 @@ class CoreViewModel @Inject constructor(
         }
     }
 
+    suspend fun refreshDashboard() {
+        val sectionKey = prefs.userProfile.first().sectionKey
+        _noticesSyncError.value =
+            repository.ensureSeededForSection(sectionKey, forceRefresh = true).isFailure
+    }
+
     fun refreshNotices() {
-        viewModelScope.launch {
-            val sectionKey = prefs.userProfile.first().sectionKey
-            _noticesSyncError.value =
-                repository.ensureSeededForSection(sectionKey, forceRefresh = true).isFailure
-        }
+        viewModelScope.launch { refreshDashboard() }
     }
 
     fun refreshTimetable() {
