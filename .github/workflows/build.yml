@@ -151,3 +151,11 @@ jobs:
 
       - name: Run unit tests
         run: gradle testDebugUnitTest
+
+      - name: Upload signed release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: campusone-pr11-release-apk-${{ github.sha }}
+          path: CampusOne/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 7
