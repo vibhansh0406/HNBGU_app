@@ -335,4 +335,47 @@
     <string name="hub_campus_life">कैंपस लाइफ और उपयोगिताएं</string>
     <string name="hub_request_sent">आपका अनुरोध एडमिन को भेज दिया गया है। एक्सेस केवल मंजूरी के बाद दिया जाता है।</string>
     <string name="home_quick_actions_subtitle">आपके सबसे ज़रूरी काम, एक टैप में</string>
+
+    <!-- Intelligent Dashboard -->
+    <string name="home_today_overview">आज</string>
+    <string name="home_today_classes">कक्षाएं</string>
+    <string name="home_today_attendance">उपस्थिति</string>
+    <string name="home_today_due">बाकी</string>
+    <string name="home_today_unread">अपठित</string>
+    <string name="home_today_no_classes">आज कोई कक्षा नहीं</string>
+    <string name="home_today_event">आज · %1$s</string>
+    <string name="home_smart_for_you">आपके लिए स्मार्ट</string>
+    <string name="home_smart_subtitle">आपकी समय-सारणी, उपस्थिति और समय-सीमाओं के आधार पर</string>
+    <string name="home_recommendation_attendance_title">%1$s की उपस्थिति सुधारें</string>
+    <string name="home_recommendation_attendance_body">%2$d%% तक पहुँचने के लिए %1$d और कक्षाएं लें।</string>
+    <string name="home_recommendation_deadline_title">%1$s पूरा करें</string>
+    <string name="home_recommendation_deadline_body">%1$s · देय %2$s</string>
+    <string name="home_recommendation_exam_title">%1$s के लिए दोहराएं</string>
+    <string name="home_recommendation_exam_body">%1$s · %2$s</string>
+    <string name="home_recommendation_resource_title">%1$s के लिए नए नोट्स</string>
+    <string name="home_recommendation_resource_body">%1$s · %2$s</string>
+    <string name="home_recommendation_event_title">%1$s</string>
+    <string name="home_recommendation_event_body">%1$s · %2$s</string>
+    <string name="home_action_attendance">उपस्थिति खोलें</string>
+    <string name="home_action_assignment">असाइनमेंट देखें</string>
+    <string name="home_action_exam">परीक्षा देखें</string>
+    <string name="home_action_notes">नोट्स खोलें</string>
+    <string name="home_action_event">कार्यक्रम देखें</string>
+    <string name="home_no_recommendations">आप पूरी तरह अपडेट हैं</string>
+    <string name="home_no_recommendations_hint">आपकी उपस्थिति, समय-सीमा या परीक्षाओं से कोई तत्काल कार्रवाई नहीं।</string>
+    <string name="home_upcoming_events">आगामी कार्यक्रम</string>
+    <string name="home_events_empty">कोई आगामी कार्यक्रम नहीं</string>
+    <string name="home_events_empty_hint">क्लब और कैंपस कार्यक्रम यहां दिखेंगे।</string>
+    <string name="home_recent_resources">हाल ही में अपलोड किया गया</string>
+    <string name="home_resources_empty">अभी कोई अध्ययन सामग्री नहीं</string>
+    <string name="home_resources_empty_hint">आपके सेक्शन के नोट्स और पिछले वर्ष के पेपर यहां दिखेंगे।</string>
+    <string name="home_resource_meta">%1$s · %2$s</string>
+    <string name="home_coming_up">आगे क्या है</string>
+    <string name="home_announcements_subtitle">पिन किए गए और उच्च-प्राथमिकता वाले अपडेट पहले</string>
+    <string name="home_showing_saved_data">सहेजा गया डेटा दिख रहा है।</string>
+    <string name="home_loading_dashboard">आपका डैशबोर्ड लोड हो रहा है…</string>
+    <string name="home_today_subtitle">आज की कक्षाएं, उपस्थिति और प्राथमिकताएं</string>
+    <string name="home_priority_high">उच्च प्राथमिकता</string>
+    <string name="home_resource_error">संसाधन रीफ़्रेश नहीं हो सके</string>
+    <string name="home_resource_error_hint">कनेक्शन जांचें और फिर से प्रयास करें।</string>
 </resources>

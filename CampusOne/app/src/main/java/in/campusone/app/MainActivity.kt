@@ -350,6 +350,8 @@ fun CampusOneRoot(
     var pendingAssignmentId by rememberSaveable { mutableStateOf<String?>(null) }
     var lastNotificationNavAt by remember { mutableLongStateOf(0L) }
     var isSigningIn by remember { mutableStateOf(false) }
+    var isDashboardRefreshing by remember { mutableStateOf(false) }
+    val dashboardRefreshScope = rememberCoroutineScope()
     val noticesSyncError by coreViewModel.noticesSyncError.collectAsStateWithLifecycle()
     val unreadNotifications by communityViewModel.unreadNotificationCount.collectAsStateWithLifecycle()
 
@@ -461,9 +463,9 @@ fun CampusOneRoot(
                     onToggleLanguage = coreViewModel::toggleLanguage,
                     initialEmail = signedInEmail,
                     isOwner = signedInEmail.equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true),
-                    onCompleteSetup = { name, email, collegeName, courseId, courseName, semester, section, role ->
+                    onCompleteSetup = { name, email, collegeName, courseId, courseName, semester, section, academicSession, role ->
                         coreViewModel.completeOnboarding(
-                            name, email, collegeName, courseId, courseName, semester, section, role
+                            name, email, collegeName, courseId, courseName, semester, section, academicSession, role
                         )
                     }
                 )
@@ -555,9 +557,22 @@ fun CampusOneRoot(
                     when (tab) {
                         BottomNavTab.HOME -> HomeScreen(
                         uiState = coreState,
-                        nextThreeDeadlines = studyCampusState.nextThreeDeadlines,
-                        nextUpcomingExam = studyCampusState.nextUpcomingExam,
-                        dataRefreshError = noticesSyncError,
+                        studyState = studyCampusState,
+                        dataRefreshError = noticesSyncError || studyCampusState.syncError,
+                        isRefreshing = isDashboardRefreshing,
+                        onRefresh = {
+                            if (!isDashboardRefreshing) {
+                                dashboardRefreshScope.launch {
+                                    isDashboardRefreshing = true
+                                    try {
+                                        coreViewModel.refreshDashboard()
+                                        studyCampusViewModel.refreshDashboard()
+                                    } finally {
+                                        isDashboardRefreshing = false
+                                    }
+                                }
+                            }
+                        },
                         onToggleLanguage = coreViewModel::toggleLanguage,
                         onOpenProfile = {
                             pendingMoreScreen = MoreSubScreen.PROFILE

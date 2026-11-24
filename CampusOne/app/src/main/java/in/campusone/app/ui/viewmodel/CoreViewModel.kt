@@ -250,6 +250,7 @@ class CoreViewModel @Inject constructor(
         courseName: String,
         semester: Int,
         section: String,
+        academicSession: String,
         role: UserRole
     ) {
         viewModelScope.launch {
@@ -271,6 +272,7 @@ class CoreViewModel @Inject constructor(
                 courseId = courseId,
                 courseName = courseName,
                 semester = semester,
+                academicSession = academicSession.trim(),
                 section = section,
                 onboardingCompleted = false // Not yet persisted to server
             )
@@ -351,7 +353,8 @@ class CoreViewModel @Inject constructor(
 
             val name = candidate.name.trim()
             if (name.isBlank() || candidate.courseId.isBlank() ||
-                candidate.semester !in 1..8 || candidate.section !in setOf("A", "B", "C")
+                candidate.semester !in 1..8 || candidate.section !in setOf("A", "B", "C") ||
+                (candidate.academicSession.isNotBlank() && !candidate.academicSession.matches(Regex("^[0-9]{4}-[0-9]{2}$")))
             ) {
                 _uiMessages.emit("Please check your name, course, semester and section.")
                 return@launch
@@ -365,6 +368,7 @@ class CoreViewModel @Inject constructor(
                 courseId = candidate.courseId,
                 courseName = candidate.courseName,
                 semester = candidate.semester,
+                academicSession = candidate.academicSession.trim(),
                 section = candidate.section,
                 onboardingCompleted = true
             )
@@ -402,7 +406,8 @@ class CoreViewModel @Inject constructor(
         isPinned: Boolean,
         category: String = "GENERAL",
         priority: String = "NORMAL",
-        isOfficial: Boolean = false
+        isOfficial: Boolean = false,
+        audience: Map<String, Any> = emptyMap()
     ) {
         viewModelScope.launch {
             val result = repository.postNotice(
@@ -414,7 +419,8 @@ class CoreViewModel @Inject constructor(
                 isPinned = isPinned,
                 category = category,
                 priority = priority,
-                isOfficial = isOfficial
+                isOfficial = isOfficial,
+                audience = audience
             )
             if (result.isSuccess) {
                 _uiMessages.emit("Notice published to section!")
@@ -436,12 +442,14 @@ class CoreViewModel @Inject constructor(
         }
     }
 
+    suspend fun refreshDashboard() {
+        val sectionKey = prefs.userProfile.first().sectionKey
+        _noticesSyncError.value =
+            repository.ensureSeededForSection(sectionKey, forceRefresh = true).isFailure
+    }
+
     fun refreshNotices() {
-        viewModelScope.launch {
-            val sectionKey = prefs.userProfile.first().sectionKey
-            _noticesSyncError.value =
-                repository.ensureSeededForSection(sectionKey, forceRefresh = true).isFailure
-        }
+        viewModelScope.launch { refreshDashboard() }
     }
 
     fun refreshTimetable() {

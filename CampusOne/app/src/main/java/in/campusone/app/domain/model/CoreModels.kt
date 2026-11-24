@@ -39,6 +39,8 @@ data class UserProfile(
     val courseId: String = "bsc_cs",
     val courseName: String = "B.Sc. Computer Science (NEP)",
     val semester: Int = 3,
+    /** Academic year/session, e.g. 2026-27; blank until confirmed by the student. */
+    val academicSession: String = "",
     val section: String = "A",
     val targetAttendancePct: Int = 75,
     val reminderLeadMinutes: Int = 10,

@@ -2,14 +2,13 @@ package `in`.campusone.app.di
 
 import android.content.Context
 import androidx.room.Room
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import `in`.campusone.app.data.local.CampusOneDatabase
+import `in`.campusone.app.data.local.CampusOneMigrations
 import `in`.campusone.app.data.local.dao.AttendanceDao
 import `in`.campusone.app.data.local.dao.CampusLifeDao
 import `in`.campusone.app.data.local.dao.CommunityDao
@@ -22,12 +21,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    private val MIGRATION_3_4 = object : Migration(3, 4) {
-        override fun migrate(db: SupportSQLiteDatabase) {
-            db.execSQL("ALTER TABLE study_resources ADD COLUMN fileHash TEXT NOT NULL DEFAULT ''")
-        }
-    }
-
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): CampusOneDatabase {
@@ -35,7 +28,13 @@ object AppModule {
             context,
             CampusOneDatabase::class.java,
             "campusone_offline.db"
-        ).addMigrations(MIGRATION_3_4).fallbackToDestructiveMigration().build()
+        )
+            .addMigrations(
+                CampusOneMigrations.MIGRATION_3_4,
+                CampusOneMigrations.MIGRATION_4_5
+            )
+            // Never destructively reset offline user data on an unknown schema version.
+            .build()
     }
 
     @Provides

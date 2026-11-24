@@ -23,6 +23,34 @@ jobs:
             exit 1
           fi
 
+          # SAFETY: Never overwrite an existing Android signing identity.
+          # GitHub does not reveal secret values, but its secret-list API exposes names.
+          python <<'PY'
+          import json, os, urllib.request
+          repo = os.environ["GH_REPOSITORY"]
+          token = os.environ["SETUP_TOKEN"]
+          req = urllib.request.Request(
+              f"https://api.github.com/repos/{repo}/actions/secrets?per_page=100",
+              headers={
+                  "Accept": "application/vnd.github+json",
+                  "Authorization": f"Bearer {token}",
+                  "X-GitHub-Api-Version": "2022-11-28",
+                  "User-Agent": "CampusOne-Release-Key-Setup"
+              }
+          )
+          with urllib.request.urlopen(req, timeout=30) as response:
+              names = {item["name"] for item in json.load(response).get("secrets", [])}
+          signing = {"KEYSTORE_BASE64", "KEYSTORE_PASSWORD", "KEY_ALIAS", "KEY_PASSWORD"}
+          existing = sorted(signing & names)
+          if existing:
+              raise SystemExit(
+                  "REFUSING TO GENERATE A NEW KEY: existing signing secret(s) detected: "
+                  + ", ".join(existing)
+                  + ". This workflow must never rotate the CampusOne signing certificate."
+              )
+          print("No existing release-signing secrets found; initial key generation is allowed.")
+          PY
+
           KEYSTORE="$RUNNER_TEMP/campusone-release.jks"
           STORE_PASS="$(openssl rand -hex 32)"
           KEY_PASS="$(openssl rand -hex 32)"

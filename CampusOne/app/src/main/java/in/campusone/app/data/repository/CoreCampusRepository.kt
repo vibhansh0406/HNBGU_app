@@ -75,7 +75,8 @@ class CoreCampusRepository @Inject constructor(
                 courseId = profile.courseId,
                 courseName = profile.courseName,
                 semester = profile.semester,
-                section = profile.section
+                section = profile.section,
+                academicSession = profile.academicSession
             )
             if (!uploaded) {
                 throw IllegalStateException("Profile update failed on server")
@@ -101,11 +102,11 @@ class CoreCampusRepository @Inject constructor(
     suspend fun fetchRemoteProfile(uid: String): UserProfile? {
         val remote = supabaseSync.downloadProfile(uid) ?: return null
         val courseId = remote["course_id"] as? String ?: ""
-        val remoteRole = remote["role"] as? String ?: ""
+        val remoteRole = (remote["role"] as? String).orEmpty().trim().uppercase()
         val isOwner = (remote["email"] as? String)?.equals(OWNER_EMAIL, ignoreCase = true) == true
         val role = when {
             isOwner || remoteRole == "SUPER_ADMIN" -> UserRole.ADMIN
-            remoteRole == "TEACHER" || remoteRole == "CLUB_ADMIN" -> UserRole.MODERATOR
+            // Legacy/unknown roles must never inherit Moderator privileges.
             else -> UserRole.entries.firstOrNull { it.name == remoteRole } ?: UserRole.STUDENT
         }
         return UserProfile(
@@ -119,6 +120,7 @@ class CoreCampusRepository @Inject constructor(
             courseId = courseId,
             courseName = remote["course_name"] as? String ?: "",
             semester = (remote["semester"] as? Number)?.toInt() ?: 3,
+            academicSession = remote["academic_session"] as? String ?: "",
             section = remote["section"] as? String ?: "A",
             moderatorScope = remote["moderator_scope"] as? String ?: "",
             onboardingCompleted = remote["onboarding_completed"] as? Boolean ?: false
@@ -143,7 +145,8 @@ class CoreCampusRepository @Inject constructor(
                 courseId = profile.courseId,
                 courseName = profile.courseName,
                 semester = profile.semester,
-                section = profile.section
+                section = profile.section,
+                academicSession = profile.academicSession
             )
             if (!updated) throw IllegalStateException("Could not save profile to server")
         }
@@ -242,12 +245,11 @@ class CoreCampusRepository @Inject constructor(
                 isOfficial = map["is_official"] == true,
                 authorUid = map["author_uid"] as? String ?: "",
                 authorName = map["author_name"] as? String ?: "CampusOne",
-                authorRole = when ((map["author_role"] as? String)?.uppercase()) {
-                    "TEACHER", "CLUB_ADMIN" -> UserRole.MODERATOR
+                authorRole = when ((map["author_role"] as? String)?.trim()?.uppercase()) {
                     "SUPER_ADMIN" -> UserRole.ADMIN
-                    else -> runCatchingDefault({
-                        UserRole.valueOf(map["author_role"] as? String ?: "CR")
-                    }, UserRole.CR)
+                    else -> UserRole.entries.firstOrNull {
+                        it.name == (map["author_role"] as? String)?.trim()?.uppercase()
+                    } ?: UserRole.STUDENT
                 },
                 createdAtMillis = TimestampUtils.toEpochMillis(map["created_at"]) ?: System.currentTimeMillis(),
                 isRead = map["is_read"] == true || map["id"] in readIds
@@ -482,7 +484,8 @@ class CoreCampusRepository @Inject constructor(
         isPinned: Boolean,
         category: String = "GENERAL",
         priority: String = "NORMAL",
-        isOfficial: Boolean = false
+        isOfficial: Boolean = false,
+        audience: Map<String, Any> = emptyMap()
     ): kotlin.Result<Unit> = runCatching {
         require(
             profile.role == UserRole.CR ||
@@ -537,7 +540,8 @@ class CoreCampusRepository @Inject constructor(
                 "author_role" to entity.authorRole.name,
                 "created_at" to entity.createdAtMillis,
                 "updated_at" to now,
-                "is_read" to entity.isRead
+                "is_read" to entity.isRead,
+                "audience" to audience
             )))
             check(uploaded) { "Notice could not be published to the shared campus feed" }
 
@@ -551,7 +555,8 @@ class CoreCampusRepository @Inject constructor(
                     category = if (isOfficial) "announcement" else "notice",
                     targetType = "NOTICE",
                     targetId = entity.id,
-                    sectionKey = targetSectionKey
+                    sectionKey = targetSectionKey,
+                    audience = audience
                 )
             }
         }

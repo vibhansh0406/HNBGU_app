@@ -107,7 +107,8 @@ fun NoticeBoardScreen(
         isPinned: Boolean,
         category: String,
         priority: String,
-        isOfficial: Boolean
+        isOfficial: Boolean,
+        audience: Map<String, Any>
     ) -> Unit,
     onUploadNoticeAttachment: suspend (contentUri: String, mimeType: String) -> Result<String>,
     dataRefreshError: Boolean = false,
@@ -362,10 +363,12 @@ fun NoticeBoardScreen(
     if (showComposer) {
         PostNoticeDialog(
             isAdmin = uiState.profile.role == UserRole.ADMIN,
+            canTargetAudience = uiState.profile.role == UserRole.ADMIN ||
+                uiState.profile.role == UserRole.MODERATOR,
             onDismiss = { showComposer = false },
             onUploadAttachment = onUploadNoticeAttachment,
-            onSubmit = { title, body, url, type, pinned, category, priority, official ->
-                onPostNotice(title, body, url, type, pinned, category, priority, official)
+            onSubmit = { title, body, url, type, pinned, category, priority, official, audience ->
+                onPostNotice(title, body, url, type, pinned, category, priority, official, audience)
                 showComposer = false
             }
         )
@@ -648,6 +651,7 @@ private fun NoticeDetail(
 @Composable
 private fun PostNoticeDialog(
     isAdmin: Boolean,
+    canTargetAudience: Boolean,
     onDismiss: () -> Unit,
     onUploadAttachment: suspend (contentUri: String, mimeType: String) -> Result<String>,
     onSubmit: (
@@ -658,7 +662,8 @@ private fun PostNoticeDialog(
         isPinned: Boolean,
         category: String,
         priority: String,
-        isOfficial: Boolean
+        isOfficial: Boolean,
+        audience: Map<String, Any>
     ) -> Unit
 ) {
     var title by rememberSaveable { mutableStateOf("") }
@@ -668,9 +673,23 @@ private fun PostNoticeDialog(
     var category by rememberSaveable { mutableStateOf("GENERAL") }
     var priority by rememberSaveable { mutableStateOf("NORMAL") }
     var isOfficial by rememberSaveable { mutableStateOf(false) }
+    var audienceCourses by rememberSaveable { mutableStateOf("") }
+    var audienceYears by rememberSaveable { mutableStateOf("") }
+    var audienceSemesters by rememberSaveable { mutableStateOf("") }
+    var audienceSections by rememberSaveable { mutableStateOf("") }
+    var audienceSessions by rememberSaveable { mutableStateOf("") }
     var uploadedAttachmentType by rememberSaveable { mutableStateOf(AttachmentType.NONE.name) }
     var isUploadingAttachment by rememberSaveable { mutableStateOf(false) }
     var attachmentUploadError by rememberSaveable { mutableStateOf<String?>(null) }
+    val audienceNumbersValid = remember(audienceYears, audienceSemesters, audienceSessions) {
+        val numericValid = listOf(audienceYears, audienceSemesters).all { raw ->
+            raw.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                .all { token -> token.toIntOrNull()?.let { it > 0 } == true }
+        }
+        val sessionsValid = audienceSessions.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+            .all { it.matches(Regex("^[0-9]{4}-[0-9]{2}$")) }
+        numericValid && sessionsValid
+    }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val attachmentPicker = rememberLauncherForActivityResult(
@@ -741,6 +760,48 @@ private fun PostNoticeDialog(
                             label = { Text(noticePriorityLabel(option)) }
                         )
                     }
+                }
+                if (canTargetAudience) {
+                    Text(
+                        text = "Audience targeting",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = "Leave every field empty to send to all students in your college. Values are comma-separated; different filters combine with AND.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    C1TextField(
+                        value = audienceCourses,
+                        onValueChange = { audienceCourses = it },
+                        label = "Course IDs (e.g. BSC_BIO, BA)"
+                    )
+                    C1TextField(
+                        value = audienceYears,
+                        onValueChange = { audienceYears = it },
+                        label = "Year numbers (e.g. 1, 2)"
+                    )
+                    C1TextField(
+                        value = audienceSemesters,
+                        onValueChange = { audienceSemesters = it },
+                        label = "Semester numbers (e.g. 1, 3, 5)"
+                    )
+                    C1TextField(
+                        value = audienceSections,
+                        onValueChange = { audienceSections = it },
+                        label = "Sections (e.g. A, B)"
+                    )
+                    C1TextField(
+                        value = audienceSessions,
+                        onValueChange = { audienceSessions = it },
+                        label = "Academic sessions (e.g. 2026-27, 2025-26)"
+                    )
+                    Text(
+                        text = "Academic session and individual elective targeting are not available yet.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
                 C1TextField(
                     value = attachmentUrl,
@@ -819,10 +880,22 @@ private fun PostNoticeDialog(
                         isPinned,
                         category,
                         priority,
-                        isOfficial
+                        isOfficial,
+                        buildMap<String, Any> {
+                            val courses = audienceCourses.split(",").map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+                            val years = audienceYears.split(",").mapNotNull { it.trim().toIntOrNull() }.distinct()
+                            val semesters = audienceSemesters.split(",").mapNotNull { it.trim().toIntOrNull() }.distinct()
+                            val sections = audienceSections.split(",").map { it.trim().uppercase() }.filter { it.isNotEmpty() }.distinct()
+                            val sessions = audienceSessions.split(",").map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+                            if (courses.isNotEmpty()) put("courses", courses)
+                            if (years.isNotEmpty()) put("years", years)
+                            if (semesters.isNotEmpty()) put("semesters", semesters)
+                            if (sections.isNotEmpty()) put("sections", sections)
+                            if (sessions.isNotEmpty()) put("sessions", sessions)
+                        }
                     )
                 },
-                enabled = title.isNotBlank() && body.isNotBlank() && !isUploadingAttachment
+                enabled = title.isNotBlank() && body.isNotBlank() && !isUploadingAttachment && audienceNumbersValid
             )
         },
         dismissButton = {

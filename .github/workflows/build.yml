@@ -1,14 +1,18 @@
-name: Verify CampusOne Android Release Build
+name: Build and Verify CampusOne Android Release APK
 
 on:
   workflow_dispatch:
   push:
-    branches: [main, phase-3]
+    branches: [phase-3, fix/notice-audience-targeting]
   pull_request:
     branches: [main]
 
 permissions:
   contents: read
+
+concurrency:
+  group: campusone-android-release-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 defaults:
   run:
@@ -26,6 +30,8 @@ jobs:
           java-version: 17
 
       - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.9'
 
       - name: Decode and validate permanent release keystore
         env:
@@ -63,7 +69,23 @@ jobs:
           GOOGLE_OAUTH_WEB_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_WEB_CLIENT_ID }}
           GOOGLE_OAUTH_WEB_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_WEB_CLIENT_SECRET }}
           GOOGLE_OAUTH_CALLBACK_URL: ${{ secrets.GOOGLE_OAUTH_CALLBACK_URL }}
+        shell: bash
         run: |
+          set -euo pipefail
+          for name in SUPABASE_URL SUPABASE_ANON_KEY GOOGLE_OAUTH_CLIENT_ID GOOGLE_OAUTH_WEB_CLIENT_ID GOOGLE_OAUTH_WEB_CLIENT_SECRET; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing required GitHub Actions secret: $name"
+              exit 1
+            fi
+          done
+          case "$GOOGLE_OAUTH_WEB_CLIENT_ID" in
+            *.apps.googleusercontent.com) ;;
+            *) echo "::error::GOOGLE_OAUTH_WEB_CLIENT_ID is not a Google OAuth client ID"; exit 1 ;;
+          esac
+          if [ "$GOOGLE_OAUTH_CLIENT_ID" = "$GOOGLE_OAUTH_WEB_CLIENT_ID" ]; then
+            echo "::error::Android and Web OAuth client IDs must be separate clients."
+            exit 1
+          fi
           {
             echo "supabase.url=$SUPABASE_URL"
             echo "supabase.anon.key=$SUPABASE_ANON_KEY"
@@ -72,11 +94,25 @@ jobs:
             echo "google.oauth.web_client_secret=$GOOGLE_OAUTH_WEB_CLIENT_SECRET"
             echo "google.oauth.callback_url=$GOOGLE_OAUTH_CALLBACK_URL"
           } > local.properties
+          {
+            echo "Build commit: $GITHUB_SHA"
+            echo "Google Android OAuth Client ID: $GOOGLE_OAUTH_CLIENT_ID"
+            echo "Google Web OAuth Client ID embedded in APK: $GOOGLE_OAUTH_WEB_CLIENT_ID"
+            echo "Package: in.campusone.app"
+            echo "Release signing SHA-1: 50341BDAAE1E1CFCC7E26893D3CF8A1F7AFC35A2"
+          } > CampusOne-build-info.txt
 
-      - name: Build signed release APK
-        run: gradle assembleRelease
+      - name: Build release APK
+        env:
+          CURRENT_VERSION_CODE: ${{ github.run_number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION_CODE="$CURRENT_VERSION_CODE" \
+          VERSION_NAME="1.0.$CURRENT_VERSION_CODE" gradle assembleRelease
+          test -s app/build/outputs/apk/release/app-release.apk
 
-      - name: Verify release APK, signing identity, schemes and permissions
+      - name: Verify release APK metadata, signatures and permissions
         shell: bash
         run: |
           set -euo pipefail
@@ -103,7 +139,6 @@ jobs:
             echo "::error::Release APK is marked debuggable."
             exit 1
           fi
-
           "$ZIPALIGN" -c 4 "$APK"
 
           SIGNATURE="$RUNNER_TEMP/campusone-release-signature.txt"
@@ -115,11 +150,10 @@ jobs:
             }
           done
 
-          # Current apksigner prints fingerprints under a V3.0 Signer block.
-          SHA1=$(grep -F "certificate SHA-1 digest:" "$SIGNATURE" | tail -1 | awk -F': ' '{print $NF}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
-          SHA256=$(grep -F "certificate SHA-256 digest:" "$SIGNATURE" | tail -1 | awk -F': ' '{print $NF}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
           EXPECTED_SHA1="50341BDAAE1E1CFCC7E26893D3CF8A1F7AFC35A2"
           EXPECTED_SHA256="E28B7893A26DF63884498AEF018575D3875ACEF2C0DC0DB9A06D4EFFA543F273"
+          SHA1=$(grep -F "certificate SHA-1 digest:" "$SIGNATURE" | tail -1 | awk -F': ' '{print $NF}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
+          SHA256=$(grep -F "certificate SHA-256 digest:" "$SIGNATURE" | tail -1 | awk -F': ' '{print $NF}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
           test "$SHA1" = "$EXPECTED_SHA1" || {
             echo "::error::Permanent release SHA-1 mismatch."
             exit 1
@@ -128,6 +162,18 @@ jobs:
             echo "::error::Permanent release SHA-256 mismatch."
             exit 1
           }
+
+          test -s ci/debug.keystore
+          DEBUG_SHA1=$(keytool -list -v -keystore ci/debug.keystore \
+            -alias androiddebugkey -storepass android | grep -m1 'SHA1:' | awk -F'SHA1: ' '{print $2}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
+          test -n "$DEBUG_SHA1" || {
+            echo "::error::Could not read the debug certificate fingerprint."
+            exit 1
+          }
+          if grep -Fqi "$DEBUG_SHA1" "$SIGNATURE"; then
+            echo "::error::Release APK is signed with the debug certificate."
+            exit 1
+          fi
 
           MANIFEST_DUMP="$("$AAPT" dump xmltree "$APK" AndroidManifest.xml)"
           FORBIDDEN=(
@@ -147,7 +193,17 @@ jobs:
             fi
           done
 
-          echo "PASS: package=$PACKAGE; signing schemes v1/v2/v3; permanent certificate; zip alignment; install-sensitive permission audit."
+          echo "PASS: package=$PACKAGE; release-only signing; v2/v3 signatures; permanent release key; alignment; permission audit."
 
       - name: Run unit tests
         run: gradle testDebugUnitTest
+
+      - name: Upload verified release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CampusOne-release-apk
+          path: |
+            CampusOne/app/build/outputs/apk/release/app-release.apk
+            CampusOne/CampusOne-build-info.txt
+          if-no-files-found: error
+          retention-days: 14

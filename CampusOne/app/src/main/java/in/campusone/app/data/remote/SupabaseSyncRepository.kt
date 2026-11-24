@@ -60,13 +60,14 @@ class SupabaseSyncRepository @Inject constructor(
         courseName: String,
         semester: Int,
         section: String,
+        academicSession: String = "",
         moderatorScope: String = "",
         isModeratorApproved: Boolean = false,
         onboardingCompleted: Boolean = false
     ): Boolean {
         if (!isSyncedEnabled()) return false
         return runCatching {
-            supabaseClient.from("profiles").upsert(mapOf(
+            supabaseClient.from("profiles").upsert(mapOf<String, Any>(
                 "id" to uid,
                 "full_name" to name,
                 "email" to email,
@@ -76,6 +77,7 @@ class SupabaseSyncRepository @Inject constructor(
                 "course_id" to courseId,
                 "course_name" to courseName,
                 "semester" to semester,
+                "academic_session" to academicSession.ifBlank { "" },
                 "section" to section,
                 "moderator_scope" to moderatorScope,
                 "is_moderator_approved" to isModeratorApproved,
@@ -103,21 +105,24 @@ class SupabaseSyncRepository @Inject constructor(
         courseId: String,
         courseName: String,
         semester: Int,
-        section: String
+        section: String,
+        academicSession: String = ""
     ): Boolean {
         if (!isSyncedEnabled() || authManager.currentUserId() != uid) return false
-        if (name.isBlank() || courseId.isBlank() || semester !in 1..8 || section !in setOf("A", "B", "C")) {
+        if (name.isBlank() || courseId.isBlank() || semester !in 1..8 || section !in setOf("A", "B", "C") ||
+            (academicSession.isNotBlank() && !academicSession.matches(Regex("^[0-9]{4}-[0-9]{2}$")))) {
             return false
         }
         val result = supabaseClient.from("profiles")
             .eq("id", uid)
             .update(
-                mapOf(
+                mapOf<String, Any>(
                     "full_name" to name.trim(),
                     "college_name" to collegeName,
                     "course_id" to courseId,
                     "course_name" to courseName,
                     "semester" to semester,
+                    "academic_session" to academicSession.ifBlank { "" },
                     "section" to section,
                     "onboarding_completed" to true,
                     "updated_at" to System.currentTimeMillis()
@@ -356,6 +361,18 @@ class SupabaseSyncRepository @Inject constructor(
         // Older deployments have not run the announcements migration yet.
         // Retry with only the columns every version of the table has so an
         // announcement is never silently lost.
+        // Never downgrade a targeted notice to a college-wide legacy row.
+        // If the audience column is missing, fail closed rather than widening delivery.
+        val hasTargetedAudience = notices.any { notice ->
+            val audience = notice["audience"] as? Map<*, *>
+            audience != null && audience.values.any { value ->
+                value is Collection<*> && value.isNotEmpty()
+            }
+        }
+        if (hasTargetedAudience) {
+            Log.e(TAG, "Targeted notice upload rejected: audience schema is unavailable")
+            return false
+        }
         val legacy = notices.map { notice ->
             notice.filterKeys { it in LEGACY_NOTICE_COLUMNS }
         }
@@ -843,7 +860,8 @@ class SupabaseSyncRepository @Inject constructor(
         category: String,
         targetType: String,
         targetId: String,
-        sectionKey: String
+        sectionKey: String,
+        audience: Map<String, Any> = emptyMap()
     ): Boolean {
         val edgeUrl = authManager.config.edgeFunctionUrl.trimEnd('/')
         val sessionToken = authManager.currentSession()?.accessToken ?: run {
@@ -877,6 +895,7 @@ class SupabaseSyncRepository @Inject constructor(
                     .put("target_type", targetType)
                     .put("target_id", targetId)
                     .put("section_key", sectionKey)
+                    .put("audience", org.json.JSONObject(audience))
 
                 conn.outputStream.use {
                     it.write(payload.toString().toByteArray(StandardCharsets.UTF_8))

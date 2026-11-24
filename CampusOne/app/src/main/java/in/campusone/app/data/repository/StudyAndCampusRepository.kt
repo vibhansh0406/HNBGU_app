@@ -43,6 +43,9 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.security.MessageDigest
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -155,6 +158,68 @@ class StudyAndCampusRepository @Inject constructor(
                     )
                 })
             }
+            val remoteClubs = supabaseSync.downloadClubs(collegeId)
+            if (remoteClubs.isNotEmpty()) {
+                campusLifeDao.upsertClubs(remoteClubs.mapNotNull { row ->
+                    val clubId = row["id"] as? String ?: return@mapNotNull null
+                    ClubEntity(
+                        id = clubId,
+                        collegeId = row["college_id"] as? String ?: collegeId,
+                        name = row["name"] as? String ?: "",
+                        logoEmojiOrUrl = "🌟",
+                        description = row["description"] as? String ?: "",
+                        category = row["category"] as? String ?: "CAMPUS",
+                        memberCount = (row["member_count"] as? Number)?.toInt() ?: 0,
+                        contactEmail = row["contact_email"] as? String ?: "",
+                        socialLink = row["social_link"] as? String ?: "",
+                        adminUid = row["admin_uid"] as? String ?: "",
+                        adminName = row["admin_name"] as? String ?: "",
+                        isFollowedByMe = row["is_followed_by_me"] as? Boolean ?: false,
+                        isApproved = row["is_approved"] as? Boolean ?: false,
+                        reportCount = 0,
+                        isFlagged = row["is_flagged"] as? Boolean ?: false,
+                        updatedAtMillis = (row["updated_at"] as? Number)?.toLong()
+                            ?: System.currentTimeMillis()
+                    )
+                })
+            }
+            val clubNames = remoteClubs.associate {
+                (it["id"] as? String) to (it["name"] as? String)
+            }
+
+            val remoteEvents = supabaseSync.downloadEvents(collegeId)
+            if (remoteEvents.isNotEmpty()) {
+                val dateFormat = SimpleDateFormat("d MMM, h:mm a", Locale.getDefault())
+                campusLifeDao.upsertEvents(remoteEvents.mapNotNull { row ->
+                    val eventId = row["id"] as? String ?: return@mapNotNull null
+                    val epoch = (row["event_epoch_millis"] as? Number)?.toLong()
+                        ?: return@mapNotNull null
+                    val clubId = row["club_id"] as? String ?: ""
+                    CampusEventEntity(
+                        id = eventId,
+                        collegeId = row["college_id"] as? String ?: collegeId,
+                        clubId = clubId,
+                        clubName = clubNames[clubId] ?: "CampusOne",
+                        category = "CAMPUS",
+                        title = row["title"] as? String ?: "",
+                        description = row["description"] as? String ?: "",
+                        venue = row["venue"] as? String ?: "",
+                        eventDateFormatted = dateFormat.format(Date(epoch)),
+                        eventEpochMillis = epoch,
+                        goingCount = (row["going_count"] as? Number)?.toInt() ?: 0,
+                        interestedCount = (row["interested_count"] as? Number)?.toInt() ?: 0,
+                        notGoingCount = (row["not_going_count"] as? Number)?.toInt() ?: 0,
+                        myRsvpStatus = row["my_rsvp_status"] as? String ?: "NONE",
+                        reminderLeadMinutes = 60,
+                        isApproved = row["is_approved"] as? Boolean ?: false,
+                        reportCount = (row["report_count"] as? Number)?.toInt() ?: 0,
+                        isFlagged = row["is_flagged"] as? Boolean ?: false,
+                        updatedAtMillis = (row["updated_at"] as? Number)?.toLong()
+                            ?: System.currentTimeMillis()
+                    )
+                })
+            }
+
             val remoteLostFound = supabaseClient.from("lost_found_items")
                 .select("*")
                 .eq("college_id", collegeId)

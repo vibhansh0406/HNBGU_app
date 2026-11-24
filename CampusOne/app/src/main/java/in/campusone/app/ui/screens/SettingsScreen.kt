@@ -99,6 +99,7 @@ fun SettingsScreen(
     var editedCourseName by rememberSaveable { mutableStateOf(profile.courseName) }
     var editedSemester by rememberSaveable { mutableStateOf(profile.semester.toString()) }
     var editedSection by rememberSaveable { mutableStateOf(profile.section) }
+    var editedAcademicSession by rememberSaveable { mutableStateOf(profile.academicSession) }
     val context = LocalContext.current
     var systemNotificationsEnabled by remember {
         mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled())
@@ -177,6 +178,7 @@ fun SettingsScreen(
                                 editedCourseName = profile.courseName
                                 editedSemester = profile.semester.toString()
                                 editedSection = profile.section
+                                editedAcademicSession = profile.academicSession
                                 showEditProfile = true
                             }
                         ) {
@@ -382,6 +384,17 @@ fun SettingsScreen(
                         options = listOf("A" to "Section A", "B" to "Section B", "C" to "Section C"),
                         onSelected = { editedSection = it }
                     )
+                    C1TextField(
+                        value = editedAcademicSession,
+                        onValueChange = { editedAcademicSession = it },
+                        label = "Academic session (e.g. 2026-27)",
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        "Leave blank only if your session is not confirmed. Use YYYY-YY format.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             },
             confirmButton = {
@@ -395,7 +408,8 @@ fun SettingsScreen(
                                 courseId = editedCourseId,
                                 courseName = editedCourseName,
                                 semester = editedSemester.toIntOrNull() ?: profile.semester,
-                                section = editedSection
+                                section = editedSection,
+                                academicSession = editedAcademicSession.trim()
                             )
                         )
                         showEditProfile = false
