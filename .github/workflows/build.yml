@@ -87,13 +87,13 @@ jobs:
           VERSION_CODE="$PREVIOUS_VERSION_CODE" \
           VERSION_NAME="1.0.$PREVIOUS_VERSION_CODE" gradle assembleRelease
           cp app/build/outputs/apk/release/app-release.apk \
-            app/build/outputs/apk/release/app-previous-release.apk
+            "$RUNNER_TEMP/campusone-app-previous-release.apk"
 
           # Force a fresh packaging pass so the current version metadata is embedded.
           VERSION_CODE="$CURRENT_VERSION_CODE" \
           VERSION_NAME="1.0.$CURRENT_VERSION_CODE" gradle assembleRelease --rerun-tasks
 
-          test -s app/build/outputs/apk/release/app-previous-release.apk
+          test -s "$RUNNER_TEMP/campusone-app-previous-release.apk"
           test -s app/build/outputs/apk/release/app-release.apk
 
       - name: Verify release APK metadata, signing identity and permissions
@@ -189,7 +189,7 @@ jobs:
             gradle connectedDebugAndroidTest
             adb uninstall "$PACKAGE" >/dev/null 2>&1 || true
             adb uninstall "$PACKAGE.test" >/dev/null 2>&1 || true
-            PREVIOUS_APK="app/build/outputs/apk/release/app-previous-release.apk"
+            PREVIOUS_APK="$RUNNER_TEMP/campusone-app-previous-release.apk"
             RELEASE_APK="app/build/outputs/apk/release/app-release.apk"
 
             test -s "$PREVIOUS_APK"
