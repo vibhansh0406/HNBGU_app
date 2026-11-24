@@ -336,7 +336,7 @@ fun C1SectionHeader(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.semantics { heading() }
             )
             subtitle?.let {
@@ -577,11 +577,11 @@ fun C1SurfaceCard(
     contentPadding: PaddingValues = PaddingValues(C1Spacing.lg),
     containerColor: Color = MaterialTheme.colorScheme.surface,
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
-    elevation: Dp = 0.dp,
+    elevation: Dp = 1.dp,
     content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
 ) {
     val compColors = componentColors
-    val shape = C1Radius.md
+    val shape = C1Radius.lg
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -608,7 +608,7 @@ fun C1SurfaceCard(
         },
         shape = shape,
         color = containerColor,
-        border = BorderStroke(C1Border.hairline, borderColor),
+        border = BorderStroke(C1Border.thin, borderColor),
         shadowElevation = elevation
     ) {
         Column(modifier = Modifier.padding(contentPadding), content = content)
