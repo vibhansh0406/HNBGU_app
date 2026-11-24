@@ -213,7 +213,8 @@ jobs:
           RELEASE_VERIFY="$RUNNER_TEMP/campusone-release-signature.txt"
           "$APKSIGNER" verify --verbose --print-certs \
             --min-sdk-version 28 --max-sdk-version 32 "$APK" | tee "$RELEASE_VERIFY"
-          grep -Fq "Verified using v2 scheme (APK Signature Scheme v2): true" "$RELEASE_VERIFY"
+          # With a v3 signing lineage, Android 9+ verifies the rotated signer via v3.
+          # The API 28+ apksigner report may correctly show v2=false for this signer.
           grep -Fq "Verified using v3 scheme (APK Signature Scheme v3): true" "$RELEASE_VERIFY"
 
           EXPECTED_SHA1="50341BDAAE1E1CFCC7E26893D3CF8A1F7AFC35A2"
