@@ -333,7 +333,13 @@ fun FlagshipAttendanceScreen(
             }
             item {
                 FlagshipCard {
-                    FlagshipSectionTitle("Interactive Bunk Simulator", "Real-time projection based on your recorded classes", trailing = { FlagshipPill("Dynamic", FlagshipBlue, Color(0xFF367F8D)) })
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Interactive Bunk Simulator", style = MaterialTheme.typography.titleMedium, color = FlagshipInk, fontWeight = FontWeight.Bold)
+                            Text("Real-time projection based on your recorded classes", style = MaterialTheme.typography.bodySmall, color = FlagshipMuted)
+                        }
+                        FlagshipPill("Dynamic", FlagshipBlue, Color(0xFF367F8D))
+                    }
                     Spacer(Modifier.height(10.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                         ProjectionStepper("Future missed classes", futureMissed, { futureMissed = (futureMissed - 1).coerceAtLeast(0) }, { futureMissed = (futureMissed + 1).coerceAtMost(30) }, Modifier.weight(1f))
