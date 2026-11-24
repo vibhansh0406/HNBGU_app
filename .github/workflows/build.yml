@@ -74,6 +74,11 @@ jobs:
           } > local.properties
 
       - name: Build signed release APK
+        env:
+          # Every CI build gets a strictly increasing Android versionCode.
+          # This makes subsequent signed APKs install as updates, not same-version installs.
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: 1.0.${{ github.run_number }}
         run: gradle assembleRelease
 
       - name: Verify release APK, signing identity, schemes and permissions
