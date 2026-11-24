@@ -325,7 +325,9 @@ fun MoreHubScreen(
             onNavigate = { targetType, targetId ->
                 activeScreen = MoreSubScreen.HUB
                 onNotificationNavigate(targetType, targetId)
-            }
+            },
+            onOpenNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
+            onOpenProfile = { activeScreen = MoreSubScreen.PROFILE }
         )
         return
     }
@@ -344,24 +346,46 @@ fun MoreHubScreen(
             uiState = uiState,
             onOpenEvents = { activeScreen = MoreSubScreen.EVENTS_CLUBS },
             onOpenLostFound = { activeScreen = MoreSubScreen.LOST_FOUND },
-            onOpenDirectory = { activeScreen = MoreSubScreen.DIRECTORY }
+            onOpenDirectory = { activeScreen = MoreSubScreen.DIRECTORY },
+            onOpenNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
+            onOpenProfile = { activeScreen = MoreSubScreen.PROFILE }
         )
         return
     }
     if (activeScreen == MoreSubScreen.GPA_CALCULATOR) {
-        FlagshipGpaCalculatorScreen(uiState, viewModel)
+        FlagshipGpaCalculatorScreen(
+            uiState = uiState,
+            viewModel = viewModel,
+            onOpenNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
+            onOpenProfile = { activeScreen = MoreSubScreen.PROFILE }
+        )
         return
     }
     if (activeScreen == MoreSubScreen.EVENTS_CLUBS) {
-        FlagshipEventsAndClubsScreen(uiState, viewModel)
+        FlagshipEventsAndClubsScreen(
+            uiState = uiState,
+            viewModel = viewModel,
+            onOpenNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
+            onOpenProfile = { activeScreen = MoreSubScreen.PROFILE }
+        )
         return
     }
     if (activeScreen == MoreSubScreen.LOST_FOUND) {
-        FlagshipLostAndFoundScreen(uiState, viewModel)
+        FlagshipLostAndFoundScreen(
+            uiState = uiState,
+            viewModel = viewModel,
+            onOpenNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
+            onOpenProfile = { activeScreen = MoreSubScreen.PROFILE }
+        )
         return
     }
     if (activeScreen == MoreSubScreen.DIRECTORY) {
-        FlagshipCampusDirectoryScreen(uiState, viewModel)
+        FlagshipCampusDirectoryScreen(
+            uiState = uiState,
+            viewModel = viewModel,
+            onOpenNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
+            onOpenProfile = { activeScreen = MoreSubScreen.PROFILE }
+        )
         return
     }
 
