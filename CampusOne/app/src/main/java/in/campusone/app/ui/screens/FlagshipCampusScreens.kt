@@ -258,6 +258,7 @@ fun FlagshipEventsAndClubsScreen(
     val clubs = uiState.clubs.filter { it.isApproved && !it.isFlagged }
         .filter { category == "ALL" || it.category.equals(category, true) }
         .filter { query.isBlank() || it.name.contains(query, true) || it.description.contains(query, true) }
+    val approvedClubs = uiState.clubs.filter { it.isApproved && !it.isFlagged }
     val canCreate = uiState.profile.role == UserRole.CR || uiState.profile.role == UserRole.ADMIN || uiState.profile.role == UserRole.MODERATOR
     Column(modifier = Modifier.fillMaxSize().background(CampusPageCanvas)) {
         FlagshipAppHeader(uiState.profile.collegeName, uiState.profile.name, showActions = false)
@@ -309,11 +310,42 @@ fun FlagshipEventsAndClubsScreen(
         }
     }
     if (showCreate) {
+        var clubIndex by rememberSaveable { mutableIntStateOf(0) }
+        var title by rememberSaveable { mutableStateOf("") }
+        var description by rememberSaveable { mutableStateOf("") }
+        var venue by rememberSaveable { mutableStateOf("") }
+        var categoryInput by rememberSaveable { mutableStateOf("TECH") }
+        var daysInput by rememberSaveable { mutableStateOf("7") }
         AlertDialog(
             onDismissRequest = { showCreate = false },
-            title = { Text("Create event") },
-            text = { Text("Event creation uses your approved society and moderator workflow. Open the existing event form from the role-specific event tools to submit a proposal.", color = CampusPageMuted) },
-            confirmButton = { TextButton(onClick = { showCreate = false }) { Text("Got it") } }
+            title = { Text("Propose campus event") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                    if (approvedClubs.isEmpty()) {
+                        Text("An approved society is required before an event can be proposed.", color = CampusPageMuted, fontSize = 12.sp)
+                    } else {
+                        Text("Society: " + approvedClubs[clubIndex.coerceIn(0, approvedClubs.lastIndex)].name, color = CampusPageMuted, fontSize = 12.sp)
+                        TextButton(onClick = { clubIndex = (clubIndex + 1) % approvedClubs.size }) { Text("Choose another society") }
+                    }
+                    OutlinedTextField(title, { title = it }, label = { Text("Event title") }, singleLine = true)
+                    OutlinedTextField(categoryInput, { categoryInput = it }, label = { Text("Category (TECH / CULTURAL / SPORTS)") }, singleLine = true)
+                    OutlinedTextField(description, { description = it }, label = { Text("Description") }, minLines = 2)
+                    OutlinedTextField(venue, { venue = it }, label = { Text("Venue") }, singleLine = true)
+                    OutlinedTextField(daysInput, { daysInput = it.filter(Char::isDigit).take(3) }, label = { Text("Days from now") }, singleLine = true)
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = approvedClubs.isNotEmpty() && title.isNotBlank() && venue.isNotBlank() && (daysInput.toIntOrNull() ?: 0) in 0..365,
+                    onClick = {
+                        val club = approvedClubs[clubIndex.coerceIn(0, approvedClubs.lastIndex)]
+                        val days = daysInput.toInt()
+                        viewModel.createClubEvent(club.id, club.name, categoryInput.trim().uppercase(Locale.ROOT), title.trim(), description.trim(), venue.trim(), if (days == 0) "Today" else "In " + days + " days", days)
+                        showCreate = false
+                    }
+                ) { Text("Submit proposal") }
+            },
+            dismissButton = { TextButton(onClick = { showCreate = false }) { Text("Cancel") } }
         )
     }
 }
