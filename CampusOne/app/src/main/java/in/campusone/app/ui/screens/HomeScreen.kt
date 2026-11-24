@@ -128,6 +128,14 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(C1Spacing.sectionGap(ws))
     ) {
         item {
+            FlagshipAppHeader(
+                campusName = uiState.profile.collegeName,
+                userName = uiState.profile.name,
+                onNotifications = onOpenNotices,
+                onProfile = onOpenProfile
+            )
+        }
+        item {
             HomeHeader(
                 uiState = uiState,
                 onToggleLanguage = onToggleLanguage,
