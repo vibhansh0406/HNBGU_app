@@ -321,15 +321,18 @@ fun OnboardingScreen(
                             Spacer(Modifier.height(C1Spacing.xxl))
                             FieldLabel("CURRENT SEMESTER")
                             Spacer(Modifier.height(C1Spacing.sm))
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                (1..8).forEach { semester ->
-                                    FilterChip(
-                                        selected = selectedSemester == semester,
-                                        onClick = { selectedSemester = semester },
-                                        label = { Text(semester.toString(), fontWeight = FontWeight.SemiBold) },
-                                        modifier = Modifier.weight(1f)
-                                    )
+                            (1..2).forEach { rowIndex ->
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    ((rowIndex - 1) * 4 + 1..rowIndex * 4).forEach { semester ->
+                                        FilterChip(
+                                            selected = selectedSemester == semester,
+                                            onClick = { selectedSemester = semester },
+                                            label = { Text(semester.toString(), fontWeight = FontWeight.SemiBold) },
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
                                 }
+                                if (rowIndex == 1) Spacer(Modifier.height(4.dp))
                             }
                             Spacer(Modifier.height(C1Spacing.xl))
                             FieldLabel("SECTION")
