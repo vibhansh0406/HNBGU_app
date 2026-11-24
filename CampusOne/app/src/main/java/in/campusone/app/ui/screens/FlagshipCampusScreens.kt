@@ -86,14 +86,16 @@ fun FlagshipCampusCommunityOverview(
     uiState: StudyAndCampusUiState,
     onOpenEvents: () -> Unit,
     onOpenLostFound: () -> Unit,
-    onOpenDirectory: () -> Unit
+    onOpenDirectory: () -> Unit,
+    onOpenNotifications: () -> Unit = {},
+    onOpenProfile: () -> Unit = {}
 ) {
     val events = uiState.events.filter { it.isApproved && !it.isFlagged }.sortedBy { it.eventEpochMillis }
     val clubs = uiState.clubs.filter { it.isApproved && !it.isFlagged }
     val items = uiState.lostFoundItems.filter { !it.isArchived && !it.isHidden && !it.isFlagged }.sortedByDescending { it.createdAtMillis }
     val contacts = uiState.directoryContacts
     Column(modifier = Modifier.fillMaxSize().background(CampusPageCanvas)) {
-        FlagshipAppHeader(uiState.profile.collegeName, uiState.profile.name, showActions = false)
+        FlagshipAppHeader(uiState.profile.collegeName, uiState.profile.name, onNotifications = onOpenNotifications, onProfile = onOpenProfile)
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(15.dp, 10.dp, 15.dp, 24.dp),
@@ -247,7 +249,9 @@ private fun OverviewContactRow(contact: DirectoryContactEntity) {
 @Composable
 fun FlagshipEventsAndClubsScreen(
     uiState: StudyAndCampusUiState,
-    viewModel: StudyAndCampusViewModel
+    viewModel: StudyAndCampusViewModel,
+    onOpenNotifications: () -> Unit = {},
+    onOpenProfile: () -> Unit = {}
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var category by rememberSaveable { mutableStateOf("ALL") }
@@ -262,7 +266,7 @@ fun FlagshipEventsAndClubsScreen(
     val approvedClubs = uiState.clubs.filter { it.isApproved && !it.isFlagged }
     val canCreate = uiState.profile.role == UserRole.CR || uiState.profile.role == UserRole.ADMIN || uiState.profile.role == UserRole.MODERATOR
     Column(modifier = Modifier.fillMaxSize().background(CampusPageCanvas)) {
-        FlagshipAppHeader(uiState.profile.collegeName, uiState.profile.name, showActions = false)
+        FlagshipAppHeader(uiState.profile.collegeName, uiState.profile.name, onNotifications = onOpenNotifications, onProfile = onOpenProfile)
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
             FlagshipPageTitle("Events & Clubs", "Verified student activities and registered societies", "CAMPUS LIFE", trailing = {
                 if (canCreate) TextButton(onClick = { showCreate = true }) { Text("＋ Create", color = CampusPageGreen, fontWeight = FontWeight.SemiBold) }
@@ -414,7 +418,9 @@ private fun FlagshipClubCard(club: ClubEntity, onFollow: () -> Unit) {
 @Composable
 fun FlagshipLostAndFoundScreen(
     uiState: StudyAndCampusUiState,
-    viewModel: StudyAndCampusViewModel
+    viewModel: StudyAndCampusViewModel,
+    onOpenNotifications: () -> Unit = {},
+    onOpenProfile: () -> Unit = {}
 ) {
     var type by rememberSaveable { mutableStateOf("ALL") }
     var query by rememberSaveable { mutableStateOf("") }
@@ -589,7 +595,9 @@ private fun FlagshipLostFoundReportDialog(
 @Composable
 fun FlagshipCampusDirectoryScreen(
     uiState: StudyAndCampusUiState,
-    viewModel: StudyAndCampusViewModel
+    viewModel: StudyAndCampusViewModel,
+    onOpenNotifications: () -> Unit = {},
+    onOpenProfile: () -> Unit = {}
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var campus by rememberSaveable { mutableStateOf("ALL") }
