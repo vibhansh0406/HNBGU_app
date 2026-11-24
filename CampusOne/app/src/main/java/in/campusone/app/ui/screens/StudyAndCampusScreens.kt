@@ -380,6 +380,14 @@ fun MoreHubScreen(
                 .widthIn(max = C1MaxContentWidth(ws)),
             verticalArrangement = Arrangement.spacedBy(C1Spacing.xl)
         ) {
+            item {
+                FlagshipAppHeader(
+                    campusName = profile.collegeName,
+                    userName = profile.name,
+                    onNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
+                    onProfile = { activeScreen = MoreSubScreen.PROFILE }
+                )
+            }
             // ===== Header =====
             item {
                 Row(
