@@ -178,6 +178,7 @@ import java.util.Locale
 
 enum class MoreSubScreen {
     HUB,
+    CAMPUS_COMMUNITY,
     COMMUNITY,
     NOTIFICATIONS,
     PROFILE,
@@ -318,7 +319,7 @@ fun MoreHubScreen(
         return
     }
     if (activeScreen == MoreSubScreen.NOTIFICATIONS) {
-        NotificationsScreen(
+        FlagshipNotificationsScreen(
             viewModel = communityViewModel,
             onBack = { activeScreen = MoreSubScreen.HUB },
             onNavigate = { targetType, targetId ->
@@ -335,6 +336,32 @@ fun MoreHubScreen(
             onBack = { activeScreen = MoreSubScreen.HUB },
             onSaveProfile = coreViewModel::updateAcademicProfile
         )
+        return
+    }
+
+    if (activeScreen == MoreSubScreen.CAMPUS_COMMUNITY) {
+        FlagshipCampusCommunityOverview(
+            uiState = uiState,
+            onOpenEvents = { activeScreen = MoreSubScreen.EVENTS_CLUBS },
+            onOpenLostFound = { activeScreen = MoreSubScreen.LOST_FOUND },
+            onOpenDirectory = { activeScreen = MoreSubScreen.DIRECTORY }
+        )
+        return
+    }
+    if (activeScreen == MoreSubScreen.GPA_CALCULATOR) {
+        FlagshipGpaCalculatorScreen(uiState, viewModel)
+        return
+    }
+    if (activeScreen == MoreSubScreen.EVENTS_CLUBS) {
+        FlagshipEventsAndClubsScreen(uiState, viewModel)
+        return
+    }
+    if (activeScreen == MoreSubScreen.LOST_FOUND) {
+        FlagshipLostAndFoundScreen(uiState, viewModel)
+        return
+    }
+    if (activeScreen == MoreSubScreen.DIRECTORY) {
+        FlagshipCampusDirectoryScreen(uiState, viewModel)
         return
     }
 
@@ -469,6 +496,17 @@ fun MoreHubScreen(
                         onClick = { activeScreen = MoreSubScreen.EVENTS_CLUBS }
                     )
                 }
+            }
+
+            // ===== Campus & Community overview =====
+            item {
+                HubActionCard(
+                    title = "Campus & Community",
+                    subtitle = "Events, societies, Lost & Found and campus contacts",
+                    icon = Icons.Default.Event,
+                    iconColor = MaterialTheme.colorScheme.primary,
+                    onClick = { activeScreen = MoreSubScreen.CAMPUS_COMMUNITY }
+                )
             }
 
             // ===== Campus Resources =====
