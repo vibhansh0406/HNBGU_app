@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: campusone-android-release-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 defaults:
   run:
     working-directory: CampusOne
@@ -55,6 +59,21 @@ jobs:
             echo "KEY_PASSWORD=$KEY_PASSWORD"
           } >> "$GITHUB_ENV"
 
+      - name: Prepare stable legacy debug signing key
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s ci/debug.keystore
+          for d in "${ANDROID_USER_HOME:-}" "$HOME/.config/.android" "$HOME/.android"; do
+            if [ -n "$d" ]; then
+              mkdir -p "$d"
+              cp ci/debug.keystore "$d/debug.keystore"
+            fi
+          done
+          keytool -list -keystore ci/debug.keystore \
+            -storepass android -alias androiddebugkey >/dev/null
+          echo "LEGACY_DEBUG_KEYSTORE=$GITHUB_WORKSPACE/CampusOne/ci/debug.keystore" >> "$GITHUB_ENV"
+
       - name: Configure app build properties
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -73,30 +92,78 @@ jobs:
             echo "google.oauth.callback_url=$GOOGLE_OAUTH_CALLBACK_URL"
           } > local.properties
 
-      - name: Build same-key upgrade baseline and current signed APK
+      - name: Build legacy-signed baseline and rotated release APK
         env:
           CURRENT_VERSION_CODE: ${{ github.run_number }}
+        shell: bash
         run: |
           set -euo pipefail
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
+          test -x "$APKSIGNER"
+          test -s "$LEGACY_DEBUG_KEYSTORE"
           PREVIOUS_VERSION_CODE=$((CURRENT_VERSION_CODE - 1))
           if [ "$PREVIOUS_VERSION_CODE" -lt 1 ]; then
             PREVIOUS_VERSION_CODE=1
           fi
 
-          # Build a lower-version APK with the exact same source and permanent key.
+          # Reproduce the stable debug-signed APK installed by the earlier CI flow.
           VERSION_CODE="$PREVIOUS_VERSION_CODE" \
-          VERSION_NAME="1.0.$PREVIOUS_VERSION_CODE" gradle assembleRelease
-          cp app/build/outputs/apk/release/app-release.apk \
-            "$RUNNER_TEMP/campusone-app-previous-release.apk"
+          VERSION_NAME="1.0.$PREVIOUS_VERSION_CODE" gradle assembleDebug
+          cp app/build/outputs/apk/debug/app-debug.apk \
+            "$RUNNER_TEMP/campusone-legacy-debug.apk"
 
-          # Force a fresh packaging pass so the current version metadata is embedded.
+          # Build the current release with the permanent release key.
           VERSION_CODE="$CURRENT_VERSION_CODE" \
           VERSION_NAME="1.0.$CURRENT_VERSION_CODE" gradle assembleRelease --rerun-tasks
+          cp app/build/outputs/apk/release/app-release.apk \
+            "$RUNNER_TEMP/campusone-release-pre-rotation.apk"
 
-          test -s "$RUNNER_TEMP/campusone-app-previous-release.apk"
+          # Trust the legacy debug signer for installed-data migration, then move
+          # Android 9+ devices to the permanent release signer using APK v3 lineage.
+          LINEAGE="$RUNNER_TEMP/campusone-signing-lineage.bin"
+          "$APKSIGNER" rotate --out "$LINEAGE" \
+            --old-signer \
+              --ks "$LEGACY_DEBUG_KEYSTORE" \
+              --ks-key-alias androiddebugkey \
+              --ks-pass pass:android \
+              --key-pass pass:android \
+              --set-installed-data true \
+              --set-shared-uid true \
+              --set-permission true \
+              --set-rollback false \
+              --set-auth true \
+            --new-signer \
+              --ks "$KEYSTORE_FILE" \
+              --ks-key-alias "$KEY_ALIAS" \
+              --ks-pass env:KEYSTORE_PASSWORD \
+              --key-pass env:KEY_PASSWORD
+
+          "$APKSIGNER" sign \
+            --ks "$LEGACY_DEBUG_KEYSTORE" \
+            --ks-key-alias androiddebugkey \
+            --ks-pass pass:android \
+            --key-pass pass:android \
+            --next-signer \
+              --ks "$KEYSTORE_FILE" \
+              --ks-key-alias "$KEY_ALIAS" \
+              --ks-pass env:KEYSTORE_PASSWORD \
+              --key-pass env:KEY_PASSWORD \
+            --lineage "$LINEAGE" \
+            --rotation-min-sdk-version 28 \
+            --min-sdk-version 26 \
+            --v1-signing-enabled true \
+            --v2-signing-enabled true \
+            --v3-signing-enabled true \
+            --out "$RUNNER_TEMP/campusone-release-rotated.apk" \
+            "$RUNNER_TEMP/campusone-release-pre-rotation.apk"
+
+          mv "$RUNNER_TEMP/campusone-release-rotated.apk" \
+            app/build/outputs/apk/release/app-release.apk
+          test -s "$RUNNER_TEMP/campusone-legacy-debug.apk"
           test -s app/build/outputs/apk/release/app-release.apk
+          test -s "$LINEAGE"
 
-      - name: Verify release APK metadata, signing identity and permissions
+      - name: Verify rotated APK metadata, signing lineage, signatures and permissions
         shell: bash
         run: |
           set -euo pipefail
@@ -123,28 +190,47 @@ jobs:
             echo "::error::Release APK is marked debuggable."
             exit 1
           fi
-
           "$ZIPALIGN" -c 4 "$APK"
 
-          SIGNATURE="$RUNNER_TEMP/campusone-release-signature.txt"
-          "$APKSIGNER" verify --verbose --print-certs "$APK" | tee "$SIGNATURE"
-          for scheme in "v2 scheme (APK Signature Scheme v2)" "v3 scheme (APK Signature Scheme v3)"; do
-            grep -Fq "Verified using $scheme: true" "$SIGNATURE" || {
-              echo "::error::APK is missing required $scheme signature."
-              exit 1
-            }
-          done
+          # Old Android versions still see the legacy signer in v1/v2.
+          LEGACY_SHA1=$(keytool -list -v -keystore "$LEGACY_DEBUG_KEYSTORE" \
+            -alias androiddebugkey -storepass android | grep -m1 'SHA1:' | awk -F'SHA1: ' '{print $2}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
+          LEGACY_VERIFY="$RUNNER_TEMP/campusone-legacy-signature.txt"
+          "$APKSIGNER" verify --verbose --print-certs \
+            --min-sdk-version 26 --max-sdk-version 27 "$APK" | tee "$LEGACY_VERIFY"
+          grep -Fq "Verified using v1 scheme (JAR signing): true" "$LEGACY_VERIFY"
+          grep -Fq "Verified using v2 scheme (APK Signature Scheme v2): true" "$LEGACY_VERIFY"
+          grep -Fqi "$LEGACY_SHA1" "$LEGACY_VERIFY" || {
+            echo "::error::Legacy signing certificate is not present for API 26-27."
+            exit 1
+          }
 
-          SHA1=$(grep -F "certificate SHA-1 digest:" "$SIGNATURE" | tail -1 | awk -F': ' '{print $NF}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
-          SHA256=$(grep -F "certificate SHA-256 digest:" "$SIGNATURE" | tail -1 | awk -F': ' '{print $NF}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
+          # Android 9-12 must verify the new release signer via APK Signature Scheme v3.
+          RELEASE_VERIFY="$RUNNER_TEMP/campusone-release-signature.txt"
+          "$APKSIGNER" verify --verbose --print-certs \
+            --min-sdk-version 28 --max-sdk-version 32 "$APK" | tee "$RELEASE_VERIFY"
+          grep -Fq "Verified using v2 scheme (APK Signature Scheme v2): true" "$RELEASE_VERIFY"
+          grep -Fq "Verified using v3 scheme (APK Signature Scheme v3): true" "$RELEASE_VERIFY"
+
+          SHA1=$(grep -F "certificate SHA-1 digest:" "$RELEASE_VERIFY" | tail -1 | awk -F': ' '{print $NF}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
+          SHA256=$(grep -F "certificate SHA-256 digest:" "$RELEASE_VERIFY" | tail -1 | awk -F': ' '{print $NF}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
           EXPECTED_SHA1="50341BDAAE1E1CFCC7E26893D3CF8A1F7AFC35A2"
           EXPECTED_SHA256="E28B7893A26DF63884498AEF018575D3875ACEF2C0DC0DB9A06D4EFFA543F273"
           test "$SHA1" = "$EXPECTED_SHA1" || {
-            echo "::error::Permanent release SHA-1 mismatch."
+            echo "::error::Permanent release SHA-1 mismatch. Expected $EXPECTED_SHA1, got $SHA1"
             exit 1
           }
           test "$SHA256" = "$EXPECTED_SHA256" || {
             echo "::error::Permanent release SHA-256 mismatch."
+            exit 1
+          }
+
+          LINEAGE_VERIFY="$("$APKSIGNER" lineage --in "$APK" --print-certs)"
+          printf '%s\n' "$LINEAGE_VERIFY"
+          printf '%s\n' "$LINEAGE_VERIFY" | grep -Fqi "$LEGACY_SHA1"
+          printf '%s\n' "$LINEAGE_VERIFY" | grep -Fqi "$EXPECTED_SHA1"
+          printf '%s\n' "$LINEAGE_VERIFY" | grep -Eiq 'Installed data: true|installed data.*true' || {
+            echo "::error::Signing lineage does not grant installed-data continuity."
             exit 1
           }
 
@@ -166,7 +252,7 @@ jobs:
             fi
           done
 
-          echo "PASS: package=$PACKAGE; v2/v3 signatures; permanent certificate; zip alignment; install-sensitive permission audit."
+          echo "PASS: package=$PACKAGE; stable debug-to-release signing lineage; installed-data capability; v1/v2 legacy and v2/v3 release signatures; permanent release key; alignment; permission audit."
 
       - name: Run unit tests
         run: gradle testDebugUnitTest
@@ -189,7 +275,7 @@ jobs:
             gradle connectedDebugAndroidTest
             adb uninstall "$PACKAGE" >/dev/null 2>&1 || true
             adb uninstall "$PACKAGE.test" >/dev/null 2>&1 || true
-            PREVIOUS_APK="$RUNNER_TEMP/campusone-app-previous-release.apk"
+            PREVIOUS_APK="$RUNNER_TEMP/campusone-legacy-debug.apk"
             RELEASE_APK="app/build/outputs/apk/release/app-release.apk"
 
             test -s "$PREVIOUS_APK"
