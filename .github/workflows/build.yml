@@ -229,7 +229,7 @@ jobs:
           printf '%s\n' "$LINEAGE_VERIFY"
           printf '%s\n' "$LINEAGE_VERIFY" | grep -Fqi "$LEGACY_SHA1"
           printf '%s\n' "$LINEAGE_VERIFY" | grep -Fqi "$EXPECTED_SHA1"
-          printf '%s\n' "$LINEAGE_VERIFY" | grep -Eiq 'Installed data: true|installed data.*true' || {
+          printf '%s\n' "$LINEAGE_VERIFY" | grep -Fq 'Has installed data capability: true' || {
             echo "::error::Signing lineage does not grant installed-data continuity."
             exit 1
           }
