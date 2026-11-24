@@ -219,8 +219,8 @@ fun FlagshipGpaCalculatorScreen(
                             row.forEach { pair ->
                                 Surface(modifier = Modifier.weight(1f), color = Color(0xFFF0F3EE), shape = RoundedCornerShape(8.dp)) {
                                     Column(modifier = Modifier.padding(vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(pair.value.toString(), fontWeight = FontWeight.Bold, fontSize = 15.sp, color = GpaGreen)
-                                        Text(pair.key.substringBefore(" "), fontSize = 9.sp, color = GpaMuted)
+                                        Text(pair.second.toString(), fontWeight = FontWeight.Bold, fontSize = 15.sp, color = GpaGreen)
+                                        Text(pair.first.substringBefore(" "), fontSize = 9.sp, color = GpaMuted)
                                     }
                                 }
                             }
