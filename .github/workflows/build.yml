@@ -73,15 +73,30 @@ jobs:
             echo "google.oauth.callback_url=$GOOGLE_OAUTH_CALLBACK_URL"
           } > local.properties
 
-      - name: Build signed release APK
+      - name: Build same-key upgrade baseline and current signed APK
         env:
-          # Every CI build gets a strictly increasing Android versionCode.
-          # This makes subsequent signed APKs install as updates, not same-version installs.
-          VERSION_CODE: ${{ github.run_number }}
-          VERSION_NAME: 1.0.${{ github.run_number }}
-        run: gradle assembleRelease
+          CURRENT_VERSION_CODE: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          PREVIOUS_VERSION_CODE=$((CURRENT_VERSION_CODE - 1))
+          if [ "$PREVIOUS_VERSION_CODE" -lt 1 ]; then
+            PREVIOUS_VERSION_CODE=1
+          fi
 
-      - name: Verify release APK, signing identity, schemes and permissions
+          # Build a lower-version APK with the exact same source and permanent key.
+          VERSION_CODE="$PREVIOUS_VERSION_CODE" \
+          VERSION_NAME="1.0.$PREVIOUS_VERSION_CODE" gradle assembleRelease
+          cp app/build/outputs/apk/release/app-release.apk \
+            app/build/outputs/apk/release/app-previous-release.apk
+
+          # Force a fresh packaging pass so the current version metadata is embedded.
+          VERSION_CODE="$CURRENT_VERSION_CODE" \
+          VERSION_NAME="1.0.$CURRENT_VERSION_CODE" gradle assembleRelease --rerun-tasks
+
+          test -s app/build/outputs/apk/release/app-previous-release.apk
+          test -s app/build/outputs/apk/release/app-release.apk
+
+      - name: Verify release APK metadata, signing identity and permissions
         shell: bash
         run: |
           set -euo pipefail
@@ -120,7 +135,6 @@ jobs:
             }
           done
 
-          # Current apksigner prints fingerprints under a V3.0 Signer block.
           SHA1=$(grep -F "certificate SHA-1 digest:" "$SIGNATURE" | tail -1 | awk -F': ' '{print $NF}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
           SHA256=$(grep -F "certificate SHA-256 digest:" "$SIGNATURE" | tail -1 | awk -F': ' '{print $NF}' | tr -d ':' | tr '[:lower:]' '[:upper:]')
           EXPECTED_SHA1="50341BDAAE1E1CFCC7E26893D3CF8A1F7AFC35A2"
@@ -152,12 +166,67 @@ jobs:
             fi
           done
 
-          echo "PASS: package=$PACKAGE; signing schemes v1/v2/v3; permanent certificate; zip alignment; install-sensitive permission audit."
+          echo "PASS: package=$PACKAGE; v2/v3 signatures; permanent certificate; zip alignment; install-sensitive permission audit."
 
       - name: Run unit tests
         run: gradle testDebugUnitTest
 
-      - name: Upload verified release APK
+      - name: Test real Android 12 clean install, in-place upgrade and launch
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 31
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          emulator-options: -no-window -no-audio -no-boot-anim -camera-back none -camera-front none
+          working-directory: CampusOne
+          script: |
+            set -euo pipefail
+            PACKAGE="in.campusone.app"
+            PREVIOUS_APK="app/build/outputs/apk/release/app-previous-release.apk"
+            RELEASE_APK="app/build/outputs/apk/release/app-release.apk"
+
+            test -s "$PREVIOUS_APK"
+            test -s "$RELEASE_APK"
+            adb wait-for-device
+
+            # Install the lower version first, then update it without uninstalling.
+            adb install "$PREVIOUS_APK"
+            OLD_CODE=$(adb shell dumpsys package "$PACKAGE" | grep -m1 -o 'versionCode=[0-9]*' | cut -d= -f2 | tr -d '\r')
+            test "$OLD_CODE" -lt "$GITHUB_RUN_NUMBER"
+
+            adb install -r "$RELEASE_APK"
+            NEW_CODE=$(adb shell dumpsys package "$PACKAGE" | grep -m1 -o 'versionCode=[0-9]*' | cut -d= -f2 | tr -d '\r')
+            test "$NEW_CODE" = "$GITHUB_RUN_NUMBER"
+            adb shell pm path "$PACKAGE"
+
+            # Launch the updated app and ensure its process remains alive.
+            adb logcat -c
+            adb shell am force-stop "$PACKAGE"
+            adb shell am start -W -n "$PACKAGE/.MainActivity"
+            sleep 12
+            APP_PID=$(adb shell pidof "$PACKAGE" | tr -d '\r')
+            if [ -z "$APP_PID" ]; then
+              adb logcat -d -t 2000
+              echo "::error::CampusOne process exited after launch."
+              exit 1
+            fi
+
+            # Also verify a clean install of the exact release APK.
+            adb uninstall "$PACKAGE"
+            adb install "$RELEASE_APK"
+            adb shell am start -W -n "$PACKAGE/.MainActivity"
+            sleep 8
+            APP_PID=$(adb shell pidof "$PACKAGE" | tr -d '\r')
+            if [ -z "$APP_PID" ]; then
+              adb logcat -d -t 2000
+              echo "::error::CampusOne failed after clean installation."
+              exit 1
+            fi
+            echo "PASS: Android 12 installed the previous signed build, upgraded it in place, launched it, then clean-installed and launched the current APK."
+
+      - name: Upload APK only after all install tests pass
         uses: actions/upload-artifact@v4
         with:
           name: CampusOne-release-apk
