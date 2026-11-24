@@ -84,7 +84,23 @@ jobs:
           GOOGLE_OAUTH_WEB_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_WEB_CLIENT_ID }}
           GOOGLE_OAUTH_WEB_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_WEB_CLIENT_SECRET }}
           GOOGLE_OAUTH_CALLBACK_URL: ${{ secrets.GOOGLE_OAUTH_CALLBACK_URL }}
+        shell: bash
         run: |
+          set -euo pipefail
+          for name in SUPABASE_URL SUPABASE_ANON_KEY GOOGLE_OAUTH_CLIENT_ID GOOGLE_OAUTH_WEB_CLIENT_ID GOOGLE_OAUTH_WEB_CLIENT_SECRET; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing required GitHub Actions secret: $name"
+              exit 1
+            fi
+          done
+          case "$GOOGLE_OAUTH_WEB_CLIENT_ID" in
+            *.apps.googleusercontent.com) ;;
+            *) echo "::error::GOOGLE_OAUTH_WEB_CLIENT_ID is not a Google OAuth client ID"; exit 1 ;;
+          esac
+          if [ "$GOOGLE_OAUTH_CLIENT_ID" = "$GOOGLE_OAUTH_WEB_CLIENT_ID" ]; then
+            echo "::error::Android and Web OAuth client IDs must be separate clients."
+            exit 1
+          fi
           {
             echo "supabase.url=$SUPABASE_URL"
             echo "supabase.anon.key=$SUPABASE_ANON_KEY"
@@ -93,6 +109,13 @@ jobs:
             echo "google.oauth.web_client_secret=$GOOGLE_OAUTH_WEB_CLIENT_SECRET"
             echo "google.oauth.callback_url=$GOOGLE_OAUTH_CALLBACK_URL"
           } > local.properties
+          {
+            echo "Build commit: $GITHUB_SHA"
+            echo "Google Android OAuth Client ID: $GOOGLE_OAUTH_CLIENT_ID"
+            echo "Google Web OAuth Client ID embedded in APK: $GOOGLE_OAUTH_WEB_CLIENT_ID"
+            echo "Package: in.campusone.app"
+            echo "Release signing SHA-1: 50341BDAAE1E1CFCC7E26893D3CF8A1F7AFC35A2"
+          } > CampusOne-build-info.txt
 
       - name: Build legacy-signed baseline and rotated release APK
         env:
@@ -264,6 +287,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: CampusOne-release-apk
-          path: CampusOne/app/build/outputs/apk/release/app-release.apk
+          path: |
+            CampusOne/app/build/outputs/apk/release/app-release.apk
+            CampusOne/CampusOne-build-info.txt
           if-no-files-found: error
           retention-days: 14
