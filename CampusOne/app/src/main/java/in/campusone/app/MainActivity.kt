@@ -894,6 +894,7 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
             )
         }
     }
+}
 
 /**
  * Initial launch screen. Shows the CampusOne mark with a subtle VEDA Labs
