@@ -65,6 +65,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.R
 import `in`.campusone.app.data.local.entity.AssignmentEntity
+import `in`.campusone.app.data.local.entity.CampusEventEntity
 import `in`.campusone.app.data.local.entity.ExamEntity
 import `in`.campusone.app.domain.model.NoticeItem
 import `in`.campusone.app.domain.model.TimetableSlot
@@ -112,7 +113,8 @@ fun HomeScreen(
     onOpenNotices: () -> Unit,
     onOpenNotice: (String) -> Unit,
     onOpenMore: (MoreSubScreen) -> Unit,
-    onRetryRefresh: () -> Unit
+    onRetryRefresh: () -> Unit,
+    campusEvents: List<CampusEventEntity> = emptyList()
 ) {
     val ws = windowSize
     val isCompact = ws == C1WindowSize.COMPACT
@@ -148,13 +150,16 @@ fun HomeScreen(
             )
         }
         item {
+            QuickActionsSection(onOpenMore = onOpenMore)
+        }
+        item {
             AttendanceSummaryCard(
                 insight = uiState.overallInsight,
                 onClick = onOpenAttendance
             )
         }
         item {
-            QuickActionsSection(onOpenMore = onOpenMore)
+            TodaySchedulePreview(uiState = uiState, onOpenTimetable = onOpenTimetable)
         }
         item {
             AnnouncementsSection(
@@ -164,6 +169,14 @@ fun HomeScreen(
                 onOpenNotices = onOpenNotices,
                 onRetryRefresh = onRetryRefresh
             )
+        }
+        if (campusEvents.any { it.isApproved && it.eventEpochMillis >= System.currentTimeMillis() }) {
+            item {
+                CampusBuzzSection(
+                    events = campusEvents,
+                    onOpenEvents = { onOpenMore(MoreSubScreen.EVENTS_CLUBS) }
+                )
+            }
         }
         if (nextThreeDeadlines.isNotEmpty() || nextUpcomingExam != null) {
             item {
@@ -396,6 +409,114 @@ private fun NextClassCard(
 }
 
 @Composable
+private fun TodaySchedulePreview(
+    uiState: CoreUiState,
+    onOpenTimetable: () -> Unit
+) {
+    val entries = uiState.todaySchedule.take(3)
+    Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
+        FlagshipSectionTitle(
+            title = "Today's schedule",
+            subtitle = if (uiState.todaySchedule.isEmpty()) "Your day at a glance" else "${uiState.todaySchedule.size} scheduled sessions",
+            action = "Full timetable",
+            onAction = onOpenTimetable
+        )
+        C1SurfaceCard(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(C1Spacing.md),
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            if (entries.isEmpty()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = C1Spacing.sm),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
+                ) {
+                    Box(
+                        modifier = Modifier.size(38.dp).clip(C1Radius.md).background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) { Icon(Icons.Default.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.secondary) }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("No classes scheduled today", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                        Text("Your published weekly timetable is still available.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                    entries.forEachIndexed { index, evaluated ->
+                        val slot = evaluated.slot
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
+                        ) {
+                            Column(modifier = Modifier.width(76.dp)) {
+                                Text(slot.startTime, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                Text(slot.endTime, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Box(Modifier.width(3.dp).height(42.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.32f)))
+                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(slot.subjectName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text("${slot.subjectCode} · ${slot.roomNumber}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            }
+                            when (evaluated.state) {
+                                SlotLiveState.ONGOING -> FlagshipPill("LIVE")
+                                SlotLiveState.UP_NEXT -> FlagshipPill("UP NEXT", background = MaterialTheme.colorScheme.tertiaryContainer, foreground = MaterialTheme.colorScheme.onTertiaryContainer)
+                                SlotLiveState.COMPLETED -> FlagshipPill("DONE", background = MaterialTheme.colorScheme.surfaceVariant, foreground = MaterialTheme.colorScheme.onSurfaceVariant)
+                                SlotLiveState.UPCOMING_LATER -> FlagshipPill("LATER", background = MaterialTheme.colorScheme.surfaceVariant, foreground = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                        if (index != entries.lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CampusBuzzSection(
+    events: List<CampusEventEntity>,
+    onOpenEvents: () -> Unit
+) {
+    val upcoming = remember(events) {
+        events.filter { it.isApproved && it.eventEpochMillis >= System.currentTimeMillis() }
+            .sortedBy { it.eventEpochMillis }
+            .take(2)
+    }
+    if (upcoming.isEmpty()) return
+    Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
+        FlagshipSectionTitle(
+            title = "Campus buzz",
+            subtitle = "Verified events from your campus",
+            action = "Explore all",
+            onAction = onOpenEvents
+        )
+        upcoming.forEach { event ->
+            C1SurfaceCard(
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentPadding = PaddingValues(C1Spacing.lg),
+                onClick = onOpenEvents
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
+                    Box(
+                        modifier = Modifier.size(44.dp).clip(C1Radius.md).background(MaterialTheme.colorScheme.tertiaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) { Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = MaterialTheme.colorScheme.onTertiaryContainer) }
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text(event.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text("${event.clubName} · ${event.eventDateFormatted}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(event.venue, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                    FlagshipPill(event.category)
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun AttendanceSummaryCard(
     insight: AttendanceInsight,
     onClick: () -> Unit
@@ -443,12 +564,7 @@ private data class HomeQuickAction(
 private fun QuickActionsSection(onOpenMore: (MoreSubScreen) -> Unit) {
     val ws = windowSize
     // Keep the phone dashboard compact; widen the grid only when space is available.
-    val cols = when (ws) {
-        C1WindowSize.COMPACT -> 2
-        C1WindowSize.MEDIUM -> 3
-        C1WindowSize.LARGE -> 3
-        C1WindowSize.EXPANDED -> 4
-    }
+    val cols = 4
 
     val actions = listOf(
         HomeQuickAction(Icons.Default.Assignment, R.string.qa_assignments, R.string.qa_assignments_desc, MoreSubScreen.ASSIGNMENTS),
@@ -506,19 +622,19 @@ private fun QuickActionTile(
         modifier = modifier
     ) {
         C1SurfaceCard(
-            modifier = Modifier.heightIn(min = 76.dp),
+            modifier = Modifier.heightIn(min = 92.dp),
             onClick = { onOpenMore(action.screen) },
             contentPadding = PaddingValues(horizontal = C1Spacing.md, vertical = C1Spacing.md),
             containerColor = MaterialTheme.colorScheme.surface
         ) {
-            Row(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+                verticalArrangement = Arrangement.spacedBy(C1Spacing.sm),
+                horizontalAlignment = Alignment.Start
             ) {
                 Box(
                     modifier = Modifier
-                        .size(38.dp)
+                        .size(34.dp)
                         .clip(C1Radius.sm)
                         .background(iconColor.copy(alpha = 0.11f)),
                     contentAlignment = Alignment.Center
@@ -527,23 +643,17 @@ private fun QuickActionTile(
                         imageVector = action.icon,
                         contentDescription = null,
                         tint = iconColor,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(19.dp)
                     )
                 }
                 Text(
                     text = stringResource(action.labelRes),
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
+                    minLines = 2,
                     overflow = TextOverflow.Ellipsis
-                )
-                Icon(
-                    imageVector = Icons.Default.ChevronRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
-                    modifier = Modifier.size(17.dp)
                 )
             }
         }

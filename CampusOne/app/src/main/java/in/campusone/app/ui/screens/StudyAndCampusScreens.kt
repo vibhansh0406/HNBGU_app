@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -46,6 +47,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.EventNote
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.FindInPage
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Forum
@@ -119,6 +122,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import `in`.campusone.app.R
 import `in`.campusone.app.data.local.entity.AssignmentEntity
 import `in`.campusone.app.data.local.entity.StudyResourceEntity
@@ -332,12 +336,22 @@ fun MoreHubScreen(
         return
     }
     if (activeScreen == MoreSubScreen.PROFILE) {
-        StudentProfileScreen(
-            uiState = coreState,
-            avatarUrl = coreViewModel.currentUserAvatarUrl,
-            onBack = { activeScreen = MoreSubScreen.HUB },
-            onSaveProfile = coreViewModel::updateAcademicProfile
-        )
+        Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+            FlagshipAppHeader(
+                campusName = coreState.profile.collegeName,
+                userName = coreState.profile.name,
+                onNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
+                onProfile = { activeScreen = MoreSubScreen.PROFILE }
+            )
+            Box(modifier = Modifier.weight(1f)) {
+                StudentProfileScreen(
+                    uiState = coreState,
+                    avatarUrl = coreViewModel.currentUserAvatarUrl,
+                    onBack = { activeScreen = MoreSubScreen.HUB },
+                    onSaveProfile = coreViewModel::updateAcademicProfile
+                )
+            }
+        }
         return
     }
 
@@ -412,34 +426,46 @@ fun MoreHubScreen(
                     onProfile = { activeScreen = MoreSubScreen.PROFILE }
                 )
             }
-            // ===== Header =====
+            // ===== Verified student profile =====
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column {
-                        Text(
-                            text = greeting,
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.semantics { heading() }
+                FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
+                    ) {
+                        C1Avatar(
+                            name = profile.name,
+                            size = 54.dp,
+                            imageUrl = coreViewModel.currentUserAvatarUrl,
+                            fontSize = 22,
+                            onClick = { activeScreen = MoreSubScreen.PROFILE }
                         )
-                        Text(
-                            text = "${profile.collegeName} • ${profile.courseName} Sem ${profile.semester} Sec ${profile.section}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            FlagshipPill("CAMPUS PROFILE")
+                            Text(
+                                text = greeting,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Text(
+                                text = "${profile.collegeName} · ${profile.courseName}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f),
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = "Semester ${profile.semester} · Section ${profile.section}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f)
+                            )
+                        }
                     }
-                    C1Avatar(
-                        name = profile.name,
-                        size = 44.dp,
-                        imageUrl = coreViewModel.currentUserAvatarUrl,
-                        fontSize = 20,
-                        onClick = { activeScreen = MoreSubScreen.PROFILE }
-                    )
+                    TextButton(onClick = { activeScreen = MoreSubScreen.PROFILE }) {
+                        Text("View student profile", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    }
                 }
             }
 
@@ -761,16 +787,63 @@ fun MoreHubScreen(
             )
         }
     } else {
+        val moduleTitle = when (activeScreen) {
+            MoreSubScreen.NOTES_PYQ -> "Notes & PYQ Vault"
+            MoreSubScreen.ASSIGNMENTS -> "Assignments"
+            MoreSubScreen.EXAMS_SYLLABUS -> "Exams & Syllabus"
+            MoreSubScreen.SETTINGS -> "Settings"
+            MoreSubScreen.PRIVACY_POLICY -> "Privacy & Security"
+            MoreSubScreen.ADMIN_PANEL -> "Administration"
+            MoreSubScreen.ADMIN_MODERATORS -> "Moderator Access"
+            MoreSubScreen.ADMIN_SUBJECTS -> "Subject Management"
+            MoreSubScreen.ADMIN_TIMETABLE -> "Timetable Operations"
+            MoreSubScreen.ADMIN_NOTICES -> "Notice Operations"
+            MoreSubScreen.ADMIN_ASSIGNMENTS -> "Assignment Operations"
+            MoreSubScreen.ADMIN_EXAMS -> "Examination Operations"
+            MoreSubScreen.ADMIN_CLUBS -> "Society Management"
+            MoreSubScreen.ADMIN_EVENTS -> "Event Operations"
+            MoreSubScreen.ADMIN_LOST_FOUND -> "Lost & Found Operations"
+            MoreSubScreen.ADMIN_DIRECTORY -> "Directory Operations"
+            MoreSubScreen.ADMIN_MODERATION -> "Content Moderation"
+            MoreSubScreen.SUPER_ADMIN -> "Super Admin"
+            MoreSubScreen.SUPER_ADMIN_USERS -> "User Management"
+            MoreSubScreen.SUPER_ADMIN_ROLES -> "Role Management"
+            MoreSubScreen.SUPER_ADMIN_CONTENT -> "Content Governance"
+            MoreSubScreen.SUPER_ADMIN_MODERATION -> "Platform Moderation"
+            MoreSubScreen.SUPER_ADMIN_SETTINGS -> "Platform Settings"
+            MoreSubScreen.SUPER_ADMIN_AUDIT -> "Audit Log"
+            else -> activeScreen.name.replace("_", " ")
+        }
+        val moduleSubtitle = when (activeScreen) {
+            MoreSubScreen.NOTES_PYQ, MoreSubScreen.ASSIGNMENTS, MoreSubScreen.EXAMS_SYLLABUS -> "ACADEMIC WORKSPACE"
+            MoreSubScreen.SETTINGS, MoreSubScreen.PRIVACY_POLICY -> "ACCOUNT & PREFERENCES"
+            else -> "AUTHORIZED CAMPUS OPERATIONS"
+        }
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = { Text(if (activeScreen == MoreSubScreen.SETTINGS) "Settings" else activeScreen.name.replace("_", " ")) },
-                    navigationIcon = {
-                        IconButton(onClick = { activeScreen = MoreSubScreen.HUB }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to Study Hub")
+                Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+                    FlagshipAppHeader(
+                        campusName = coreState.profile.collegeName,
+                        userName = coreState.profile.name,
+                        onNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
+                        onProfile = { activeScreen = MoreSubScreen.PROFILE }
+                    )
+                    Surface(color = MaterialTheme.colorScheme.surface) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = C1Spacing.sm, vertical = C1Spacing.xs),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+                        ) {
+                            IconButton(onClick = { activeScreen = screenParent[activeScreen] ?: MoreSubScreen.HUB }) {
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            }
+                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                                Text(moduleTitle, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                Text(moduleSubtitle, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
+                            }
                         }
                     }
-                )
+                }
             }
         ) { innerPadding ->
             Column(
@@ -930,13 +1003,14 @@ fun NotesAndPyqScreen(
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedCategory by rememberSaveable { mutableStateOf("ALL") } // ALL, NOTES, PYQ, ASSIGNMENT, OTHER
-    var selectedSemesterFilter by rememberSaveable { mutableIntStateOf(0) } // 0 = All Semesters
+    var selectedSemesterFilter by rememberSaveable { mutableIntStateOf(uiState.profile.semester.coerceIn(1, 8)) } // current semester by default
     var sortByUpvotes by rememberSaveable { mutableStateOf(true) } // true = Most Upvoted, false = Newest
     var bookmarkedOnly by rememberSaveable { mutableStateOf(false) }
     var showUploadDialog by rememberSaveable { mutableStateOf(false) }
     var viewingResource by remember { mutableStateOf<StudyResourceEntity?>(null) }
 
     val isCrOrModerator = uiState.profile.role == UserRole.CR || uiState.profile.role == UserRole.MODERATOR || uiState.profile.role == UserRole.ADMIN
+    val savedOffline = uiState.resources.filter { it.isBookmarkedOffline }
 
     val filtered = uiState.resources
         .filter { res ->
@@ -973,17 +1047,37 @@ fun NotesAndPyqScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                C1TextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    label = "Search subject, topic, or exam year (e.g., 2025)",
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Category Filter Chips
+                Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
+                    FlagshipPageTitle(
+                        title = "Notes & PYQ Vault",
+                        subtitle = "${uiState.profile.courseName} · Sem ${uiState.profile.semester} · Section ${uiState.profile.section}",
+                        eyebrow = "ACADEMIC REPOSITORY"
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                        FlagshipPill("${uiState.resources.size} resources")
+                        FlagshipPill("${savedOffline.size} saved offline", background = MaterialTheme.colorScheme.surfaceVariant, foreground = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    C1TextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        label = "Search by subject, topic, year or unit...",
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                        FilterChip(
+                            selected = selectedSemesterFilter == uiState.profile.semester,
+                            onClick = { selectedSemesterFilter = uiState.profile.semester },
+                            label = { Text("Current · Sem ${uiState.profile.semester}") }
+                        )
+                        FilterChip(
+                            selected = selectedSemesterFilter == 0,
+                            onClick = { selectedSemesterFilter = 0 },
+                            label = { Text("All semesters") }
+                        )
+                    }
+                    // Category Filter Chips
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("ALL", "NOTES", "PYQ", "ASSIGNMENT", "OTHER").forEach { cat ->
                         FilterChip(
@@ -1014,6 +1108,35 @@ fun NotesAndPyqScreen(
                         onClick = { bookmarkedOnly = !bookmarkedOnly },
                         label = { Text("Saved Offline") }
                     )
+                }
+            }
+
+            if (savedOffline.isNotEmpty()) {
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                        FlagshipSectionTitle(
+                            title = "Offline vault",
+                            subtitle = "${savedOffline.size} resources saved on this device"
+                        )
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                            items(savedOffline.take(5), key = { it.id }) { resource ->
+                                Surface(
+                                    modifier = Modifier.width(232.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    color = MaterialTheme.colorScheme.surface,
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                                ) {
+                                    Column(modifier = Modifier.padding(C1Spacing.md), verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                                        FlagshipPill(resource.category)
+                                        Text(resource.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                        Text("${resource.subjectId} · ${resource.subjectName}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        Text("Saved on this device", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                                        TextButton(onClick = { viewingResource = resource }) { Text("Open resource") }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -1607,6 +1730,7 @@ fun AssignmentsScreen(
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var groupBySubject by rememberSaveable { mutableStateOf(false) }
+    var assignmentQuery by rememberSaveable { mutableStateOf("") }
     var showAddDialog by rememberSaveable { mutableStateOf(false) }
 
     val now = System.currentTimeMillis()
@@ -1633,12 +1757,16 @@ fun AssignmentsScreen(
     val overdueCount = personalTasks.count { !it.isCompleted && it.dueDateEpochMillis < now }
     val completedCount = personalTasks.count { it.isCompleted }
 
-    val filteredTasks = when (selectedTab) {
+    val filteredTasks = (when (selectedTab) {
         0 -> personalTasks.filter { !it.isCompleted && it.dueDateEpochMillis in now..endOfToday }
         1 -> personalTasks.filter { !it.isCompleted && it.dueDateEpochMillis > endOfToday }
         2 -> personalTasks.filter { !it.isCompleted && it.dueDateEpochMillis < now }
         else -> personalTasks.filter { it.isCompleted }
+    }).filter { task ->
+        assignmentQuery.isBlank() || task.title.contains(assignmentQuery, ignoreCase = true) || task.subjectTag.contains(assignmentQuery, ignoreCase = true)
     }
+    val nextDeadline = personalTasks.filter { !it.isCompleted && it.dueDateEpochMillis >= now }.minByOrNull { it.dueDateEpochMillis }
+    val completionRate = if (personalTasks.isEmpty()) "—" else "${(completedCount * 100) / personalTasks.size}%"
 
     Scaffold(
         floatingActionButton = {
@@ -1666,6 +1794,21 @@ fun AssignmentsScreen(
                 verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
             ) {
                 item {
+                    FlagshipPageTitle(
+                        title = "Assignments Hub",
+                        subtitle = "${uiState.profile.courseName} · Sem ${uiState.profile.semester} · Section ${uiState.profile.section}",
+                        eyebrow = "ACADEMIC WORKSPACE"
+                    )
+                    C1TextField(
+                        value = assignmentQuery,
+                        onValueChange = { assignmentQuery = it },
+                        label = "Search tasks, subjects or topics...",
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                item {
                     Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                         C1StatTile(
                             label = stringResource(R.string.assignment_pending),
@@ -1679,10 +1822,26 @@ fun AssignmentsScreen(
                             valueColor = MaterialTheme.colorScheme.error
                         )
                         C1StatTile(
-                            label = stringResource(R.string.tab_completed),
-                            value = completedCount.toString(),
+                            label = "Completion",
+                            value = completionRate,
                             modifier = Modifier.weight(1f)
                         )
+                    }
+                }
+
+                if (selectedTab != 3 && nextDeadline != null) {
+                    item {
+                        FlagshipCard(containerColor = MaterialTheme.colorScheme.tertiaryContainer) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                                Icon(Icons.Default.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.onTertiaryContainer)
+                                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Text("NEXT DEADLINE", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
+                                    Text(nextDeadline.title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onTertiaryContainer, fontWeight = FontWeight.Bold)
+                                    Text(nextDeadline.subjectTag, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                                }
+                                FlagshipPill("UPCOMING", background = MaterialTheme.colorScheme.surface, foreground = MaterialTheme.colorScheme.primary)
+                            }
+                        }
                     }
                 }
 
@@ -2099,191 +2258,156 @@ fun ExamsAndSyllabusScreen(
 ) {
     var showAddExamDialog by rememberSaveable { mutableStateOf(false) }
     var showAddTopicDialog by rememberSaveable { mutableStateOf(false) }
+    var selectedExamTab by rememberSaveable { mutableIntStateOf(0) }
     val now = System.currentTimeMillis()
-
     val totalTopics = uiState.syllabusTopics.size
     val completedTopics = uiState.syllabusTopics.count { it.isCompleted }
     val overallProgress = if (totalTopics > 0) completedTopics.toFloat() / totalTopics.toFloat() else 0f
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddExamDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.publish_exam))
+            FloatingActionButton(onClick = {
+                if (selectedExamTab == 0) showAddExamDialog = true else showAddTopicDialog = true
+            }) {
+                Icon(Icons.Default.Add, contentDescription = if (selectedExamTab == 0) stringResource(R.string.publish_exam) else stringResource(R.string.publish_syllabus_topic))
             }
         }
     ) { pad ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(pad)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Overall Syllabus Progress Card
-            item {
-                C1SurfaceCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    containerColor = MaterialTheme.colorScheme.surface
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = stringResource(R.string.overall_syllabus_progress),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "$completedTopics / $totalTopics (${(overallProgress * 100).toInt()}%)",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.ExtraBold
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        LinearProgressIndicator(
-                            progress = { overallProgress },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(10.dp)
-                                .clip(RoundedCornerShape(5.dp))
-                        )
-                    }
-                }
+        Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(pad)) {
+            TabRow(selectedTabIndex = selectedExamTab) {
+                Tab(selected = selectedExamTab == 0, onClick = { selectedExamTab = 0 }, text = { Text("Exams & Notices") })
+                Tab(selected = selectedExamTab == 1, onClick = { selectedExamTab = 1 }, text = { Text("Syllabus & BOS") })
             }
-
-            item {
-                Text("Exam Schedule & Countdowns", style = MaterialTheme.typography.titleLarge)
-            }
-
-            items(uiState.exams, key = { it.id }) { exam ->
-                val daysLeft = ((exam.examDateEpochMillis - now) / 86_400_000L).coerceAtLeast(0L)
-                C1SurfaceCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    containerColor = MaterialTheme.colorScheme.surface
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "${exam.subjectCode} • ${exam.examTitle}",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = exam.subjectName,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "${exam.examDateFormatted} • ${exam.roomOrCenter}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                        C1StatusChip(
-                            text = "$daysLeft days",
-                            tone = if (daysLeft <= 3) C1Tone.WARNING else C1Tone.INFO
-                        )
-                    }
-                }
-            }
-
-            // Per-Subject Syllabus Breakdown & Checklists
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Per-Subject Syllabus Checklist", style = MaterialTheme.typography.titleLarge)
-                    C1Button(
-                        text = "+ Add Topic",
-                        onClick = { showAddTopicDialog = true },
-                        intent = C1ButtonIntent.TONAL
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(C1Spacing.lg),
+                verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
+            ) {
+                item {
+                    FlagshipPageTitle(
+                        title = "Exams & Syllabus",
+                        subtitle = "${uiState.profile.courseName} · Semester ${uiState.profile.semester}",
+                        eyebrow = if (selectedExamTab == 0) "EXAM CELL & CIRCULARS" else "BOARD OF STUDIES"
                     )
                 }
-            }
-
-            val bySubject = uiState.syllabusTopics.groupBy { it.subjectName }
-            bySubject.forEach { (subjectName, topics) ->
-                val doneSubj = topics.count { it.isCompleted }
-                val subjPct = if (topics.isNotEmpty()) (doneSubj * 100) / topics.size else 0
-
-                item {
-                    C1SurfaceCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = subjectName,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Text(
-                                    text = "$doneSubj/${topics.size} ($subjPct%)",
-                                    style = MaterialTheme.typography.labelLarge
-                                )
-                            }
-                            LinearProgressIndicator(
-                                progress = { subjPct / 100f },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp)
-                            )
-                        }
-                    }
-                }
-
-                items(topics, key = { it.id }) { topic ->
-                    C1SurfaceCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Checkbox(
-                                checked = topic.isCompleted,
-                                onCheckedChange = { viewModel.toggleSyllabusTopic(topic.id, it) }
-                            )
-                            Column {
-                                Text(
-                                    text = topic.unitTitle,
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Text(topic.topicTitle, style = MaterialTheme.typography.bodyLarge)
+                if (selectedExamTab == 0) {
+                    item {
+                        FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
+                                Icon(Icons.Default.EventNote, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+                                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Text("Official examination schedule", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    Text("${uiState.exams.size} published exam records", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
+                                }
                             }
                         }
                     }
+                    item { FlagshipSectionTitle("Exam schedule & notices", "Dates and venues published for your programme") }
+                    if (uiState.exams.isEmpty()) {
+                        item {
+                            C1EmptyState(
+                                icon = Icons.Default.EventNote,
+                                title = "No exam schedule published",
+                                message = "Official examination dates will appear here when your department publishes them.",
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    } else {
+                        items(uiState.exams, key = { it.id }) { exam ->
+                            val daysLeft = (exam.examDateEpochMillis - now) / 86_400_000L
+                            FlagshipCard {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                                        Text(exam.subjectCode, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                        Text(exam.examTitle, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                        Text(exam.subjectName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text("${exam.examDateFormatted} · ${exam.roomOrCenter}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    FlagshipPill(
+                                        text = if (daysLeft < 0) "PAST" else if (daysLeft == 0L) "TODAY" else "${daysLeft}d left",
+                                        background = if (daysLeft in 0L..3L) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                                        foreground = if (daysLeft in 0L..3L) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    item {
+                        FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                    Text("SYLLABUS COMPLETION", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
+                                    Text("${(overallProgress * 100).toInt()}% covered", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    Text("$completedTopics of $totalTopics topics completed", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f))
+                                }
+                                CircularProgressIndicator(progress = { overallProgress }, modifier = Modifier.size(48.dp), color = MaterialTheme.colorScheme.primary, trackColor = MaterialTheme.colorScheme.surfaceVariant)
+                            }
+                        }
+                    }
+                    item {
+                        FlagshipSectionTitle(
+                            title = "Subject-wise syllabus",
+                            subtitle = "Track units and topics from your current course",
+                            action = "Add topic",
+                            onAction = { showAddTopicDialog = true }
+                        )
+                    }
+                    val bySubject = uiState.syllabusTopics.groupBy { it.subjectName }
+                    if (bySubject.isEmpty()) {
+                        item {
+                            C1EmptyState(
+                                icon = Icons.Default.MenuBook,
+                                title = "No syllabus topics yet",
+                                message = "Topics added by your department will appear here. You can also maintain your own checklist.",
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    } else {
+                        bySubject.forEach { (subjectName, topics) ->
+                            val doneSubj = topics.count { it.isCompleted }
+                            val subjPct = if (topics.isNotEmpty()) (doneSubj * 100) / topics.size else 0
+                            item {
+                                FlagshipCard {
+                                    Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                            Text(subjectName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+                                            FlagshipPill("$doneSubj/${topics.size} · $subjPct%")
+                                        }
+                                        LinearProgressIndicator(progress = { subjPct / 100f }, modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.primary)
+                                    }
+                                }
+                            }
+                            items(topics, key = { it.id }) { topic ->
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(14.dp),
+                                    color = MaterialTheme.colorScheme.surface,
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                                ) {
+                                    Row(modifier = Modifier.fillMaxWidth().padding(C1Spacing.sm), verticalAlignment = Alignment.CenterVertically) {
+                                        Checkbox(checked = topic.isCompleted, onCheckedChange = { viewModel.toggleSyllabusTopic(topic.id, it) })
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(topic.unitTitle, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                                            Text(topic.topicTitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
+                item { Spacer(Modifier.height(C1Spacing.xl)) }
             }
         }
     }
 
     if (showAddExamDialog) {
-        var code by rememberSaveable { mutableStateOf("SOET-CS-304") }
-        var name by rememberSaveable { mutableStateOf("Computer Networks") }
-        var dateIso by rememberSaveable { mutableStateOf("23 Nov 2026") }
-        var time by rememberSaveable { mutableStateOf("10:00 AM – 01:00 PM") }
-        var venue by rememberSaveable { mutableStateOf("Exam Block Hall A") }
+        var code by rememberSaveable { mutableStateOf("") }
+        var name by rememberSaveable { mutableStateOf("") }
+        var dateIso by rememberSaveable { mutableStateOf("") }
+        var time by rememberSaveable { mutableStateOf("") }
+        var venue by rememberSaveable { mutableStateOf("") }
 
         AlertDialog(
             onDismissRequest = { showAddExamDialog = false },
@@ -2317,10 +2441,10 @@ fun ExamsAndSyllabusScreen(
     }
 
     if (showAddTopicDialog) {
-        var subjId by rememberSaveable { mutableStateOf("CS301") }
-        var subjName by rememberSaveable { mutableStateOf("Data Structures & Algorithms") }
-        var unitTitle by rememberSaveable { mutableStateOf("Unit 5: Sorting & Hashing") }
-        var topicTitle by rememberSaveable { mutableStateOf("QuickSort, MergeSort, RadixSort & Open Addressing") }
+        var subjId by rememberSaveable { mutableStateOf(uiState.profile.courseId) }
+        var subjName by rememberSaveable { mutableStateOf(uiState.profile.courseName) }
+        var unitTitle by rememberSaveable { mutableStateOf("") }
+        var topicTitle by rememberSaveable { mutableStateOf("") }
 
         AlertDialog(
             onDismissRequest = { showAddTopicDialog = false },
@@ -2336,7 +2460,7 @@ fun ExamsAndSyllabusScreen(
                 C1Button(
                     text = "Add Topic",
                     onClick = {
-                        viewModel.addSyllabusTopic(subjId, subjName, 5, unitTitle, topicTitle)
+                        viewModel.addSyllabusTopic(subjId, subjName, uiState.profile.semester, unitTitle, topicTitle)
                         showAddTopicDialog = false
                     }
                 )

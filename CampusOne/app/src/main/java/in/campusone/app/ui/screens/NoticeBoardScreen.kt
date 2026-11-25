@@ -202,32 +202,32 @@ fun NoticeBoardScreen(
             // Header item: title, search, filters
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.notices_title),
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.weight(1f).semantics { heading() }
-                        )
-                        if (uiState.unreadNoticeCount > 0) {
-                            TextButton(onClick = onMarkAllRead) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.DoneAll,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Text(stringResource(R.string.mark_all_read))
+                    FlagshipPageTitle(
+                        title = stringResource(R.string.notices_title),
+                        subtitle = "${uiState.profile.courseName} · Sem ${uiState.profile.semester} · Section ${uiState.profile.section}",
+                        eyebrow = "CAMPUS INFORMATION",
+                        trailing = if (uiState.unreadNoticeCount > 0) {
+                            {
+                                TextButton(onClick = onMarkAllRead) {
+                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                                        Icon(Icons.Default.DoneAll, contentDescription = null, modifier = Modifier.size(17.dp))
+                                        Text(stringResource(R.string.mark_all_read))
+                                    }
                                 }
                             }
-                        }
+                        } else null
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                        FlagshipPill(
+                            text = "${uiState.unreadNoticeCount} unread",
+                            background = if (uiState.unreadNoticeCount > 0) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                            foreground = if (uiState.unreadNoticeCount > 0) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        FlagshipPill(
+                            text = "${uiState.notices.size} updates",
+                            background = MaterialTheme.colorScheme.surfaceVariant,
+                            foreground = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
 
                     C1TextField(

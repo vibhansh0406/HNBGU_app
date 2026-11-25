@@ -556,6 +556,7 @@ fun CampusOneRoot(
                     when (tab) {
                         BottomNavTab.HOME -> HomeScreen(
                         uiState = coreState,
+                        campusEvents = studyCampusState.events,
                         nextThreeDeadlines = studyCampusState.nextThreeDeadlines,
                         nextUpcomingExam = studyCampusState.nextUpcomingExam,
                         dataRefreshError = noticesSyncError,

@@ -113,7 +113,7 @@ fun OnboardingScreen(
     var showCourseMenu by remember { mutableStateOf(false) }
 
     val progress by animateFloatAsState(
-        targetValue = (step + 1) / 3f,
+        targetValue = (step + 1) / 2f,
         animationSpec = tween(C1Motion.normalMillis, easing = C1Motion.emphasizedEasing),
         label = "onboardingProgress"
     )
@@ -174,7 +174,7 @@ fun OnboardingScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    repeat(3) { index ->
+                    repeat(2) { index ->
                         val segmentColor = if (index <= step) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
                         Box(
                             modifier = Modifier
@@ -192,17 +192,13 @@ fun OnboardingScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = when (step) {
-                            0 -> "YOUR PROFILE"
-                            1 -> "YOUR INSTITUTION"
-                            else -> "YOUR ACADEMICS"
-                        },
+                        text = if (step == 0) "INSTITUTIONAL IDENTITY" else "ACADEMIC PREFERENCES",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.2.sp
                     )
-                    Text("0${step + 1} / 03", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("0${step + 1} / 02", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
@@ -224,16 +220,21 @@ fun OnboardingScreen(
                     when (currentStep) {
                         0 -> {
                             StepHeading(
-                                eyebrow = "A better campus day starts here",
-                                title = "Let’s make it yours.",
-                                subtitle = "A few details help CampusOne set up the right academic space for you."
+                                eyebrow = "STEP 1 · INSTITUTIONAL IDENTITY",
+                                title = "Verify your campus identity.",
+                                subtitle = "Confirm the account you signed in with, then connect it to your HNBGU campus and programme."
                             )
-                            Spacer(Modifier.height(C1Spacing.xxl))
+                            Spacer(Modifier.height(C1Spacing.lg))
+                            InfoStrip(
+                                icon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                                text = "Google sign-in is active on this device. Confirm the campus contact details below before continuing."
+                            )
+                            Spacer(Modifier.height(C1Spacing.lg))
                             ProfileField(
                                 value = name,
                                 onValueChange = { name = it },
-                                label = "Full name",
-                                placeholder = "Enter your name",
+                                label = "Student name",
+                                placeholder = "Enter your full name",
                                 icon = { Icon(Icons.Default.Person, contentDescription = null) },
                                 keyboardType = KeyboardType.Text
                             )
@@ -241,26 +242,14 @@ fun OnboardingScreen(
                             ProfileField(
                                 value = email,
                                 onValueChange = { email = it },
-                                label = "Email address",
+                                label = "Google account email",
                                 placeholder = "name@example.com",
                                 icon = { Icon(Icons.Default.Email, contentDescription = null) },
                                 keyboardType = KeyboardType.Email,
                                 supportingText = if (email.isNotBlank() && !emailValid) "Enter a valid email address." else null
                             )
                             Spacer(Modifier.height(C1Spacing.xl))
-                            InfoStrip(
-                                icon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                                text = "Your sign-in identity stays protected. CampusOne uses these details to connect your campus profile."
-                            )
-                        }
-                        1 -> {
-                            StepHeading(
-                                eyebrow = "One university. Your campus.",
-                                title = "Where do you study?",
-                                subtitle = "Choose your HNBGU campus and the programme you are currently enrolled in."
-                            )
-                            Spacer(Modifier.height(C1Spacing.xxl))
-                            FieldLabel("SELECT CAMPUS")
+                            FieldLabel("SELECT YOUR HNBGU CAMPUS")
                             Spacer(Modifier.height(C1Spacing.sm))
                             campuses.forEach { campus ->
                                 SelectableOptionCard(
@@ -272,8 +261,8 @@ fun OnboardingScreen(
                                 )
                                 Spacer(Modifier.height(C1Spacing.sm))
                             }
-                            Spacer(Modifier.height(C1Spacing.lg))
-                            FieldLabel("YOUR PROGRAMME")
+                            Spacer(Modifier.height(C1Spacing.md))
+                            FieldLabel("ENROLLED PROGRAMME")
                             Spacer(Modifier.height(C1Spacing.sm))
                             Box {
                                 OutlinedButton(
@@ -312,20 +301,27 @@ fun OnboardingScreen(
                                     }
                                 }
                             }
-                            Spacer(Modifier.height(C1Spacing.sm))
+                            Spacer(Modifier.height(C1Spacing.md))
                             Text(
-                                "You can update your academic details later from your profile.",
+                                "Your campus and programme are used to scope academic information. You can edit them later from your profile.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         else -> {
                             StepHeading(
-                                eyebrow = "Almost there",
-                                title = "Set your class details.",
-                                subtitle = "This keeps your timetable, attendance and notices relevant to your section."
+                                eyebrow = "STEP 2 · ACADEMIC PREFERENCES",
+                                title = "Set up your academic space.",
+                                subtitle = "Choose your current semester and section so your timetable, attendance and notices stay relevant."
                             )
-                            Spacer(Modifier.height(C1Spacing.xxl))
+                            Spacer(Modifier.height(C1Spacing.lg))
+                            FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
+                                Text("SELECTED PROGRAMME", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
+                                Spacer(Modifier.height(C1Spacing.xs))
+                                Text(courses.getOrNull(selectedCourseIndex)?.second ?: "Programme not selected", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                Text(selectedCampus, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f))
+                            }
+                            Spacer(Modifier.height(C1Spacing.xl))
                             FieldLabel("CURRENT SEMESTER")
                             Spacer(Modifier.height(C1Spacing.sm))
                             (1..2).forEach { rowIndex ->
@@ -378,12 +374,17 @@ fun OnboardingScreen(
                                     )
                                 }
                                 Text(
-                                    "CR access requests are reviewed by an administrator. Choosing a role here does not grant permissions.",
+                                    "CR access requests are reviewed by an administrator. Selecting CR here does not grant permissions.",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(top = C1Spacing.sm)
                                 )
                             }
+                            Spacer(Modifier.height(C1Spacing.md))
+                            InfoStrip(
+                                icon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                                text = "Academic details are saved to your campus profile. Reminder and offline-storage preferences can be changed later in Settings."
+                            )
                         }
                     }
                 }
@@ -415,7 +416,7 @@ fun OnboardingScreen(
                         }
                         Button(
                             onClick = {
-                                if (step < 2) {
+                                if (step < 1) {
                                     step += 1
                                 } else {
                                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -441,13 +442,13 @@ fun OnboardingScreen(
                             )
                         ) {
                             Text(
-                                if (step == 2) stringResource(R.string.complete_setup) else stringResource(R.string.action_next),
+                                if (step == 1) "Enter CampusOne" else stringResource(R.string.action_next),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Spacer(Modifier.width(C1Spacing.sm))
                             Icon(
-                                if (step == 2) Icons.Default.Check else Icons.Default.ArrowForward,
+                                if (step == 1) Icons.Default.Check else Icons.Default.ArrowForward,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -455,7 +456,7 @@ fun OnboardingScreen(
                     }
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = if (step == 2) "Your campus profile will be saved securely." else "You can go back and change any answer.",
+                        text = if (step == 1) "Your campus profile will be saved securely." else "You can review these details before entering.",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = C1Spacing.sm)

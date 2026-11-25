@@ -71,7 +71,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 
-private val FlagshipGreen = Color(0xFF004A35)
+private val FlagshipGreen = Color(0xFF1E634B)
 private val FlagshipGreenSoft = Color(0xFFDCECE1)
 private val FlagshipMint = Color(0xFFEAF3EC)
 private val FlagshipBlue = Color(0xFFDDEEF0)
@@ -79,7 +79,7 @@ private val FlagshipOchre = Color(0xFFF5EAD5)
 private val FlagshipRed = Color(0xFFFBE5E2)
 private val FlagshipInk = Color(0xFF17231F)
 private val FlagshipMuted = Color(0xFF66766D)
-private val FlagshipCanvas = Color(0xFFF9FAF5)
+private val FlagshipCanvas = Color(0xFFF6F7F2)
 private val FlagshipLine = Color(0xFFE2E8E1)
 
 @Composable
