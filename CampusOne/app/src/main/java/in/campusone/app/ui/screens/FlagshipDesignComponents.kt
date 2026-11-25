@@ -257,7 +257,7 @@ fun FlagshipPrimaryButton(
         enabled = enabled,
         modifier = modifier.heightIn(min = 48.dp).widthIn(min = 96.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = FlagshipBrand, contentColor = MaterialTheme.colorScheme.onPrimary)
+        colors = ButtonDefaults.buttonColors(containerColor = CampusOneBrandGreen, contentColor = Color.White)
     ) {
         Text(text, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
     }
