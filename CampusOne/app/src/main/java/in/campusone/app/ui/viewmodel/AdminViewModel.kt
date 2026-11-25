@@ -438,6 +438,13 @@ class AdminViewModel @Inject constructor(
         }
     }
 
+    fun deleteSyllabusTopic(id: String) {
+        viewModelScope.launch {
+            repository.deleteSyllabusTopic(id)
+            _messages.emit("Syllabus topic removed")
+        }
+    }
+
     // =========================================================================
     // STUDY RESOURCES
     // =========================================================================

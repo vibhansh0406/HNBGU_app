@@ -213,7 +213,9 @@ enum class MoreSubScreen {
     SUPER_ADMIN_CONTENT,
     SUPER_ADMIN_MODERATION,
     SUPER_ADMIN_SETTINGS,
-    SUPER_ADMIN_AUDIT
+    SUPER_ADMIN_AUDIT,
+    SUPER_ADMIN_ANALYTICS,
+    SUPER_ADMIN_ACADEMIC
 }
 
 private val requestableRoles = listOf(UserRole.CR)
@@ -236,7 +238,9 @@ private val screenParent: Map<MoreSubScreen, MoreSubScreen> = mapOf(
     MoreSubScreen.SUPER_ADMIN_CONTENT to MoreSubScreen.SUPER_ADMIN,
     MoreSubScreen.SUPER_ADMIN_MODERATION to MoreSubScreen.SUPER_ADMIN,
     MoreSubScreen.SUPER_ADMIN_SETTINGS to MoreSubScreen.SUPER_ADMIN,
-    MoreSubScreen.SUPER_ADMIN_AUDIT to MoreSubScreen.SUPER_ADMIN
+    MoreSubScreen.SUPER_ADMIN_AUDIT to MoreSubScreen.SUPER_ADMIN,
+    MoreSubScreen.SUPER_ADMIN_ANALYTICS to MoreSubScreen.SUPER_ADMIN,
+    MoreSubScreen.SUPER_ADMIN_ACADEMIC to MoreSubScreen.SUPER_ADMIN
 )
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -559,37 +563,6 @@ fun MoreHubScreen(
                 )
             }
 
-            // ===== Campus Resources =====
-            item {
-                C1SectionHeader(
-                    title = stringResource(R.string.hub_campus_resources),
-                    actionLabel = null,
-                    onAction = null
-                )
-            }
-            item {
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.md),
-                    verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
-                ) {
-                    HubActionCard(
-                        title = stringResource(R.string.lost_found),
-                        subtitle = stringResource(R.string.hub_lostfound_sub, uiState.lostFoundItems.count { !it.isResolved }),
-                        icon = Icons.Default.FindInPage,
-                        iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        onClick = { activeScreen = MoreSubScreen.LOST_FOUND }
-                    )
-                    HubActionCard(
-                        title = stringResource(R.string.campus_directory),
-                        subtitle = stringResource(R.string.hub_directory_sub),
-                        icon = Icons.Default.Call,
-                        iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        onClick = { activeScreen = MoreSubScreen.DIRECTORY }
-                    )
-                }
-            }
-
             // ===== Account =====
             item {
                 C1SectionHeader(
@@ -798,6 +771,8 @@ fun MoreHubScreen(
             MoreSubScreen.SUPER_ADMIN_MODERATION -> "Platform Moderation"
             MoreSubScreen.SUPER_ADMIN_SETTINGS -> "Platform Settings"
             MoreSubScreen.SUPER_ADMIN_AUDIT -> "Audit Log"
+            MoreSubScreen.SUPER_ADMIN_ANALYTICS -> "Analytics & Reporting"
+            MoreSubScreen.SUPER_ADMIN_ACADEMIC -> "Academic Structure"
             else -> activeScreen.name.replace("_", " ")
         }
         val moduleSubtitle = when (activeScreen) {
@@ -915,6 +890,7 @@ MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
                                 SuperAdminSection.SETTINGS -> MoreSubScreen.SUPER_ADMIN_SETTINGS
                                 SuperAdminSection.AUDIT -> MoreSubScreen.SUPER_ADMIN_AUDIT
                                 SuperAdminSection.ANALYTICS -> MoreSubScreen.SUPER_ADMIN_ANALYTICS
+                                SuperAdminSection.ACADEMIC -> MoreSubScreen.SUPER_ADMIN_ACADEMIC
                                 SuperAdminSection.OVERVIEW -> MoreSubScreen.SUPER_ADMIN
                             }
                         }
@@ -938,6 +914,9 @@ MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
                         adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.SUPER_ADMIN }
                     )
                     MoreSubScreen.SUPER_ADMIN_ANALYTICS -> SuperAdminAnalyticsScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.SUPER_ADMIN }
+                    )
+                    MoreSubScreen.SUPER_ADMIN_ACADEMIC -> SuperAdminAcademicScreen(
                         adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.SUPER_ADMIN }
                     )
                     MoreSubScreen.HUB -> Unit

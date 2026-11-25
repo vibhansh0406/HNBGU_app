@@ -10,11 +10,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,7 +27,6 @@ import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Campaign
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ContactPhone
 import androidx.compose.material.icons.filled.EventNote
 import androidx.compose.material.icons.filled.MenuBook
@@ -38,7 +35,6 @@ import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -60,7 +56,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.R
@@ -77,7 +72,6 @@ import `in`.campusone.app.ui.components.C1Avatar
 import `in`.campusone.app.ui.components.C1Banner
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
-import `in`.campusone.app.ui.components.C1CompactStatCard
 import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1ErrorState
 import `in`.campusone.app.ui.components.C1SkeletonRows
@@ -88,7 +82,6 @@ import `in`.campusone.app.ui.components.C1Tone
 import `in`.campusone.app.ui.theme.C1Motion
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
-import `in`.campusone.app.ui.theme.C1TouchTarget
 import `in`.campusone.app.ui.theme.C1WindowSize
 import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.theme.windowSize
@@ -137,55 +130,56 @@ fun HomeScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(C1Spacing.sectionGap(ws))
         ) {
-        item {
-            HomeHeader(
-                uiState = uiState
-            )
-        }
-        item {
-            NextClassCard(
-                uiState = uiState,
-                onOpenTimetable = onOpenTimetable
-            )
-        }
-        item {
-            QuickActionsSection(onOpenMore = onOpenMore)
-        }
-        item {
-            AttendanceSummaryCard(
-                insight = uiState.overallInsight,
-                onClick = onOpenAttendance
-            )
-        }
-        item {
-            TodaySchedulePreview(uiState = uiState, onOpenTimetable = onOpenTimetable)
-        }
-        item {
-            AnnouncementsSection(
-                uiState = uiState,
-                dataRefreshError = dataRefreshError,
-                onOpenNotice = onOpenNotice,
-                onOpenNotices = onOpenNotices,
-                onRetryRefresh = onRetryRefresh
-            )
-        }
-        if (campusEvents.any { it.isApproved && it.eventEpochMillis >= System.currentTimeMillis() }) {
             item {
-                CampusBuzzSection(
-                    events = campusEvents,
-                    onOpenEvents = { onOpenMore(MoreSubScreen.EVENTS_CLUBS) }
+                HomeHeader(
+                    uiState = uiState
                 )
             }
-        }
-        if (nextThreeDeadlines.isNotEmpty() || nextUpcomingExam != null) {
             item {
-                AtAGlanceSection(
-                    deadlines = nextThreeDeadlines,
-                    exam = nextUpcomingExam,
-                    onOpenMore = onOpenMore
+                NextClassCard(
+                    uiState = uiState,
+                    onOpenTimetable = onOpenTimetable
                 )
             }
-        }
+            item {
+                AttendanceSummaryCard(
+                    insight = uiState.overallInsight,
+                    onClick = onOpenAttendance
+                )
+            }
+            item {
+                TodaySchedulePreview(uiState = uiState, onOpenTimetable = onOpenTimetable)
+            }
+            item {
+                AnnouncementsSection(
+                    uiState = uiState,
+                    dataRefreshError = dataRefreshError,
+                    onOpenNotice = onOpenNotice,
+                    onOpenNotices = onOpenNotices,
+                    onRetryRefresh = onRetryRefresh
+                )
+            }
+            if (campusEvents.any { it.isApproved && it.eventEpochMillis >= System.currentTimeMillis() }) {
+                item {
+                    CampusBuzzSection(
+                        events = campusEvents,
+                        onOpenEvents = { onOpenMore(MoreSubScreen.EVENTS_CLUBS) }
+                    )
+                }
+            }
+            if (nextThreeDeadlines.isNotEmpty() || nextUpcomingExam != null) {
+                item {
+                    AtAGlanceSection(
+                        deadlines = nextThreeDeadlines,
+                        exam = nextUpcomingExam,
+                        onOpenMore = onOpenMore
+                    )
+                }
+            }
+            item {
+                QuickActionsSection(onOpenMore = onOpenMore)
+            }
+            }
         }
     }
 }
@@ -202,7 +196,6 @@ private fun HomeHeader(
         uiState.profile.semester in 7..8 -> "4th Year"
         else -> "${uiState.profile.semester}th Year"
     }
-    val courseLine = "${uiState.profile.courseName} • $academicYear • Sem ${uiState.profile.semester} (${uiState.profile.section})"
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -218,7 +211,15 @@ private fun HomeHeader(
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = courseLine,
+                text = academicYear,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "${uiState.profile.courseName} • Semester ${uiState.profile.semester} • Section ${uiState.profile.section}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
