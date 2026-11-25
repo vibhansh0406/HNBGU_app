@@ -28,13 +28,15 @@ colors:
   warning-container: "#F5EAD5"
   danger: "#B42318"
   danger-container: "#FBE5E2"
-  dark-background: "#101B16"
-  dark-surface: "#18241E"
-  dark-surface-elevated: "#1C2B23"
-  dark-surface-variant: "#24352C"
-  dark-primary: "#A9D6BC"
-  dark-secondary: "#B4D3D9"
-  dark-tertiary: "#E7BD8A"
+  dark-background: "#0F1613"
+  dark-surface: "#17251C"
+  dark-card: "#1E3024"
+  dark-selected: "#294633"
+  dark-primary: "#1E634B"
+  dark-secondary: "#476C78"
+  dark-tertiary: "#B97937"
+  dark-text-primary: "#F6F7F2"
+  dark-text-secondary: "#B8C9BF"
 typography:
   families:
     display: "Manrope variable (bundled, OFL)"
@@ -61,21 +63,22 @@ CampusOne is a practical student super-app: quick to scan between classes, relia
 ## Colour system
 | Role | Light | Dark | Intended use |
 |---|---|---|---|
-| Primary / evergreen | `#1E634B` | `#A9D6BC` | Main actions, selected navigation, key progress and brand emphasis |
-| Primary container | `#E4F0E7` | `#284F3C` | Selected surfaces, chips and low-emphasis brand fills |
-| Secondary / muted teal | `#476C78` | `#B4D3D9` | Supporting actions and secondary emphasis |
-| Tertiary / warm amber | `#B97937` | `#E7BD8A` | Important emphasis, deadlines and featured moments |
-| Info | `#367F8D` | `#A8D6DC` | Informational status and neutral updates |
-| Success | `#286B4E` | `#A4D7B8` | Attendance health and completed actions |
-| Warning | `#9C641F` | `#E7BD8A` | Pending or attention-needed states |
+| Primary / evergreen | `#1E634B` | `#1E634B` | Main actions, selected navigation and brand emphasis |
+| Primary container | `#E4F0E7` | `#294633` | Selected surfaces, chips and low-emphasis brand fills |
+| Secondary / muted teal | `#476C78` | `#476C78` | Supporting actions and secondary emphasis |
+| Tertiary / warm amber | `#B97937` | `#B97937` | Important emphasis, deadlines and featured moments |
+| Info | `#367F8D` | `#91B2BA` | Informational status and neutral updates |
+| Success | `#286B4E` | `#9FC8AA` | Attendance health and completed actions |
+| Warning | `#9C641F` | `#D49A57` | Pending or attention-needed states |
 | Danger | `#B42318` | `#FF8A7A` | Errors and destructive actions |
-| Background | `#F6F7F2` | `#101B16` | App canvas |
-| Surface | `#FFFFFF` | `#18241E` | Cards, sheets and forms |
-| Elevated surface | `#FFFFFF` | `#1C2B23` | Menus, raised cards and floating content |
-| Surface variant | `#EAF0E9` | `#24352C` | Grouped content and low-emphasis controls |
-| Text / on-surface | `#17231F` | `#EEF4EE` | Primary reading content |
+| Background | `#F6F7F2` | `#0F1613` | App canvas |
+| Surface | `#FFFFFF` | `#17251C` | Cards, sheets and forms |
+| Card / surface variant | `#EAF0E9` | `#1E3024` | Grouped content and low-emphasis controls |
+| Selected surface | `#E4F0E7` | `#294633` | Selected navigation and active controls |
+| Text / on-surface | `#17231F` | `#F6F7F2` | Primary reading content |
+| Secondary text | `#53665A` | `#B8C9BF` | Supporting copy and metadata |
 
-The dark theme must remain evergreen-tinted: use green-black backgrounds and green-charcoal surfaces, not navy. Primary actions and selected states must remain recognisably evergreen. The sage primary in dark mode is a contrast-adjusted expression of the same brand, not a second brand colour.
+The dark theme uses a neutral green-black canvas with restrained green-charcoal surfaces. Keep Evergreen for primary actions and selected states; use muted teal and warm ochre only for semantic/supporting accents. Do not turn every surface green or substitute sage for the core brand green.
 
 Do not use brand accents as arbitrary decoration. Keep most surfaces neutral or green-charcoal. Muted teal and amber are semantic/supporting tones, not competing brand identities. Use `MaterialTheme.colorScheme` and `extendedColors`; do not introduce screen-local hex values for theme roles.
 
@@ -88,7 +91,7 @@ Do not use brand accents as arbitrary decoration. Keep most surfaces neutral or 
 - Android adaptive icons must keep the C mark as a safe-zone foreground and the Evergreen field as a separate background resource. The monochrome layer must preserve the same C silhouette.
 
 ## Contrast
-Use each semantic foreground/background pair from the theme rather than choosing text colours by eye. Keep primary button text white on Evergreen in light mode and use the specified dark on-primary foreground with the sage primary in dark mode. Do not place small white text on the amber tertiary tone. Verify actual text and icon contrast whenever a new surface or badge is introduced.
+Use each semantic foreground/background pair from the theme rather than choosing text colours by eye. Keep primary button text white on Evergreen in both themes. Use warm ivory and muted grey for reading text on dark surfaces. Do not place small white text on the amber tertiary tone. Verify actual text and icon contrast whenever a new surface or badge is introduced.
 
 ## Typography
 - **Manrope** is the display voice for screen titles, section headings and prominent metrics.
