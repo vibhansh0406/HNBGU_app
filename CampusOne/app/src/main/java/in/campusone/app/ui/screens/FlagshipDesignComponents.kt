@@ -455,13 +455,13 @@ fun FlagshipAttendanceScreen(
                         LinearProgressIndicator(
                             progress = { (percent / 100.0).toFloat().coerceIn(0f, 1f) },
                             modifier = Modifier.fillMaxWidth().height(7.dp).clip(CircleShape),
-                            color = if (healthy) FlagshipGreen else Color(0xFF9C641F),
+                            color = if (healthy) FlagshipGreen else extendedColors.warning,
                             trackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                         Spacer(Modifier.height(7.dp))
                         Text(
                             if (subject.insight.classesCanMissSafely > 0) "Safe (+ " + subject.insight.classesCanMissSafely + " leeway)" else if (subject.insight.classesMustAttendToRecover > 0) "Shortfall: attend " + subject.insight.classesMustAttendToRecover + " consecutive classes" else "On target",
-                            fontSize = 11.sp, color = if (healthy) FlagshipGreen else Color(0xFF9C641F), fontWeight = FontWeight.Medium
+                            fontSize = 11.sp, color = if (healthy) FlagshipGreen else extendedColors.warning, fontWeight = FontWeight.Medium
                         )
                         Spacer(Modifier.height(9.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
