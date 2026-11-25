@@ -88,7 +88,6 @@ import `in`.campusone.app.ui.theme.CampusOneBrandGreen
  */
 @Composable
 fun OnboardingScreen(
-    onToggleLanguage: () -> Unit,
     initialEmail: String = "",
     isOwner: Boolean = false,
     onCompleteSetup: (
@@ -164,12 +163,7 @@ fun OnboardingScreen(
                         }
                     }
                     Spacer(Modifier.weight(1f))
-                    TextButton(onClick = onToggleLanguage) {
-                        Icon(Icons.Default.Translate, contentDescription = null, modifier = Modifier.size(17.dp))
-                        Spacer(Modifier.width(5.dp))
-                        Text(stringResource(R.string.language_toggle))
                     }
-                }
 
                 Spacer(Modifier.height(C1Spacing.xl))
                 Row(

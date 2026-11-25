@@ -454,7 +454,6 @@ fun CampusOneRoot(
         ) {
             Box(modifier = Modifier.widthIn(max = 760.dp).fillMaxSize()) {
                 OnboardingScreen(
-                    onToggleLanguage = coreViewModel::toggleLanguage,
                     initialEmail = signedInEmail,
                     isOwner = signedInEmail.equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true),
                     onCompleteSetup = { name, email, collegeName, courseId, courseName, semester, section, role ->
@@ -555,7 +554,6 @@ fun CampusOneRoot(
                         nextThreeDeadlines = studyCampusState.nextThreeDeadlines,
                         nextUpcomingExam = studyCampusState.nextUpcomingExam,
                         dataRefreshError = noticesSyncError,
-                        onToggleLanguage = coreViewModel::toggleLanguage,
                         onOpenProfile = {
                             pendingMoreScreen = MoreSubScreen.PROFILE
                             currentTab = BottomNavTab.MORE
@@ -707,14 +705,7 @@ fun SignInScreen(onGoogleSignIn: () -> Unit, isSigningIn: Boolean) {
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = stringResource(`in`.campusone.app.R.string.welcome_subtitle),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(44.dp))
+            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(40.dp))
             C1Button(
                 text = if (isSigningIn) "Signing in..." else stringResource(`in`.campusone.app.R.string.sign_in_google),
                 onClick = onGoogleSignIn,
@@ -722,13 +713,6 @@ fun SignInScreen(onGoogleSignIn: () -> Unit, isSigningIn: Boolean) {
                     .fillMaxWidth()
                     .height(54.dp),
                 enabled = !isSigningIn
-            )
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(28.dp))
-            Text(
-                text = stringResource(`in`.campusone.app.R.string.sign_in_subtitle),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
             )
         }
     }

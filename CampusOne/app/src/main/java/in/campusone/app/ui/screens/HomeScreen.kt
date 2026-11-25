@@ -80,7 +80,6 @@ import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1CompactStatCard
 import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1ErrorState
-import `in`.campusone.app.ui.components.C1FilterChip
 import `in`.campusone.app.ui.components.C1SkeletonRows
 import `in`.campusone.app.ui.components.C1SectionHeader
 import `in`.campusone.app.ui.components.C1StatusChip
@@ -106,7 +105,6 @@ fun HomeScreen(
     nextThreeDeadlines: List<AssignmentEntity> = emptyList(),
     nextUpcomingExam: ExamEntity? = null,
     dataRefreshError: Boolean = false,
-    onToggleLanguage: () -> Unit,
     onOpenProfile: () -> Unit,
     onOpenAttendance: () -> Unit,
     onOpenTimetable: () -> Unit,
@@ -141,8 +139,7 @@ fun HomeScreen(
         ) {
         item {
             HomeHeader(
-                uiState = uiState,
-                onToggleLanguage = onToggleLanguage
+                uiState = uiState
             )
         }
         item {
@@ -195,11 +192,17 @@ fun HomeScreen(
 
 @Composable
 private fun HomeHeader(
-    uiState: CoreUiState,
-    onToggleLanguage: () -> Unit
+    uiState: CoreUiState
 ) {
     val firstName = uiState.profile.name.trim().substringBefore(" ").ifBlank { "Student" }
-    val courseLine = "${uiState.profile.courseName} • Sem ${uiState.profile.semester} (${uiState.profile.section})"
+    val academicYear = when {
+        uiState.profile.semester in 1..2 -> "1st Year"
+        uiState.profile.semester in 3..4 -> "2nd Year"
+        uiState.profile.semester in 5..6 -> "3rd Year"
+        uiState.profile.semester in 7..8 -> "4th Year"
+        else -> "${uiState.profile.semester}th Year"
+    }
+    val courseLine = "${uiState.profile.courseName} • $academicYear • Sem ${uiState.profile.semester} (${uiState.profile.section})"
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -222,11 +225,6 @@ private fun HomeHeader(
                 overflow = TextOverflow.Ellipsis
             )
         }
-        C1FilterChip(
-            label = if (uiState.languageTag == "hi") "EN" else "हिन्दी",
-            selected = false,
-            onClick = onToggleLanguage
-        )
     }
 }
 
@@ -577,7 +575,6 @@ private fun QuickActionsSection(onOpenMore: (MoreSubScreen) -> Unit) {
         HomeQuickAction(Icons.Default.Assignment, R.string.qa_assignments, R.string.qa_assignments_desc, MoreSubScreen.ASSIGNMENTS),
         HomeQuickAction(Icons.Default.EventNote, R.string.qa_exams, R.string.qa_exams_desc, MoreSubScreen.EXAMS_SYLLABUS),
         HomeQuickAction(Icons.Default.MenuBook, R.string.qa_notes, R.string.qa_notes_desc, MoreSubScreen.NOTES_PYQ),
-        HomeQuickAction(Icons.Default.Calculate, R.string.qa_gpa, R.string.qa_gpa_desc, MoreSubScreen.GPA_CALCULATOR),
         HomeQuickAction(Icons.Default.Search, R.string.qa_lost_found, R.string.qa_lost_found_desc, MoreSubScreen.LOST_FOUND),
         HomeQuickAction(Icons.Default.ContactPhone, R.string.qa_directory, R.string.qa_directory_desc, MoreSubScreen.DIRECTORY)
     )

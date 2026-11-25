@@ -190,7 +190,6 @@ enum class MoreSubScreen {
     NOTES_PYQ,
     ASSIGNMENTS,
     EXAMS_SYLLABUS,
-    GPA_CALCULATOR,
     EVENTS_CLUBS,
     LOST_FOUND,
     DIRECTORY,
@@ -295,7 +294,6 @@ fun MoreHubScreen(
     val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
     val communityState by communityViewModel.uiState.collectAsStateWithLifecycle()
     val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
-    val unreadNotifications by communityViewModel.unreadNotificationCount.collectAsStateWithLifecycle()
     val isSuperAdmin = adminState.identity.isOwner
 
     androidx.compose.runtime.LaunchedEffect(activeScreen, adminState.identity.isOwner, uiState.profile.role) {
@@ -355,16 +353,6 @@ fun MoreHubScreen(
             onOpenEvents = { activeScreen = MoreSubScreen.EVENTS_CLUBS },
             onOpenLostFound = { activeScreen = MoreSubScreen.LOST_FOUND },
             onOpenDirectory = { activeScreen = MoreSubScreen.DIRECTORY },
-            onOpenNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
-            onOpenProfile = { activeScreen = MoreSubScreen.PROFILE }
-        )
-        return
-    }
-    if (activeScreen == MoreSubScreen.GPA_CALCULATOR) {
-        FlagshipGpaCalculatorScreen(
-            uiState = uiState,
-            viewModel = viewModel,
-            onBack = { activeScreen = MoreSubScreen.HUB },
             onOpenNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
             onOpenProfile = { activeScreen = MoreSubScreen.PROFILE }
         )
@@ -457,8 +445,21 @@ fun MoreHubScreen(
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis
                             )
+                            val academicYear = when {
+                                profile.semester in 1..2 -> "1st Year"
+                                profile.semester in 3..4 -> "2nd Year"
+                                profile.semester in 5..6 -> "3rd Year"
+                                profile.semester in 7..8 -> "4th Year"
+                                else -> "${profile.semester}th Year"
+                            }
                             Text(
-                                text = "Semester ${profile.semester} · Section ${profile.section}",
+                                text = academicYear,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f)
+                            )
+                            Text(
+                                text = "Current Semester: Semester ${profile.semester} · Section ${profile.section}",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f)
                             )
@@ -537,17 +538,6 @@ fun MoreHubScreen(
                         onClick = { activeScreen = MoreSubScreen.COMMUNITY }
                     )
                     HubActionCard(
-                        title = stringResource(R.string.notifications_title),
-                        subtitle = if (unreadNotifications > 0) {
-                            "$unreadNotifications ${stringResource(R.string.notifications_unread)}"
-                        } else {
-                            stringResource(R.string.notifications_subtitle)
-                        },
-                        icon = Icons.Default.Notifications,
-                        iconColor = if (unreadNotifications > 0) extendedColors.warning else MaterialTheme.colorScheme.primary,
-                        onClick = { activeScreen = MoreSubScreen.NOTIFICATIONS }
-                    )
-                    HubActionCard(
                         title = stringResource(R.string.events_clubs),
                         subtitle = stringResource(R.string.hub_events_sub, uiState.events.size),
                         icon = Icons.Default.Event,
@@ -595,13 +585,6 @@ fun MoreHubScreen(
                         icon = Icons.Default.Call,
                         iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         onClick = { activeScreen = MoreSubScreen.DIRECTORY }
-                    )
-                    HubActionCard(
-                        title = stringResource(R.string.gpa_calculator),
-                        subtitle = stringResource(R.string.hub_gpa_sub, uiState.gpaResult.formattedSgpa, uiState.gpaResult.formattedCgpa, uiState.gpaResult.formattedPercentage),
-                        icon = Icons.Default.Calculate,
-                        iconColor = MaterialTheme.colorScheme.primary,
-                        onClick = { activeScreen = MoreSubScreen.GPA_CALCULATOR }
                     )
                 }
             }
@@ -851,7 +834,6 @@ fun MoreHubScreen(
                         onFocusConsumed = onFocusAssignmentConsumed
                     )
                     MoreSubScreen.EXAMS_SYLLABUS -> ExamsAndSyllabusScreen(uiState, viewModel)
-                    MoreSubScreen.GPA_CALCULATOR -> GpaCalculatorScreen(uiState, viewModel)
                     MoreSubScreen.EVENTS_CLUBS -> EventsAndClubsScreen(uiState, viewModel)
                     MoreSubScreen.LOST_FOUND -> LostAndFoundScreen(uiState, viewModel)
                     MoreSubScreen.DIRECTORY -> CampusDirectoryScreen(uiState, viewModel)
@@ -2446,327 +2428,6 @@ fun ExamsAndSyllabusScreen(
     }
 }
 
-// =========================================================================
-// PHASE 2.4 — GPA / CGPA / PERCENTAGE CALCULATOR
-// =========================================================================
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun GpaCalculatorScreen(
-    uiState: StudyAndCampusUiState,
-    viewModel: StudyAndCampusViewModel
-) {
-    val context = LocalContext.current
-    var showAddCourseDialog by rememberSaveable { mutableStateOf(false) }
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        // 1. Summary & Scale Selector Card
-        item {
-            C1SurfaceCard(
-                modifier = Modifier.fillMaxWidth(),
-                containerColor = MaterialTheme.colorScheme.surface
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text(
-                        text = stringResource(R.string.gpa_calculator),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column {
-                            Text("Sem SGPA", style = MaterialTheme.typography.bodyMedium)
-                            Text(
-                                text = uiState.gpaResult.formattedSgpa,
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        Column {
-                            Text("Cumulative CGPA", style = MaterialTheme.typography.bodyMedium)
-                            Text(
-                                text = uiState.gpaResult.formattedCgpa,
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.ExtraBold
-                            )
-                        }
-                        Column {
-                            Text("Percentage", style = MaterialTheme.typography.bodyMedium)
-                            Text(
-                                text = uiState.gpaResult.formattedPercentage,
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.ExtraBold
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text("Grading Scale:", style = MaterialTheme.typography.labelLarge)
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        GradingScaleType.entries.forEach { scale ->
-                            FilterChip(
-                                selected = uiState.gpaScaleType == scale,
-                                onClick = { viewModel.setGradingScale(scale) },
-                                label = { Text(scale.label) }
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        C1Button(
-                            text = "Save Sem History",
-                            onClick = { viewModel.saveSemesterToHistory() },
-                            modifier = Modifier.weight(1f)
-                        )
-                        C1Button(
-                            text = "Export PDF",
-                            onClick = { viewModel.exportGpaPdf(context) },
-                            intent = C1ButtonIntent.OUTLINED,
-                            modifier = Modifier.weight(1f),
-                            icon = { Icon(Icons.Default.PictureAsPdf, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                        )
-                    }
-                }
-            }
-        }
-
-        // 2. Semester Trend Chart Card
-        item {
-            C1SurfaceCard(
-                modifier = Modifier.fillMaxWidth(),
-                containerColor = MaterialTheme.colorScheme.surface
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = stringResource(R.string.semester_trend_chart),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    SemesterTrendChart(
-                        trend = uiState.gpaResult.semesterTrend,
-                        maxScale = uiState.gpaScaleType.maxScalePoint
-                    )
-                }
-            }
-        }
-
-        // 3. "What Do I Need?" Target CGPA Calculator Card
-        item {
-            val req = uiState.targetCgpaRequirement
-            C1SurfaceCard(
-                modifier = Modifier.fillMaxWidth(),
-                containerColor = MaterialTheme.colorScheme.secondaryContainer
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = stringResource(R.string.what_do_i_need),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = "Target CGPA: ${String.format(Locale.US, "%.2f", uiState.targetCgpaInput)} (over next ${uiState.upcomingCreditsInput} credits)",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                    Slider(
-                        value = uiState.targetCgpaInput.toFloat(),
-                        onValueChange = {
-                            viewModel.updateTargetCgpa(it.toDouble(), uiState.upcomingCreditsInput)
-                        },
-                        valueRange = 6.0f..uiState.gpaScaleType.maxScalePoint.toFloat()
-                    )
-                    val message = when {
-                        req.alreadyAchieved -> "You have already achieved your target CGPA of ${String.format(Locale.US, "%.2f", req.targetCgpa)}."
-                        req.isAchievable -> "You need an SGPA of ${String.format(Locale.US, "%.2f", req.requiredSgpa)} in your next ${req.upcomingCredits} credits to reach ${String.format(Locale.US, "%.2f", req.targetCgpa)} CGPA."
-                        else -> "Requires ${String.format(Locale.US, "%.2f", req.requiredSgpa)} SGPA (exceeds max ${req.maxScalePoint}). Try targeting across 2 semesters."
-                    }
-                    Text(
-                        text = message,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                }
-            }
-        }
-
-        // 4. Current Semester Subject Entry Cards
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Current Semester Subjects", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                C1Button(
-                    text = "+ Add Subject",
-                    onClick = { showAddCourseDialog = true },
-                    intent = C1ButtonIntent.TONAL
-                )
-            }
-        }
-
-        items(uiState.gpaCourses.size) { idx ->
-            val course = uiState.gpaCourses[idx]
-            C1SurfaceCard(
-                modifier = Modifier.fillMaxWidth(),
-                containerColor = MaterialTheme.colorScheme.surface
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "${course.subjectCode} • ${course.credits} Credits",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = course.subjectName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        C1TextField(
-                            value = course.gradePoint.toString(),
-                            onValueChange = { viewModel.updateCourseGradePoint(idx, it.toDoubleOrNull() ?: course.gradePoint) },
-                            label = "Grade",
-                            modifier = Modifier.weight(1f)
-                        )
-                        C1TextField(
-                            value = course.credits.toString(),
-                            onValueChange = { viewModel.updateCourseCredits(idx, it.toIntOrNull() ?: course.credits) },
-                            label = "Credits",
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "Points: ${String.format(Locale.US, "%.2f", course.gradePoint)}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        IconButton(onClick = { viewModel.removeGpaCourse(idx) }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Remove subject")
-                        }
-                    }
-                }
-            }
-        }
-
-        if (uiState.gpaCourses.isEmpty()) {
-            item {
-                C1EmptyState(
-                    icon = Icons.Default.Calculate,
-                    title = "No subjects added",
-                    message = "Add your current semester subjects to calculate SGPA/CGPA",
-                    actionLabel = "+ Add Subject",
-                    onAction = { showAddCourseDialog = true }
-                )
-            }
-        }
-    }
-
-    if (showAddCourseDialog) {
-        var subjCode by rememberSaveable { mutableStateOf("") }
-        var subjName by rememberSaveable { mutableStateOf("") }
-        var credits by rememberSaveable { mutableIntStateOf(4) }
-        var grade by rememberSaveable { mutableStateOf("A") }
-
-        AlertDialog(
-            onDismissRequest = { showAddCourseDialog = false },
-            title = { Text("Add Subject") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    C1TextField(value = subjCode, onValueChange = { subjCode = it }, label = "Subject Code")
-                    C1TextField(value = subjName, onValueChange = { subjName = it }, label = "Subject Name")
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        C1TextField(
-                            value = credits.toString(),
-                            onValueChange = { credits = it.toIntOrNull() ?: 4 },
-                            label = "Credits",
-                            modifier = Modifier.weight(1f)
-                        )
-                        C1TextField(
-                            value = grade,
-                            onValueChange = { grade = it },
-                            label = "Grade",
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                C1Button(
-                    text = "Add",
-                    onClick = {
-                        viewModel.addGpaCourse(subjCode, subjName, credits, grade.toDoubleOrNull() ?: 0.0)
-                        showAddCourseDialog = false
-                    },
-                    enabled = subjCode.isNotBlank() && subjName.isNotBlank()
-                )
-            },
-            dismissButton = {
-                C1Button(
-                    text = "Cancel",
-                    onClick = { showAddCourseDialog = false },
-                    intent = C1ButtonIntent.GHOST
-                )
-            }
-        )
-    }
-}
-
-@Composable
-private fun SemesterTrendChart(
-    trend: List<SemesterGpaRecord>,
-    maxScale: Double
-) {
-    if (trend.isEmpty()) {
-        C1EmptyState(
-            icon = Icons.Default.Calculate,
-            title = "No semester history",
-            message = "Save semester results to see your trend"
-        )
-        return
-    }
-
-    val maxSgpa = trend.maxOfOrNull { it.sgpa } ?: maxScale
-    val minSgpa = trend.minOfOrNull { it.sgpa } ?: 0.0
-    val range = (maxSgpa - minSgpa).coerceAtLeast(1.0)
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp)
-            .background(MaterialTheme.colorScheme.surfaceVariant, C1Radius.md)
-    ) {
-        // Draw chart using Canvas
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            // Chart drawing to be implemented
-        }
-    }
-}
-
-@Composable
 fun PrivacyPolicyScreen() {
     Column(
         modifier = Modifier
