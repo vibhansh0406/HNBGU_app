@@ -167,8 +167,6 @@
     <string name="qa_exams_desc">परीक्षा तिथियां, सिलेबस और काउंटडाउन</string>
     <string name="qa_notes">नोट्स और PYQ</string>
     <string name="qa_notes_desc">अध्ययन सामग्री और पिछले पेपर</string>
-    <string name="qa_gpa">GPA</string>
-    <string name="qa_gpa_desc">SGPA, CGPA और लक्ष्य कैलकुलेटर</string>
     <string name="qa_lost_found">खोया-पाया</string>
     <string name="qa_lost_found_desc">खोई हुई वस्तुओं की रिपोर्ट करें या दावा करें</string>
     <string name="qa_directory">डायरेक्टरी</string>
@@ -180,10 +178,6 @@
     <string name="overall_syllabus_progress">कुल सिलेबस प्रगति</string>
     <string name="publish_exam">सेक्शन परीक्षा जोड़ें</string>
     <string name="publish_syllabus_topic">सिलेबस टॉपिक जोड़ें</string>
-    <string name="gpa_calculator">SGPA / CGPA और लक्ष्य कैलकुलेटर</string>
-    <string name="what_do_i_need">मुझे कितने SGPA की आवश्यकता है? (Target CGPA)</string>
-    <string name="semester_trend_chart">सेमेस्टर SGPA ग्राफ़</string>
-    <string name="export_gpa_pdf">ग्रेड रिपोर्ट PDF के रूप में सेव करें</string>
 
     <!-- Phase 3: Campus Life -->
     <string name="events_clubs">इवेंट्स और क्लब (Events &amp; Clubs)</string>
@@ -291,7 +285,6 @@
     <string name="hub_resources_sub">%1$d पीडीएफ़ और इमेज • ऐप में देखें, ऑफ़लाइन बुकमार्क, CR मॉडरेशन</string>
     <string name="hub_assignments_sub">%1$d लंबित कार्य • आज, आगामी, अतिदेय, पूर्ण और साझा कार्य</string>
     <string name="hub_exams_sub">%1$d निर्धारित परीक्षाएँ • %2$d/%3$d पाठ्यक्रम विषय पूर्ण</string>
-    <string name="hub_gpa_sub">SGPA %1$s • CGPA %2$s (%3$s) • ट्रेंड चार्ट और PDF निर्यात</string>
     <string name="hub_events_sub">%1$d आगामी कैंपस इवेंट और क्लब मीटअप</string>
     <string name="hub_lostfound_sub">कैंपस पर %1$d सक्रिय खोया-पाया रिपोर्ट</string>
     <string name="hub_directory_sub">HoD, परीक्षा नियंत्रक, प्रोक्टर और आपातकालीन नंबर</string>
