@@ -305,7 +305,7 @@ fun SettingsScreen(
             }
             item {
                 Column(modifier = Modifier.fillMaxWidth().padding(vertical = C1Spacing.md), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.Palette, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+                    Icon(Icons.Default.Palette, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(24.dp))
                     Spacer(Modifier.height(C1Spacing.xs))
                     Text("CampusOne", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     Text("Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

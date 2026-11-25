@@ -799,7 +799,7 @@ private fun NoticePreview(
                 Box(
                     modifier = Modifier
                         .size(6.dp)
-                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                        .background(MaterialTheme.colorScheme.secondary, CircleShape)
                 )
             }
             Text(

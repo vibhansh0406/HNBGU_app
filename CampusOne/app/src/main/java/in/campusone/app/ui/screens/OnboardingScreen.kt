@@ -312,7 +312,7 @@ fun OnboardingScreen(
                             )
                             Spacer(Modifier.height(C1Spacing.lg))
                             FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
-                                Text("SELECTED PROGRAMME", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
+                                Text("SELECTED PROGRAMME", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
                                 Spacer(Modifier.height(C1Spacing.xs))
                                 Text(courses.getOrNull(selectedCourseIndex)?.second ?: "Programme not selected", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
                                 Text(selectedCampus, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f))

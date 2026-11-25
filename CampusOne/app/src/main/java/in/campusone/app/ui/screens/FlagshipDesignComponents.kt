@@ -471,7 +471,7 @@ fun FlagshipAttendanceScreen(
                         Icon(
                             if (insight.classesCanMissSafely > 0) Icons.Default.CheckCircle else Icons.Default.Info,
                             contentDescription = null,
-                            tint = if (insight.classesCanMissSafely > 0) FlagshipGreen else MaterialTheme.colorScheme.primary,
+                            tint = if (insight.classesCanMissSafely > 0) FlagshipGreen else MaterialTheme.colorScheme.secondary,
                             modifier = Modifier.size(20.dp)
                         )
                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
