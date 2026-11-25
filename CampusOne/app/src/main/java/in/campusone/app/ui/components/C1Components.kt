@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.align
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -1459,9 +1458,7 @@ fun C1Button(
                 softWrap = false,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .graphicsLayer { alpha = if (loading) 0f else 1f }
+                modifier = Modifier.graphicsLayer { alpha = if (loading) 0f else 1f }
             )
             if (icon != null && iconPosition == C1IconPosition.END) {
                 Spacer(modifier = Modifier.width(C1Spacing.sm))
