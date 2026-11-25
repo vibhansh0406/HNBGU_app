@@ -1458,7 +1458,9 @@ fun C1Button(
                 softWrap = false,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.graphicsLayer { alpha = if (loading) 0f else 1f }
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .graphicsLayer { alpha = if (loading) 0f else 1f }
             )
             if (icon != null && iconPosition == C1IconPosition.END) {
                 Spacer(modifier = Modifier.width(C1Spacing.sm))
@@ -1486,6 +1488,7 @@ fun C1Button(
             enabled = enabled && !loading,
             shape = C1Radius.sm,
             colors = colors,
+            contentPadding = PaddingValues(horizontal = padding, vertical = C1Spacing.md),
             interactionSource = interactionSource
         ) {
             buttonContent()

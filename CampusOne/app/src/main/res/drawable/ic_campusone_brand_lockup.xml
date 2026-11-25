@@ -9,10 +9,10 @@
         android:pathData="M190,0 L810,0 C914.9,0 1000,85.1 1000,190 L1000,810 C1000,914.9 914.9,1000 810,1000 L190,1000 C85.1,1000 0,914.9 0,810 L0,190 C0,85.1 85.1,0 190,0 Z" />
     <group
         android:name="campusone_brand_mark"
-        android:scaleX="0.604"
-        android:scaleY="0.604"
-        android:translateX="198"
-        android:translateY="198">
+        android:scaleX="0.55"
+        android:scaleY="0.55"
+        android:translateX="225"
+        android:translateY="225">
         <path
             android:fillColor="@color/campusone_launcher_mark"
             android:fillType="nonZero"

@@ -6,10 +6,10 @@
     android:viewportHeight="1000">
     <group
         android:name="campusone_logo_safe_zone"
-        android:scaleX="0.604"
-        android:scaleY="0.604"
-        android:translateX="198"
-        android:translateY="198">
+        android:scaleX="0.55"
+        android:scaleY="0.55"
+        android:translateX="225"
+        android:translateY="225">
         <path
             android:name="campusone_c_mark"
             android:fillColor="@color/campusone_launcher_mark"

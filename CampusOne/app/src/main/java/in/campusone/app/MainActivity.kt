@@ -96,6 +96,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.delay
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.messaging.FirebaseMessaging
@@ -266,7 +267,15 @@ class MainActivity : AppCompatActivity() {
                 config.screenWidthDp < 1200 -> `in`.campusone.app.ui.theme.C1WindowSize.LARGE
                 else -> `in`.campusone.app.ui.theme.C1WindowSize.EXPANDED
             }
-                CampusOneTheme(darkTheme = useDarkTheme, windowSize = ws) {
+            CampusOneTheme(darkTheme = useDarkTheme, windowSize = ws) {
+                var showSplash by rememberSaveable { mutableStateOf(true) }
+                LaunchedEffect(Unit) {
+                    delay(1500)
+                    showSplash = false
+                }
+                if (showSplash) {
+                    SplashScreen()
+                } else {
                     CampusOneRoot(
                         onGoogleSignIn = onGoogleSignIn,
                         authSession = authManager.session,
@@ -284,6 +293,7 @@ class MainActivity : AppCompatActivity() {
                         pendingNotificationTarget = pendingNotificationTarget
                     )
                 }
+            }
         }
     }
 
@@ -882,6 +892,37 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
                 textAlign = TextAlign.Center,
                 modifier = Modifier.offset(y = taglineSlide.dp)
             )
+        }
+    }
+
+    /**
+     * Initial launch screen. Shows the CampusOne mark with a subtle VEDA Labs
+     * developer attribution. Shown only once before the main interface appears.
+     */
+    @Composable
+    fun SplashScreen() {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.ic_campusone_c_mark),
+                    contentDescription = "CampusOne",
+                    modifier = Modifier.size(64.dp)
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = stringResource(R.string.splash_veda_attribution),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }
