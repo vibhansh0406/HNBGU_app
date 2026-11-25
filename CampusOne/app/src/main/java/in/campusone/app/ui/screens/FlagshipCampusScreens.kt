@@ -69,17 +69,26 @@ import `in`.campusone.app.data.local.entity.LostFoundEntity
 import `in`.campusone.app.domain.model.EventRsvpStatus
 import `in`.campusone.app.domain.model.UserRole
 import `in`.campusone.app.ui.viewmodel.StudyAndCampusUiState
+import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.viewmodel.StudyAndCampusViewModel
 import java.util.Locale
 
-private val CampusPageGreen = Color(0xFF004A35)
-private val CampusPageGreenSoft = Color(0xFFDCECE1)
-private val CampusPageCanvas = Color(0xFFF9FAF5)
-private val CampusPageBlue = Color(0xFFDDEEF0)
-private val CampusPageOchre = Color(0xFFF5EAD5)
-private val CampusPageInk = Color(0xFF17231F)
-private val CampusPageMuted = Color(0xFF66766D)
-private val CampusPageBorder = Color(0xFFE2E8E1)
+private val CampusPageGreen: Color
+    @Composable get() = MaterialTheme.colorScheme.primary
+private val CampusPageGreenSoft: Color
+    @Composable get() = MaterialTheme.colorScheme.primaryContainer
+private val CampusPageCanvas: Color
+    @Composable get() = MaterialTheme.colorScheme.background
+private val CampusPageBlue: Color
+    @Composable get() = extendedColors.infoContainer
+private val CampusPageOchre: Color
+    @Composable get() = extendedColors.warningContainer
+private val CampusPageInk: Color
+    @Composable get() = MaterialTheme.colorScheme.onSurface
+private val CampusPageMuted: Color
+    @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
+private val CampusPageBorder: Color
+    @Composable get() = MaterialTheme.colorScheme.outlineVariant
 
 @Composable
 fun FlagshipCampusCommunityOverview(
@@ -105,7 +114,7 @@ fun FlagshipCampusCommunityOverview(
                 FlagshipPageTitle("Campus & Community", "Birla & Chauras campus life and utilities", "LIVE CAMPUS")
             }
             item {
-                FlagshipCard(containerColor = Color(0xFFE7F0E8)) {
+                FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Your campus, connected", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = CampusPageInk)
@@ -171,7 +180,7 @@ private fun onLostFoundSafe(action: () -> Unit): (() -> Unit) = action
 
 @Composable
 private fun RowScope.OverviewMetric(value: String, label: String) {
-    Surface(modifier = Modifier.weight(1f), color = Color.White, shape = RoundedCornerShape(12.dp)) {
+    Surface(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(12.dp)) {
         Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 9.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(value, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = CampusPageGreen)
             Text(label, fontSize = 9.sp, color = CampusPageMuted)
@@ -184,7 +193,7 @@ private fun OverviewEventRow(event: CampusEventEntity) {
     FlagshipCard(contentPadding = PaddingValues(13.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Surface(color = CampusPageBlue, shape = RoundedCornerShape(11.dp)) {
-                Icon(Icons.Default.Event, contentDescription = null, tint = Color(0xFF367F8D), modifier = Modifier.padding(10.dp).size(22.dp))
+                Icon(Icons.Default.Event, contentDescription = null, tint = extendedColors.info, modifier = Modifier.padding(10.dp).size(22.dp))
             }
             Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -241,7 +250,7 @@ private fun OverviewContactRow(contact: DirectoryContactEntity) {
                 Text(contact.name, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = CampusPageInk)
                 Text(contact.designation + " · " + contact.officeLocation, fontSize = 10.sp, color = CampusPageMuted)
             }
-            if (contact.isEmergencyOrImportant) FlagshipPill("Priority", CampusPageOchre, Color(0xFF9C641F))
+            if (contact.isEmergencyOrImportant) FlagshipPill("Priority", CampusPageOchre, extendedColors.warning)
         }
     }
 }
@@ -360,7 +369,7 @@ private fun FlagshipEventCard(event: CampusEventEntity, onRsvp: (EventRsvpStatus
     FlagshipCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Surface(color = CampusPageBlue, shape = RoundedCornerShape(12.dp)) {
-                Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = Color(0xFF367F8D), modifier = Modifier.padding(11.dp).size(23.dp))
+                Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = extendedColors.info, modifier = Modifier.padding(11.dp).size(23.dp))
             }
             Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -371,8 +380,8 @@ private fun FlagshipEventCard(event: CampusEventEntity, onRsvp: (EventRsvpStatus
         }
         Spacer(Modifier.height(10.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            FlagshipPill(event.category.lowercase().replaceFirstChar { it.uppercase() }, CampusPageBlue, Color(0xFF367F8D))
-            FlagshipPill(event.eventDateFormatted, CampusPageOchre, Color(0xFF9C641F))
+            FlagshipPill(event.category.lowercase().replaceFirstChar { it.uppercase() }, CampusPageBlue, extendedColors.info)
+            FlagshipPill(event.eventDateFormatted, CampusPageOchre, extendedColors.warning)
         }
         Text(event.description, fontSize = 12.sp, color = CampusPageMuted, lineHeight = 18.sp, maxLines = 3, overflow = TextOverflow.Ellipsis)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -438,10 +447,10 @@ fun FlagshipLostAndFoundScreen(
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
             FlagshipCard(containerColor = CampusPageBlue) {
                 Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                    Icon(Icons.Default.Security, contentDescription = null, tint = Color(0xFF367F8D), modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.Security, contentDescription = null, tint = extendedColors.info, modifier = Modifier.size(20.dp))
                     Column {
-                        Text("Private contact protocol", fontWeight = FontWeight.Bold, color = Color(0xFF1B4046), fontSize = 13.sp)
-                        Text("Your contact details are shared only after the item poster accepts a claim request.", fontSize = 11.sp, color = Color(0xFF456A76))
+                        Text("Private contact protocol", fontWeight = FontWeight.Bold, color = extendedColors.onInfoContainer, fontSize = 13.sp)
+                        Text("Your contact details are shared only after the item poster accepts a claim request.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -455,7 +464,7 @@ fun FlagshipLostAndFoundScreen(
                     placeholder = { Text("Search item or location", fontSize = 11.sp) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp)) }
                 )
-                Surface(color = Color.White, border = androidx.compose.foundation.BorderStroke(1.dp, CampusPageBorder), shape = RoundedCornerShape(13.dp)) {
+                Surface(color = MaterialTheme.colorScheme.surface, border = androidx.compose.foundation.BorderStroke(1.dp, CampusPageBorder), shape = RoundedCornerShape(13.dp)) {
                     Text("All campus", modifier = Modifier.padding(horizontal = 10.dp, vertical = 17.dp), fontSize = 10.sp, color = CampusPageMuted)
                 }
             }
@@ -520,9 +529,9 @@ fun FlagshipLostAndFoundScreen(
 private fun FlagshipLostFoundCard(item: LostFoundEntity, isOwner: Boolean, onClaim: () -> Unit, onResolve: () -> Unit, onReport: () -> Unit) {
     FlagshipCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            FlagshipPill(if (item.type == "FOUND") "FOUND" else "LOST", if (item.type == "FOUND") CampusPageGreenSoft else CampusPageOchre, if (item.type == "FOUND") CampusPageGreen else Color(0xFF9C641F))
+            FlagshipPill(if (item.type == "FOUND") "FOUND" else "LOST", if (item.type == "FOUND") CampusPageGreenSoft else CampusPageOchre, if (item.type == "FOUND") CampusPageGreen else extendedColors.warning)
             Spacer(Modifier.width(7.dp))
-            FlagshipPill(item.category.lowercase().replaceFirstChar { it.uppercase() }, CampusPageBlue, Color(0xFF367F8D))
+            FlagshipPill(item.category.lowercase().replaceFirstChar { it.uppercase() }, CampusPageBlue, extendedColors.info)
             Spacer(Modifier.weight(1f))
             Text(item.dateFormatted, fontSize = 10.sp, color = CampusPageMuted)
         }
@@ -697,10 +706,10 @@ private fun FlagshipDirectoryContactCard(
     onEmail: () -> Unit,
     onCorrection: () -> Unit
 ) {
-    FlagshipCard(contentPadding = PaddingValues(13.dp), containerColor = if (contact.isEmergencyOrImportant) Color(0xFFFFF9F7) else Color.White) {
+    FlagshipCard(contentPadding = PaddingValues(13.dp), containerColor = if (contact.isEmergencyOrImportant) extendedColors.warningContainer else MaterialTheme.colorScheme.surface) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
-                if (contact.isEmergencyOrImportant) FlagshipPill("Priority contact", CampusPageOchre, Color(0xFF9C641F))
+                if (contact.isEmergencyOrImportant) FlagshipPill("Priority contact", CampusPageOchre, extendedColors.warning)
                 Text(contact.name, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = CampusPageInk)
                 Text(contact.designation + " · " + contact.department, fontSize = 11.sp, color = CampusPageMuted)
                 Text(contact.officeLocation, fontSize = 10.sp, color = CampusPageGreen, fontWeight = FontWeight.SemiBold)
@@ -709,7 +718,7 @@ private fun FlagshipDirectoryContactCard(
             if (contact.phone.isNotBlank() || contact.email.isNotBlank()) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (contact.phone.isNotBlank()) Surface(color = CampusPageGreenSoft, shape = CircleShape, modifier = Modifier.clickable(onClick = onCall)) { Icon(Icons.Default.Call, contentDescription = "Call " + contact.name, tint = CampusPageGreen, modifier = Modifier.padding(10.dp).size(18.dp)) }
-                    if (contact.email.isNotBlank()) Surface(color = CampusPageBlue, shape = CircleShape, modifier = Modifier.clickable(onClick = onEmail)) { Icon(Icons.Default.Email, contentDescription = "Email " + contact.name, tint = Color(0xFF367F8D), modifier = Modifier.padding(10.dp).size(18.dp)) }
+                    if (contact.email.isNotBlank()) Surface(color = CampusPageBlue, shape = CircleShape, modifier = Modifier.clickable(onClick = onEmail)) { Icon(Icons.Default.Email, contentDescription = "Email " + contact.name, tint = extendedColors.info, modifier = Modifier.padding(10.dp).size(18.dp)) }
                 }
             }
         }
