@@ -566,6 +566,10 @@ fun CampusOneRoot(
                             pendingMoreScreen = MoreSubScreen.PROFILE
                             currentTab = BottomNavTab.MORE
                         },
+                        onOpenNotifications = {
+                            pendingMoreScreen = MoreSubScreen.NOTIFICATIONS
+                            currentTab = BottomNavTab.MORE
+                        },
                         onOpenAttendance = { currentTab = BottomNavTab.ATTENDANCE },
                         onOpenTimetable = { currentTab = BottomNavTab.TIMETABLE },
                         onOpenNotices = { currentTab = BottomNavTab.NOTICES },

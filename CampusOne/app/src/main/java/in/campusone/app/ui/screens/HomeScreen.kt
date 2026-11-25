@@ -114,29 +114,31 @@ fun HomeScreen(
     onOpenNotice: (String) -> Unit,
     onOpenMore: (MoreSubScreen) -> Unit,
     onRetryRefresh: () -> Unit,
-    campusEvents: List<CampusEventEntity> = emptyList()
+    campusEvents: List<CampusEventEntity> = emptyList(),
+    onOpenNotifications: () -> Unit = onOpenNotices
 ) {
     val ws = windowSize
     val isCompact = ws == C1WindowSize.COMPACT
 
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentPadding = PaddingValues(
-            horizontal = C1Spacing.pagePadding(ws),
-            vertical = C1Spacing.lg
-        ),
-        verticalArrangement = Arrangement.spacedBy(C1Spacing.sectionGap(ws))
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        item {
-            FlagshipAppHeader(
-                campusName = uiState.profile.collegeName,
-                userName = uiState.profile.name,
-                onNotifications = onOpenNotices,
-                onProfile = onOpenProfile
-            )
-        }
+        FlagshipAppHeader(
+            campusName = uiState.profile.collegeName,
+            userName = uiState.profile.name,
+            onNotifications = onOpenNotifications,
+            onProfile = onOpenProfile
+        )
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(
+                horizontal = C1Spacing.pagePadding(ws),
+                vertical = C1Spacing.lg
+            ),
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.sectionGap(ws))
+        ) {
         item {
             HomeHeader(
                 uiState = uiState,
@@ -186,6 +188,7 @@ fun HomeScreen(
                     onOpenMore = onOpenMore
                 )
             }
+        }
         }
     }
 }

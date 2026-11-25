@@ -330,7 +330,6 @@ fun MoreHubScreen(
                 activeScreen = MoreSubScreen.HUB
                 onNotificationNavigate(targetType, targetId)
             },
-            onOpenNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
             onOpenProfile = { activeScreen = MoreSubScreen.PROFILE }
         )
         return
@@ -410,22 +409,25 @@ fun MoreHubScreen(
             profile.name.isNotBlank() -> stringResource(R.string.home_greeting, profile.name)
             else -> stringResource(R.string.hub_greeting_default)
         }
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(C1Spacing.lg)
-                .widthIn(max = C1MaxContentWidth(ws)),
-            verticalArrangement = Arrangement.spacedBy(C1Spacing.xl)
         ) {
-            item {
-                FlagshipAppHeader(
-                    campusName = profile.collegeName,
-                    userName = profile.name,
-                    onNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
-                    onProfile = { activeScreen = MoreSubScreen.PROFILE }
-                )
-            }
+            FlagshipAppHeader(
+                campusName = profile.collegeName,
+                userName = profile.name,
+                onNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
+                onProfile = { activeScreen = MoreSubScreen.PROFILE }
+            )
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = C1Spacing.lg)
+                    .widthIn(max = C1MaxContentWidth(ws)),
+                contentPadding = PaddingValues(top = C1Spacing.lg, bottom = C1Spacing.xl),
+                verticalArrangement = Arrangement.spacedBy(C1Spacing.xl)
+            ) {
             // ===== Verified student profile =====
             item {
                 FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
@@ -713,6 +715,7 @@ fun MoreHubScreen(
             }
 
             item { Spacer(modifier = Modifier.height(C1Spacing.md)) }
+        }
         }
 
         if (showRoleRequest) {

@@ -178,11 +178,20 @@ fun NoticeBoardScreen(
             }
         }
     ) { innerPadding ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(innerPadding),
+                .padding(innerPadding)
+        ) {
+            FlagshipAppHeader(
+                campusName = uiState.profile.collegeName,
+                userName = uiState.profile.name,
+                onNotifications = onOpenNotifications,
+                onProfile = onOpenProfile
+            )
+            LazyColumn(
+                modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(
                 start = C1Spacing.lg,
                 end = C1Spacing.lg,
@@ -191,14 +200,6 @@ fun NoticeBoardScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
         ) {
-            item {
-                FlagshipAppHeader(
-                    campusName = uiState.profile.collegeName,
-                    userName = uiState.profile.name,
-                    onNotifications = onOpenNotifications,
-                    onProfile = onOpenProfile
-                )
-            }
             // Header item: title, search, filters
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
@@ -366,6 +367,7 @@ fun NoticeBoardScreen(
                     )
                 }
             }
+        }
         }
     }
 
