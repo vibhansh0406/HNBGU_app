@@ -254,7 +254,7 @@ class MainActivity : AppCompatActivity() {
         pendingNotificationTarget = handleNotificationIntent(intent)
         setContent {
             NotificationPermissionRequest()
-            val themeMode by userPreferencesRepository.darkModeOverride.collectAsStateWithLifecycle(initialValue = "LIGHT")
+            val themeMode by userPreferencesRepository.darkModeOverride.collectAsStateWithLifecycle(initialValue = "SYSTEM")
             val useDarkTheme = when (themeMode) {
                 "DARK" -> true
                 "LIGHT" -> false
