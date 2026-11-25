@@ -469,25 +469,25 @@ val LightComponentColors = C1ComponentColors(
 )
 
 val DarkComponentColors = C1ComponentColors(
-    cardBackground = Color(0xFF18241E),
-    cardBorder = Color(0xFF33483C),
-    cardHover = Color(0xFF24352C),
-    cardPressed = Color(0xFF33483C),
-    surfaceElevated = Color(0xFF1C2B23),
-    surfaceElevatedBorder = Color(0xFF405849),
-    inputBackground = Color(0xFF18241E),
-    inputBorder = Color(0xFF405849),
-    inputBorderFocused = Color(0xFFA9D6BC),
+    cardBackground = Color(0xFF191D2B),
+    cardBorder = Color(0xFF3C4358),
+    cardHover = Color(0xFF242A3A),
+    cardPressed = Color(0xFF30374B),
+    surfaceElevated = Color(0xFF1E2334),
+    surfaceElevatedBorder = Color(0xFF515A72),
+    inputBackground = Color(0xFF191D2B),
+    inputBorder = Color(0xFF3C4358),
+    inputBorderFocused = Color(0xFFA9B9FF),
     inputBorderError = Color(0xFFFF8A7A),
-    chipBackground = Color(0xFF24352C),
-    chipBackgroundSelected = Color(0xFFA9D6BC),
-    chipBorder = Color(0xFF405849),
-    chipBorderSelected = Color(0xFFA9D6BC),
-    dividerColor = Color(0xFF33483C),
-    skeletonBase = Color(0xFF24352C),
-    skeletonHighlight = Color(0xFF405849),
-    badgeBackground = Color(0xFFA9D6BC),
-    badgeContent = Color(0xFF163D2E)
+    chipBackground = Color(0xFF242A3A),
+    chipBackgroundSelected = Color(0xFFA9B9FF),
+    chipBorder = Color(0xFF515A72),
+    chipBorderSelected = Color(0xFFA9B9FF),
+    dividerColor = Color(0xFF3C4358),
+    skeletonBase = Color(0xFF242A3A),
+    skeletonHighlight = Color(0xFF30374B),
+    badgeBackground = Color(0xFFA9B9FF),
+    badgeContent = Color(0xFF172B70)
 )
 
 // ============================================================================
