@@ -166,6 +166,7 @@ import `in`.campusone.app.ui.screens.admin.AdminNoticesScreen
 import `in`.campusone.app.ui.screens.admin.AdminSubjectsScreen
 import `in`.campusone.app.ui.screens.admin.AdminTimetableScreen
 import `in`.campusone.app.ui.screens.admin.ModeratorManagementScreen
+import `in`.campusone.app.ui.screens.admin.SuperAdminAcademicScreen
 import `in`.campusone.app.ui.screens.admin.SuperAdminAuditScreen
 import `in`.campusone.app.ui.screens.admin.SuperAdminContentScreen
 import `in`.campusone.app.ui.screens.admin.SuperAdminModerationScreen
