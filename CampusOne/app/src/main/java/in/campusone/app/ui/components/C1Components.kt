@@ -86,6 +86,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.geometry.Offset
 import `in`.campusone.app.R
+import `in`.campusone.app.ui.theme.CampusOneBrandGreen
 import `in`.campusone.app.ui.theme.C1Border
 import `in`.campusone.app.ui.theme.C1Elevation
 import `in`.campusone.app.ui.theme.C1Height
@@ -1368,10 +1369,10 @@ fun C1Button(
 ) {
     val colors = when (intent) {
         C1ButtonIntent.PRIMARY -> ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
-            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = C1State.disabledAlpha),
-            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = C1State.disabledAlpha)
+            containerColor = CampusOneBrandGreen,
+            contentColor = Color.White,
+            disabledContainerColor = CampusOneBrandGreen.copy(alpha = C1State.disabledAlpha),
+            disabledContentColor = Color.White.copy(alpha = C1State.disabledAlpha)
         )
         C1ButtonIntent.TONAL -> ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
