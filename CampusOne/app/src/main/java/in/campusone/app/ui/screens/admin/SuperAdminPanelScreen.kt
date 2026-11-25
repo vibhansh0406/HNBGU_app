@@ -70,7 +70,8 @@ enum class SuperAdminSection(val route: String) {
     CONTENT("CONTENT"),
     MODERATION("MODERATION"),
     SETTINGS("SETTINGS"),
-    AUDIT("AUDIT")
+    AUDIT("AUDIT"),
+    ANALYTICS("ANALYTICS")
 }
 
 /**
@@ -383,9 +384,14 @@ private fun adminSections(state: AdminUiState): List<SectionItem> {
             "Append-only record of admin actions",
             Icons.Default.History,
             SuperAdminSection.AUDIT
+        ),
+        SectionItem(
+            "Analytics & reporting",
+            "Usage trends and activity charts",
+            Icons.Default.InsertChart,
+            SuperAdminSection.ANALYTICS
         )
-    )
-}
+    }
 
 @Composable
 private fun StatRow(

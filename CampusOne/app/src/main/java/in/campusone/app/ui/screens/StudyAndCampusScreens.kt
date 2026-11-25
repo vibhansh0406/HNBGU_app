@@ -169,6 +169,7 @@ import `in`.campusone.app.ui.screens.admin.ModeratorManagementScreen
 import `in`.campusone.app.ui.screens.admin.SuperAdminAuditScreen
 import `in`.campusone.app.ui.screens.admin.SuperAdminContentScreen
 import `in`.campusone.app.ui.screens.admin.SuperAdminModerationScreen
+import `in`.campusone.app.ui.screens.admin.SuperAdminAnalyticsScreen
 import `in`.campusone.app.ui.screens.admin.SuperAdminPanelScreen
 import `in`.campusone.app.ui.screens.admin.SuperAdminRolesScreen
 import `in`.campusone.app.ui.screens.admin.SuperAdminSection
@@ -913,6 +914,7 @@ MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
                                 SuperAdminSection.MODERATION -> MoreSubScreen.SUPER_ADMIN_MODERATION
                                 SuperAdminSection.SETTINGS -> MoreSubScreen.SUPER_ADMIN_SETTINGS
                                 SuperAdminSection.AUDIT -> MoreSubScreen.SUPER_ADMIN_AUDIT
+                                SuperAdminSection.ANALYTICS -> MoreSubScreen.SUPER_ADMIN_ANALYTICS
                                 SuperAdminSection.OVERVIEW -> MoreSubScreen.SUPER_ADMIN
                             }
                         }
@@ -933,6 +935,9 @@ MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
                         adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.SUPER_ADMIN }
                     )
                     MoreSubScreen.SUPER_ADMIN_AUDIT -> SuperAdminAuditScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.SUPER_ADMIN }
+                    )
+                    MoreSubScreen.SUPER_ADMIN_ANALYTICS -> SuperAdminAnalyticsScreen(
                         adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.SUPER_ADMIN }
                     )
                     MoreSubScreen.HUB -> Unit
