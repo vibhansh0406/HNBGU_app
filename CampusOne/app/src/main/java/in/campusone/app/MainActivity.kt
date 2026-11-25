@@ -33,7 +33,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Campaign
@@ -48,7 +47,6 @@ import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -73,18 +71,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.scale
@@ -118,8 +110,6 @@ import `in`.campusone.app.ui.screens.OnboardingScreen
 import `in`.campusone.app.ui.screens.TimetableScreen
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Motion
-import `in`.campusone.app.ui.theme.C1Spacing
-import `in`.campusone.app.ui.theme.CampusOneBrandGreen
 import `in`.campusone.app.ui.theme.CampusOneDisplayFamily
 import `in`.campusone.app.ui.theme.CampusOneTheme
 import `in`.campusone.app.ui.viewmodel.CommunityViewModel
@@ -259,22 +249,12 @@ class MainActivity : AppCompatActivity() {
             }
             CampusOneTheme(windowSize = ws) {
                 var showSplash by rememberSaveable { mutableStateOf(true) }
-                var showIntro by rememberSaveable { mutableStateOf(false) }
                 LaunchedEffect(Unit) {
                     delay(1200)
                     showSplash = false
-                    showIntro = true
-                }
-                LaunchedEffect(showIntro) {
-                    if (showIntro) {
-                        delay(3500)
-                        showIntro = false
-                    }
                 }
                 if (showSplash) {
                     SplashScreen()
-                } else if (showIntro) {
-                    SilentIntroScreen(onFinish = { showIntro = false })
                 } else {
                     CampusOneRoot(
                         onGoogleSignIn = onGoogleSignIn,
@@ -727,154 +707,6 @@ fun SignInScreen(onGoogleSignIn: () -> Unit, isSigningIn: Boolean) {
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
-            )
-        }
-    }
-}
-
-@Composable
-fun SilentIntroScreen(onFinish: () -> Unit) {
-    var phase by remember { mutableIntStateOf(0) }
-
-    val revealProgress by animateFloatAsState(
-        targetValue = if (phase >= 1) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = C1Motion.springDampingRatio,
-            stiffness = C1Motion.springStiffness
-        ),
-        label = "introReveal"
-    )
-    val lightSweep by animateFloatAsState(
-        targetValue = if (phase >= 2) 1f else -1f,
-        animationSpec = tween(durationMillis = 700, easing = C1Motion.standardEasing),
-        label = "introLightSweep"
-    )
-    val wordmarkAlpha by animateFloatAsState(
-        targetValue = if (phase >= 3) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = C1Motion.springDampingRatio,
-            stiffness = C1Motion.springSlowStiffness
-        ),
-        label = "introWordmarkAlpha"
-    )
-    val wordmarkScale by animateFloatAsState(
-        targetValue = if (phase >= 3) 1f else 0.92f,
-        animationSpec = spring(
-            dampingRatio = C1Motion.springDampingRatio,
-            stiffness = C1Motion.springSlowStiffness
-        ),
-        label = "introWordmarkScale"
-    )
-    val taglineAlpha by animateFloatAsState(
-        targetValue = if (phase >= 4) 1f else 0f,
-        animationSpec = tween(durationMillis = 700, easing = C1Motion.standardEasing),
-        label = "introTaglineAlpha"
-    )
-    val taglineSlide by animateFloatAsState(
-        targetValue = if (phase >= 4) 0f else 10f,
-        animationSpec = tween(durationMillis = 700, easing = C1Motion.standardEasing),
-        label = "introTaglineSlide"
-    )
-
-    LaunchedEffect(Unit) {
-        phase = 1
-        delay(600)
-        phase = 2
-        delay(600)
-        phase = 3
-        delay(600)
-        phase = 4
-        delay(700)
-        onFinish()
-    }
-
-    val cMark = painterResource(id = R.drawable.ic_campusone_c_mark)
-
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            // C mark glow halo
-            Box(
-                modifier = Modifier
-                    .size(110.dp * (0.4f + revealProgress * 0.6f))
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.12f * revealProgress),
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0f)
-                            ),
-                            center = Offset(0.5f, 0.5f)
-                        )
-                    )
-            )
-
-            // C mark — geometric reveal: scales up from 30% to 100%
-            Box(
-                modifier = Modifier
-                    .size(64.dp * (0.3f + revealProgress * 0.7f))
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(CampusOneBrandGreen),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = cMark,
-                    contentDescription = "CampusOne",
-                    modifier = Modifier.size(40.dp * (0.3f + revealProgress * 0.7f)),
-                    colorFilter = ColorFilter.tint(Color.White.copy(alpha = revealProgress))
-                )
-            }
-
-            // Silent light sweep across the C mark
-            Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0f),
-                                MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0f)
-                            ),
-                            start = Offset(0f, 0.5f),
-                            end = Offset(1f, 0.5f)
-                        )
-                    )
-                    .offset(x = (lightSweep * 300f).dp)
-            )
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = C1Spacing.xxl),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Wordmark: "CampusOne" — fade + scale up
-            Text(
-                text = "CampusOne",
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = wordmarkAlpha),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.graphicsLayer { scaleX = wordmarkScale; scaleY = wordmarkScale }
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Tagline: "Your campus. One place." — fade + slide up
-            Text(
-                text = stringResource(R.string.tagline),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = taglineAlpha),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.offset(y = taglineSlide.dp)
             )
         }
     }
