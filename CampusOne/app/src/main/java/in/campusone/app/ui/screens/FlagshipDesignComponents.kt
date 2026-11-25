@@ -12,13 +12,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Notifications
@@ -103,13 +106,15 @@ fun FlagshipAppHeader(
     userName: String = "",
     onNotifications: () -> Unit = {},
     onProfile: () -> Unit = {},
-    showActions: Boolean = true
+    showActions: Boolean = true,
+    showNotifications: Boolean = true
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 64.dp)
             .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.98f))
-            .padding(horizontal = 16.dp, vertical = 9.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -146,8 +151,10 @@ fun FlagshipAppHeader(
             )
         }
         if (showActions) {
-            IconButton(onClick = onNotifications, modifier = Modifier.size(40.dp)) {
-                Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = MaterialTheme.colorScheme.onSurface)
+            if (showNotifications) {
+                IconButton(onClick = onNotifications, modifier = Modifier.size(40.dp)) {
+                    Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = MaterialTheme.colorScheme.onSurface)
+                }
             }
             IconButton(onClick = onProfile, modifier = Modifier.size(40.dp)) {
                 Surface(shape = CircleShape, color = FlagshipBrand, modifier = Modifier.size(31.dp)) {
@@ -174,16 +181,16 @@ fun FlagshipPageTitle(
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.Top
     ) {
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             if (!eyebrow.isNullOrBlank()) {
                 Text(eyebrow.uppercase(), fontSize = 10.sp, color = FlagshipBrand, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             }
-            Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = FlagshipInk)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = FlagshipMuted)
+            Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = FlagshipInk, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = FlagshipMuted, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
-        trailing?.invoke()
+        trailing?.let { Box(modifier = Modifier.padding(start = 8.dp), contentAlignment = Alignment.TopEnd) { it() } }
     }
 }
 
@@ -225,14 +232,16 @@ fun FlagshipSectionTitle(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.titleMedium, color = FlagshipInk, fontWeight = FontWeight.Bold)
-            if (!subtitle.isNullOrBlank()) Text(subtitle, style = MaterialTheme.typography.bodySmall, color = FlagshipMuted)
+            Text(title, style = MaterialTheme.typography.titleMedium, color = FlagshipInk, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            if (!subtitle.isNullOrBlank()) Text(subtitle, style = MaterialTheme.typography.bodySmall, color = FlagshipMuted, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
-        if (action != null && onAction != null) TextButton(onClick = onAction) { Text(action, color = FlagshipBrand, fontWeight = FontWeight.SemiBold) }
+        if (action != null && onAction != null) TextButton(onClick = onAction, modifier = Modifier.heightIn(min = 40.dp)) {
+            Text(action, color = FlagshipBrand, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
+        }
     }
 }
 
@@ -246,11 +255,11 @@ fun FlagshipPrimaryButton(
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.height(46.dp),
+        modifier = modifier.heightIn(min = 48.dp).widthIn(min = 96.dp),
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(containerColor = FlagshipBrand, contentColor = MaterialTheme.colorScheme.onPrimary)
     ) {
-        Text(text, fontWeight = FontWeight.SemiBold)
+        Text(text, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
     }
 }
 
@@ -566,17 +575,25 @@ fun FlagshipNotificationsScreen(
     val order = listOf("Today", "Yesterday", "Earlier this week", "Earlier")
 
     Column(modifier = Modifier.fillMaxSize().background(FlagshipCanvas)) {
-        FlagshipAppHeader(uiState.profile.collegeName, uiState.profile.name, onNotifications = onOpenNotifications, onProfile = onOpenProfile)
-        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            FlagshipPageTitle(
-                "Activity Feed",
-                unread.toString() + " unread · " + uiState.notifications.size + " total",
-                trailing = {
-                    if (unread > 0) TextButton(onClick = viewModel::markAllNotificationsRead) {
-                        Text("Mark all read", color = FlagshipGreen, fontWeight = FontWeight.SemiBold)
-                    }
+        FlagshipAppHeader(
+            uiState.profile.collegeName,
+            uiState.profile.name,
+            onProfile = onOpenProfile,
+            showNotifications = false
+        )
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back to More")
                 }
-            )
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text("Notifications", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = FlagshipInk)
+                    Text(unread.toString() + " unread · " + uiState.notifications.size + " total", style = MaterialTheme.typography.bodySmall, color = FlagshipMuted)
+                }
+                if (unread > 0) TextButton(onClick = viewModel::markAllNotificationsRead, modifier = Modifier.heightIn(min = 40.dp)) {
+                    Text("Mark all read", color = FlagshipBrand, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+                }
+            }
             androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                 items(listOf("ALL", "ACADEMIC", "NOTICES", "DEADLINES").size) { idx ->
                     val key = listOf("ALL", "ACADEMIC", "NOTICES", "DEADLINES")[idx]

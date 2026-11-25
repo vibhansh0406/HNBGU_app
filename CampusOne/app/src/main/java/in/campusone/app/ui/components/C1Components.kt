@@ -25,10 +25,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.only
@@ -1364,7 +1366,6 @@ fun C1Button(
     iconPosition: C1IconPosition = C1IconPosition.START,
     fullWidth: Boolean = false
 ) {
-    val ws = windowSize
     val colors = when (intent) {
         C1ButtonIntent.PRIMARY -> ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
@@ -1406,9 +1407,10 @@ fun C1Button(
     val padding = C1ButtonPadding(size)
 
     val m = modifier
-        .height(height)
+        .heightIn(min = height)
+        .widthIn(min = 88.dp)
         .graphicsLayer { scaleX = scale; scaleY = scale }
-    // Preserve natural wrap-content sizing unless a caller explicitly requests full width.
+    // Use one-line labels and a consistent touch target even in compact button groups.
     val buttonModifier = if (fullWidth) m.fillMaxWidth() else m
 
     val buttonContent = @Composable {
@@ -1434,6 +1436,10 @@ fun C1Button(
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelLarge,
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
                 modifier = Modifier.graphicsLayer { alpha = if (loading) 0f else 1f }
             )
             if (icon != null && iconPosition == C1IconPosition.END) {
