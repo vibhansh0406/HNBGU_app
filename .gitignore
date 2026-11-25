@@ -5,4 +5,3 @@ local.properties
 .gradle/
 build/
 build-output/
-CampusOne/gradle/wrapper/gradle-wrapper.jar
