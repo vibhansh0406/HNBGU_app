@@ -21,7 +21,7 @@ class CampusOneDatabaseMigrationTest {
 
     @After
     fun cleanUp() {
-        databaseNames.forEach(context::deleteDatabase)
+        databaseNames.forEach { name -> context.deleteDatabase(name) }
     }
 
     @Test

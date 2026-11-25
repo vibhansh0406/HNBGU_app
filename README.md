@@ -73,6 +73,12 @@ Feature availability depends on backend configuration, permissions, and the user
 ./gradlew testDebugUnitTest
 ```
 
+Run the Android database migration tests on an emulator with:
+
+\`\`\`bash
+./gradlew connectedDebugAndroidTest
+\`\`\`
+
 Build a release APK with:
 
 ```bash
