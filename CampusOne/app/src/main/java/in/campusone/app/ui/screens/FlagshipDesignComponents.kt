@@ -548,7 +548,6 @@ fun FlagshipNotificationsScreen(
     viewModel: CommunityViewModel,
     onBack: () -> Unit,
     onNavigate: (targetType: String, targetId: String) -> Unit,
-    onOpenNotifications: () -> Unit = {},
     onOpenProfile: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -603,7 +602,7 @@ fun FlagshipNotificationsScreen(
             }
         }
         androidx.compose.foundation.lazy.LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(horizontal = 15.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(9.dp)
         ) {
