@@ -15,6 +15,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import `in`.campusone.app.R
 
+/** Fixed CampusOne identity green used behind the white C mark in every theme. */
+val CampusOneBrandGreen = Color(0xFF1E634B)
+
 /**
  * CampusOne Design System — "Evergreen Studio"
  *
