@@ -1,40 +1,40 @@
 ---
 name: CampusOne
-description: A student-first campus super-app with the Campus Spectrum design system
+description: A student-first campus super-app using the Evergreen Studio design system
 colors:
-  brand-blue: "#3156D9"
-  on-brand-blue: "#FFFFFF"
-  brand-blue-container: "#E5EAFE"
-  on-brand-blue-container: "#172B70"
-  brand-violet: "#6849C8"
-  on-brand-violet: "#FFFFFF"
-  brand-violet-container: "#EEE9FF"
-  on-brand-violet-container: "#2D1B63"
-  brand-coral: "#D65F4B"
-  on-brand-coral: "#32100B"
-  brand-coral-container: "#FFE7E1"
-  on-brand-coral-container: "#5A2118"
-  background: "#F6F7FB"
-  on-background: "#1B2030"
+  brand-evergreen: "#1E634B"
+  on-brand-evergreen: "#FFFFFF"
+  brand-evergreen-container: "#E4F0E7"
+  on-brand-evergreen-container: "#163D2E"
+  secondary-teal: "#476C78"
+  on-secondary-teal: "#FFFFFF"
+  secondary-container: "#E3EEF0"
+  tertiary-amber: "#B97937"
+  on-tertiary-amber: "#3B2615"
+  tertiary-container: "#F5E8D4"
+  background: "#F6F7F2"
+  on-background: "#17231F"
   surface: "#FFFFFF"
-  surface-variant: "#ECEEF5"
-  on-surface-variant: "#596176"
-  outline: "#C8CDDA"
-  outline-variant: "#E3E6EF"
-  info: "#087EAC"
-  info-container: "#D8F1FA"
-  success: "#2E7D5B"
-  success-container: "#DDEBE2"
-  warning: "#B45309"
-  warning-container: "#F7ECD9"
+  on-surface: "#17231F"
+  surface-variant: "#EAF0E9"
+  on-surface-variant: "#53665A"
+  outline: "#CED7CE"
+  outline-variant: "#E2E8E1"
+  info: "#367F8D"
+  info-container: "#DDEEF0"
+  success: "#286B4E"
+  success-container: "#DCECE1"
+  warning: "#9C641F"
+  warning-container: "#F5EAD5"
   danger: "#B42318"
   danger-container: "#FBE5E2"
-  dark-background: "#11131D"
-  dark-surface: "#191D2B"
-  dark-surface-variant: "#242A3A"
-  dark-primary: "#A9B9FF"
-  dark-secondary: "#C9B8FF"
-  dark-tertiary: "#FFB5A5"
+  dark-background: "#101B16"
+  dark-surface: "#18241E"
+  dark-surface-elevated: "#1C2B23"
+  dark-surface-variant: "#24352C"
+  dark-primary: "#A9D6BC"
+  dark-secondary: "#B4D3D9"
+  dark-tertiary: "#E7BD8A"
 typography:
   families:
     display: "Manrope variable (bundled, OFL)"
@@ -49,35 +49,46 @@ typography:
   body-large: { fontFamily: "Inter", fontSize: "16sp", fontWeight: 400, lineHeight: "24sp" }
   body-medium: { fontFamily: "Inter", fontSize: "14sp", fontWeight: 400, lineHeight: "21sp" }
   body-small: { fontFamily: "Inter", fontSize: "13sp", fontWeight: 400, lineHeight: "19sp" }
-rounded: { xs: "10dp", sm: "14dp", md: "18dp", lg: "24dp", xl: "30dp", pill: "50%" }
+rounded: { xs: "8dp", sm: "12dp", md: "16dp", lg: "20dp", xl: "24dp", pill: "50%" }
 spacing: { xs: "4dp", sm: "8dp", md: "12dp", lg: "16dp", xl: "20dp", xxl: "24dp", xxxl: "32dp" }
 ---
 
-# CampusOne — Campus Spectrum
+# CampusOne — Evergreen Studio
 
 ## Product character
-CampusOne is a practical student super-app: quick to scan between classes, reliable on mid-range Android devices, and useful even when connectivity is poor. **Campus Spectrum** brings a confident royal-blue identity, a violet secondary voice, coral emphasis, cyan information cues and warm-neutral surfaces. The palette is energetic without turning every tile into a different colour.
+CampusOne is a practical student super-app: quick to scan between classes, reliable on mid-range Android devices, and useful even when connectivity is poor. **Evergreen Studio** uses deep evergreen as the primary identity, sage as its dark-theme highlight, muted teal for supporting information, and warm amber for tertiary emphasis. The interface should feel calm, clear and dependable—not like a generic blue dashboard.
 
 ## Colour system
 | Role | Light | Dark | Intended use |
 |---|---|---|---|
-| Primary / royal blue | `#3156D9` | `#A9B9FF` | Main actions, selected navigation, key progress |
-| Secondary / violet | `#6849C8` | `#C9B8FF` | Supporting actions, resource and community accents |
-| Tertiary / coral | `#D65F4B` | `#FFB5A5` | Important emphasis, deadlines, featured moments |
-| Info / cyan | `#087EAC` | `#8DDCF1` | Informational status and neutral updates |
-| Success | `#2E7D5B` | `#8CC7A6` | Attendance health and completed actions |
-| Warning | `#B45309` | `#E5B36B` | Pending or attention-needed states |
+| Primary / evergreen | `#1E634B` | `#A9D6BC` | Main actions, selected navigation, key progress and brand emphasis |
+| Primary container | `#E4F0E7` | `#284F3C` | Selected surfaces, chips and low-emphasis brand fills |
+| Secondary / muted teal | `#476C78` | `#B4D3D9` | Supporting actions and secondary emphasis |
+| Tertiary / warm amber | `#B97937` | `#E7BD8A` | Important emphasis, deadlines and featured moments |
+| Info | `#367F8D` | `#A8D6DC` | Informational status and neutral updates |
+| Success | `#286B4E` | `#A4D7B8` | Attendance health and completed actions |
+| Warning | `#9C641F` | `#E7BD8A` | Pending or attention-needed states |
 | Danger | `#B42318` | `#FF8A7A` | Errors and destructive actions |
-| Background | `#F6F7FB` | `#11131D` | App canvas |
-| Surface | `#FFFFFF` | `#191D2B` | Cards, sheets and forms |
-| Surface variant | `#ECEEF5` | `#242A3A` | Grouped content and low-emphasis controls |
+| Background | `#F6F7F2` | `#101B16` | App canvas |
+| Surface | `#FFFFFF` | `#18241E` | Cards, sheets and forms |
+| Elevated surface | `#FFFFFF` | `#1C2B23` | Menus, raised cards and floating content |
+| Surface variant | `#EAF0E9` | `#24352C` | Grouped content and low-emphasis controls |
+| Text / on-surface | `#17231F` | `#EEF4EE` | Primary reading content |
 
-Do not use brand accents as arbitrary decoration. A screen may use blue as its anchor, violet for a related feature, coral for a single callout and cyan for informational status. Most surfaces remain neutral. Gradients are reserved for a small number of high-value brand moments such as a welcome banner or sign-in hero; never apply a gradient to every card.
+The dark theme must remain evergreen-tinted: use green-black backgrounds and green-charcoal surfaces, not navy. Primary actions and selected states must remain recognisably evergreen. The sage primary in dark mode is a contrast-adjusted expression of the same brand, not a second brand colour.
 
-All screen code consumes `MaterialTheme.colorScheme` and `extendedColors`; do not introduce screen-local hex values for theme roles. The semantic green remains available for success, but green is no longer the brand colour.
+Do not use brand accents as arbitrary decoration. Keep most surfaces neutral or green-charcoal. Muted teal and amber are semantic/supporting tones, not competing brand identities. Use `MaterialTheme.colorScheme` and `extendedColors`; do not introduce screen-local hex values for theme roles.
+
+## Logo and brand lockup
+- The official app mark is the supplied traced C shape; preserve its geometry and proportions.
+- The launcher icon uses a solid Evergreen background (`#1E634B`) with the original C mark in white (`#FFFFFF`).
+- Use the same white-on-Evergreen tile for the splash, onboarding brand row and in-app header.
+- In-app logo tiles remain fixed to the core brand colours in both themes; surrounding surfaces and text adapt to light/dark mode.
+- Do not recolour the launcher mark blue, place it on a white tile, stretch it, add gradients or apply shadows.
+- Android adaptive icons must keep the C mark as a safe-zone foreground and the Evergreen field as a separate background resource. The monochrome layer must preserve the same C silhouette.
 
 ## Contrast
-The palette is designed for WCAG AA text contrast. White text on primary blue is approximately 6.06:1; white on violet is approximately 6.22:1. Coral uses a dark foreground (approximately 4.61:1 with the specified deep coral foreground). The default body text and neutral backgrounds exceed 12:1. Always verify actual foreground/background pairs when adding a new component. Do not place white small text directly on the coral brand tone.
+Use each semantic foreground/background pair from the theme rather than choosing text colours by eye. Keep primary button text white on Evergreen in light mode and use the specified dark on-primary foreground with the sage primary in dark mode. Do not place small white text on the amber tertiary tone. Verify actual text and icon contrast whenever a new surface or badge is introduced.
 
 ## Typography
 - **Manrope** is the display voice for screen titles, section headings and prominent metrics.
@@ -88,7 +99,7 @@ The palette is designed for WCAG AA text contrast. White text on primary blue is
 ## Shape, spacing and depth
 - Use the 4dp spacing rhythm: 4 / 8 / 12 / 16 / 20 / 24 / 32dp.
 - Page margins are 16dp on compact phones and scale with the existing window-size classes.
-- Inputs and compact chips use 10–14dp radii; cards use 18–24dp; sheets use 24–30dp.
+- Use the existing C1 radii: 8dp / 12dp / 16dp / 20dp / 24dp; pills remain fully rounded.
 - Prefer tonal surface steps and 1dp borders over shadows. Elevation belongs to floating controls, menus and dialogs only.
 - Interactive targets should be at least 48dp high and have clear spacing.
 
