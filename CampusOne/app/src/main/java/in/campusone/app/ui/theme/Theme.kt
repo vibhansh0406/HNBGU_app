@@ -1,5 +1,9 @@
 package `in`.campusone.app.ui.theme
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
@@ -7,9 +11,14 @@ import androidx.compose.material3.Typography
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
+import androidx.core.view.WindowCompat
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -18,86 +27,115 @@ import androidx.compose.ui.unit.sp
 import `in`.campusone.app.R
 
 // ============================================================================
-// MATERIAL3 COLOR SCHEME — Evergreen Studio
+// MATERIAL3 COLOR SCHEME — Campus Spectrum
 // ============================================================================
 
 private val LightColorScheme = ColorScheme(
-    primary = Color(0xFF1E634B),
+    primary = Color(0xFF3156D9),
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFE4F0E7),
-    onPrimaryContainer = Color(0xFF163D2E),
-    secondary = Color(0xFF476C78),
+    primaryContainer = Color(0xFFE5EAFE),
+    onPrimaryContainer = Color(0xFF172B70),
+    secondary = Color(0xFF6849C8),
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFE3EEF0),
-    onSecondaryContainer = Color(0xFF163D2E),
-    tertiary = Color(0xFFB97937),
-    onTertiary = Color(0xFF3B2615),
-    tertiaryContainer = Color(0xFFF5E8D4),
-    onTertiaryContainer = Color(0xFF4E341B),
+    secondaryContainer = Color(0xFFEEE9FF),
+    onSecondaryContainer = Color(0xFF2D1B63),
+    tertiary = Color(0xFFD65F4B),
+    onTertiary = Color(0xFF32100B),
+    tertiaryContainer = Color(0xFFFFE7E1),
+    onTertiaryContainer = Color(0xFF5A2118),
     error = Color(0xFFB42318),
     onError = Color.White,
     errorContainer = Color(0xFFFBE5E2),
     onErrorContainer = Color(0xFF4A0E08),
-    background = Color(0xFFF9FAF5),
-    onBackground = Color(0xFF17231F),
+    background = Color(0xFFF6F7FB),
+    onBackground = Color(0xFF1B2030),
     surface = Color.White,
-    onSurface = Color(0xFF17231F),
-    surfaceVariant = Color(0xFFEAF0E9),
-    onSurfaceVariant = Color(0xFF53665A),
-    inverseSurface = Color(0xFF17231F),
-    inverseOnSurface = Color(0xFFF9FAF5),
-    inversePrimary = Color(0xFFA9D6BC),
-    surfaceTint = Color(0xFF1E634B),
-    outline = Color(0xFFCED7CE),
-    outlineVariant = Color(0xFFE2E8E1),
+    onSurface = Color(0xFF1B2030),
+    surfaceVariant = Color(0xFFECEEF5),
+    onSurfaceVariant = Color(0xFF596176),
+    inverseSurface = Color(0xFF1B2030),
+    inverseOnSurface = Color(0xFFF6F7FB),
+    inversePrimary = Color(0xFFA9B9FF),
+    surfaceTint = Color(0xFF3156D9),
+    outline = Color(0xFFC8CDDA),
+    outlineVariant = Color(0xFFE3E6EF),
     scrim = Color(0x99000000),
     surfaceBright = Color.White,
-    surfaceDim = Color(0xFFD9E2D8),
-    surfaceContainer = Color(0xFFEDF0EA),
-    surfaceContainerHigh = Color(0xFFE7E9E4),
-    surfaceContainerHighest = Color(0xFFE2E3DE),
-    surfaceContainerLow = Color(0xFFF3F4EF),
+    surfaceDim = Color(0xFFD7DAE5),
+    surfaceContainer = Color(0xFFEFF0F6),
+    surfaceContainerHigh = Color(0xFFE8EAF2),
+    surfaceContainerHighest = Color(0xFFE2E5EF),
+    surfaceContainerLow = Color(0xFFF4F5FA),
     surfaceContainerLowest = Color.White
 )
 
 private val DarkColorScheme = ColorScheme(
-    primary = Color(0xFFA9D6BC),
-    onPrimary = Color(0xFF163D2E),
-    primaryContainer = Color(0xFF284F3C),
-    onPrimaryContainer = Color(0xFFE4F0E7),
-    secondary = Color(0xFFB4D3D9),
-    onSecondary = Color(0xFF163D2E),
-    secondaryContainer = Color(0xFF294A51),
-    onSecondaryContainer = Color(0xFFE3EEF0),
-    tertiary = Color(0xFFE7BD8A),
-    onTertiary = Color(0xFF402A17),
-    tertiaryContainer = Color(0xFF5B432D),
-    onTertiaryContainer = Color(0xFFF5E8D4),
+    primary = Color(0xFFA9B9FF),
+    onPrimary = Color(0xFF172B70),
+    primaryContainer = Color(0xFF304078),
+    onPrimaryContainer = Color(0xFFE5EAFE),
+    secondary = Color(0xFFC9B8FF),
+    onSecondary = Color(0xFF2D1B63),
+    secondaryContainer = Color(0xFF40345F),
+    onSecondaryContainer = Color(0xFFEEE9FF),
+    tertiary = Color(0xFFFFB5A5),
+    onTertiary = Color(0xFF5A2118),
+    tertiaryContainer = Color(0xFF6C332A),
+    onTertiaryContainer = Color(0xFFFFE7E1),
     error = Color(0xFFFF8A7A),
     onError = Color(0xFF4A0E08),
-    errorContainer = Color(0xFF4A1510),
+    errorContainer = Color(0xFF5F211A),
     onErrorContainer = Color(0xFFFBE5E2),
-    background = Color(0xFF101B16),
-    onBackground = Color(0xFFEEF4EE),
-    surface = Color(0xFF18241E),
-    onSurface = Color(0xFFEEF4EE),
-    surfaceVariant = Color(0xFF24352C),
-    onSurfaceVariant = Color(0xFFBACABE),
-    inverseSurface = Color(0xFFEEF4EE),
-    inverseOnSurface = Color(0xFF18241E),
-    inversePrimary = Color(0xFF1E634B),
-    surfaceTint = Color(0xFFA9D6BC),
-    outline = Color(0xFF64796B),
-    outlineVariant = Color(0xFF33483C),
+    background = Color(0xFF11131D),
+    onBackground = Color(0xFFF3F4FA),
+    surface = Color(0xFF191D2B),
+    onSurface = Color(0xFFF3F4FA),
+    surfaceVariant = Color(0xFF242A3A),
+    onSurfaceVariant = Color(0xFFB7BDCD),
+    inverseSurface = Color(0xFFE3E6EF),
+    inverseOnSurface = Color(0xFF1B2030),
+    inversePrimary = Color(0xFF3156D9),
+    surfaceTint = Color(0xFFA9B9FF),
+    outline = Color(0xFF687087),
+    outlineVariant = Color(0xFF3C4358),
     scrim = Color(0xCC000000),
-    surfaceBright = Color(0xFF24352C),
-    surfaceDim = Color(0xFF101B16),
-    surfaceContainer = Color(0xFF1C2B23),
-    surfaceContainerHigh = Color(0xFF24352C),
-    surfaceContainerHighest = Color(0xFF33483C),
-    surfaceContainerLow = Color(0xFF18241E),
-    surfaceContainerLowest = Color(0xFF101B16)
+    surfaceBright = Color(0xFF343B50),
+    surfaceDim = Color(0xFF11131D),
+    surfaceContainer = Color(0xFF1E2334),
+    surfaceContainerHigh = Color(0xFF262C3F),
+    surfaceContainerHighest = Color(0xFF30374B),
+    surfaceContainerLow = Color(0xFF191D2B),
+    surfaceContainerLowest = Color(0xFF151925)
 )
+
+private fun Context.findActivity(): Activity? {
+    var current: Context = this
+    while (current is ContextWrapper) {
+        if (current is Activity) return current
+        current = current.baseContext
+    }
+    return current as? Activity
+}
+
+@Composable
+private fun CampusOneSystemBars(darkTheme: Boolean) {
+    val view = LocalView.current
+    val window = LocalContext.current.findActivity()?.window
+    val barColor = MaterialTheme.colorScheme.background
+    if (window != null && !view.isInEditMode) {
+        SideEffect {
+            window.statusBarColor = barColor.toArgb()
+            window.navigationBarColor = barColor.toArgb()
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = !darkTheme
+                isAppearanceLightNavigationBars = !darkTheme
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                window.isNavigationBarContrastEnforced = false
+            }
+        }
+    }
+}
 
 // ============================================================================
 // SHAPES
@@ -160,9 +198,11 @@ fun CampusOneTheme(
         MaterialTheme(
             colorScheme = colorScheme,
             typography = campusTypography(windowSize),
-            shapes = CampusOneShapes,
-            content = content
-        )
+            shapes = CampusOneShapes
+        ) {
+            CampusOneSystemBars(darkTheme = darkTheme)
+            content()
+        }
     }
 }
 
