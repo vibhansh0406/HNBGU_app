@@ -424,7 +424,7 @@ private fun NoticeListCard(notice: NoticeItem, onClick: () -> Unit) {
                         Icon(
                             imageVector = Icons.Default.PushPin,
                             contentDescription = stringResource(R.string.home_pinned),
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(C1Spacing.xs))
@@ -432,7 +432,7 @@ private fun NoticeListCard(notice: NoticeItem, onClick: () -> Unit) {
                     Text(
                         text = "${notice.authorName} · ${notice.authorRole.name}",
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -495,7 +495,7 @@ private fun NoticeListCard(notice: NoticeItem, onClick: () -> Unit) {
                     Icon(
                         imageVector = Icons.Default.Attachment,
                         contentDescription = stringResource(R.string.notice_attachment),
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -628,7 +628,7 @@ private fun NoticeDetail(
                             Icon(
                                 imageVector = Icons.Default.Attachment,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = MaterialTheme.colorScheme.secondary
                             )
                             Spacer(modifier = Modifier.width(C1Spacing.sm))
                             Column(modifier = Modifier.weight(1f)) {
@@ -646,7 +646,7 @@ private fun NoticeDetail(
                             Text(
                                 text = stringResource(R.string.open_attachment),
                                 style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.secondary
                             )
                         }
                     }
@@ -786,7 +786,7 @@ private fun PostNoticeDialog(
                     Text(
                         text = "Attachment uploaded (${uploadedAttachmentType})",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.secondary
                     )
                 }
                 if (!attachmentUploadError.isNullOrBlank()) {

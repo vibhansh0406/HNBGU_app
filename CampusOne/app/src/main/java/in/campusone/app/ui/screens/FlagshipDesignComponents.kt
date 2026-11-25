@@ -843,11 +843,11 @@ private fun FlagshipNotificationCard(notification: AppNotification, onClick: () 
     ) {
         Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
             Box(Modifier.size(C1Height.touch).clip(C1Radius.tile).background(iconBg), contentAlignment = Alignment.Center) {
-                Icon(Icons.Default.Notifications, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.Notifications, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(20.dp))
             }
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(notification.type.replace('_', ' ').ifBlank { "Campus update" }, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                    Text(notification.type.replace('_', ' ').ifBlank { "Campus update" }, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                     Text(
                         Instant.ofEpochMilli(notification.createdAtMillis).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())),
                         style = MaterialTheme.typography.labelSmall, color = FlagshipMuted
@@ -856,9 +856,9 @@ private fun FlagshipNotificationCard(notification: AppNotification, onClick: () 
                 Text(notification.title, style = MaterialTheme.typography.titleSmall, color = FlagshipInk, fontWeight = FontWeight.SemiBold)
                 if (notification.body.isNotBlank()) Text(notification.body, style = MaterialTheme.typography.bodySmall, color = FlagshipMuted, lineHeight = 18.sp)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(if (notification.isRead) "Read" else "New · Tap to open", style = MaterialTheme.typography.labelSmall, color = if (notification.isRead) FlagshipMuted else MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                    Text(if (notification.isRead) "Read" else "New · Tap to open", style = MaterialTheme.typography.labelSmall, color = if (notification.isRead) FlagshipMuted else MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.weight(1f))
-                    Icon(Icons.Default.ArrowForward, contentDescription = "Open notification", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.ArrowForward, contentDescription = "Open notification", tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(20.dp))
                 }
             }
         }

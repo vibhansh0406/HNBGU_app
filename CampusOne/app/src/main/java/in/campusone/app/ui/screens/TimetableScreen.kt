@@ -162,7 +162,7 @@ fun TimetableScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                                Text("TODAY AT A GLANCE", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
+                                Text("TODAY AT A GLANCE", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
                                 Text(
                                     if (uiState.todaySchedule.isEmpty()) "No classes scheduled today" else "${uiState.todaySchedule.size} classes on your plan",
                                     style = MaterialTheme.typography.titleMedium,
@@ -175,7 +175,7 @@ fun TimetableScreen(
                                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f)
                                 )
                             }
-                            Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(30.dp))
+                            Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(30.dp))
                         }
                     }
                 }
@@ -199,7 +199,7 @@ fun TimetableScreen(
                                     text = todayLabel,
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.weight(1f)
                                 )
                                 if (uiState.todaySchedule.isNotEmpty()) {
@@ -291,7 +291,7 @@ private fun ReminderLeadTimeCard(
                 Icon(
                     imageVector = Icons.Default.NotificationsActive,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(C1Spacing.sm))
@@ -346,14 +346,14 @@ private fun TimetableSlotCard(slot: TimetableSlot, evaluated: EvaluatedSlot?) {
         } else {
             MaterialTheme.colorScheme.surface
         },
-        borderColor = if (highlighted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+        borderColor = if (highlighted) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outlineVariant
     ) {
         Column(modifier = Modifier.padding(C1Spacing.lg)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.Schedule,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(C1Spacing.xs))
@@ -361,7 +361,7 @@ private fun TimetableSlotCard(slot: TimetableSlot, evaluated: EvaluatedSlot?) {
                     text = "${slot.startTime} – ${slot.endTime}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Text(

@@ -452,10 +452,10 @@ private fun TodaySchedulePreview(
                             horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
                         ) {
                             Column(modifier = Modifier.width(76.dp)) {
-                                Text(slot.startTime, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                Text(slot.startTime, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                                 Text(slot.endTime, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
-                            Box(Modifier.width(3.dp).height(42.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.32f)))
+                            Box(Modifier.width(3.dp).height(42.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)))
                             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(slot.subjectName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text("${slot.subjectCode} · ${slot.roomNumber}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -607,7 +607,7 @@ private fun QuickActionTile(
     modifier: Modifier = Modifier,
     onOpenMore: (MoreSubScreen) -> Unit
 ) {
-    val iconColor = MaterialTheme.colorScheme.primary
+    val iconColor = MaterialTheme.colorScheme.secondary
     var entered by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { entered = true }
 
@@ -783,14 +783,14 @@ private fun NoticePreview(
                     Icon(
                         imageVector = Icons.Default.PushPin,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(14.dp)
                     )
                     Text(
                         text = stringResource(R.string.home_pinned),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -860,7 +860,7 @@ private fun AtAGlanceSection(
                         Icon(
                             imageVector = Icons.Default.Assignment,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier.size(18.dp)
                         )
                         Text(
@@ -930,7 +930,7 @@ private fun AtAGlanceSection(
                             Icon(
                                 imageVector = Icons.Default.CalendarMonth,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = MaterialTheme.colorScheme.secondary,
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(

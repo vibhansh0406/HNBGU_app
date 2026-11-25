@@ -269,12 +269,22 @@ class MainActivity : AppCompatActivity() {
             }
             CampusOneTheme(darkTheme = useDarkTheme, windowSize = ws) {
                 var showSplash by rememberSaveable { mutableStateOf(true) }
+                var showIntro by rememberSaveable { mutableStateOf(false) }
                 LaunchedEffect(Unit) {
-                    delay(1500)
+                    delay(1200)
                     showSplash = false
+                    showIntro = true
+                }
+                LaunchedEffect(showIntro) {
+                    if (showIntro) {
+                        delay(3500)
+                        showIntro = false
+                    }
                 }
                 if (showSplash) {
                     SplashScreen()
+                } else if (showIntro) {
+                    SilentIntroScreen(onFinish = { showIntro = false })
                 } else {
                     CampusOneRoot(
                         onGoogleSignIn = onGoogleSignIn,
@@ -705,7 +715,14 @@ fun SignInScreen(onGoogleSignIn: () -> Unit, isSigningIn: Boolean) {
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(40.dp))
+            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = stringResource(`in`.campusone.app.R.string.welcome_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(32.dp))
             C1Button(
                 text = if (isSigningIn) "Signing in..." else stringResource(`in`.campusone.app.R.string.sign_in_google),
                 onClick = onGoogleSignIn,
@@ -713,6 +730,13 @@ fun SignInScreen(onGoogleSignIn: () -> Unit, isSigningIn: Boolean) {
                     .fillMaxWidth()
                     .height(54.dp),
                 enabled = !isSigningIn
+            )
+            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                text = stringResource(`in`.campusone.app.R.string.sign_in_subtitle),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
             )
         }
     }

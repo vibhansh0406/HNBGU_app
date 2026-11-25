@@ -262,7 +262,7 @@ private fun CommunityFeed(
                         text = stringResource(R.string.community_title),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.semantics { heading() }
                     )
                     Text(
@@ -548,7 +548,7 @@ private fun CommunityPostDetail(
                         text = stringResource(R.string.community_tab_discussions),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
         }
         LazyColumn(
@@ -731,7 +731,7 @@ private fun AuthorRow(name: String, role: UserRole, createdAt: Long, isOwn: Bool
                     Text(
                         text = role.name.lowercase().replaceFirstChar { it.uppercase() },
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.secondary
                     )
                     Text("•", style = MaterialTheme.typography.labelSmall)
                 }
@@ -922,7 +922,7 @@ fun NotificationsScreen(
                         text = stringResource(R.string.notifications_title),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                         Text(
                             text = stringResource(R.string.notifications_subtitle),

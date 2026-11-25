@@ -190,7 +190,7 @@ fun OnboardingScreen(
                     Text(
                         text = if (step == 0) "INSTITUTIONAL IDENTITY" else "ACADEMIC PREFERENCES",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.2.sp
                     )
@@ -267,7 +267,7 @@ fun OnboardingScreen(
                                     shape = C1Radius.md,
                                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                                 ) {
-                                    Icon(Icons.Default.School, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                    Icon(Icons.Default.School, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
                                     Spacer(Modifier.width(C1Spacing.sm))
                                     Text(
                                         text = courses.getOrNull(selectedCourseIndex)?.second ?: "Choose your programme",
@@ -291,7 +291,7 @@ fun OnboardingScreen(
                                                 showCourseMenu = false
                                             },
                                             leadingIcon = if (selectedCourseIndex == index) {
-                                                { Icon(Icons.Default.Check, contentDescription = "Selected", tint = MaterialTheme.colorScheme.primary) }
+                                                { Icon(Icons.Default.Check, contentDescription = "Selected", tint = MaterialTheme.colorScheme.secondary) }
                                             } else null
                                         )
                                     }

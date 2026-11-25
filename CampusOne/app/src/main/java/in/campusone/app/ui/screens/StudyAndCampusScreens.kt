@@ -496,7 +496,7 @@ fun MoreHubScreen(
                         title = stringResource(R.string.assignments_title),
                         subtitle = stringResource(R.string.hub_assignments_sub, uiState.assignments.count { !it.isCompleted && it.isAddedToPersonalList }),
                         icon = Icons.Default.Assignment,
-                        iconColor = MaterialTheme.colorScheme.primary,
+                        iconColor = MaterialTheme.colorScheme.tertiary,
                         onClick = { activeScreen = MoreSubScreen.ASSIGNMENTS }
                     )
                     HubActionCard(
@@ -553,7 +553,7 @@ fun MoreHubScreen(
                     title = "Campus & Community",
                     subtitle = "Events, societies, Lost & Found and campus contacts",
                     icon = Icons.Default.Event,
-                    iconColor = MaterialTheme.colorScheme.primary,
+                    iconColor = MaterialTheme.colorScheme.secondary,
                     onClick = { activeScreen = MoreSubScreen.CAMPUS_COMMUNITY }
                 )
             }
@@ -655,7 +655,7 @@ fun MoreHubScreen(
                                 title = stringResource(R.string.admin_panel),
                                 subtitle = stringResource(R.string.hub_admin_sub),
                                 icon = Icons.Default.School,
-                                iconColor = MaterialTheme.colorScheme.primary,
+                                iconColor = MaterialTheme.colorScheme.secondary,
                                 onClick = {
                                     adminViewModel.init(uiState.profile)
                                     activeScreen = MoreSubScreen.ADMIN_PANEL
@@ -947,7 +947,7 @@ private fun FeatureHubCard(
     title: String,
     subtitle: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    iconColor: Color = MaterialTheme.colorScheme.primary,
+    iconColor: Color = MaterialTheme.colorScheme.secondary,
     onClick: () -> Unit
 ) {
     C1FeatureCard(
@@ -1094,7 +1094,7 @@ fun NotesAndPyqScreen(
                                         FlagshipPill(resource.category)
                                         Text(resource.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
                                         Text("${resource.subjectId} · ${resource.subjectName}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                        Text("Saved on this device", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                                        Text("Saved on this device", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.SemiBold)
                                         TextButton(onClick = { viewingResource = resource }) { Text("Open resource") }
                                     }
                                 }
@@ -1252,7 +1252,7 @@ private fun StudyResourceCard(
                         Icon(
                             imageVector = if (res.isBookmarkedOffline) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                             contentDescription = stringResource(R.string.bookmark_offline),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.secondary
                         )
                     }
                     IconButton(onClick = onDownloadOffline) {
@@ -1272,11 +1272,11 @@ private fun StudyResourceCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        text = "Upload ${res.uploadStatus} (${res.uploadProgressPct}%)",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                        Text(
+                            text = "Upload ${res.uploadStatus} (${res.uploadProgressPct}%)",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     if (res.uploadStatus == "FAILED" || res.uploadStatus == "PAUSED") {
                         TextButton(onClick = onRetryUpload) {
                             Row(
@@ -1307,11 +1307,11 @@ private fun StudyResourceCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             if (res.localFilePath != null) {
-                Text(
-                    text = "✓ Downloaded for offline viewing",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                    Text(
+                        text = "✓ Downloaded for offline viewing",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = extendedColors.success
+                    )
             }
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -1401,7 +1401,7 @@ private fun UploadStudyResourceDialog(
                 Text(
                     text = stringResource(R.string.file_limit_note),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (isOverLimit) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                    color = if (isOverLimit) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     C1TextField(
@@ -1798,7 +1798,7 @@ fun AssignmentsScreen(
                                     Text(nextDeadline.title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onTertiaryContainer, fontWeight = FontWeight.Bold)
                                     Text(nextDeadline.subjectTag, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
                                 }
-                                FlagshipPill("UPCOMING", background = MaterialTheme.colorScheme.surface, foreground = MaterialTheme.colorScheme.primary)
+                                FlagshipPill("UPCOMING", background = MaterialTheme.colorScheme.surface, foreground = MaterialTheme.colorScheme.secondary)
                             }
                         }
                     }
@@ -1979,7 +1979,7 @@ private fun AssignmentItemCard(
                 Text(
                     text = task.subjectTag,
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.secondary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -2246,7 +2246,7 @@ fun ExamsAndSyllabusScreen(
                     item {
                         FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
-                                Icon(Icons.Default.EventNote, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+                                Icon(Icons.Default.EventNote, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(28.dp))
                                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                     Text("Official examination schedule", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
                                     Text("${uiState.exams.size} published exam records", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
@@ -2270,7 +2270,7 @@ fun ExamsAndSyllabusScreen(
                             FlagshipCard {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                                     Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                                        Text(exam.subjectCode, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                        Text(exam.subjectCode, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
                                         Text(exam.examTitle, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                                         Text(exam.subjectName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         Text("${exam.examDateFormatted} · ${exam.roomOrCenter}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -2289,11 +2289,11 @@ fun ExamsAndSyllabusScreen(
                         FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                                    Text("SYLLABUS COMPLETION", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
+                                    Text("SYLLABUS COMPLETION", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
                                     Text("${(overallProgress * 100).toInt()}% covered", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
                                     Text("$completedTopics of $totalTopics topics completed", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f))
                                 }
-                                CircularProgressIndicator(progress = { overallProgress }, modifier = Modifier.size(48.dp), color = MaterialTheme.colorScheme.primary, trackColor = MaterialTheme.colorScheme.surfaceVariant)
+                                CircularProgressIndicator(progress = { overallProgress }, modifier = Modifier.size(48.dp), color = MaterialTheme.colorScheme.secondary, trackColor = MaterialTheme.colorScheme.surfaceVariant)
                             }
                         }
                     }
@@ -2326,7 +2326,7 @@ fun ExamsAndSyllabusScreen(
                                             Text(subjectName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
                                             FlagshipPill("$doneSubj/${topics.size} · $subjPct%")
                                         }
-                                        LinearProgressIndicator(progress = { subjPct / 100f }, modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.primary)
+                                        LinearProgressIndicator(progress = { subjPct / 100f }, modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.secondary)
                                     }
                                 }
                             }
@@ -2340,7 +2340,7 @@ fun ExamsAndSyllabusScreen(
                                     Row(modifier = Modifier.fillMaxWidth().padding(C1Spacing.sm), verticalAlignment = Alignment.CenterVertically) {
                                         Checkbox(checked = topic.isCompleted, onCheckedChange = { viewModel.toggleSyllabusTopic(topic.id, it) })
                                         Column(modifier = Modifier.weight(1f)) {
-                                            Text(topic.unitTitle, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                                            Text(topic.unitTitle, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
                                             Text(topic.topicTitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                                         }
                                     }
@@ -2441,7 +2441,7 @@ fun PrivacyPolicyScreen() {
             text = "Privacy Policy & Open Source",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.onSurface
         )
         Text(
             text = "CampusOne is built with privacy first. No ads, no trackers, no data sold. All data stays on your device unless you explicitly choose to sync. Licensed under MIT — free to use, modify, and distribute.",
@@ -2451,7 +2451,7 @@ fun PrivacyPolicyScreen() {
         Text(
             text = "Source code: github.com/campusone/app",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.secondary
         )
     }
 }
