@@ -556,24 +556,24 @@ fun c1Typography(windowSize: C1WindowSize): C1Typography {
         C1WindowSize.EXPANDED -> 1.15f
     }
 
-    fun scaled(size: Int): Float = (size * scale).coerceAtLeast(12f)
+    fun scaled(size: Int): Int = (size * scale).toInt().coerceAtLeast(12)
 
     return C1Typography(
-        displayLarge = c1Type(CampusOneDisplayFamily, FontWeight.Bold, 57, 64, -1.5),
-        displayMedium = c1Type(CampusOneDisplayFamily, FontWeight.Bold, 45, 52, -1.0),
-        displaySmall = c1Type(CampusOneDisplayFamily, FontWeight.Bold, 36, 44, -0.8),
-        headlineLarge = c1Type(CampusOneDisplayFamily, FontWeight.Bold, 32, 40, -0.6),
-        headlineMedium = c1Type(CampusOneDisplayFamily, FontWeight.SemiBold, 28, 36, -0.4),
-        headlineSmall = c1Type(CampusOneDisplayFamily, FontWeight.SemiBold, 24, 32, -0.3),
-        titleLarge = c1Type(CampusOneDisplayFamily, FontWeight.SemiBold, 22, 28, -0.2),
-        titleMedium = c1Type(CampusOneTextFamily, FontWeight.SemiBold, 16, 24, -0.1),
-        titleSmall = c1Type(CampusOneTextFamily, FontWeight.SemiBold, 14, 20, -0.1),
-        bodyLarge = c1Type(CampusOneTextFamily, FontWeight.Normal, 16, 24, -0.1),
-        bodyMedium = c1Type(CampusOneTextFamily, FontWeight.Normal, 14, 21, 0.0),
-        bodySmall = c1Type(CampusOneTextFamily, FontWeight.Normal, 12, 18, 0.0),
-        labelLarge = c1Type(CampusOneTextFamily, FontWeight.SemiBold, 14, 20, 0.0),
-        labelMedium = c1Type(CampusOneTextFamily, FontWeight.Medium, 12, 16, 0.1),
-        labelSmall = c1Type(CampusOneTextFamily, FontWeight.Medium, 11, 14, 0.2)
+        displayLarge = c1Type(CampusOneDisplayFamily, FontWeight.Bold, scaled(57), scaled(64), -1.5),
+        displayMedium = c1Type(CampusOneDisplayFamily, FontWeight.Bold, scaled(45), scaled(52), -1.0),
+        displaySmall = c1Type(CampusOneDisplayFamily, FontWeight.Bold, scaled(36), scaled(44), -0.8),
+        headlineLarge = c1Type(CampusOneDisplayFamily, FontWeight.Bold, scaled(32), scaled(40), -0.6),
+        headlineMedium = c1Type(CampusOneDisplayFamily, FontWeight.SemiBold, scaled(28), scaled(36), -0.4),
+        headlineSmall = c1Type(CampusOneDisplayFamily, FontWeight.SemiBold, scaled(24), scaled(32), -0.3),
+        titleLarge = c1Type(CampusOneDisplayFamily, FontWeight.SemiBold, scaled(22), scaled(28), -0.2),
+        titleMedium = c1Type(CampusOneTextFamily, FontWeight.SemiBold, scaled(16), scaled(24), -0.1),
+        titleSmall = c1Type(CampusOneTextFamily, FontWeight.SemiBold, scaled(14), scaled(20), -0.1),
+        bodyLarge = c1Type(CampusOneTextFamily, FontWeight.Normal, scaled(16), scaled(24), -0.1),
+        bodyMedium = c1Type(CampusOneTextFamily, FontWeight.Normal, scaled(14), scaled(21), 0.0),
+        bodySmall = c1Type(CampusOneTextFamily, FontWeight.Normal, scaled(12), scaled(18), 0.0),
+        labelLarge = c1Type(CampusOneTextFamily, FontWeight.SemiBold, scaled(14), scaled(20), 0.0),
+        labelMedium = c1Type(CampusOneTextFamily, FontWeight.Medium, scaled(12), scaled(16), 0.1),
+        labelSmall = c1Type(CampusOneTextFamily, FontWeight.Medium, scaled(11), scaled(14), 0.2)
     )
 }
 
