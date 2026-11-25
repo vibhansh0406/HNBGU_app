@@ -1110,6 +1110,7 @@ fun NotesAndPyqScreen(
                     )
                 }
             }
+            }
 
             if (savedOffline.isNotEmpty()) {
                 item {
