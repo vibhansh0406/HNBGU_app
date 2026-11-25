@@ -57,6 +57,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -76,6 +77,7 @@ import `in`.campusone.app.domain.model.UserRole
 import `in`.campusone.app.ui.theme.C1Motion
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
+import `in`.campusone.app.ui.theme.CampusOneBrandGreen
 
 /**
  * Three deliberate onboarding moments:
@@ -146,14 +148,14 @@ fun OnboardingScreen(
                             modifier = Modifier
                                 .size(38.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.primaryContainer),
+                                .background(CampusOneBrandGreen),
                             contentAlignment = Alignment.Center
                         ) {
                             Image(
                                 painter = painterResource(R.drawable.ic_campusone_c_mark),
                                 contentDescription = "CampusOne",
                                 modifier = Modifier.size(25.dp),
-                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                                colorFilter = ColorFilter.tint(Color.White)
                             )
                         }
                         Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
