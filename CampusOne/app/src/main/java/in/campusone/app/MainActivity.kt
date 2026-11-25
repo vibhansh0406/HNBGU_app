@@ -106,7 +106,6 @@ import `in`.campusone.app.data.remote.AuthManager
 import `in`.campusone.app.data.remote.SupabaseSession
 import `in`.campusone.app.data.repository.CoreCampusRepository
 import `in`.campusone.app.data.remote.SupabaseSyncRepository
-import `in`.campusone.app.data.preferences.UserPreferencesRepository
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1NavItem
 import `in`.campusone.app.ui.screens.AttendanceScreen
@@ -144,9 +143,6 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var supabaseSync: SupabaseSyncRepository
-
-    @Inject
-    lateinit var userPreferencesRepository: UserPreferencesRepository
 
     /** Notification target delivered while the app is running (warm start via onNewIntent). */
     private var pendingNotificationTarget by mutableStateOf<Pair<String, String>?>(null)
@@ -254,12 +250,6 @@ class MainActivity : AppCompatActivity() {
         pendingNotificationTarget = handleNotificationIntent(intent)
         setContent {
             NotificationPermissionRequest()
-            val themeMode by userPreferencesRepository.darkModeOverride.collectAsStateWithLifecycle(initialValue = "SYSTEM")
-            val useDarkTheme = when (themeMode) {
-                "DARK" -> true
-                "LIGHT" -> false
-                else -> androidx.compose.foundation.isSystemInDarkTheme()
-            }
             val config = androidx.compose.ui.platform.LocalConfiguration.current
             val ws = when {
                 config.screenWidthDp < 600 -> `in`.campusone.app.ui.theme.C1WindowSize.COMPACT
@@ -267,7 +257,7 @@ class MainActivity : AppCompatActivity() {
                 config.screenWidthDp < 1200 -> `in`.campusone.app.ui.theme.C1WindowSize.LARGE
                 else -> `in`.campusone.app.ui.theme.C1WindowSize.EXPANDED
             }
-            CampusOneTheme(darkTheme = useDarkTheme, windowSize = ws) {
+            CampusOneTheme(windowSize = ws) {
                 var showSplash by rememberSaveable { mutableStateOf(true) }
                 var showIntro by rememberSaveable { mutableStateOf(false) }
                 LaunchedEffect(Unit) {

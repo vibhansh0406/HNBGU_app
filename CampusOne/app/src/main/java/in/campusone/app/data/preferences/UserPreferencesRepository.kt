@@ -42,7 +42,6 @@ class UserPreferencesRepository @Inject constructor(
         val INTRO_SEEN = booleanPreferencesKey("intro_seen")
         val USER_PROFILE_JSON = stringPreferencesKey("user_profile_json")
         val LANGUAGE_TAG = stringPreferencesKey("language_tag") // "en" or "hi"
-        val DARK_MODE_OVERRIDE = stringPreferencesKey("dark_mode_override") // "SYSTEM", "LIGHT", "DARK"
         val LAST_TIMETABLE_SYNC = longPreferencesKey("last_timetable_sync")
         val LAST_NOTICE_SYNC = longPreferencesKey("last_notice_sync")
         val TARGET_ATTENDANCE_PCT = intPreferencesKey("target_attendance_pct")
@@ -77,10 +76,6 @@ class UserPreferencesRepository @Inject constructor(
     }
 
     val languageTag: Flow<String> = context.dataStore.data.map { it[Keys.LANGUAGE_TAG] ?: "en" }
-
-    val darkModeOverride: Flow<String> = context.dataStore.data.map {
-        it[Keys.DARK_MODE_OVERRIDE] ?: "SYSTEM"
-    }
     val notificationsEnabled: Flow<Boolean> = context.dataStore.data.map {
         it[Keys.NOTIFICATIONS_ENABLED] ?: true
     }
@@ -93,11 +88,6 @@ class UserPreferencesRepository @Inject constructor(
     val assignmentRemindersEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.ASSIGNMENT_REMINDERS_ENABLED] ?: true }
     val examRemindersEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.EXAM_REMINDERS_ENABLED] ?: true }
     val eventRemindersEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.EVENT_REMINDERS_ENABLED] ?: true }
-
-    suspend fun setDarkModeOverride(mode: String) {
-        val normalized = mode.uppercase().takeIf { it in setOf("SYSTEM", "LIGHT", "DARK") } ?: "SYSTEM"
-        context.dataStore.edit { prefs -> prefs[Keys.DARK_MODE_OVERRIDE] = normalized }
-    }
 
     suspend fun setNotificationsEnabled(enabled: Boolean) {
         context.dataStore.edit { it[Keys.NOTIFICATIONS_ENABLED] = enabled }

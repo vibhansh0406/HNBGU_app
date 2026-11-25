@@ -79,7 +79,6 @@ fun SettingsScreen(
     onSaveProfile: (UserProfile) -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
-    val theme by viewModel.themeMode.collectAsStateWithLifecycle()
     val language by viewModel.languageTag.collectAsStateWithLifecycle()
     val notifications by viewModel.notificationsEnabled.collectAsStateWithLifecycle()
     val announcements by viewModel.announcementsEnabled.collectAsStateWithLifecycle()
@@ -183,23 +182,6 @@ fun SettingsScreen(
                             Text("Edit academic profile", color = MaterialTheme.colorScheme.onPrimaryContainer)
                         }
                     }
-                }
-            }
-            item {
-                C1SectionHeader(
-                    title = "Appearance",
-                    subtitle = "Personalise how CampusOne looks and feels"
-                )
-            }
-            item {
-                C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.lg)) {
-                    SettingsChoiceRow(
-                        title = "Theme",
-                        subtitle = "Choose how CampusOne looks on this device",
-                        options = listOf("SYSTEM" to "System", "LIGHT" to "Light", "DARK" to "Dark"),
-                        selected = theme,
-                        onSelect = { viewModel.setThemeMode(it) }
-                    )
                 }
             }
             item {

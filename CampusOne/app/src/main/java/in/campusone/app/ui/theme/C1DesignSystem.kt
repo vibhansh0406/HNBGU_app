@@ -334,38 +334,6 @@ val LightSemanticColors = C1SemanticColors(
     scrim = Color(0x99000000)
 )
 
-val DarkSemanticColors = C1SemanticColors(
-    primary = Color(0xFFA9D6BC),
-    onPrimary = Color(0xFF163D2E),
-    primaryContainer = Color(0xFF294633),
-    onPrimaryContainer = Color(0xFFE4F0E7),
-    secondary = Color(0xFFB4D3D9),
-    onSecondary = Color(0xFF163D2E),
-    secondaryContainer = Color(0xFF29404A),
-    onSecondaryContainer = Color(0xFFD6E6E8),
-    tertiary = Color(0xFFE7BD8A),
-    onTertiary = Color(0xFF4E341B),
-    tertiaryContainer = Color(0xFF493927),
-    onTertiaryContainer = Color(0xFFF0D8B7),
-    error = Color(0xFFFF8A7A),
-    onError = Color(0xFF4A0E08),
-    errorContainer = Color(0xFF4A1510),
-    onErrorContainer = Color(0xFFFBE5E2),
-    background = Color(0xFF0F1613),
-    onBackground = Color(0xFFF6F7F2),
-    surface = Color(0xFF17251C),
-    onSurface = Color(0xFFF6F7F2),
-    surfaceVariant = Color(0xFF1E3024),
-    onSurfaceVariant = Color(0xFFB8C9BF),
-    outline = Color(0xFF61796A),
-    outlineVariant = Color(0xFF344B3D),
-    inverseSurface = Color(0xFFF6F7F2),
-    inverseOnSurface = Color(0xFF17231F),
-    inversePrimary = Color(0xFF1E634B),
-    surfaceTint = Color(0xFF1E634B),
-    scrim = Color(0xCC000000)
-)
-
 // ============================================================================
 // EXTENDED COLORS — Semantic roles beyond Material3 ColorScheme
 // ============================================================================
@@ -408,26 +376,6 @@ val LightExtendedColors = C1ExtendedColors(
     divider = Color(0xFFCED7CE),
     scrim = Color(0x99000000),
     overlay = Color(0xCC000000),
-    surfaceTint = Color(0xFF1E634B)
-)
-
-val DarkExtendedColors = C1ExtendedColors(
-    success = Color(0xFF9FC8AA),
-    onSuccess = Color(0xFF10251A),
-    successContainer = Color(0xFF294633),
-    onSuccessContainer = Color(0xFFDCECE1),
-    warning = Color(0xFFD49A57),
-    onWarning = Color(0xFF2D1D0F),
-    warningContainer = Color(0xFF493927),
-    onWarningContainer = Color(0xFFF0D8B7),
-    info = Color(0xFF91B2BA),
-    onInfo = Color(0xFF10252A),
-    infoContainer = Color(0xFF29404A),
-    onInfoContainer = Color(0xFFD6E6E8),
-    hairline = Color(0xFF2C4035),
-    divider = Color(0xFF344B3D),
-    scrim = Color(0xCC000000),
-    overlay = Color(0xDD000000),
     surfaceTint = Color(0xFF1E634B)
 )
 
@@ -476,28 +424,6 @@ val LightComponentColors = C1ComponentColors(
     dividerColor = Color(0xFFE2E8E1),
     skeletonBase = Color(0xFFEDF1EA),
     skeletonHighlight = Color(0xFFF6F7F2),
-    badgeBackground = Color(0xFF1E634B),
-    badgeContent = Color.White
-)
-
-val DarkComponentColors = C1ComponentColors(
-    cardBackground = Color(0xFF1E3024),
-    cardBorder = Color(0xFF344B3D),
-    cardHover = Color(0xFF294633),
-    cardPressed = Color(0xFF33483C),
-    surfaceElevated = Color(0xFF1E3024),
-    surfaceElevatedBorder = Color(0xFF476C78),
-    inputBackground = Color(0xFF17251C),
-    inputBorder = Color(0xFF405849),
-    inputBorderFocused = Color(0xFF9FC8AA),
-    inputBorderError = Color(0xFFFF8A7A),
-    chipBackground = Color(0xFF1E3024),
-    chipBackgroundSelected = Color(0xFFA9D6BC),
-    chipBorder = Color(0xFF405849),
-    chipBorderSelected = Color(0xFFA9D6BC),
-    dividerColor = Color(0xFF344B3D),
-    skeletonBase = Color(0xFF1E3024),
-    skeletonHighlight = Color(0xFF294633),
     badgeBackground = Color(0xFF1E634B),
     badgeContent = Color.White
 )
