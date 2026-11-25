@@ -2,7 +2,14 @@ CampusOne brand assets
 
 Files:
 - campusone-c-mark.svg: transparent-background vector trace of the supplied C mark.
-- campusone-app-icon.svg: white rounded-square icon composition.
+- campusone-app-icon.svg: Evergreen-green rounded-square icon with the original white C mark.
+
+Core identity:
+- Evergreen: #1E634B
+- White: #FFFFFF
+- Soft sage accent: #A9D6BC
+- The Android app icon uses an Evergreen background and a white C mark.
+- In-app logos may tint to the active light/dark theme; the launcher icon remains fixed to the core brand colors.
 
 Important:
 These SVGs are traced from the supplied raster reference, not the original editable vector source.
