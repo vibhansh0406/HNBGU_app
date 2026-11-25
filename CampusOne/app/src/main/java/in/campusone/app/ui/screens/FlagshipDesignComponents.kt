@@ -81,7 +81,7 @@ private val FlagshipGreenSoft: Color
     @Composable get() = extendedColors.successContainer
 private val FlagshipMint: Color
     @Composable get() = MaterialTheme.colorScheme.secondaryContainer
-private val FlagshipBlue: Color
+private val FlagshipInfo: Color
     @Composable get() = extendedColors.infoContainer
 private val FlagshipOchre: Color
     @Composable get() = extendedColors.warningContainer
@@ -353,7 +353,7 @@ fun FlagshipAttendanceScreen(
                             Text("Interactive Bunk Simulator", style = MaterialTheme.typography.titleMedium, color = FlagshipInk, fontWeight = FontWeight.Bold)
                             Text("Real-time projection based on your recorded classes", style = MaterialTheme.typography.bodySmall, color = FlagshipMuted)
                         }
-                        FlagshipPill("Dynamic", FlagshipBlue, extendedColors.onInfoContainer)
+                        FlagshipPill("Dynamic", FlagshipInfo, extendedColors.onInfoContainer)
                     }
                     Spacer(Modifier.height(10.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
@@ -616,7 +616,7 @@ private fun FlagshipNotificationCard(notification: AppNotification, onClick: () 
     val type = notification.type.lowercase()
     val iconBg = when {
         type.contains("assignment") || type.contains("deadline") -> FlagshipOchre
-        type.contains("notice") || type.contains("exam") -> FlagshipBlue
+        type.contains("notice") || type.contains("exam") -> FlagshipInfo
         type.contains("attendance") -> FlagshipGreenSoft
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
