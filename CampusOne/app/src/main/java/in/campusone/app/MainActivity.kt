@@ -895,34 +895,33 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
         }
     }
 
-    /**
-     * Initial launch screen. Shows the CampusOne mark with a subtle VEDA Labs
-     * developer attribution. Shown only once before the main interface appears.
-     */
-    @Composable
-    fun SplashScreen() {
-        Surface(
+/**
+ * Initial launch screen. Shows the CampusOne mark with a subtle VEDA Labs
+ * developer attribution. Shown only once before the main interface appears.
+ */
+@Composable
+fun SplashScreen() {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(
             modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.ic_campusone_c_mark),
-                    contentDescription = "CampusOne",
-                    modifier = Modifier.size(64.dp)
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-                Text(
-                    text = stringResource(R.string.splash_veda_attribution),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                    textAlign = TextAlign.Center
-                )
-            }
+            Image(
+                painter = painterResource(R.drawable.ic_campusone_c_mark),
+                contentDescription = "CampusOne",
+                modifier = Modifier.size(64.dp)
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = stringResource(R.string.splash_veda_attribution),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
