@@ -32,9 +32,10 @@ colors:
   dark-surface: "#17251C"
   dark-card: "#1E3024"
   dark-selected: "#294633"
-  dark-primary: "#1E634B"
-  dark-secondary: "#476C78"
-  dark-tertiary: "#B97937"
+  dark-primary-highlight: "#A9D6BC"
+  dark-secondary-highlight: "#B4D3D9"
+  dark-tertiary-highlight: "#E7BD8A"
+  dark-primary-action: "#1E634B"
   dark-text-primary: "#F6F7F2"
   dark-text-secondary: "#B8C9BF"
 typography:
@@ -63,7 +64,7 @@ CampusOne is a practical student super-app: quick to scan between classes, relia
 ## Colour system
 | Role | Light | Dark | Intended use |
 |---|---|---|---|
-| Primary / evergreen | `#1E634B` | `#1E634B` | Main actions, selected navigation and brand emphasis |
+| Primary action / evergreen | `#1E634B` | `#1E634B` | Main actions, launcher identity and key brand emphasis |
 | Primary container | `#E4F0E7` | `#294633` | Selected surfaces, chips and low-emphasis brand fills |
 | Secondary / muted teal | `#476C78` | `#476C78` | Supporting actions and secondary emphasis |
 | Tertiary / warm amber | `#B97937` | `#B97937` | Important emphasis, deadlines and featured moments |
@@ -78,7 +79,7 @@ CampusOne is a practical student super-app: quick to scan between classes, relia
 | Text / on-surface | `#17231F` | `#F6F7F2` | Primary reading content |
 | Secondary text | `#53665A` | `#B8C9BF` | Supporting copy and metadata |
 
-The dark theme uses a neutral green-black canvas with restrained green-charcoal surfaces. Keep Evergreen for primary actions and selected states; use muted teal and warm ochre only for semantic/supporting accents. Do not turn every surface green or substitute sage for the core brand green.
+The dark theme uses a neutral green-black canvas with restrained green-charcoal surfaces. Evergreen remains the logo and primary-action fill. The lighter Evergreen/Sage, Teal and Ochre tones are contrast-safe foreground highlights for links, icons and labels only. Do not turn every surface green or substitute sage for the core brand green.
 
 Do not use brand accents as arbitrary decoration. Keep most surfaces neutral or green-charcoal. Muted teal and amber are semantic/supporting tones, not competing brand identities. Use `MaterialTheme.colorScheme` and `extendedColors`; do not introduce screen-local hex values for theme roles.
 
@@ -91,7 +92,7 @@ Do not use brand accents as arbitrary decoration. Keep most surfaces neutral or 
 - Android adaptive icons must keep the C mark as a safe-zone foreground and the Evergreen field as a separate background resource. The monochrome layer must preserve the same C silhouette.
 
 ## Contrast
-Use each semantic foreground/background pair from the theme rather than choosing text colours by eye. Keep primary button text white on Evergreen in both themes. Use warm ivory and muted grey for reading text on dark surfaces. Do not place small white text on the amber tertiary tone. Verify actual text and icon contrast whenever a new surface or badge is introduced.
+Use each semantic foreground/background pair from the theme rather than choosing text colours by eye. Keep primary button text white on Evergreen in both themes. In dark mode use the lighter semantic highlight colours for small foreground text/icons, and warm ivory/muted grey for reading content. Do not place small white text on the amber tertiary tone. Verify actual text and icon contrast whenever a new surface or badge is introduced.
 
 ## Typography
 - **Manrope** is the display voice for screen titles, section headings and prominent metrics.
