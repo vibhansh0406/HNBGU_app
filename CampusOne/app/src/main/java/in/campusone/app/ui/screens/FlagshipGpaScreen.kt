@@ -58,16 +58,24 @@ import `in`.campusone.app.domain.usecase.CourseGradeInput
 import `in`.campusone.app.domain.usecase.GradingScaleType
 import `in`.campusone.app.domain.usecase.GpaCalculator
 import `in`.campusone.app.ui.viewmodel.StudyAndCampusUiState
+import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.viewmodel.StudyAndCampusViewModel
 import java.util.Locale
 
-private val GpaGreen = Color(0xFF004A35)
-private val GpaMint = Color(0xFFDCECE1)
-private val GpaCanvas = Color(0xFFF9FAF5)
-private val GpaInk = Color(0xFF17231F)
-private val GpaMuted = Color(0xFF66766D)
-private val GpaLine = Color(0xFFE2E8E1)
-private val GpaOchre = Color(0xFFF5EAD5)
+private val GpaGreen: Color
+    @Composable get() = MaterialTheme.colorScheme.primary
+private val GpaMint: Color
+    @Composable get() = MaterialTheme.colorScheme.primaryContainer
+private val GpaCanvas: Color
+    @Composable get() = MaterialTheme.colorScheme.background
+private val GpaInk: Color
+    @Composable get() = MaterialTheme.colorScheme.onSurface
+private val GpaMuted: Color
+    @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
+private val GpaLine: Color
+    @Composable get() = MaterialTheme.colorScheme.outlineVariant
+private val GpaOchre: Color
+    @Composable get() = extendedColors.warningContainer
 
 @Composable
 fun FlagshipGpaCalculatorScreen(
@@ -101,7 +109,7 @@ fun FlagshipGpaCalculatorScreen(
                 )
             }
             item {
-                FlagshipCard(containerColor = Color(0xFFE9F0E9)) {
+                FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Baseline standing", modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold, color = GpaInk)
                         FlagshipPill(if (past.isNotEmpty()) past.size.toString() + " saved semesters" else "Awaiting history")
@@ -115,28 +123,28 @@ fun FlagshipGpaCalculatorScreen(
                 }
             }
             item {
-                FlagshipCard(containerColor = GpaGreen) {
+                FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("LIVE FORECAST", color = Color(0xFFC7E4D4), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, modifier = Modifier.weight(1f))
-                        FlagshipPill("Calculated from inputs", Color(0xFF286B4E), Color.White)
+                        Text("LIVE FORECAST", color = MaterialTheme.colorScheme.onPrimaryContainer, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, modifier = Modifier.weight(1f))
+                        FlagshipPill("Calculated from inputs", extendedColors.successContainer, extendedColors.onSuccessContainer)
                     }
                     Spacer(Modifier.height(10.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Projected SGPA", fontSize = 11.sp, color = Color(0xFFD9E9DF))
-                            Text(current.formattedSgpa, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
-                            Text("Scale " + uiState.gpaScaleType.maxScalePoint.toInt(), fontSize = 10.sp, color = Color(0xFFC7E4D4))
+                            Text("Projected SGPA", fontSize = 11.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Text(current.formattedSgpa, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Text("Scale " + uiState.gpaScaleType.maxScalePoint.toInt(), fontSize = 10.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
                         }
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Cumulative CGPA", fontSize = 11.sp, color = Color(0xFFD9E9DF))
-                            Text(current.formattedCgpa, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
-                            Text(current.totalCredits.toString() + " credits included", fontSize = 10.sp, color = Color(0xFFC7E4D4))
+                            Text("Cumulative CGPA", fontSize = 11.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Text(current.formattedCgpa, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Text(current.totalCredits.toString() + " credits included", fontSize = 10.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
                         }
                     }
                     Spacer(Modifier.height(8.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Equivalent percentage", modifier = Modifier.weight(1f), fontSize = 11.sp, color = Color(0xFFD9E9DF))
-                        Text(current.formattedPercentage, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        Text("Equivalent percentage", modifier = Modifier.weight(1f), fontSize = 11.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Text(current.formattedPercentage, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
                     }
                 }
             }
@@ -157,7 +165,7 @@ fun FlagshipGpaCalculatorScreen(
             }
             item {
                 val requirement = uiState.targetCgpaRequirement
-                FlagshipCard(containerColor = Color(0xFFEAF2EC)) {
+                FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
                     FlagshipSectionTitle("Target CGPA planner", "What grade point do you need in upcoming credits?")
                     Spacer(Modifier.height(8.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -219,7 +227,7 @@ fun FlagshipGpaCalculatorScreen(
                     grades.chunked(4).forEach { row ->
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             row.forEach { pair ->
-                                Surface(modifier = Modifier.weight(1f), color = Color(0xFFF0F3EE), shape = RoundedCornerShape(8.dp)) {
+                                Surface(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.surfaceContainer, shape = RoundedCornerShape(8.dp)) {
                                     Column(modifier = Modifier.padding(vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text(pair.second.toString(), fontWeight = FontWeight.Bold, fontSize = 15.sp, color = GpaGreen)
                                         Text(pair.first.substringBefore(" "), fontSize = 9.sp, color = GpaMuted)
@@ -233,7 +241,7 @@ fun FlagshipGpaCalculatorScreen(
                 }
             }
             item {
-                FlagshipCard(containerColor = Color(0xFFF0F3EE)) {
+                FlagshipCard(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
                     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Icon(Icons.Default.Info, contentDescription = null, tint = GpaMuted, modifier = Modifier.size(18.dp))
                         Column {
@@ -298,7 +306,7 @@ fun FlagshipGpaCalculatorScreen(
 
 @Composable
 private fun GpaStatCard(label: String, value: String, detail: String, modifier: Modifier = Modifier) {
-    Surface(modifier = modifier, color = Color.White, shape = RoundedCornerShape(11.dp)) {
+    Surface(modifier = modifier, color = MaterialTheme.colorScheme.onPrimaryContainer, shape = RoundedCornerShape(11.dp)) {
         Column(modifier = Modifier.padding(10.dp)) {
             Text(label, fontSize = 9.sp, color = GpaMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(value, fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, color = GpaGreen)
@@ -326,7 +334,7 @@ private fun FlagshipCourseGradeCard(
     FlagshipCard(contentPadding = PaddingValues(14.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(course.subjectCode, fontSize = 10.sp, color = Color(0xFF367F8D), fontWeight = FontWeight.Bold)
+                Text(course.subjectCode, fontSize = 10.sp, color = extendedColors.info, fontWeight = FontWeight.Bold)
                 Text(course.subjectName, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = GpaInk)
             }
             Column(horizontalAlignment = Alignment.End) {
@@ -363,7 +371,7 @@ private fun FlagshipCourseGradeCard(
                     shape = RoundedCornerShape(10.dp)
                 )
             }
-            IconButton(onClick = onRemove) { Icon(Icons.Default.DeleteOutline, contentDescription = "Remove subject", tint = Color(0xFF9C641F)) }
+            IconButton(onClick = onRemove) { Icon(Icons.Default.DeleteOutline, contentDescription = "Remove subject", tint = extendedColors.warning) }
         }
         LinearProgressIndicator(
             progress = { (course.gradePoint / scale.maxScalePoint).toFloat().coerceIn(0f, 1f) },
