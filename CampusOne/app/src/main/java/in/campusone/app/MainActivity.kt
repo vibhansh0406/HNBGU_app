@@ -121,6 +121,7 @@ import `in`.campusone.app.ui.screens.TimetableScreen
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Motion
 import `in`.campusone.app.ui.theme.C1Spacing
+import `in`.campusone.app.ui.theme.CampusOneBrandGreen
 import `in`.campusone.app.ui.theme.CampusOneDisplayFamily
 import `in`.campusone.app.ui.theme.CampusOneTheme
 import `in`.campusone.app.ui.viewmodel.CommunityViewModel
@@ -817,15 +818,20 @@ fun SilentIntroScreen(onFinish: () -> Unit) {
             )
 
             // C mark — geometric reveal: scales up from 30% to 100%
-            Image(
-                painter = cMark,
-                contentDescription = "CampusOne",
+            Box(
                 modifier = Modifier
-                    .size(64.dp * (0.3f + revealProgress * 0.7f)),
-                colorFilter = ColorFilter.tint(
-                    MaterialTheme.colorScheme.primary.copy(alpha = revealProgress)
+                    .size(64.dp * (0.3f + revealProgress * 0.7f))
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(CampusOneBrandGreen),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = cMark,
+                    contentDescription = "CampusOne",
+                    modifier = Modifier.size(40.dp * (0.3f + revealProgress * 0.7f)),
+                    colorFilter = ColorFilter.tint(Color.White.copy(alpha = revealProgress))
                 )
-            )
+            }
 
             // Silent light sweep across the C mark
             Box(
