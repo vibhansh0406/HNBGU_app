@@ -59,6 +59,7 @@ import `in`.campusone.app.domain.model.AppNotification
 import `in`.campusone.app.domain.usecase.AttendanceCalculator
 import `in`.campusone.app.domain.usecase.AttendanceHealth
 import `in`.campusone.app.ui.viewmodel.CoreUiState
+import `in`.campusone.app.ui.theme.CampusOneBrandGreen
 import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.viewmodel.CommunityViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -111,12 +112,20 @@ fun FlagshipAppHeader(
             .padding(horizontal = 16.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        androidx.compose.foundation.Image(
-            painter = painterResource(R.drawable.ic_campusone_c_mark),
-            contentDescription = "CampusOne",
-            modifier = Modifier.size(32.dp),
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
-        )
+        Box(
+            modifier = Modifier
+                .size(34.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(CampusOneBrandGreen),
+            contentAlignment = Alignment.Center
+        ) {
+            androidx.compose.foundation.Image(
+                painter = painterResource(R.drawable.ic_campusone_c_mark),
+                contentDescription = "CampusOne",
+                modifier = Modifier.size(22.dp),
+                colorFilter = ColorFilter.tint(Color.White)
+            )
+        }
         Spacer(Modifier.width(9.dp))
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
