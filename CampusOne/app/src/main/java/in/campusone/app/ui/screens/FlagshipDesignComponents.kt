@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,6 +59,7 @@ import `in`.campusone.app.domain.model.AppNotification
 import `in`.campusone.app.domain.usecase.AttendanceCalculator
 import `in`.campusone.app.domain.usecase.AttendanceHealth
 import `in`.campusone.app.ui.viewmodel.CoreUiState
+import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.viewmodel.CommunityViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.LaunchedEffect
@@ -71,16 +73,28 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 
-private val FlagshipGreen = Color(0xFF1E634B)
-private val FlagshipGreenSoft = Color(0xFFDCECE1)
-private val FlagshipMint = Color(0xFFEAF3EC)
-private val FlagshipBlue = Color(0xFFDDEEF0)
-private val FlagshipOchre = Color(0xFFF5EAD5)
-private val FlagshipRed = Color(0xFFFBE5E2)
-private val FlagshipInk = Color(0xFF17231F)
-private val FlagshipMuted = Color(0xFF66766D)
-private val FlagshipCanvas = Color(0xFFF6F7F2)
-private val FlagshipLine = Color(0xFFE2E8E1)
+private val FlagshipBrand: Color
+    @Composable get() = MaterialTheme.colorScheme.primary
+private val FlagshipGreen: Color
+    @Composable get() = extendedColors.success
+private val FlagshipGreenSoft: Color
+    @Composable get() = extendedColors.successContainer
+private val FlagshipMint: Color
+    @Composable get() = MaterialTheme.colorScheme.secondaryContainer
+private val FlagshipBlue: Color
+    @Composable get() = extendedColors.infoContainer
+private val FlagshipOchre: Color
+    @Composable get() = extendedColors.warningContainer
+private val FlagshipRed: Color
+    @Composable get() = MaterialTheme.colorScheme.errorContainer
+private val FlagshipInk: Color
+    @Composable get() = MaterialTheme.colorScheme.onSurface
+private val FlagshipMuted: Color
+    @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
+private val FlagshipCanvas: Color
+    @Composable get() = MaterialTheme.colorScheme.background
+private val FlagshipLine: Color
+    @Composable get() = MaterialTheme.colorScheme.outlineVariant
 
 @Composable
 fun FlagshipAppHeader(
@@ -100,17 +114,18 @@ fun FlagshipAppHeader(
         androidx.compose.foundation.Image(
             painter = painterResource(R.drawable.ic_campusone_c_mark),
             contentDescription = "CampusOne",
-            modifier = Modifier.size(32.dp)
+            modifier = Modifier.size(32.dp),
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
         )
         Spacer(Modifier.width(9.dp))
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("CampusOne", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = FlagshipGreen)
+                Text("CampusOne", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = FlagshipBrand)
                 Spacer(Modifier.width(5.dp))
-                Box(Modifier.size(6.dp).clip(CircleShape).background(Color(0xFF25845F)))
+                Box(Modifier.size(6.dp).clip(CircleShape).background(extendedColors.success))
                 Spacer(Modifier.width(6.dp))
-                Surface(color = FlagshipMint, shape = RoundedCornerShape(50)) {
-                    Text("HNBGU", modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp), fontSize = 10.sp, color = FlagshipGreen, fontWeight = FontWeight.SemiBold)
+                Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(50)) {
+                    Text("HNBGU", modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp), fontSize = 10.sp, color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.SemiBold)
                 }
             }
             Text(
@@ -123,15 +138,15 @@ fun FlagshipAppHeader(
         }
         if (showActions) {
             IconButton(onClick = onNotifications, modifier = Modifier.size(40.dp)) {
-                Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = FlagshipInk)
+                Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = MaterialTheme.colorScheme.onSurface)
             }
             IconButton(onClick = onProfile, modifier = Modifier.size(40.dp)) {
-                Surface(shape = CircleShape, color = FlagshipGreen, modifier = Modifier.size(31.dp)) {
+                Surface(shape = CircleShape, color = FlagshipBrand, modifier = Modifier.size(31.dp)) {
                     Box(contentAlignment = Alignment.Center) {
                         if (userName.isNotBlank()) {
-                            Text(userName.trim().take(1).uppercase(), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text(userName.trim().take(1).uppercase(), color = MaterialTheme.colorScheme.onPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         } else {
-                            Icon(Icons.Default.Person, contentDescription = "Profile", tint = Color.White, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.Person, contentDescription = "Profile", tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(18.dp))
                         }
                     }
                 }
@@ -154,7 +169,7 @@ fun FlagshipPageTitle(
     ) {
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             if (!eyebrow.isNullOrBlank()) {
-                Text(eyebrow.uppercase(), fontSize = 10.sp, color = FlagshipGreen, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Text(eyebrow.uppercase(), fontSize = 10.sp, color = FlagshipBrand, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             }
             Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = FlagshipInk)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = FlagshipMuted)
@@ -166,7 +181,7 @@ fun FlagshipPageTitle(
 @Composable
 fun FlagshipCard(
     modifier: Modifier = Modifier,
-    containerColor: Color = Color.White,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
     contentPadding: PaddingValues = PaddingValues(15.dp),
     content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
 ) {
@@ -175,7 +190,7 @@ fun FlagshipCard(
         shape = RoundedCornerShape(18.dp),
         color = containerColor,
         border = androidx.compose.foundation.BorderStroke(1.dp, FlagshipLine),
-        shadowElevation = 1.dp
+        shadowElevation = 0.dp
     ) {
         Column(modifier = Modifier.padding(contentPadding), content = content)
     }
@@ -184,8 +199,8 @@ fun FlagshipCard(
 @Composable
 fun FlagshipPill(
     text: String,
-    background: Color = FlagshipMint,
-    foreground: Color = FlagshipGreen
+    background: Color = MaterialTheme.colorScheme.primaryContainer,
+    foreground: Color = MaterialTheme.colorScheme.onPrimaryContainer
 ) {
     Surface(shape = RoundedCornerShape(50), color = background) {
         Text(text, modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp), fontSize = 10.sp, color = foreground, fontWeight = FontWeight.SemiBold)
@@ -208,7 +223,7 @@ fun FlagshipSectionTitle(
             Text(title, style = MaterialTheme.typography.titleMedium, color = FlagshipInk, fontWeight = FontWeight.Bold)
             if (!subtitle.isNullOrBlank()) Text(subtitle, style = MaterialTheme.typography.bodySmall, color = FlagshipMuted)
         }
-        if (action != null && onAction != null) TextButton(onClick = onAction) { Text(action, color = FlagshipGreen, fontWeight = FontWeight.SemiBold) }
+        if (action != null && onAction != null) TextButton(onClick = onAction) { Text(action, color = FlagshipBrand, fontWeight = FontWeight.SemiBold) }
     }
 }
 
@@ -224,7 +239,7 @@ fun FlagshipPrimaryButton(
         enabled = enabled,
         modifier = modifier.height(46.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = FlagshipGreen, contentColor = Color.White)
+        colors = ButtonDefaults.buttonColors(containerColor = FlagshipBrand, contentColor = MaterialTheme.colorScheme.onPrimary)
     ) {
         Text(text, fontWeight = FontWeight.SemiBold)
     }
@@ -274,7 +289,7 @@ fun FlagshipAttendanceScreen(
         ) {
             item {
                 FlagshipCard(
-                    containerColor = Color(0xFFE6F1E9),
+                    containerColor = extendedColors.successContainer,
                     contentPadding = PaddingValues(16.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -301,13 +316,13 @@ fun FlagshipAttendanceScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 strokeWidth = 7.dp,
                                 color = FlagshipGreen,
-                                trackColor = Color(0xFFC7DCCF)
+                                trackColor = MaterialTheme.colorScheme.surfaceVariant
                             )
                             Text(if (insight.totalConducted > 0) insight.currentPercentage.toInt().toString() else "—", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = FlagshipGreen)
                         }
                     }
                     Spacer(Modifier.height(12.dp))
-                    Surface(color = Color.White, shape = RoundedCornerShape(13.dp)) {
+                    Surface(color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(13.dp)) {
                         Row(modifier = Modifier.padding(11.dp), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Icon(Icons.Default.CheckCircle, contentDescription = null, tint = FlagshipGreen, modifier = Modifier.size(17.dp))
                             Column {
@@ -338,7 +353,7 @@ fun FlagshipAttendanceScreen(
                             Text("Interactive Bunk Simulator", style = MaterialTheme.typography.titleMedium, color = FlagshipInk, fontWeight = FontWeight.Bold)
                             Text("Real-time projection based on your recorded classes", style = MaterialTheme.typography.bodySmall, color = FlagshipMuted)
                         }
-                        FlagshipPill("Dynamic", FlagshipBlue, Color(0xFF367F8D))
+                        FlagshipPill("Dynamic", FlagshipBlue, extendedColors.onInfoContainer)
                     }
                     Spacer(Modifier.height(10.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
@@ -346,7 +361,7 @@ fun FlagshipAttendanceScreen(
                         ProjectionStepper("Future attended classes", futureAttended, { futureAttended = (futureAttended - 1).coerceAtLeast(0) }, { futureAttended = (futureAttended + 1).coerceAtMost(30) }, Modifier.weight(1f))
                     }
                     Spacer(Modifier.height(10.dp))
-                    Surface(color = Color(0xFFF3F4EF), shape = RoundedCornerShape(13.dp)) {
+                    Surface(color = MaterialTheme.colorScheme.surfaceContainer, shape = RoundedCornerShape(13.dp)) {
                         Row(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text("Projected standing", fontSize = 11.sp, color = FlagshipMuted)
@@ -356,7 +371,7 @@ fun FlagshipAttendanceScreen(
                                 )
                             }
                             Column(horizontalAlignment = Alignment.End) {
-                                Text(String.format(Locale.getDefault(), "%.1f%%", projection.currentPercentage), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = if (projection.currentPercentage >= target) FlagshipGreen else Color(0xFF9C641F))
+                                Text(String.format(Locale.getDefault(), "%.1f%%", projection.currentPercentage), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = if (projection.currentPercentage >= target) extendedColors.success else extendedColors.warning)
                                 Text(if (projection.currentPercentage >= target) "Above target" else "Below target", fontSize = 10.sp, color = FlagshipMuted)
                             }
                         }
@@ -382,26 +397,30 @@ fun FlagshipAttendanceScreen(
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             week.forEach { date ->
                                 val entries = grouped[date].orEmpty()
-                                val dayColor = when {
-                                    entries.isEmpty() -> Color(0xFFECEEE9)
-                                    entries.any { it.status == AttendanceStatus.ABSENT } -> Color(0xFF9C641F)
-                                    entries.all { it.status == AttendanceStatus.CANCELLED } -> Color(0xFFECEEE9)
-                                    else -> Color(0xFF286B4E)
+                                val dayBackground = when {
+                                    entries.isEmpty() || entries.all { it.status == AttendanceStatus.CANCELLED } -> MaterialTheme.colorScheme.surfaceVariant
+                                    entries.any { it.status == AttendanceStatus.ABSENT } -> extendedColors.warningContainer
+                                    else -> extendedColors.successContainer
+                                }
+                                val dayForeground = when {
+                                    entries.isEmpty() || entries.all { it.status == AttendanceStatus.CANCELLED } -> MaterialTheme.colorScheme.onSurfaceVariant
+                                    entries.any { it.status == AttendanceStatus.ABSENT } -> extendedColors.onWarningContainer
+                                    else -> extendedColors.onSuccessContainer
                                 }
                                 Box(
-                                    modifier = Modifier.weight(1f).height(31.dp).clip(RoundedCornerShape(7.dp)).background(dayColor),
+                                    modifier = Modifier.weight(1f).height(31.dp).clip(RoundedCornerShape(7.dp)).background(dayBackground),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(if (entries.isEmpty()) "" else date.dayOfMonth.toString(), fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = if (dayColor == Color(0xFFECEEE9)) FlagshipMuted else Color.White)
+                                    Text(if (entries.isEmpty()) "" else date.dayOfMonth.toString(), fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = dayForeground)
                                 }
                             }
                         }
                         Spacer(Modifier.height(4.dp))
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        RhythmLegend("Present", Color(0xFF286B4E))
-                        RhythmLegend("Missed", Color(0xFF9C641F))
-                        RhythmLegend("No record", Color(0xFFECEEE9))
+                        RhythmLegend("Present", extendedColors.success)
+                        RhythmLegend("Missed", extendedColors.warning)
+                        RhythmLegend("No record", MaterialTheme.colorScheme.surfaceVariant)
                     }
                 }
             }
@@ -421,14 +440,14 @@ fun FlagshipAttendanceScreen(
                     val summary = subject.summary
                     val percent = subject.insight.currentPercentage
                     val healthy = subject.insight.health == AttendanceHealth.SAFE || subject.insight.health == AttendanceHealth.ON_EDGE
-                    FlagshipCard(contentPadding = PaddingValues(14.dp), containerColor = if (healthy) Color.White else Color(0xFFFFF9EF)) {
+                    FlagshipCard(contentPadding = PaddingValues(14.dp), containerColor = if (healthy) extendedColors.successContainer else extendedColors.warningContainer) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(summary.subjectCode, fontSize = 10.sp, color = Color(0xFF367F8D), fontWeight = FontWeight.Bold)
+                                Text(summary.subjectCode, fontSize = 10.sp, color = extendedColors.info, fontWeight = FontWeight.Bold)
                                 Text(summary.subjectName, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = FlagshipInk)
                             }
                             Column(horizontalAlignment = Alignment.End) {
-                                Text(String.format(Locale.getDefault(), "%.0f%%", percent), fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = if (healthy) FlagshipGreen else Color(0xFF9C641F))
+                                Text(String.format(Locale.getDefault(), "%.0f%%", percent), fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = if (healthy) extendedColors.success else extendedColors.warning)
                                 Text(summary.attendedCount.toString() + " / " + summary.totalClasses + " attended", fontSize = 10.sp, color = FlagshipMuted)
                             }
                         }
@@ -437,7 +456,7 @@ fun FlagshipAttendanceScreen(
                             progress = { (percent / 100.0).toFloat().coerceIn(0f, 1f) },
                             modifier = Modifier.fillMaxWidth().height(7.dp).clip(CircleShape),
                             color = if (healthy) FlagshipGreen else Color(0xFF9C641F),
-                            trackColor = Color(0xFFE8ECE6)
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                         Spacer(Modifier.height(7.dp))
                         Text(
@@ -447,7 +466,7 @@ fun FlagshipAttendanceScreen(
                         Spacer(Modifier.height(9.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             TextButton(onClick = { haptics.performHapticFeedback(HapticFeedbackType.LongPress); onMarkAttendance(summary.subjectId, AttendanceStatus.PRESENT) }) { Text("Present", fontSize = 11.sp, color = FlagshipGreen) }
-                            TextButton(onClick = { haptics.performHapticFeedback(HapticFeedbackType.LongPress); onMarkAttendance(summary.subjectId, AttendanceStatus.ABSENT) }) { Text("Missed", fontSize = 11.sp, color = Color(0xFF9C641F)) }
+                            TextButton(onClick = { haptics.performHapticFeedback(HapticFeedbackType.LongPress); onMarkAttendance(summary.subjectId, AttendanceStatus.ABSENT) }) { Text("Missed", fontSize = 11.sp, color = extendedColors.warning) }
                             TextButton(onClick = { onMarkAttendance(summary.subjectId, AttendanceStatus.CANCELLED) }) { Text("Cancelled", fontSize = 11.sp, color = FlagshipMuted) }
                         }
                     }
@@ -471,10 +490,10 @@ fun FlagshipAttendanceScreen(
                                 FlagshipPill(log.status.name.lowercase().replaceFirstChar { it.uppercase() }, when (log.status) {
                                     AttendanceStatus.PRESENT -> FlagshipGreenSoft
                                     AttendanceStatus.ABSENT -> FlagshipOchre
-                                    AttendanceStatus.CANCELLED -> Color(0xFFECEEE9)
+                                    AttendanceStatus.CANCELLED -> MaterialTheme.colorScheme.surfaceVariant
                                 }, when (log.status) {
                                     AttendanceStatus.PRESENT -> FlagshipGreen
-                                    AttendanceStatus.ABSENT -> Color(0xFF9C641F)
+                                    AttendanceStatus.ABSENT -> extendedColors.warning
                                     AttendanceStatus.CANCELLED -> FlagshipMuted
                                 })
                             }
@@ -488,7 +507,7 @@ fun FlagshipAttendanceScreen(
 
 @Composable
 private fun ProjectionStepper(label: String, value: Int, onMinus: () -> Unit, onPlus: () -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.background(Color(0xFFF3F4EF), RoundedCornerShape(13.dp)).padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainer, RoundedCornerShape(13.dp)).padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(label, fontSize = 10.sp, color = FlagshipMuted, minLines = 2, textAlign = TextAlign.Center)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             IconButton(onClick = onMinus, modifier = Modifier.size(30.dp)) { Text("−", color = FlagshipGreen, fontSize = 18.sp, fontWeight = FontWeight.Bold) }
@@ -599,7 +618,7 @@ private fun FlagshipNotificationCard(notification: AppNotification, onClick: () 
         type.contains("assignment") || type.contains("deadline") -> FlagshipOchre
         type.contains("notice") || type.contains("exam") -> FlagshipBlue
         type.contains("attendance") -> FlagshipGreenSoft
-        else -> Color(0xFFECEEE9)
+        else -> MaterialTheme.colorScheme.surfaceVariant
     }
     FlagshipCard(
         modifier = Modifier.clickable(onClick = onClick),
@@ -607,11 +626,11 @@ private fun FlagshipNotificationCard(notification: AppNotification, onClick: () 
     ) {
         Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Box(Modifier.size(38.dp).clip(RoundedCornerShape(11.dp)).background(iconBg), contentAlignment = Alignment.Center) {
-                Icon(Icons.Default.Notifications, contentDescription = null, tint = FlagshipGreen, modifier = Modifier.size(19.dp))
+                Icon(Icons.Default.Notifications, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(19.dp))
             }
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(notification.type.replace('_', ' ').ifBlank { "Campus update" }, fontSize = 10.sp, color = FlagshipGreen, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                    Text(notification.type.replace('_', ' ').ifBlank { "Campus update" }, fontSize = 10.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                     Text(
                         Instant.ofEpochMilli(notification.createdAtMillis).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())),
                         fontSize = 10.sp, color = FlagshipMuted
@@ -620,9 +639,9 @@ private fun FlagshipNotificationCard(notification: AppNotification, onClick: () 
                 Text(notification.title, fontSize = 14.sp, color = FlagshipInk, fontWeight = FontWeight.SemiBold)
                 if (notification.body.isNotBlank()) Text(notification.body, fontSize = 12.sp, lineHeight = 18.sp, color = FlagshipMuted)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(if (notification.isRead) "Read" else "New · Tap to open", fontSize = 10.sp, color = if (notification.isRead) FlagshipMuted else FlagshipGreen, fontWeight = FontWeight.SemiBold)
+                    Text(if (notification.isRead) "Read" else "New · Tap to open", fontSize = 10.sp, color = if (notification.isRead) FlagshipMuted else MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.weight(1f))
-                    Icon(Icons.Default.ArrowForward, contentDescription = "Open notification", tint = FlagshipGreen, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.ArrowForward, contentDescription = "Open notification", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                 }
             }
         }
