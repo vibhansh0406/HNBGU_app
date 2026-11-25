@@ -389,7 +389,7 @@ private fun adminSections(state: AdminUiState): List<SectionItem> {
             "Analytics & reporting",
             "Usage trends and activity charts",
             Icons.Default.InsertChart,
-            SuperAdminSection.ANALYTICS
+            SuperAdminSection.ANALYTICS,
         )
     }
 
