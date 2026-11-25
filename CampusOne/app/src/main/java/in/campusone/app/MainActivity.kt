@@ -349,7 +349,6 @@ fun CampusOneRoot(
 ) {
     val authSessionState by authSession.collectAsStateWithLifecycle()
     val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
-    val introSeen by coreViewModel.introSeen.collectAsStateWithLifecycle()
     val studyCampusState by studyCampusViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val stateHolder = rememberSaveableStateHolder()
@@ -422,19 +421,6 @@ fun CampusOneRoot(
         studyCampusViewModel.statusMessages.collect { msg ->
             snackbarHostState.showSnackbar(msg)
         }
-    }
-
-    // First launch: silent cinematic intro before sign-in
-    if (introSeen != true) {
-        Box(
-            modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing),
-            contentAlignment = Alignment.TopCenter
-        ) {
-            Box(modifier = Modifier.widthIn(max = 720.dp).fillMaxSize()) {
-                SilentIntroScreen(onFinish = coreViewModel::markIntroSeen)
-            }
-        }
-        return
     }
 
     // If not signed in to Supabase/Google, show sign-in screen
