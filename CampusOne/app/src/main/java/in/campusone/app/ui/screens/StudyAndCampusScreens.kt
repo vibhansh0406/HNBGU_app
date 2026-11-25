@@ -2428,6 +2428,7 @@ fun ExamsAndSyllabusScreen(
     }
 }
 
+@Composable
 fun PrivacyPolicyScreen() {
     Column(
         modifier = Modifier
