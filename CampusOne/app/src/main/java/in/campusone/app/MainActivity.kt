@@ -46,9 +46,7 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.outlined.AccountCircle
-import androidx.compose.material.icons.outlined.School
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -699,12 +697,12 @@ fun SignInScreen(onGoogleSignIn: () -> Unit, isSigningIn: Boolean) {
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.School,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(46.dp)
-                )
+            Image(
+                painter = painterResource(R.drawable.ic_campusone_c_mark),
+                contentDescription = "CampusOne",
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
+                modifier = Modifier.size(46.dp)
+            )
             }
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(36.dp))
             Text(

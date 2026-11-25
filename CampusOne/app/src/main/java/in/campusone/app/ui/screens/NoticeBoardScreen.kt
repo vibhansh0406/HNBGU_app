@@ -206,7 +206,6 @@ fun NoticeBoardScreen(
                     FlagshipPageTitle(
                         title = stringResource(R.string.notices_title),
                         subtitle = "${uiState.profile.courseName} · Sem ${uiState.profile.semester} · Section ${uiState.profile.section}",
-                        eyebrow = "CAMPUS INFORMATION",
                         trailing = if (uiState.unreadNoticeCount > 0) {
                             {
                                 TextButton(onClick = onMarkAllRead) {

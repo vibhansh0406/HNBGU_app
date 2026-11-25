@@ -81,6 +81,7 @@ private val GpaOchre: Color
 fun FlagshipGpaCalculatorScreen(
     uiState: StudyAndCampusUiState,
     viewModel: StudyAndCampusViewModel,
+    onBack: () -> Unit,
     onOpenNotifications: () -> Unit = {},
     onOpenProfile: () -> Unit = {}
 ) {
@@ -94,20 +95,17 @@ fun FlagshipGpaCalculatorScreen(
     val maximum = uiState.gpaScaleType.maxScalePoint.toFloat()
 
     Column(modifier = Modifier.fillMaxSize().background(GpaCanvas)) {
-        FlagshipAppHeader(uiState.profile.collegeName, uiState.profile.name, onNotifications = onOpenNotifications, onProfile = onOpenProfile)
+        FlagshipSubHeader(
+            title = "GPA & CGPA Simulator",
+            onBack = onBack,
+            subtitle = "Project your semester grade point average and cumulative standing",
+            actions = { FlagshipPill("Sem " + uiState.profile.semester) }
+        )
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(horizontal = 15.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item {
-                FlagshipPageTitle(
-                    "GPA & CGPA Simulator",
-                    "Project your semester grade point average and cumulative standing",
-                    "ACADEMIC AUDIT",
-                    trailing = { FlagshipPill("Sem " + uiState.profile.semester) }
-                )
-            }
             item {
                 FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
                     Row(verticalAlignment = Alignment.CenterVertically) {

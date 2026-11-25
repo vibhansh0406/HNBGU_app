@@ -567,7 +567,11 @@ private data class HomeQuickAction(
 private fun QuickActionsSection(onOpenMore: (MoreSubScreen) -> Unit) {
     val ws = windowSize
     // Keep the phone dashboard compact; widen the grid only when space is available.
-    val cols = 4
+    val cols = when (ws) {
+        C1WindowSize.COMPACT -> 2
+        C1WindowSize.MEDIUM -> 3
+        else -> 4
+    }
 
     val actions = listOf(
         HomeQuickAction(Icons.Default.Assignment, R.string.qa_assignments, R.string.qa_assignments_desc, MoreSubScreen.ASSIGNMENTS),
@@ -606,15 +610,7 @@ private fun QuickActionTile(
     modifier: Modifier = Modifier,
     onOpenMore: (MoreSubScreen) -> Unit
 ) {
-    val iconColor = when (action.screen) {
-        MoreSubScreen.ASSIGNMENTS -> MaterialTheme.colorScheme.tertiary
-        MoreSubScreen.EXAMS_SYLLABUS -> extendedColors.warning
-        MoreSubScreen.NOTES_PYQ -> MaterialTheme.colorScheme.secondary
-        MoreSubScreen.GPA_CALCULATOR -> MaterialTheme.colorScheme.primary
-        MoreSubScreen.LOST_FOUND -> extendedColors.info
-        MoreSubScreen.DIRECTORY -> MaterialTheme.colorScheme.onSurfaceVariant
-        else -> MaterialTheme.colorScheme.primary
-    }
+    val iconColor = MaterialTheme.colorScheme.primary
     var entered by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { entered = true }
 
@@ -637,16 +633,16 @@ private fun QuickActionTile(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(34.dp)
-                        .clip(C1Radius.sm)
-                        .background(iconColor.copy(alpha = 0.11f)),
+                        .size(40.dp)
+                        .clip(C1Radius.tile)
+                        .background(iconColor.copy(alpha = 0.10f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = action.icon,
                         contentDescription = null,
                         tint = iconColor,
-                        modifier = Modifier.size(19.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
                 Text(

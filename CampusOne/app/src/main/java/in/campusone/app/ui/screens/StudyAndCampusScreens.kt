@@ -336,12 +336,6 @@ fun MoreHubScreen(
     }
     if (activeScreen == MoreSubScreen.PROFILE) {
         Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-            FlagshipAppHeader(
-                campusName = coreState.profile.collegeName,
-                userName = coreState.profile.name,
-                onNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
-                onProfile = { activeScreen = MoreSubScreen.PROFILE }
-            )
             Box(modifier = Modifier.weight(1f)) {
                 StudentProfileScreen(
                     uiState = coreState,
@@ -357,6 +351,7 @@ fun MoreHubScreen(
     if (activeScreen == MoreSubScreen.CAMPUS_COMMUNITY) {
         FlagshipCampusCommunityOverview(
             uiState = uiState,
+            onBack = { activeScreen = MoreSubScreen.HUB },
             onOpenEvents = { activeScreen = MoreSubScreen.EVENTS_CLUBS },
             onOpenLostFound = { activeScreen = MoreSubScreen.LOST_FOUND },
             onOpenDirectory = { activeScreen = MoreSubScreen.DIRECTORY },
@@ -369,6 +364,7 @@ fun MoreHubScreen(
         FlagshipGpaCalculatorScreen(
             uiState = uiState,
             viewModel = viewModel,
+            onBack = { activeScreen = MoreSubScreen.HUB },
             onOpenNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
             onOpenProfile = { activeScreen = MoreSubScreen.PROFILE }
         )
@@ -378,6 +374,7 @@ fun MoreHubScreen(
         FlagshipEventsAndClubsScreen(
             uiState = uiState,
             viewModel = viewModel,
+            onBack = { activeScreen = MoreSubScreen.CAMPUS_COMMUNITY },
             onOpenNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
             onOpenProfile = { activeScreen = MoreSubScreen.PROFILE }
         )
@@ -387,6 +384,7 @@ fun MoreHubScreen(
         FlagshipLostAndFoundScreen(
             uiState = uiState,
             viewModel = viewModel,
+            onBack = { activeScreen = MoreSubScreen.CAMPUS_COMMUNITY },
             onOpenNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
             onOpenProfile = { activeScreen = MoreSubScreen.PROFILE }
         )
@@ -396,6 +394,7 @@ fun MoreHubScreen(
         FlagshipCampusDirectoryScreen(
             uiState = uiState,
             viewModel = viewModel,
+            onBack = { activeScreen = MoreSubScreen.CAMPUS_COMMUNITY },
             onOpenNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
             onOpenProfile = { activeScreen = MoreSubScreen.PROFILE }
         )
@@ -825,27 +824,11 @@ fun MoreHubScreen(
         Scaffold(
             topBar = {
                 Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
-                    FlagshipAppHeader(
-                        campusName = coreState.profile.collegeName,
-                        userName = coreState.profile.name,
-                        onNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
-                        onProfile = { activeScreen = MoreSubScreen.PROFILE }
+                    FlagshipSubHeader(
+                        title = moduleTitle,
+                        onBack = { activeScreen = screenParent[activeScreen] ?: MoreSubScreen.HUB },
+                        subtitle = moduleSubtitle
                     )
-                    Surface(color = MaterialTheme.colorScheme.surface) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = C1Spacing.sm, vertical = C1Spacing.xs),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
-                        ) {
-                            IconButton(onClick = { activeScreen = screenParent[activeScreen] ?: MoreSubScreen.HUB }) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                            }
-                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                                Text(moduleTitle, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                                Text(moduleSubtitle, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
-                            }
-                        }
-                    }
                 }
             }
         ) { innerPadding ->
@@ -1051,11 +1034,6 @@ fun NotesAndPyqScreen(
         ) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
-                    FlagshipPageTitle(
-                        title = "Notes & PYQ Vault",
-                        subtitle = "${uiState.profile.courseName} · Sem ${uiState.profile.semester} · Section ${uiState.profile.section}",
-                        eyebrow = "ACADEMIC REPOSITORY"
-                    )
                     Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                         FlagshipPill("${uiState.resources.size} resources")
                         FlagshipPill("${savedOffline.size} saved offline", background = MaterialTheme.colorScheme.surfaceVariant, foreground = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -1798,11 +1776,6 @@ fun AssignmentsScreen(
                 verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
             ) {
                 item {
-                    FlagshipPageTitle(
-                        title = "Assignments Hub",
-                        subtitle = "${uiState.profile.courseName} · Sem ${uiState.profile.semester} · Section ${uiState.profile.section}",
-                        eyebrow = "ACADEMIC WORKSPACE"
-                    )
                     C1TextField(
                         value = assignmentQuery,
                         onValueChange = { assignmentQuery = it },
@@ -2287,13 +2260,6 @@ fun ExamsAndSyllabusScreen(
                 contentPadding = PaddingValues(C1Spacing.lg),
                 verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
             ) {
-                item {
-                    FlagshipPageTitle(
-                        title = "Exams & Syllabus",
-                        subtitle = "${uiState.profile.courseName} · Semester ${uiState.profile.semester}",
-                        eyebrow = if (selectedExamTab == 0) "EXAM CELL & CIRCULARS" else "BOARD OF STUDIES"
-                    )
-                }
                 if (selectedExamTab == 0) {
                     item {
                         FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {

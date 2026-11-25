@@ -86,6 +86,7 @@ import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.components.C1Tone
 import androidx.compose.foundation.layout.PaddingValues
 import `in`.campusone.app.ui.theme.C1Spacing
+import `in`.campusone.app.ui.theme.windowSize
 import `in`.campusone.app.ui.viewmodel.CommunityMode
 import `in`.campusone.app.ui.viewmodel.CommunityUiState
 import `in`.campusone.app.ui.viewmodel.CommunityViewModel
@@ -1046,27 +1047,14 @@ fun StudentProfileScreen(
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .widthIn(max = 720.dp)
-            .padding(C1Spacing.lg),
+            .padding(horizontal = C1Spacing.pagePadding(windowSize), vertical = C1Spacing.lg),
         verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.action_back))
-            }
-            Column {
-                Text(
-                    text = stringResource(R.string.profile_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = "Keep your academic details correct across devices",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
+        FlagshipSubHeader(
+            title = stringResource(R.string.profile_title),
+            onBack = onBack,
+            subtitle = "Keep your academic details correct across devices"
+        )
         C1SurfaceCard(containerColor = MaterialTheme.colorScheme.surface) {
             Row(
                 modifier = Modifier

@@ -93,6 +93,7 @@ private val CampusPageBorder: Color
 @Composable
 fun FlagshipCampusCommunityOverview(
     uiState: StudyAndCampusUiState,
+    onBack: () -> Unit,
     onOpenEvents: () -> Unit,
     onOpenLostFound: () -> Unit,
     onOpenDirectory: () -> Unit,
@@ -104,15 +105,16 @@ fun FlagshipCampusCommunityOverview(
     val items = uiState.lostFoundItems.filter { !it.isArchived && !it.isHidden && !it.isFlagged }.sortedByDescending { it.createdAtMillis }
     val contacts = uiState.directoryContacts
     Column(modifier = Modifier.fillMaxSize().background(CampusPageCanvas)) {
-        FlagshipAppHeader(uiState.profile.collegeName, uiState.profile.name, onNotifications = onOpenNotifications, onProfile = onOpenProfile)
+        FlagshipSubHeader(
+            title = "Campus & Community",
+            onBack = onBack,
+            subtitle = "Birla & Chauras campus life and utilities"
+        )
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(15.dp, 10.dp, 15.dp, 24.dp),
             verticalArrangement = Arrangement.spacedBy(13.dp)
         ) {
-            item {
-                FlagshipPageTitle("Campus & Community", "Birla & Chauras campus life and utilities", "LIVE CAMPUS")
-            }
             item {
                 FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -259,6 +261,7 @@ private fun OverviewContactRow(contact: DirectoryContactEntity) {
 fun FlagshipEventsAndClubsScreen(
     uiState: StudyAndCampusUiState,
     viewModel: StudyAndCampusViewModel,
+    onBack: () -> Unit,
     onOpenNotifications: () -> Unit = {},
     onOpenProfile: () -> Unit = {}
 ) {
@@ -275,11 +278,17 @@ fun FlagshipEventsAndClubsScreen(
     val approvedClubs = uiState.clubs.filter { it.isApproved && !it.isFlagged }
     val canCreate = uiState.profile.role == UserRole.CR || uiState.profile.role == UserRole.ADMIN || uiState.profile.role == UserRole.MODERATOR
     Column(modifier = Modifier.fillMaxSize().background(CampusPageCanvas)) {
-        FlagshipAppHeader(uiState.profile.collegeName, uiState.profile.name, onNotifications = onOpenNotifications, onProfile = onOpenProfile)
+        FlagshipSubHeader(
+            title = "Events & Clubs",
+            onBack = onBack,
+            subtitle = "Verified student activities and registered societies",
+            actions = {
+                if (canCreate) {
+                    TextButton(onClick = { showCreate = true }) { Text("Create event", color = CampusPageGreen, fontWeight = FontWeight.SemiBold) }
+                }
+            }
+        )
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-            FlagshipPageTitle("Events & Clubs", "Verified student activities and registered societies", "CAMPUS LIFE", trailing = {
-                if (canCreate) TextButton(onClick = { showCreate = true }) { Text("＋ Create", color = CampusPageGreen, fontWeight = FontWeight.SemiBold) }
-            })
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
@@ -428,6 +437,7 @@ private fun FlagshipClubCard(club: ClubEntity, onFollow: () -> Unit) {
 fun FlagshipLostAndFoundScreen(
     uiState: StudyAndCampusUiState,
     viewModel: StudyAndCampusViewModel,
+    onBack: () -> Unit,
     onOpenNotifications: () -> Unit = {},
     onOpenProfile: () -> Unit = {}
 ) {
@@ -443,7 +453,14 @@ fun FlagshipLostAndFoundScreen(
         request.status == "PENDING" && uiState.lostFoundItems.any { it.id == request.itemId && it.posterUid == uiState.profile.uid }
     }
     Column(modifier = Modifier.fillMaxSize().background(CampusPageCanvas)) {
-        FlagshipAppHeader(uiState.profile.collegeName, uiState.profile.name, showActions = false)
+        FlagshipSubHeader(
+            title = "Lost & Found",
+            onBack = onBack,
+            subtitle = "Campus recovery board",
+            actions = {
+                TextButton(onClick = { showAdd = true }) { Text("Report item", fontWeight = FontWeight.SemiBold) }
+            }
+        )
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
             FlagshipCard(containerColor = CampusPageBlue) {
                 Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
@@ -454,9 +471,6 @@ fun FlagshipLostAndFoundScreen(
                     }
                 }
             }
-            FlagshipPageTitle("Lost & Found", "Campus recovery board", "CAMPUS SERVICES", trailing = {
-                Button(onClick = { showAdd = true }, shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = CampusPageGreen)) { Text("＋ Report", fontSize = 11.sp) }
-            })
             Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                 OutlinedTextField(
                     value = query, onValueChange = { query = it }, modifier = Modifier.weight(1f),
@@ -605,6 +619,7 @@ private fun FlagshipLostFoundReportDialog(
 fun FlagshipCampusDirectoryScreen(
     uiState: StudyAndCampusUiState,
     viewModel: StudyAndCampusViewModel,
+    onBack: () -> Unit,
     onOpenNotifications: () -> Unit = {},
     onOpenProfile: () -> Unit = {}
 ) {
@@ -626,9 +641,12 @@ fun FlagshipCampusDirectoryScreen(
     val grouped = regular.groupBy { it.department }
 
     Column(modifier = Modifier.fillMaxSize().background(CampusPageCanvas)) {
-        FlagshipAppHeader(uiState.profile.collegeName, uiState.profile.name, showActions = false)
+        FlagshipSubHeader(
+            title = "Campus Directory",
+            onBack = onBack,
+            subtitle = "Find university offices, faculty and support"
+        )
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-            FlagshipPageTitle("Campus Directory", "Find university offices, faculty and support", "OFFICIAL CONTACTS")
             OutlinedTextField(
                 value = query, onValueChange = { query = it }, modifier = Modifier.fillMaxWidth(),
                 singleLine = true, shape = RoundedCornerShape(13.dp),

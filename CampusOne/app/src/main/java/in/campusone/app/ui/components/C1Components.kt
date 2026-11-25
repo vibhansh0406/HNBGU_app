@@ -217,34 +217,40 @@ fun C1FilterChip(
     trailingIcon: (@Composable () -> Unit)? = null
 ) {
     val compColors = componentColors
-    Surface(
+    Box(
         modifier = modifier
-            .heightIn(min = C1Height.chip),
-        shape = C1Radius.pill,
-        color = if (selected) compColors.chipBackgroundSelected else compColors.chipBackground,
-        border = BorderStroke(
-            C1Border.hairline,
-            if (selected) compColors.chipBorderSelected else compColors.chipBorder
-        ),
-        onClick = onClick
+            .heightIn(min = C1Height.touch)
+            .clip(C1Radius.pill)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = C1Spacing.md, vertical = C1Spacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
-        ) {
-            leadingIcon?.invoke()
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                color = if (selected) {
-                    MaterialTheme.colorScheme.onPrimary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                }
+        Surface(
+            modifier = Modifier.heightIn(min = C1Height.chip),
+            shape = C1Radius.pill,
+            color = if (selected) compColors.chipBackgroundSelected else compColors.chipBackground,
+            border = BorderStroke(
+                C1Border.hairline,
+                if (selected) compColors.chipBorderSelected else compColors.chipBorder
             )
-            trailingIcon?.invoke()
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = C1Spacing.md, vertical = C1Spacing.xs),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
+            ) {
+                leadingIcon?.invoke()
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                    color = if (selected) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                )
+                trailingIcon?.invoke()
+            }
         }
     }
 }
@@ -333,25 +339,38 @@ fun C1SectionHeader(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.semantics { heading() }
             )
             subtitle?.let {
                 Text(
                     text = it,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
         if (actionLabel != null && onAction != null) {
-            TextButton(onClick = onAction) {
-                Text(actionLabel, style = MaterialTheme.typography.labelLarge)
+            TextButton(
+                onClick = onAction,
+                modifier = Modifier.heightIn(min = C1Height.touch)
+            ) {
+                Text(
+                    actionLabel,
+                    style = MaterialTheme.typography.labelLarge,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
@@ -372,7 +391,7 @@ fun C1StatTile(
     val compColors = componentColors
     Surface(
         modifier = modifier,
-        shape = C1Radius.md,
+        shape = C1Radius.card,
         color = compColors.cardBackground,
         border = BorderStroke(C1Border.hairline, compColors.cardBorder)
     ) {
@@ -579,11 +598,11 @@ fun C1SurfaceCard(
     contentPadding: PaddingValues = PaddingValues(C1Spacing.lg),
     containerColor: Color = MaterialTheme.colorScheme.surface,
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
-    elevation: Dp = 1.dp,
+    elevation: Dp = 0.dp,
     content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
 ) {
     val compColors = componentColors
-    val shape = C1Radius.lg
+    val shape = C1Radius.card
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -653,7 +672,7 @@ fun C1ElevatedCard(
             scaleX = scale
             scaleY = scale
         },
-        shape = C1Radius.lg,
+        shape = C1Radius.card,
         color = containerColor,
         shadowElevation = C1Elevation.level2,
         border = BorderStroke(C1Border.hairline, compColors.surfaceElevatedBorder)
@@ -1197,7 +1216,7 @@ fun C1CompactStatCard(
     val compColors = componentColors
     Surface(
         modifier = modifier,
-        shape = C1Radius.md,
+        shape = C1Radius.card,
         color = compColors.cardBackground,
         border = BorderStroke(C1Border.hairline, compColors.cardBorder)
     ) {
@@ -1323,10 +1342,9 @@ fun C1AppBar(
         if (onBack != null) {
             val onBackClick = onBack
             IconButton(onClick = onBackClick, modifier = Modifier.size(C1Height.touch)) {
-                Text(
-                    "<",
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.action_back)
                 )
             }
         }
@@ -1910,7 +1928,8 @@ fun HubActionCard(
     subtitle: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     iconColor: Color = MaterialTheme.colorScheme.primary,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
@@ -1919,48 +1938,47 @@ fun HubActionCard(
         animationSpec = tween(durationMillis = C1Motion.fastMillis),
         label = "hubActionCardPress"
     )
-    val cardWidth = 168.dp
     Surface(
-        modifier = Modifier
-            .size(cardWidth)
+        modifier = modifier
+            .heightIn(min = 124.dp)
             .clickable(
                 interactionSource = interactionSource,
                 indication = ripple(),
                 onClick = onClick
             )
             .graphicsLayer { scaleX = scale; scaleY = scale },
-        shape = C1Radius.lg,
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(C1Border.hairline, MaterialTheme.colorScheme.outlineVariant)
+        shape = C1Radius.card,
+        color = componentColors.cardBackground,
+        border = BorderStroke(C1Border.hairline, componentColors.cardBorder)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(C1Spacing.md),
-            verticalArrangement = Arrangement.spacedBy(C1Spacing.md),
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.sm),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
-                    .clip(C1Radius.md)
-                    .background(iconColor.copy(alpha = 0.12f)),
+                    .size(40.dp)
+                    .clip(C1Radius.tile)
+                    .background(iconColor.copy(alpha = 0.10f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     tint = iconColor,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(21.dp)
                 )
             }
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
@@ -2004,9 +2022,9 @@ fun HubListRow(
                 onClick = onClick
             )
             .graphicsLayer { scaleX = scale; scaleY = scale },
-        shape = C1Radius.md,
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(C1Border.hairline, MaterialTheme.colorScheme.outlineVariant)
+        shape = C1Radius.card,
+        color = componentColors.cardBackground,
+        border = BorderStroke(C1Border.hairline, componentColors.cardBorder)
     ) {
         Row(
             modifier = Modifier

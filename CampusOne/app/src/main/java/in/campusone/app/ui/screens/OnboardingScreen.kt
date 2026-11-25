@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.School
@@ -160,7 +161,6 @@ fun OnboardingScreen(
                         }
                         Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
                             Text("CampusOne", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            Text("BUILT BY VEDA LAB", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, letterSpacing = 1.sp)
                         }
                     }
                     Spacer(Modifier.weight(1f))
@@ -282,7 +282,7 @@ fun OnboardingScreen(
                                         overflow = TextOverflow.Ellipsis,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
-                                    Text("⌄", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 18.sp)
+                                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
                                 }
                                 DropdownMenu(
                                     expanded = showCourseMenu,

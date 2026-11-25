@@ -139,6 +139,15 @@ object C1Radius {
     val xxl = RoundedCornerShape(24.dp)
     val pill = RoundedCornerShape(50)
     val circle = RoundedCornerShape(50)
+
+    /** Grouping surfaces: cards, sheets and list containers. */
+    val card = RoundedCornerShape(16.dp)
+
+    /** Interactive controls: buttons, inputs and dropdown surfaces. */
+    val control = RoundedCornerShape(12.dp)
+
+    /** Small icon/monogram tiles inside list rows. */
+    val tile = RoundedCornerShape(10.dp)
 }
 
 // ============================================================================

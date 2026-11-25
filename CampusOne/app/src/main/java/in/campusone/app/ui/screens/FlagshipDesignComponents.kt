@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,11 +23,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -63,7 +68,16 @@ import `in`.campusone.app.domain.usecase.AttendanceCalculator
 import `in`.campusone.app.domain.usecase.AttendanceHealth
 import `in`.campusone.app.ui.viewmodel.CoreUiState
 import `in`.campusone.app.ui.theme.CampusOneBrandGreen
+import `in`.campusone.app.ui.theme.C1Height
+import `in`.campusone.app.ui.theme.C1Radius
+import `in`.campusone.app.ui.theme.C1Spacing
+import `in`.campusone.app.ui.theme.componentColors
 import `in`.campusone.app.ui.theme.extendedColors
+import `in`.campusone.app.ui.theme.windowSize
+import `in`.campusone.app.ui.components.C1Button
+import `in`.campusone.app.ui.components.C1FilterChip
+import `in`.campusone.app.ui.components.C1StatusChip
+import `in`.campusone.app.ui.components.C1Tone
 import `in`.campusone.app.ui.viewmodel.CommunityViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.LaunchedEffect
@@ -109,42 +123,52 @@ fun FlagshipAppHeader(
     showActions: Boolean = true,
     showNotifications: Boolean = true
 ) {
+    val ws = windowSize
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 64.dp)
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.98f))
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .background(MaterialTheme.colorScheme.background)
+            .padding(horizontal = C1Spacing.pagePadding(ws), vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(34.dp)
-                .clip(RoundedCornerShape(10.dp))
+                .size(36.dp)
+                .clip(C1Radius.tile)
                 .background(CampusOneBrandGreen),
             contentAlignment = Alignment.Center
         ) {
             androidx.compose.foundation.Image(
                 painter = painterResource(R.drawable.ic_campusone_c_mark),
                 contentDescription = "CampusOne",
-                modifier = Modifier.size(22.dp),
+                modifier = Modifier.size(23.dp),
                 colorFilter = ColorFilter.tint(Color.White)
             )
         }
-        Spacer(Modifier.width(9.dp))
+        Spacer(Modifier.width(C1Spacing.sm))
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("CampusOne", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = FlagshipBrand)
-                Spacer(Modifier.width(5.dp))
-                Box(Modifier.size(6.dp).clip(CircleShape).background(extendedColors.success))
+                Text(
+                    "CampusOne",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = FlagshipBrand
+                )
                 Spacer(Modifier.width(6.dp))
-                Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(50)) {
-                    Text("HNBGU", modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp), fontSize = 10.sp, color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.SemiBold)
+                Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = C1Radius.pill) {
+                    Text(
+                        "HNBGU",
+                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
             Text(
                 campusName.ifBlank { "Birla & Chauras Campuses" },
-                fontSize = 11.sp,
+                style = MaterialTheme.typography.labelSmall,
                 color = FlagshipMuted,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -152,17 +176,32 @@ fun FlagshipAppHeader(
         }
         if (showActions) {
             if (showNotifications) {
-                IconButton(onClick = onNotifications, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.Default.Notifications, contentDescription = "Notifications", tint = MaterialTheme.colorScheme.onSurface)
+                IconButton(onClick = onNotifications, modifier = Modifier.size(C1Height.touch)) {
+                    Icon(
+                        Icons.Default.Notifications,
+                        contentDescription = "Notifications",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(23.dp)
+                    )
                 }
             }
-            IconButton(onClick = onProfile, modifier = Modifier.size(40.dp)) {
-                Surface(shape = CircleShape, color = FlagshipBrand, modifier = Modifier.size(31.dp)) {
+            IconButton(onClick = onProfile, modifier = Modifier.size(C1Height.touch)) {
+                Surface(shape = CircleShape, color = FlagshipBrand, modifier = Modifier.size(32.dp)) {
                     Box(contentAlignment = Alignment.Center) {
                         if (userName.isNotBlank()) {
-                            Text(userName.trim().take(1).uppercase(), color = MaterialTheme.colorScheme.onPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                userName.trim().take(1).uppercase(),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold
+                            )
                         } else {
-                            Icon(Icons.Default.Person, contentDescription = "Profile", tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(18.dp))
+                            Icon(
+                                Icons.Default.Person,
+                                contentDescription = "Profile",
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(18.dp)
+                            )
                         }
                     }
                 }
@@ -172,10 +211,53 @@ fun FlagshipAppHeader(
 }
 
 @Composable
+fun FlagshipSubHeader(
+    title: String,
+    onBack: () -> Unit,
+    subtitle: String? = null,
+    actions: (@Composable androidx.compose.foundation.layout.RowScope.() -> Unit)? = null
+) {
+    val ws = windowSize
+    Column(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 64.dp)
+                .padding(start = C1Spacing.pagePadding(ws) - 8.dp, end = C1Spacing.pagePadding(ws) - 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBack, modifier = Modifier.size(C1Height.touch)) {
+                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+            }
+            Column(modifier = Modifier.weight(1f).padding(start = 4.dp, end = 8.dp), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = FlagshipInk,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (!subtitle.isNullOrBlank()) {
+                    Text(
+                        subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = FlagshipMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+            actions?.let { it() }
+        }
+        androidx.compose.material3.HorizontalDivider(color = FlagshipLine)
+    }
+}
+
+@Composable
 fun FlagshipPageTitle(
     title: String,
     subtitle: String,
-    eyebrow: String? = null,
     trailing: (@Composable () -> Unit)? = null
 ) {
     Row(
@@ -184,26 +266,26 @@ fun FlagshipPageTitle(
         verticalAlignment = Alignment.Top
     ) {
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            if (!eyebrow.isNullOrBlank()) {
-                Text(eyebrow.uppercase(), fontSize = 10.sp, color = FlagshipBrand, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-            }
             Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = FlagshipInk, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = FlagshipMuted, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
-        trailing?.let { Box(modifier = Modifier.padding(start = 8.dp), contentAlignment = Alignment.TopEnd) { it() } }
+        trailing?.let { Box(modifier = Modifier.padding(start = 8.dp), contentAlignment = Alignment.CenterEnd) { it() } }
     }
 }
 
 @Composable
 fun FlagshipCard(
     modifier: Modifier = Modifier,
-    containerColor: Color = MaterialTheme.colorScheme.surface,
-    contentPadding: PaddingValues = PaddingValues(15.dp),
+    containerColor: Color = componentColors.cardBackground,
+    contentPadding: PaddingValues = PaddingValues(C1Spacing.lg),
+    onClick: (() -> Unit)? = null,
     content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
 ) {
     Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+        shape = C1Radius.card,
         color = containerColor,
         border = androidx.compose.foundation.BorderStroke(1.dp, FlagshipLine),
         shadowElevation = 0.dp
@@ -218,8 +300,15 @@ fun FlagshipPill(
     background: Color = MaterialTheme.colorScheme.primaryContainer,
     foreground: Color = MaterialTheme.colorScheme.onPrimaryContainer
 ) {
-    Surface(shape = RoundedCornerShape(50), color = background) {
-        Text(text, modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp), fontSize = 10.sp, color = foreground, fontWeight = FontWeight.SemiBold)
+    Surface(shape = C1Radius.pill, color = background) {
+        Text(
+            text,
+            modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = foreground,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1
+        )
     }
 }
 
@@ -232,14 +321,14 @@ fun FlagshipSectionTitle(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Top,
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.titleMedium, color = FlagshipInk, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
             if (!subtitle.isNullOrBlank()) Text(subtitle, style = MaterialTheme.typography.bodySmall, color = FlagshipMuted, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
-        if (action != null && onAction != null) TextButton(onClick = onAction, modifier = Modifier.heightIn(min = 40.dp)) {
+        if (action != null && onAction != null) TextButton(onClick = onAction, modifier = Modifier.heightIn(min = C1Height.touch)) {
             Text(action, color = FlagshipBrand, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
         }
     }
@@ -252,17 +341,15 @@ fun FlagshipPrimaryButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true
 ) {
-    Button(
+    C1Button(
+        text = text,
         onClick = onClick,
-        enabled = enabled,
-        modifier = modifier.heightIn(min = 48.dp).widthIn(min = 96.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = CampusOneBrandGreen, contentColor = Color.White)
-    ) {
-        Text(text, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
-    }
+        modifier = modifier,
+        enabled = enabled
+    )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FlagshipAttendanceScreen(
     uiState: CoreUiState,
@@ -300,115 +387,179 @@ fun FlagshipAttendanceScreen(
             onNotifications = onOpenNotifications,
             onProfile = onOpenProfile
         )
+        val ws = windowSize
         androidx.compose.foundation.lazy.LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(start = 14.dp, end = 14.dp, top = 10.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(13.dp)
+            contentPadding = PaddingValues(
+                start = C1Spacing.pagePadding(ws),
+                end = C1Spacing.pagePadding(ws),
+                top = C1Spacing.lg,
+                bottom = C1Spacing.xxxl
+            ),
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.lg)
         ) {
             item {
-                FlagshipCard(
-                    containerColor = extendedColors.successContainer,
-                    contentPadding = PaddingValues(16.dp)
-                ) {
+                FlagshipPageTitle(
+                    "Attendance",
+                    (uiState.profile.courseName.ifBlank { "Your programme" }) + " · Semester " + uiState.profile.semester
+                )
+            }
+            item {
+                val statusTone = when {
+                    insight.classesCanMissSafely > 0 -> C1Tone.SUCCESS
+                    insight.classesMustAttendToRecover > 0 -> C1Tone.WARNING
+                    else -> C1Tone.NEUTRAL
+                }
+                val statusLabel = when {
+                    insight.classesCanMissSafely > 0 -> "Safe zone"
+                    insight.classesMustAttendToRecover > 0 -> "Recovery needed"
+                    else -> "Tracking"
+                }
+                FlagshipCard(contentPadding = PaddingValues(C1Spacing.lg)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text("AGGREGATE STANDING", fontSize = 11.sp, color = FlagshipGreen, fontWeight = FontWeight.Bold, letterSpacing = 0.4.sp)
-                                FlagshipPill(
-                                    if (insight.classesCanMissSafely > 0) "Safe Zone" else if (insight.currentPercentage >= target) "On edge" else "Recovery",
-                                    background = if (insight.currentPercentage >= target) FlagshipGreenSoft else FlagshipOchre,
-                                    foreground = FlagshipGreen
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+                            ) {
+                                Text(
+                                    "Overall attendance",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = FlagshipInk
                                 )
+                                C1StatusChip(text = statusLabel, tone = statusTone)
                             }
-                            Spacer(Modifier.height(8.dp))
                             Text(
                                 String.format(Locale.getDefault(), "%.1f%%", insight.currentPercentage),
-                                fontSize = 29.sp, lineHeight = 34.sp, fontWeight = FontWeight.ExtraBold, color = FlagshipInk
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = FlagshipInk
                             )
-                            Text(insight.attended.toString() + " / " + insight.totalConducted + " Attended", fontSize = 12.sp, color = FlagshipMuted)
-                            Text("Statutory threshold: " + target + "%", fontSize = 11.sp, color = FlagshipMuted)
+                            Text(
+                                insight.attended.toString() + " of " + insight.totalConducted + " classes attended",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = FlagshipMuted
+                            )
+                            Text(
+                                "Required: " + target + "%",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = FlagshipMuted
+                            )
                         }
-                        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(72.dp)) {
+                        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(84.dp)) {
                             CircularProgressIndicator(
                                 progress = { (insight.currentPercentage / 100.0).toFloat().coerceIn(0f, 1f) },
                                 modifier = Modifier.fillMaxSize(),
-                                strokeWidth = 7.dp,
-                                color = FlagshipGreen,
+                                strokeWidth = 8.dp,
+                                color = FlagshipBrand,
                                 trackColor = MaterialTheme.colorScheme.surfaceVariant
                             )
-                            Text(if (insight.totalConducted > 0) insight.currentPercentage.toInt().toString() else "—", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = FlagshipGreen)
+                            Text(
+                                if (insight.totalConducted > 0) insight.currentPercentage.toInt().toString() else "—",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = FlagshipInk
+                            )
                         }
                     }
-                    Spacer(Modifier.height(12.dp))
-                    Surface(color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(13.dp)) {
-                        Row(modifier = Modifier.padding(11.dp), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Icon(Icons.Default.CheckCircle, contentDescription = null, tint = FlagshipGreen, modifier = Modifier.size(17.dp))
-                            Column {
-                                Text(if (insight.classesCanMissSafely > 0) "Safe Zone: You can miss up to " + insight.classesCanMissSafely + " classes" else if (insight.classesMustAttendToRecover > 0) "Attendance recovery required" else "Attendance position is being calculated", fontWeight = FontWeight.SemiBold, fontSize = 12.sp, color = FlagshipGreen)
-                                Text(
-                                    if (insight.classesCanMissSafely > 0) "Your current attendance is above the " + target + "% institutional requirement."
-                                    else if (insight.classesMustAttendToRecover > 0) "Attend " + insight.classesMustAttendToRecover + " consecutive classes to recover to the target."
-                                    else "Attendance appears here as classes are recorded.",
-                                    fontSize = 11.sp, color = FlagshipMuted
-                                )
-                            }
+                    androidx.compose.material3.HorizontalDivider(
+                        modifier = Modifier.padding(vertical = C1Spacing.md),
+                        color = FlagshipLine
+                    )
+                    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                        Icon(
+                            if (insight.classesCanMissSafely > 0) Icons.Default.CheckCircle else Icons.Default.Info,
+                            contentDescription = null,
+                            tint = if (insight.classesCanMissSafely > 0) FlagshipGreen else MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                if (insight.classesCanMissSafely > 0) "You can miss " + insight.classesCanMissSafely + " classes" else if (insight.classesMustAttendToRecover > 0) "Attendance recovery required" else "Attendance position is being calculated",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = FlagshipInk
+                            )
+                            Text(
+                                if (insight.classesCanMissSafely > 0) "Your attendance is above the " + target + "% requirement."
+                                else if (insight.classesMustAttendToRecover > 0) "Attend " + insight.classesMustAttendToRecover + " consecutive classes to recover to the target."
+                                else "Attendance appears here as classes are recorded.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = FlagshipMuted
+                            )
                         }
                     }
-                    Spacer(Modifier.height(10.dp))
-                    Text("Target attendance: " + target + "%", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = FlagshipInk)
+                    Spacer(Modifier.height(C1Spacing.md))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            "Target attendance",
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = FlagshipInk
+                        )
+                        Text(
+                            target.toString() + "%",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = FlagshipBrand
+                        )
+                    }
                     androidx.compose.material3.Slider(
                         value = target.toFloat(),
                         onValueChange = { onTargetPctChange(it.toInt()) },
                         valueRange = 60f..90f,
-                        steps = 5
+                        steps = 5,
+                        modifier = Modifier.heightIn(min = C1Height.touch)
                     )
                 }
             }
             item {
                 FlagshipCard {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Interactive Bunk Simulator", style = MaterialTheme.typography.titleMedium, color = FlagshipInk, fontWeight = FontWeight.Bold)
-                            Text("Real-time projection based on your recorded classes", style = MaterialTheme.typography.bodySmall, color = FlagshipMuted)
-                        }
-                        FlagshipPill("Dynamic", FlagshipInfo, extendedColors.onInfoContainer)
-                    }
-                    Spacer(Modifier.height(10.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                    Text("Attendance simulator", style = MaterialTheme.typography.titleMedium, color = FlagshipInk, fontWeight = FontWeight.Bold)
+                    Text("Adjust upcoming classes to project your standing", style = MaterialTheme.typography.bodySmall, color = FlagshipMuted)
+                    Spacer(Modifier.height(C1Spacing.md))
+                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
                         ProjectionStepper("Future missed classes", futureMissed, { futureMissed = (futureMissed - 1).coerceAtLeast(0) }, { futureMissed = (futureMissed + 1).coerceAtMost(30) }, Modifier.weight(1f))
                         ProjectionStepper("Future attended classes", futureAttended, { futureAttended = (futureAttended - 1).coerceAtLeast(0) }, { futureAttended = (futureAttended + 1).coerceAtMost(30) }, Modifier.weight(1f))
                     }
-                    Spacer(Modifier.height(10.dp))
-                    Surface(color = MaterialTheme.colorScheme.surfaceContainer, shape = RoundedCornerShape(13.dp)) {
-                        Row(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text("Projected standing", fontSize = 11.sp, color = FlagshipMuted)
-                                Text(
-                                    if (projection.totalConducted == 0) "No classes recorded" else projection.attended.toString() + " / " + projection.totalConducted + " attended",
-                                    fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = FlagshipInk
-                                )
-                            }
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text(String.format(Locale.getDefault(), "%.1f%%", projection.currentPercentage), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = if (projection.currentPercentage >= target) extendedColors.success else extendedColors.warning)
-                                Text(if (projection.currentPercentage >= target) "Above target" else "Below target", fontSize = 10.sp, color = FlagshipMuted)
-                            }
+                    androidx.compose.material3.HorizontalDivider(
+                        modifier = Modifier.padding(vertical = C1Spacing.md),
+                        color = FlagshipLine
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text("Projected standing", style = MaterialTheme.typography.labelMedium, color = FlagshipMuted)
+                            Text(
+                                if (projection.totalConducted == 0) "No classes recorded" else projection.attended.toString() + " of " + projection.totalConducted + " attended",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = FlagshipInk
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                String.format(Locale.getDefault(), "%.1f%%", projection.currentPercentage),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = if (projection.currentPercentage >= target) FlagshipGreen else extendedColors.warning
+                            )
+                            Text(if (projection.currentPercentage >= target) "Above target" else "Below target", style = MaterialTheme.typography.labelSmall, color = FlagshipMuted)
                         }
                     }
                 }
             }
             item {
                 FlagshipCard {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("4-Week Attendance Rhythm", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = FlagshipInk)
-                            Text("Recorded lecture consistency", style = MaterialTheme.typography.bodySmall, color = FlagshipMuted)
-                        }
-                        FlagshipPill("Last 28 days")
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text("4-week rhythm", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = FlagshipInk)
+                        Text("Recorded lecture consistency over the last 28 days", style = MaterialTheme.typography.bodySmall, color = FlagshipMuted)
                     }
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(C1Spacing.md))
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         listOf("M", "T", "W", "T", "F", "S", "S").forEach {
-                            Text(it, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 10.sp, color = FlagshipMuted)
+                            Text(it, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelSmall, color = FlagshipMuted)
                         }
                     }
                     last28.chunked(7).forEach { week ->
@@ -426,16 +577,17 @@ fun FlagshipAttendanceScreen(
                                     else -> extendedColors.onSuccessContainer
                                 }
                                 Box(
-                                    modifier = Modifier.weight(1f).height(31.dp).clip(RoundedCornerShape(7.dp)).background(dayBackground),
+                                    modifier = Modifier.weight(1f).height(36.dp).clip(C1Radius.tile).background(dayBackground),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(if (entries.isEmpty()) "" else date.dayOfMonth.toString(), fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = dayForeground)
+                                    Text(if (entries.isEmpty()) "" else date.dayOfMonth.toString(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = dayForeground)
                                 }
                             }
                         }
                         Spacer(Modifier.height(4.dp))
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Spacer(Modifier.height(C1Spacing.sm))
+                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.md), verticalAlignment = Alignment.CenterVertically) {
                         RhythmLegend("Present", extendedColors.success)
                         RhythmLegend("Missed", extendedColors.warning)
                         RhythmLegend("No record", MaterialTheme.colorScheme.surfaceVariant)
@@ -443,13 +595,14 @@ fun FlagshipAttendanceScreen(
                 }
             }
             item {
-                FlagshipSectionTitle("Curriculum Breakdown", uiState.profile.courseName + " · Semester " + uiState.profile.semester)
+                FlagshipSectionTitle("Subjects", uiState.profile.courseName + " · Semester " + uiState.profile.semester)
             }
             if (uiState.subjectInsights.isEmpty()) {
                 item {
                     FlagshipCard {
-                        Text("No attendance records yet", fontWeight = FontWeight.Bold, color = FlagshipInk)
-                        Text("Your subjects will appear here when your academic schedule is available.", color = FlagshipMuted, fontSize = 12.sp)
+                        Text("No attendance records yet", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = FlagshipInk)
+                        Spacer(Modifier.height(2.dp))
+                        Text("Your subjects will appear here when your academic schedule is available.", style = MaterialTheme.typography.bodySmall, color = FlagshipMuted)
                     }
                 }
             } else {
@@ -458,34 +611,49 @@ fun FlagshipAttendanceScreen(
                     val summary = subject.summary
                     val percent = subject.insight.currentPercentage
                     val healthy = subject.insight.health == AttendanceHealth.SAFE || subject.insight.health == AttendanceHealth.ON_EDGE
-                    FlagshipCard(contentPadding = PaddingValues(14.dp), containerColor = if (healthy) extendedColors.successContainer else extendedColors.warningContainer) {
+                    FlagshipCard(contentPadding = PaddingValues(C1Spacing.md)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(summary.subjectCode, fontSize = 10.sp, color = extendedColors.info, fontWeight = FontWeight.Bold)
-                                Text(summary.subjectName, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = FlagshipInk)
+                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(summary.subjectCode, style = MaterialTheme.typography.labelSmall, color = FlagshipBrand, fontWeight = FontWeight.SemiBold)
+                                Text(summary.subjectName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = FlagshipInk)
                             }
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text(String.format(Locale.getDefault(), "%.0f%%", percent), fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = if (healthy) extendedColors.success else extendedColors.warning)
-                                Text(summary.attendedCount.toString() + " / " + summary.totalClasses + " attended", fontSize = 10.sp, color = FlagshipMuted)
+                            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(
+                                    String.format(Locale.getDefault(), "%.0f%%", percent),
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = if (healthy) FlagshipBrand else extendedColors.warning
+                                )
+                                Text(summary.attendedCount.toString() + " of " + summary.totalClasses, style = MaterialTheme.typography.labelSmall, color = FlagshipMuted)
                             }
                         }
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(C1Spacing.sm))
                         LinearProgressIndicator(
                             progress = { (percent / 100.0).toFloat().coerceIn(0f, 1f) },
-                            modifier = Modifier.fillMaxWidth().height(7.dp).clip(CircleShape),
-                            color = if (healthy) FlagshipGreen else extendedColors.warning,
+                            modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
+                            color = if (healthy) FlagshipBrand else extendedColors.warning,
                             trackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
-                        Spacer(Modifier.height(7.dp))
+                        Spacer(Modifier.height(C1Spacing.sm))
                         Text(
-                            if (subject.insight.classesCanMissSafely > 0) "Safe (+ " + subject.insight.classesCanMissSafely + " leeway)" else if (subject.insight.classesMustAttendToRecover > 0) "Shortfall: attend " + subject.insight.classesMustAttendToRecover + " consecutive classes" else "On target",
-                            fontSize = 11.sp, color = if (healthy) FlagshipGreen else extendedColors.warning, fontWeight = FontWeight.Medium
+                            if (subject.insight.classesCanMissSafely > 0) "Can miss " + subject.insight.classesCanMissSafely + " more classes" else if (subject.insight.classesMustAttendToRecover > 0) "Attend " + subject.insight.classesMustAttendToRecover + " more classes to recover" else "On target",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (healthy) FlagshipGreen else extendedColors.warning,
+                            fontWeight = FontWeight.Medium
                         )
-                        Spacer(Modifier.height(9.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            TextButton(onClick = { haptics.performHapticFeedback(HapticFeedbackType.LongPress); onMarkAttendance(summary.subjectId, AttendanceStatus.PRESENT) }) { Text("Present", fontSize = 11.sp, color = FlagshipGreen) }
-                            TextButton(onClick = { haptics.performHapticFeedback(HapticFeedbackType.LongPress); onMarkAttendance(summary.subjectId, AttendanceStatus.ABSENT) }) { Text("Missed", fontSize = 11.sp, color = extendedColors.warning) }
-                            TextButton(onClick = { onMarkAttendance(summary.subjectId, AttendanceStatus.CANCELLED) }) { Text("Cancelled", fontSize = 11.sp, color = FlagshipMuted) }
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                            TextButton(
+                                onClick = { haptics.performHapticFeedback(HapticFeedbackType.LongPress); onMarkAttendance(summary.subjectId, AttendanceStatus.PRESENT) },
+                                modifier = Modifier.heightIn(min = C1Height.touch)
+                            ) { Text("Present", style = MaterialTheme.typography.labelLarge, color = FlagshipGreen) }
+                            TextButton(
+                                onClick = { haptics.performHapticFeedback(HapticFeedbackType.LongPress); onMarkAttendance(summary.subjectId, AttendanceStatus.ABSENT) },
+                                modifier = Modifier.heightIn(min = C1Height.touch)
+                            ) { Text("Missed", style = MaterialTheme.typography.labelLarge, color = extendedColors.warning) }
+                            TextButton(
+                                onClick = { onMarkAttendance(summary.subjectId, AttendanceStatus.CANCELLED) },
+                                modifier = Modifier.heightIn(min = C1Height.touch)
+                            ) { Text("Cancelled", style = MaterialTheme.typography.labelLarge, color = FlagshipMuted) }
                         }
                     }
                 }
@@ -493,27 +661,38 @@ fun FlagshipAttendanceScreen(
             item {
                 FlagshipCard {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Attendance History", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = FlagshipInk)
-                        TextButton(onClick = { showHistory = !showHistory }) { Text(if (showHistory) "Hide" else "View history", color = FlagshipGreen) }
+                        Text("Attendance history", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = FlagshipInk)
+                        TextButton(
+                            onClick = { showHistory = !showHistory },
+                            modifier = Modifier.heightIn(min = C1Height.touch)
+                        ) { Text(if (showHistory) "Hide" else "View all", style = MaterialTheme.typography.labelLarge, color = FlagshipBrand) }
                     }
                     if (showHistory) {
                         val logs = uiState.recentAttendanceLogs.take(20)
-                        if (logs.isEmpty()) Text("No attendance activity has been recorded.", fontSize = 12.sp, color = FlagshipMuted)
-                        logs.forEach { log ->
-                            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(names[log.subjectId] ?: log.subjectId, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = FlagshipInk)
-                                    Text(log.dateIso, fontSize = 10.sp, color = FlagshipMuted)
+                        if (logs.isEmpty()) {
+                            Text("No attendance activity has been recorded.", style = MaterialTheme.typography.bodySmall, color = FlagshipMuted)
+                        }
+                        logs.forEachIndexed { index, log ->
+                            if (index > 0) {
+                                androidx.compose.material3.HorizontalDivider(color = FlagshipLine)
+                            }
+                            Row(modifier = Modifier.fillMaxWidth().padding(vertical = C1Spacing.sm), verticalAlignment = Alignment.CenterVertically) {
+                                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Text(names[log.subjectId] ?: log.subjectId, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = FlagshipInk, maxLines = 1)
+                                    Text(log.dateIso, style = MaterialTheme.typography.labelSmall, color = FlagshipMuted)
                                 }
-                                FlagshipPill(log.status.name.lowercase().replaceFirstChar { it.uppercase() }, when (log.status) {
-                                    AttendanceStatus.PRESENT -> FlagshipGreenSoft
-                                    AttendanceStatus.ABSENT -> FlagshipOchre
-                                    AttendanceStatus.CANCELLED -> MaterialTheme.colorScheme.surfaceVariant
-                                }, when (log.status) {
-                                    AttendanceStatus.PRESENT -> FlagshipGreen
-                                    AttendanceStatus.ABSENT -> extendedColors.warning
-                                    AttendanceStatus.CANCELLED -> FlagshipMuted
-                                })
+                                C1StatusChip(
+                                    text = when (log.status) {
+                                        AttendanceStatus.PRESENT -> "Present"
+                                        AttendanceStatus.ABSENT -> "Missed"
+                                        AttendanceStatus.CANCELLED -> "Cancelled"
+                                    },
+                                    tone = when (log.status) {
+                                        AttendanceStatus.PRESENT -> C1Tone.SUCCESS
+                                        AttendanceStatus.ABSENT -> C1Tone.WARNING
+                                        AttendanceStatus.CANCELLED -> C1Tone.NEUTRAL
+                                    }
+                                )
                             }
                         }
                     }
@@ -525,12 +704,26 @@ fun FlagshipAttendanceScreen(
 
 @Composable
 private fun ProjectionStepper(label: String, value: Int, onMinus: () -> Unit, onPlus: () -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainer, RoundedCornerShape(13.dp)).padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, fontSize = 10.sp, color = FlagshipMuted, minLines = 2, textAlign = TextAlign.Center)
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-            IconButton(onClick = onMinus, modifier = Modifier.size(30.dp)) { Text("−", color = FlagshipGreen, fontSize = 18.sp, fontWeight = FontWeight.Bold) }
-            Text(value.toString(), fontSize = 21.sp, fontWeight = FontWeight.Bold, color = FlagshipInk, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-            IconButton(onClick = onPlus, modifier = Modifier.size(30.dp)) { Text("+", color = FlagshipGreen, fontSize = 18.sp, fontWeight = FontWeight.Bold) }
+    Column(
+        modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainer, C1Radius.control).padding(C1Spacing.sm),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)
+    ) {
+        Text(label, style = MaterialTheme.typography.labelSmall, color = FlagshipMuted, minLines = 2, maxLines = 2, textAlign = TextAlign.Center)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(
+                onClick = onMinus,
+                modifier = Modifier.size(C1Height.touch).background(MaterialTheme.colorScheme.surface, CircleShape)
+            ) {
+                Icon(Icons.Default.Remove, contentDescription = "Decrease " + label, tint = FlagshipBrand, modifier = Modifier.size(18.dp))
+            }
+            Text(value.toString(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = FlagshipInk, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+            IconButton(
+                onClick = onPlus,
+                modifier = Modifier.size(C1Height.touch).background(MaterialTheme.colorScheme.surface, CircleShape)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Increase " + label, tint = FlagshipBrand, modifier = Modifier.size(18.dp))
+            }
         }
     }
 }
@@ -538,8 +731,8 @@ private fun ProjectionStepper(label: String, value: Int, onMinus: () -> Unit, on
 @Composable
 private fun RhythmLegend(label: String, color: Color) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        Box(Modifier.size(7.dp).clip(CircleShape).background(color))
-        Text(label, fontSize = 9.sp, color = FlagshipMuted)
+        Box(Modifier.size(8.dp).clip(CircleShape).background(color))
+        Text(label, style = MaterialTheme.typography.labelSmall, color = FlagshipMuted)
     }
 }
 
@@ -551,6 +744,7 @@ fun FlagshipNotificationsScreen(
     onOpenProfile: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val ws = windowSize
     var filter by rememberSaveable { mutableStateOf("ALL") }
     LaunchedEffect(Unit) { viewModel.refreshNotifications() }
     val visible = uiState.notifications.filter { item ->
@@ -574,43 +768,41 @@ fun FlagshipNotificationsScreen(
     val order = listOf("Today", "Yesterday", "Earlier this week", "Earlier")
 
     Column(modifier = Modifier.fillMaxSize().background(FlagshipCanvas)) {
-        FlagshipAppHeader(
-            uiState.profile.collegeName,
-            uiState.profile.name,
-            onProfile = onOpenProfile,
-            showNotifications = false
-        )
-        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back to More")
-                }
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("Notifications", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = FlagshipInk)
-                    Text(unread.toString() + " unread · " + uiState.notifications.size + " total", style = MaterialTheme.typography.bodySmall, color = FlagshipMuted)
-                }
-                if (unread > 0) TextButton(onClick = viewModel::markAllNotificationsRead, modifier = Modifier.heightIn(min = 40.dp)) {
-                    Text("Mark all read", color = FlagshipBrand, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+        FlagshipSubHeader(
+            title = "Notifications",
+            onBack = onBack,
+            subtitle = unread.toString() + " unread · " + uiState.notifications.size + " total",
+            actions = {
+                if (unread > 0) {
+                    TextButton(
+                        onClick = viewModel::markAllNotificationsRead,
+                        modifier = Modifier.heightIn(min = C1Height.touch)
+                    ) {
+                        Text("Mark all read", style = MaterialTheme.typography.labelLarge, color = FlagshipBrand, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+                    }
                 }
             }
-            androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+        )
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = C1Spacing.pagePadding(ws), vertical = C1Spacing.md), verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
+            androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
                 items(listOf("ALL", "ACADEMIC", "NOTICES", "DEADLINES").size) { idx ->
                     val key = listOf("ALL", "ACADEMIC", "NOTICES", "DEADLINES")[idx]
                     val label = listOf("All (" + uiState.notifications.size + ")", "Academic & Classes", "Notices & Circulars", "Deadlines")[idx]
-                    FilterChip(selected = filter == key, onClick = { filter = key }, label = { Text(label, fontSize = 11.sp) })
+                    C1FilterChip(label = label, selected = filter == key, onClick = { filter = key })
                 }
             }
         }
         androidx.compose.foundation.lazy.LazyColumn(
             modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(horizontal = 15.dp, vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(9.dp)
+            contentPadding = PaddingValues(horizontal = C1Spacing.pagePadding(ws), vertical = C1Spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
         ) {
             if (visible.isEmpty()) {
                 item {
                     FlagshipCard {
-                        Text("You're all caught up", fontWeight = FontWeight.Bold, color = FlagshipInk)
-                        Text("New academic updates, notices and deadlines will appear here.", fontSize = 12.sp, color = FlagshipMuted)
+                        Text("You're all caught up", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = FlagshipInk)
+                        Spacer(Modifier.height(2.dp))
+                        Text("New academic updates, notices and deadlines will appear here.", style = MaterialTheme.typography.bodySmall, color = FlagshipMuted)
                     }
                 }
             }
@@ -618,9 +810,9 @@ fun FlagshipNotificationsScreen(
                 val entries = grouped[group].orEmpty()
                 if (entries.isNotEmpty()) {
                     item {
-                        Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(group.uppercase(), fontSize = 10.sp, letterSpacing = 1.sp, color = FlagshipMuted, fontWeight = FontWeight.Bold)
-                            Text(entries.size.toString() + " alerts", fontSize = 10.sp, color = FlagshipMuted)
+                        Row(modifier = Modifier.fillMaxWidth().padding(top = C1Spacing.xs), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(group.uppercase(), style = MaterialTheme.typography.labelSmall, color = FlagshipMuted, fontWeight = FontWeight.Bold)
+                            Text(entries.size.toString() + " alerts", style = MaterialTheme.typography.labelSmall, color = FlagshipMuted)
                         }
                     }
                     items(entries.size, key = { entries[it].id }) { index ->
@@ -647,26 +839,26 @@ private fun FlagshipNotificationCard(notification: AppNotification, onClick: () 
     }
     FlagshipCard(
         modifier = Modifier.clickable(onClick = onClick),
-        contentPadding = PaddingValues(14.dp)
+        contentPadding = PaddingValues(C1Spacing.md)
     ) {
-        Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Box(Modifier.size(38.dp).clip(RoundedCornerShape(11.dp)).background(iconBg), contentAlignment = Alignment.Center) {
-                Icon(Icons.Default.Notifications, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(19.dp))
+        Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
+            Box(Modifier.size(C1Height.touch).clip(C1Radius.tile).background(iconBg), contentAlignment = Alignment.Center) {
+                Icon(Icons.Default.Notifications, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
             }
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(notification.type.replace('_', ' ').ifBlank { "Campus update" }, fontSize = 10.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                    Text(notification.type.replace('_', ' ').ifBlank { "Campus update" }, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                     Text(
                         Instant.ofEpochMilli(notification.createdAtMillis).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())),
-                        fontSize = 10.sp, color = FlagshipMuted
+                        style = MaterialTheme.typography.labelSmall, color = FlagshipMuted
                     )
                 }
-                Text(notification.title, fontSize = 14.sp, color = FlagshipInk, fontWeight = FontWeight.SemiBold)
-                if (notification.body.isNotBlank()) Text(notification.body, fontSize = 12.sp, lineHeight = 18.sp, color = FlagshipMuted)
+                Text(notification.title, style = MaterialTheme.typography.titleSmall, color = FlagshipInk, fontWeight = FontWeight.SemiBold)
+                if (notification.body.isNotBlank()) Text(notification.body, style = MaterialTheme.typography.bodySmall, color = FlagshipMuted, lineHeight = 18.sp)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(if (notification.isRead) "Read" else "New · Tap to open", fontSize = 10.sp, color = if (notification.isRead) FlagshipMuted else MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                    Text(if (notification.isRead) "Read" else "New · Tap to open", style = MaterialTheme.typography.labelSmall, color = if (notification.isRead) FlagshipMuted else MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.weight(1f))
-                    Icon(Icons.Default.ArrowForward, contentDescription = "Open notification", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.ArrowForward, contentDescription = "Open notification", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                 }
             }
         }

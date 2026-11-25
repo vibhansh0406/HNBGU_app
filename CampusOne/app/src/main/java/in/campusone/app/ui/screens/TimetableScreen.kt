@@ -147,7 +147,6 @@ fun TimetableScreen(
                     FlagshipPageTitle(
                         title = "Academic timetable",
                         subtitle = scopeLabel.ifBlank { "Your published weekly class plan" },
-                        eyebrow = "ACADEMIC SCHEDULE",
                         trailing = {
                             C1Button(
                                 text = stringResource(R.string.action_refresh),
@@ -156,14 +155,6 @@ fun TimetableScreen(
                             )
                         }
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
-                        FlagshipPill(text = if (uiState.allTimetableSlots.isEmpty()) "WAITING FOR PUBLISH" else "ROOM DB · LOCAL VIEW")
-                        FlagshipPill(
-                            text = "${uiState.allTimetableSlots.size} published sessions",
-                            background = MaterialTheme.colorScheme.surfaceVariant,
-                            foreground = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
                     FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -295,7 +286,7 @@ private fun ReminderLeadTimeCard(
         contentPadding = PaddingValues(C1Spacing.lg),
         containerColor = MaterialTheme.colorScheme.surface
     ) {
-        Column(modifier = Modifier.padding(C1Spacing.lg)) {
+        Column(modifier = Modifier.padding(horizontal = C1Spacing.lg)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.NotificationsActive,
