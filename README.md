@@ -75,9 +75,9 @@ Feature availability depends on backend configuration, permissions, and the user
 
 Run the Android database migration tests on an emulator with:
 
-\`\`\`bash
+```bash
 ./gradlew connectedDebugAndroidTest
-\`\`\`
+```
 
 Build a release APK with:
 
