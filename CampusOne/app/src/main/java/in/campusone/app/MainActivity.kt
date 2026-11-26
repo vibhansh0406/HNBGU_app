@@ -103,7 +103,6 @@ import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1NavItem
 import `in`.campusone.app.ui.screens.AttendanceScreen
 import `in`.campusone.app.ui.screens.FlagshipAttendanceScreen
-import `in`.campusone.app.ui.screens.FlagshipDesignComponents
 import `in`.campusone.app.ui.screens.HomeScreen
 import `in`.campusone.app.ui.screens.MoreHubScreen
 import `in`.campusone.app.ui.screens.MoreSubScreen
