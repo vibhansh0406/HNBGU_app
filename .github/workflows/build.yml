@@ -156,3 +156,11 @@ jobs:
 
       - name: Run Room migration tests on JVM
         run: ./gradlew testDebugUnitTest --tests 'in.campusone.app.data.local.CampusOneDatabaseMigrationTest'
+
+      - name: Upload signed release APK
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: campusone-release-apk
+          path: CampusOne/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
