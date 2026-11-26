@@ -17,7 +17,7 @@ CampusOne is a campus management application for HNB Garhwal University (HNBGU) 
 - **Lost & Found**: Item reporting with category/location, claim requests with private contact protocol
 - **Campus Directory**: University offices, faculty, and support contacts with search, category filtering, emergency contacts
 - **Notifications**: Dedicated notifications page with unread/read states, time-based grouping
-- **Profile & Settings**: Academic profile editing, language preference (English/Hindi), notification controls, no theme switch (light theme only)
+- **Profile & Settings**: Academic profile editing, language preference (English/Hindi), notification controls, light theme
 
 ### Super Admin Features (Owner-only)
 - **Overview Dashboard**: Live metrics from backend data (users, notices, resources, events, reports)
@@ -32,17 +32,15 @@ CampusOne is a campus management application for HNB Garhwal University (HNBGU) 
 
 ## Technology Stack
 
-- **Language**: Kotlin 2.0.21
+- **Language**: Kotlin 2.0.20
 - **UI**: Jetpack Compose, Material 3
 - **Architecture**: MVVM with Hilt dependency injection
 - **Local Database**: Room 2.6.1
 - **Backend**: Supabase (REST + Auth, Row Level Security)
 - **WorkManager**: Background sync
 - **DataStore**: Preferences
-- **Glance**: App widget
 - **Min SDK**: 26
 - **Target/Compile SDK**: 35
-- **JVM**: 17
 
 ## Build Instructions
 

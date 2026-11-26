@@ -1,8 +1,85 @@
+# Generated files
+build/
+build-output/
+.gradle/
+.gradlew
+.gradlew.bat
+
+# Android
+*.apk
+*.aab
+*.jar
+*.class
+*.dex
+*.o
+*.obj
+
+# Local configuration
 local.properties
 *.jks
 *.keystore
 !CampusOne/ci/debug.keystore
-.gradle/
-build/
-build-output/
-CampusOne/gradle/wrapper/gradle-wrapper.jar
+
+# Environment files (secrets)
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+
+# IDE and editor
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Kotlin
+.kotlin/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output/
+
+# Coverage
+coverage/
+*.cover
+*.coveralls.report
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# macOS
+.Spotlight-V100
+.Trashes
+
+# Windows
+$RECYCLE.BIN/
+
+# Android Studio
+.cxx/
+externalNativeBuild/
+
+# Google Services
+google-services.json
+
+# Supabase local
+.supabase/
