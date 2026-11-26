@@ -122,7 +122,8 @@ fun FlagshipAppHeader(
     onNotifications: () -> Unit = {},
     onProfile: () -> Unit = {},
     showActions: Boolean = true,
-    showNotifications: Boolean = true
+    showNotifications: Boolean = true,
+    unreadCount: Int = 0
 ) {
     val ws = windowSize
     Row(
@@ -177,13 +178,35 @@ fun FlagshipAppHeader(
         }
         if (showActions) {
             if (showNotifications) {
-                IconButton(onClick = onNotifications, modifier = Modifier.size(C1Height.touch)) {
-                    Icon(
-                        Icons.Default.Notifications,
-                        contentDescription = "Notifications",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(23.dp)
-                    )
+                Box(
+                    modifier = Modifier.size(C1Height.touch),
+                    contentAlignment = Alignment.Center
+                ) {
+                    IconButton(onClick = onNotifications, modifier = Modifier.size(40.dp)) {
+                        Icon(
+                            Icons.Default.Notifications,
+                            contentDescription = "Notifications",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(23.dp)
+                        )
+                    }
+                    if (unreadCount > 0) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(4.dp)
+                                .background(MaterialTheme.colorScheme.error)
+                                .clip(androidx.compose.foundation.shape.CircleShape)
+                        ) {
+                            Text(
+                                text = if (unreadCount > 99) "99+" else unreadCount.toString(),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onError,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                            )
+                        }
+                    }
                 }
             }
             IconButton(onClick = onProfile, modifier = Modifier.size(C1Height.touch)) {

@@ -351,6 +351,13 @@
     <string name="onboarding_cr_teacher_access">CR and Moderator access is granted only after Admin approval.</string>
     <string name="hub_campus_life">Campus Life &amp; Utilities</string>
     <string name="hub_request_sent">Your request is sent to the admin. Access is granted only after approval.</string>
+    <string name="hub_my_stuff">My Stuff</string>
+    <string name="hub_my_assignments">My Assignments</string>
+    <string name="hub_assignments_due">%1$d pending tasks • due soon</string>
+    <string name="hub_my_notices">My Notices</string>
+    <string name="hub_notices_count">%1$d campus notices</string>
+    <string name="hub_my_timetable">My Timetable</string>
+    <string name="hub_role_request_pending">Role Request Pending</string>
     <!-- Timetable Admin -->
     <string name="timetable_title">Timetable</string>
     <string name="action_refresh">Refresh</string>

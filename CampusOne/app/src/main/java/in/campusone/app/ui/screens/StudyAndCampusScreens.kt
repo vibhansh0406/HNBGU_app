@@ -299,6 +299,7 @@ fun MoreHubScreen(
     val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
     val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
     val isSuperAdmin = adminState.identity.isOwner
+    val unreadNotificationCount by communityViewModel.unreadNotificationCount.collectAsStateWithLifecycle()
 
     androidx.compose.runtime.LaunchedEffect(activeScreen, adminState.identity.isOwner, uiState.profile.role) {
         if (!adminState.identity.isOwner && activeScreen.name.startsWith("SUPER_ADMIN")) {
@@ -410,7 +411,8 @@ fun MoreHubScreen(
                 campusName = profile.collegeName,
                 userName = profile.name,
                 onNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
-                onProfile = { activeScreen = MoreSubScreen.PROFILE }
+                onProfile = { activeScreen = MoreSubScreen.PROFILE },
+                unreadCount = unreadNotificationCount
             )
             LazyColumn(
                 modifier = Modifier
@@ -472,6 +474,90 @@ fun MoreHubScreen(
                     }
                     TextButton(onClick = { activeScreen = MoreSubScreen.PROFILE }) {
                         Text("View student profile", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    }
+                }
+            }
+
+            // ===== My Stuff =====
+            item {
+                C1SectionHeader(
+                    title = stringResource(R.string.hub_my_stuff),
+                    actionLabel = null,
+                    onAction = null
+                )
+            }
+            item {
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.md),
+                    verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
+                ) {
+                    HubActionCard(
+                        title = stringResource(R.string.hub_my_assignments),
+                        subtitle = stringResource(R.string.hub_assignments_due, uiState.assignments.count { !it.isCompleted && it.isAddedToPersonalList }),
+                        icon = Icons.Default.Assignment,
+                        iconColor = MaterialTheme.colorScheme.error,
+                        onClick = { activeScreen = MoreSubScreen.ASSIGNMENTS }
+                    )
+                    HubActionCard(
+                        title = stringResource(R.string.hub_my_notices),
+                        subtitle = stringResource(R.string.hub_notices_count, uiState.notices.size),
+                        icon = Icons.Default.Campaign,
+                        iconColor = MaterialTheme.colorScheme.secondary,
+                        onClick = { activeScreen = MoreSubScreen.NOTIFICATIONS }
+                    )
+                    HubActionCard(
+                        title = stringResource(R.string.hub_my_timetable),
+                        subtitle = stringResource(R.string.hub_timetable_sub, coreState.allTimetableSlots.size),
+                        icon = Icons.Default.Schedule,
+                        iconColor = MaterialTheme.colorScheme.tertiary,
+                        onClick = { onOpenTimetable() }
+                    )
+                }
+            }
+
+            // ===== Role Request Status (students only) =====
+            item {
+                if (uiState.profile.role == UserRole.STUDENT && adminState.roleRequests.any { it.status == "PENDING" }) {
+                    val pendingRequest = adminState.roleRequests.first { it.status == "PENDING" }
+                    C1SurfaceCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = { activeScreen = MoreSubScreen.PROFILE }
+                    ) {
+                        Column(modifier = Modifier.padding(C1Spacing.lg)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.HourglassEmpty,
+                                    contentDescription = "Role request pending",
+                                    tint = MaterialTheme.colorScheme.secondary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(C1Spacing.md))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = stringResource(R.string.hub_role_request_pending),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = "${pendingRequest.requestedRole.name} request is under review by the admin.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 2
+                                    )
+                                }
+                                Icon(
+                                    imageVector = Icons.Default.ArrowForward,
+                                    contentDescription = "View status",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }

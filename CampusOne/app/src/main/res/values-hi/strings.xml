@@ -330,4 +330,11 @@
     <string name="hub_campus_life">कैंपस लाइफ और उपयोगिताएं</string>
     <string name="hub_request_sent">आपका अनुरोध एडमिन को भेज दिया गया है। एक्सेस केवल मंजूरी के बाद दिया जाता है।</string>
     <string name="home_quick_actions_subtitle">आपके सबसे ज़रूरी काम, एक टैप में</string>
+    <string name="hub_my_stuff">मेरी चीज़ें</string>
+    <string name="hub_my_assignments">मेरे असाइनमेंट</string>
+    <string name="hub_assignments_due">%1$d लंबित कार्य • जल्द देय</string>
+    <string name="hub_my_notices">मेरी सूचनाएं</string>
+    <string name="hub_notices_count">%1$d कैंपस सूचनाएं</string>
+    <string name="hub_my_timetable">मेरा टाइमटेबल</string>
+    <string name="hub_role_request_pending">भूमिका अनुरोध लंबित</string>
 </resources>
