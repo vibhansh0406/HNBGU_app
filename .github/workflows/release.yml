@@ -91,10 +91,10 @@ jobs:
           } > local.properties
 
       - name: Run unit tests before release
-        run: gradle testDebugUnitTest
+        run: ./gradlew testDebugUnitTest
 
       - name: Build signed release APK
-        run: gradle assembleRelease
+        run: ./gradlew assembleRelease
 
       - name: Verify APK, generate checksum and release manifest
         shell: bash
