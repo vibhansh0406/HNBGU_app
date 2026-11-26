@@ -570,6 +570,7 @@ private fun <T> ModeratorContentCard(
         }
     }
 }
+}
 
 @Composable
 private fun NoticeEditorDialog(
