@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -873,7 +874,7 @@ fun SuperAdminContentScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
-                    items(uiState.notices, key = { it.id }) { notice ->
+                    uiState.notices.forEach { notice ->
                         NoticeRow(
                             notice = notice,
                             onEdit = {
@@ -922,7 +923,7 @@ fun SuperAdminContentScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
-                    items(uiState.studyResources, key = { it.id }) { resource ->
+                    uiState.studyResources.forEach { resource ->
                         ResourceRow(
                             resource = resource,
                             onEdit = {
@@ -971,7 +972,7 @@ fun SuperAdminContentScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
-                    items(uiState.assignments, key = { it.id }) { assignment ->
+                    uiState.assignments.forEach { assignment ->
                         AssignmentRow(
                             assignment = assignment,
                             onEdit = {
@@ -1019,7 +1020,7 @@ fun SuperAdminContentScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
-                    items(uiState.exams, key = { it.id }) { exam ->
+                    uiState.exams.forEach { exam ->
                         ExamRow(
                             exam = exam,
                             onEdit = {
@@ -1064,7 +1065,7 @@ fun SuperAdminContentScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
-                    items(uiState.syllabusTopics, key = { it.id }) { topic ->
+                    uiState.syllabusTopics.forEach { topic ->
                         SyllabusRow(
                             topic = topic,
                             onEdit = {
@@ -1826,7 +1827,7 @@ fun SuperAdminAcademicScreen(
                 title = { Text("Academic structure") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
@@ -1874,7 +1875,7 @@ fun SuperAdminAcademicScreen(
                         }
                     }
                 } else {
-                    items(uiState.subjects, key = { it.subjectId }) { subject ->
+                    uiState.subjects.forEach { subject ->
                         SubjectRow(
                             subject = subject,
                             onEdit = {
@@ -1920,7 +1921,7 @@ fun SuperAdminAcademicScreen(
                         }
                     }
                 } else {
-                    items(uiState.timetableSlots, key = { it.id }) { slot ->
+                    uiState.timetableSlots.forEach { slot ->
                         TimetableRow(
                             slot = slot,
                             subjects = uiState.subjects
