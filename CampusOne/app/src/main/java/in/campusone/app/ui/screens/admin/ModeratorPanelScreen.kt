@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Directory
 import androidx.compose.material.icons.filled.Event
@@ -155,13 +157,10 @@ fun ModeratorPanelScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         } else {
-                            items(
-                                items = uiState.notices,
-                                key = { it.id }
-                            ) { notice ->
+                            uiState.notices.forEach { notice ->
                                 C1SurfaceCard(
                                     modifier = Modifier.fillMaxWidth(),
-                                    onClick = { editingNotice = it; openNoticeDialog = true }
+                                    onClick = { editingNotice = notice; openNoticeDialog = true }
                                 ) {
                                     Column(modifier = Modifier.padding(C1Spacing.md)) {
                                         Row(
@@ -243,13 +242,10 @@ fun ModeratorPanelScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         } else {
-                            items(
-                                items = uiState.assignments,
-                                key = { it.id }
-                            ) { assignment ->
+                            uiState.assignments.forEach { assignment ->
                                 C1SurfaceCard(
                                     modifier = Modifier.fillMaxWidth(),
-                                    onClick = { editingAssignment = it; openAssignmentDialog = true }
+                                    onClick = { editingAssignment = assignment; openAssignmentDialog = true }
                                 ) {
                                     Column(modifier = Modifier.padding(C1Spacing.md)) {
                                         Row(
@@ -326,13 +322,10 @@ fun ModeratorPanelScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         } else {
-                            items(
-                                items = uiState.events,
-                                key = { it.id }
-                            ) { event ->
+                            uiState.events.forEach { event ->
                                 C1SurfaceCard(
                                     modifier = Modifier.fillMaxWidth(),
-                                    onClick = { editingEvent = it; openEventDialog = true }
+                                    onClick = { editingEvent = event; openEventDialog = true }
                                 ) {
                                     Column(modifier = Modifier.padding(C1Spacing.md)) {
                                         Row(
@@ -409,13 +402,10 @@ fun ModeratorPanelScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         } else {
-                            items(
-                                items = uiState.clubs,
-                                key = { it.id }
-                            ) { club ->
+                            uiState.clubs.forEach { club ->
                                 C1SurfaceCard(
                                     modifier = Modifier.fillMaxWidth(),
-                                    onClick = { editingClub = it; openClubDialog = true }
+                                    onClick = { editingClub = club; openClubDialog = true }
                                 ) {
                                     Column(modifier = Modifier.padding(C1Spacing.md)) {
                                         Row(
@@ -486,10 +476,7 @@ fun ModeratorPanelScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         } else {
-                            items(
-                                items = uiState.lostFound,
-                                key = { it.id }
-                            ) { item ->
+                            uiState.lostFound.forEach { item ->
                                 C1SurfaceCard(
                                     modifier = Modifier.fillMaxWidth(),
                                     onClick = { }
@@ -574,13 +561,10 @@ fun ModeratorPanelScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         } else {
-                            items(
-                                items = uiState.directory,
-                                key = { it.id }
-                            ) { contact ->
+                            uiState.directory.forEach { contact ->
                                 C1SurfaceCard(
                                     modifier = Modifier.fillMaxWidth(),
-                                    onClick = { editingDirectoryContact = it; openDirectoryDialog = true }
+                                    onClick = { editingDirectoryContact = contact; openDirectoryDialog = true }
                                 ) {
                                     Column(modifier = Modifier.padding(C1Spacing.md)) {
                                         Row(
@@ -706,6 +690,7 @@ fun ModeratorPanelScreen(
                     isAddedToPersonalList = true,
                     authorName = uiState.profile.name,
                     isSynced = false,
+                    createdAtMillis = now,
                     updatedAtMillis = now
                 )
                 viewModel.saveAssignment(assignment)
@@ -724,6 +709,7 @@ fun ModeratorPanelScreen(
                 val event = CampusEventEntity(
                     id = editingEvent?.id ?: "event_$now",
                     collegeId = uiState.collegeId,
+                    clubId = "club_gdsc_hnbgu",
                     clubName = clubName,
                     category = category,
                     title = title,
@@ -754,7 +740,13 @@ fun ModeratorPanelScreen(
                     description = description,
                     category = category,
                     contactEmail = contactEmail,
+                    socialLink = "",
+                    adminUid = uiState.profile.uid,
                     adminName = uiState.profile.name,
+                    isFollowedByMe = false,
+                    isApproved = true,
+                    reportCount = 0,
+                    isFlagged = false,
                     updatedAtMillis = now
                 )
                 viewModel.saveClub(club)
@@ -773,13 +765,15 @@ fun ModeratorPanelScreen(
                 val contact = DirectoryContactEntity(
                     id = editingDirectoryContact?.id ?: "dir_$now",
                     collegeId = uiState.collegeId,
+                    category = "FACULTY",
+                    department = department,
                     name = name,
                     designation = designation,
-                    department = department,
                     phone = phone,
                     email = email,
                     officeLocation = officeLocation,
                     officeHours = officeHours,
+                    isEmergencyOrImportant = false,
                     updatedAtMillis = now
                 )
                 viewModel.saveDirectoryContact(contact)
