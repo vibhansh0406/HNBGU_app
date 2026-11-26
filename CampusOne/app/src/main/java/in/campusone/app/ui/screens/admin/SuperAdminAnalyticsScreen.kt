@@ -317,7 +317,7 @@ fun SuperAdminAnalyticsScreen(
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Icon(
@@ -412,7 +412,7 @@ private fun AnalyticsStatCard(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
@@ -477,7 +477,7 @@ private fun AnalyticsTrendCard(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
