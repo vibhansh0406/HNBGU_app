@@ -1,5 +1,11 @@
 package `in`.campusone.app.ui.screens.admin
 
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.filled.Attachment
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudUpload
@@ -37,13 +44,18 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberScrollState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import `in`.campusone.app.R
 import `in`.campusone.app.data.local.entity.AssignmentEntity
 import `in`.campusone.app.data.local.entity.CampusEventEntity
 import `in`.campusone.app.data.local.entity.ClubEntity
@@ -61,6 +73,7 @@ import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -167,6 +180,26 @@ fun ModeratorPanelScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 2
                             )
+                            if (notice.attachmentUrl.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(C1Spacing.xs))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Attachment,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.secondary,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Text(
+                                        text = notice.attachmentType.name,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -376,13 +409,18 @@ fun ModeratorPanelScreen(
         NoticeEditorDialog(
             notice = editingNotice,
             onDismiss = { openNoticeDialog = false },
-            onSave = { title, body, isPinned, category, priority, isOfficial ->
+            onUploadAttachment = { contentUri, mimeType ->
+                viewModel.uploadNoticeAttachment(contentUri, mimeType)
+            },
+            onSave = { title, body, isPinned, category, priority, isOfficial, attachmentUrl, attachmentType ->
                 val now = System.currentTimeMillis()
                 val notice = NoticeEntity(
                     id = editingNotice?.id ?: "notice_$now",
                     sectionKey = uiState.sectionKey,
                     title = title,
                     body = body,
+                    attachmentUrl = attachmentUrl,
+                    attachmentType = attachmentType,
                     isPinned = isPinned,
                     category = category,
                     priority = priority,
@@ -807,20 +845,53 @@ private fun <T> ModeratorContentCard(
 private fun NoticeEditorDialog(
     notice: NoticeEntity?,
     onDismiss: () -> Unit,
-    onSave: (String, String, Boolean, String, String, Boolean) -> Unit
+    onUploadAttachment: suspend (contentUri: String, mimeType: String) -> Result<String>,
+    onSave: (String, String, Boolean, String, String, Boolean, String?, `in`.campusone.app.domain.model.AttachmentType) -> Unit
 ) {
     var title by rememberSaveable { mutableStateOf(notice?.title ?: "") }
     var body by rememberSaveable { mutableStateOf(notice?.body ?: "") }
+    var attachmentUrl by rememberSaveable { mutableStateOf(notice?.attachmentUrl ?: "") }
     var isPinned by rememberSaveable { mutableStateOf(notice?.isPinned ?: false) }
     var category by rememberSaveable { mutableStateOf(notice?.category ?: "GENERAL") }
     var priority by rememberSaveable { mutableStateOf(notice?.priority ?: "NORMAL") }
     var isOfficial by rememberSaveable { mutableStateOf(notice?.isOfficial ?: false) }
+    var uploadedAttachmentType by rememberSaveable { mutableStateOf(notice?.attachmentType?.name ?: "NONE") }
+    var isUploadingAttachment by rememberSaveable { mutableStateOf(false) }
+    var attachmentUploadError by rememberSaveable { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val attachmentPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { selectedUri ->
+        if (selectedUri != null) {
+            val mimeType = context.contentResolver.getType(selectedUri).orEmpty()
+            scope.launch {
+                isUploadingAttachment = true
+                attachmentUploadError = null
+                val result = onUploadAttachment(selectedUri.toString(), mimeType)
+                if (result.isSuccess) {
+                    attachmentUrl = result.getOrNull().orEmpty()
+                    uploadedAttachmentType = if (
+                        mimeType.equals("application/pdf", ignoreCase = true) ||
+                        selectedUri.lastPathSegment?.endsWith(".pdf", ignoreCase = true) == true
+                    ) "PDF" else "IMAGE"
+                } else {
+                    attachmentUploadError = result.exceptionOrNull()?.message
+                        ?: "Attachment upload failed"
+                }
+                isUploadingAttachment = false
+            }
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Notice", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+            ) {
                 androidx.compose.material3.TextField(
                     value = title,
                     onValueChange = { title = it },
@@ -881,14 +952,60 @@ private fun NoticeEditorDialog(
                         }
                     }
                 }
+                // Attachment upload
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+                ) {
+                    C1Button(
+                        text = if (isUploadingAttachment) "Uploading..." else "Upload PDF",
+                        onClick = { attachmentPicker.launch(arrayOf("application/pdf")) },
+                        modifier = Modifier.weight(1f),
+                        intent = C1ButtonIntent.OUTLINED,
+                        enabled = !isUploadingAttachment,
+                        loading = isUploadingAttachment,
+                        icon = { Icon(Icons.Default.Attachment, contentDescription = null) }
+                    )
+                    C1Button(
+                        text = "Upload Image",
+                        onClick = { attachmentPicker.launch(arrayOf("image/*")) },
+                        modifier = Modifier.weight(1f),
+                        intent = C1ButtonIntent.OUTLINED,
+                        enabled = !isUploadingAttachment
+                    )
+                }
+                if (attachmentUrl.isNotBlank() && uploadedAttachmentType != "NONE") {
+                    Text(
+                        text = "Attachment uploaded ($uploadedAttachmentType)",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+                if (!attachmentUploadError.isNullOrBlank()) {
+                    Text(
+                        text = attachmentUploadError.orEmpty(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
         },
         confirmButton = {
             C1Button(
                 text = "Save",
-                onClick = { onSave(title, body, isPinned, category, priority, isOfficial) },
+                onClick = {
+                    val attType = when {
+                        attachmentUrl.isBlank() -> `in`.campusone.app.domain.model.AttachmentType.NONE
+                        uploadedAttachmentType != "NONE" ->
+                            `in`.campusone.app.domain.model.AttachmentType.valueOf(uploadedAttachmentType)
+                        attachmentUrl.endsWith(".pdf", ignoreCase = true) -> `in`.campusone.app.domain.model.AttachmentType.PDF
+                        attachmentUrl.endsWith(".png", true) || attachmentUrl.endsWith(".jpg", true) -> `in`.campusone.app.domain.model.AttachmentType.IMAGE
+                        else -> `in`.campusone.app.domain.model.AttachmentType.LINK
+                    }
+                    onSave(title, body, isPinned, category, priority, isOfficial, attachmentUrl.ifBlank { null }, attType)
+                },
                 intent = C1ButtonIntent.PRIMARY,
-                enabled = title.isNotBlank() && body.isNotBlank(),
+                enabled = title.isNotBlank() && body.isNotBlank() && !isUploadingAttachment,
                 modifier = Modifier.fillMaxWidth()
             )
         },

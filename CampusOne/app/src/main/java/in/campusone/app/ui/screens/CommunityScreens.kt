@@ -1009,6 +1009,26 @@ private fun NotificationRow(notification: AppNotification, onClick: () -> Unit) 
                     overflow = TextOverflow.Ellipsis
                 )
             }
+            if (notification.attachmentUrl.isNotBlank()) {
+                Spacer(modifier = Modifier.height(C1Spacing.xs))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Attachment,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        text = notification.attachmentType ?: "Attachment",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
             Text(
                 text = formatTimestamp(notification.createdAtMillis),
                 style = MaterialTheme.typography.labelSmall,

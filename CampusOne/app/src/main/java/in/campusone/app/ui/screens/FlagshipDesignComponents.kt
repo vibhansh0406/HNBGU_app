@@ -888,6 +888,26 @@ private fun FlagshipNotificationCard(
                 }
                 Text(notification.title, style = MaterialTheme.typography.titleSmall, color = FlagshipInk, fontWeight = FontWeight.SemiBold)
                 if (notification.body.isNotBlank()) Text(notification.body, style = MaterialTheme.typography.bodySmall, color = FlagshipMuted, lineHeight = 18.sp)
+                if (notification.attachmentUrl.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(C1Spacing.xs))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Attachment,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = notification.attachmentType ?: "Attachment",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(if (notification.isRead) "Read" else "New · Tap to open", style = MaterialTheme.typography.labelSmall, color = if (notification.isRead) FlagshipMuted else MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.weight(1f))

@@ -399,7 +399,7 @@ fun MoreHubScreen(
         val ws = windowSize
         val profile = coreState.profile
         val greeting = when {
-            profile.name.isNotBlank() -> stringResource(R.string.home_greeting, profile.name)
+            profile.name.isNotBlank() -> "Namaste, ${profile.name}"
             else -> stringResource(R.string.hub_greeting_default)
         }
         Column(
@@ -422,66 +422,233 @@ fun MoreHubScreen(
                 contentPadding = PaddingValues(top = C1Spacing.lg, bottom = C1Spacing.xl),
                 verticalArrangement = Arrangement.spacedBy(C1Spacing.xl)
             ) {
-            // ===== Verified student profile =====
+            // ===== Greeting =====
             item {
-                FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
-                    ) {
-                        C1Avatar(
-                            name = profile.name,
-                            size = 54.dp,
-                            imageUrl = coreViewModel.currentUserAvatarUrl,
-                            fontSize = 22,
-                            onClick = { activeScreen = MoreSubScreen.PROFILE }
-                        )
-                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                            FlagshipPill("CAMPUS PROFILE")
-                            Text(
-                                text = greeting,
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                            Text(
-                                text = "${profile.collegeName} · ${profile.courseName}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f),
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            val academicYear = when {
-                                profile.semester in 1..2 -> "1st Year"
-                                profile.semester in 3..4 -> "2nd Year"
-                                profile.semester in 5..6 -> "3rd Year"
-                                profile.semester in 7..8 -> "4th Year"
-                                else -> "${profile.semester}th Year"
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = greeting,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "${profile.collegeName} · ${profile.courseName} · Semester ${profile.semester} · Section ${profile.section}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            // ===== UP NEXT =====
+            item {
+                C1SectionHeader(
+                    title = stringResource(R.string.hub_up_next),
+                    actionLabel = null,
+                    onAction = null
+                )
+            }
+            item {
+                C1SurfaceCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { onOpenTimetable() }
+                ) {
+                    Column(modifier = Modifier.padding(C1Spacing.lg)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.hub_next_class),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = stringResource(R.string.hub_tap_view_timetable),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
-                            Text(
-                                text = academicYear,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f)
-                            )
-                            Text(
-                                text = "Current Semester: Semester ${profile.semester} · Section ${profile.section}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f)
+                            Icon(
+                                imageVector = Icons.Default.Schedule,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(24.dp)
                             )
                         }
-                    }
-                    TextButton(onClick = { activeScreen = MoreSubScreen.PROFILE }) {
-                        Text("View student profile", color = MaterialTheme.colorScheme.onPrimaryContainer)
                     }
                 }
             }
 
-            // ===== My Stuff =====
+            // ===== Overall Attendance =====
             item {
                 C1SectionHeader(
-                    title = stringResource(R.string.hub_my_stuff),
+                    title = stringResource(R.string.hub_attendance_title),
+                    actionLabel = null,
+                    onAction = null
+                )
+            }
+            item {
+                C1SurfaceCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { onOpenAttendance() }
+                ) {
+                    Column(modifier = Modifier.padding(C1Spacing.lg)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.hub_overall_attendance),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "${Math.round(coreState.overallInsight.currentPercentage)}%",
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = "${coreState.overallInsight.classesAttended} of ${coreState.overallInsight.totalClasses} classes attended",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // ===== Today's Schedule =====
+            item {
+                C1SectionHeader(
+                    title = stringResource(R.string.hub_todays_schedule),
+                    actionLabel = null,
+                    onAction = null
+                )
+            }
+            item {
+                C1SurfaceCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { onOpenTimetable() }
+                ) {
+                    Column(modifier = Modifier.padding(C1Spacing.lg)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.hub_todays_classes),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = coreState.allTimetableSlots.size.toString() + " classes today",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.Default.Event,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // ===== Announcements =====
+            item {
+                C1SectionHeader(
+                    title = stringResource(R.string.hub_announcements),
+                    actionLabel = stringResource(R.string.home_view_all),
+                    onAction = { activeScreen = MoreSubScreen.NOTIFICATIONS }
+                )
+            }
+            item {
+                if (uiState.notices.isEmpty()) {
+                    C1SurfaceCard(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(C1Spacing.lg)) {
+                            Icon(
+                                imageVector = Icons.Default.Campaign,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(C1Spacing.md))
+                            Text(
+                                text = stringResource(R.string.hub_no_announcements),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+            } else {
+                items(
+                    items = uiState.notices.take(3),
+                    key = { it.id }
+                ) { notice ->
+                    C1SurfaceCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = { activeScreen = MoreSubScreen.NOTIFICATIONS }
+                    ) {
+                        Column(modifier = Modifier.padding(C1Spacing.md)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = notice.title,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = notice.body.take(60),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 2
+                                    )
+                                }
+                                Icon(
+                                    imageVector = Icons.Default.ArrowForward,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ===== Quick Actions =====
+            item {
+                C1SectionHeader(
+                    title = stringResource(R.string.hub_quick_actions),
                     actionLabel = null,
                     onAction = null
                 )
@@ -493,25 +660,32 @@ fun MoreHubScreen(
                     verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
                 ) {
                     HubActionCard(
-                        title = stringResource(R.string.hub_my_assignments),
-                        subtitle = stringResource(R.string.hub_assignments_due, uiState.assignments.count { !it.isCompleted && it.isAddedToPersonalList }),
+                        title = stringResource(R.string.notes_pyq),
+                        subtitle = stringResource(R.string.hub_resources_sub, uiState.resources.size),
+                        icon = Icons.Default.Description,
+                        iconColor = MaterialTheme.colorScheme.tertiary,
+                        onClick = { activeScreen = MoreSubScreen.NOTES_PYQ }
+                    )
+                    HubActionCard(
+                        title = stringResource(R.string.assignments_title),
+                        subtitle = stringResource(R.string.hub_assignments_sub, uiState.assignments.count { !it.isCompleted && it.isAddedToPersonalList }),
                         icon = Icons.Default.Assignment,
                         iconColor = MaterialTheme.colorScheme.error,
                         onClick = { activeScreen = MoreSubScreen.ASSIGNMENTS }
                     )
                     HubActionCard(
-                        title = stringResource(R.string.hub_my_notices),
-                        subtitle = stringResource(R.string.hub_notices_count, uiState.notices.size),
-                        icon = Icons.Default.Campaign,
-                        iconColor = MaterialTheme.colorScheme.secondary,
-                        onClick = { activeScreen = MoreSubScreen.NOTIFICATIONS }
-                    )
-                    HubActionCard(
-                        title = stringResource(R.string.hub_my_timetable),
+                        title = stringResource(R.string.timetable_title),
                         subtitle = stringResource(R.string.hub_timetable_sub, coreState.allTimetableSlots.size),
                         icon = Icons.Default.Schedule,
                         iconColor = MaterialTheme.colorScheme.tertiary,
                         onClick = { onOpenTimetable() }
+                    )
+                    HubActionCard(
+                        title = stringResource(R.string.nav_attendance),
+                        subtitle = stringResource(R.string.hub_attendance_sub, Math.round(coreState.overallInsight.currentPercentage)),
+                        icon = Icons.Default.CheckCircle,
+                        iconColor = extendedColors.success,
+                        onClick = { onOpenAttendance() }
                     )
                 }
             }
