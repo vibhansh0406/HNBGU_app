@@ -535,10 +535,7 @@ private fun <T> ModeratorContentCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             } else {
-                items(
-                    items = items,
-                    key = idExtractor
-                ) { item ->
+                items.forEach { item ->
                     C1SurfaceCard(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = { onItemClick(item) }
