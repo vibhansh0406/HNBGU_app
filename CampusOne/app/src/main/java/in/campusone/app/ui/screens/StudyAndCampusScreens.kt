@@ -51,7 +51,6 @@ import androidx.compose.material.icons.filled.EventNote
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.FindInPage
 import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PictureAsPdf
@@ -298,7 +297,6 @@ fun MoreHubScreen(
     // Owner/Admin uses only the Super Admin portal. Moderators use the normal Admin Portal.
     val isAdminOrStaff = uiState.profile.role == `in`.campusone.app.domain.model.UserRole.MODERATOR
     val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
-    val communityState by communityViewModel.uiState.collectAsStateWithLifecycle()
     val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
     val isSuperAdmin = adminState.identity.isOwner
 
@@ -522,35 +520,15 @@ fun MoreHubScreen(
                 }
             }
 
-            // ===== Community & Events =====
+            // ===== Events =====
             item {
-                C1SectionHeader(
-                    title = stringResource(R.string.hub_community_events),
-                    actionLabel = null,
-                    onAction = null
+                HubActionCard(
+                    title = stringResource(R.string.events_clubs),
+                    subtitle = stringResource(R.string.hub_events_sub, uiState.events.size),
+                    icon = Icons.Default.Event,
+                    iconColor = MaterialTheme.colorScheme.tertiary,
+                    onClick = { activeScreen = MoreSubScreen.EVENTS_CLUBS }
                 )
-            }
-            item {
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.md),
-                    verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
-                ) {
-                    HubActionCard(
-                        title = stringResource(R.string.community_title),
-                        subtitle = stringResource(R.string.hub_community_sub, communityState.posts.size),
-                        icon = Icons.Default.Forum,
-                        iconColor = MaterialTheme.colorScheme.secondary,
-                        onClick = { activeScreen = MoreSubScreen.COMMUNITY }
-                    )
-                    HubActionCard(
-                        title = stringResource(R.string.events_clubs),
-                        subtitle = stringResource(R.string.hub_events_sub, uiState.events.size),
-                        icon = Icons.Default.Event,
-                        iconColor = MaterialTheme.colorScheme.tertiary,
-                        onClick = { activeScreen = MoreSubScreen.EVENTS_CLUBS }
-                    )
-                }
             }
 
             // ===== Campus & Community overview =====
