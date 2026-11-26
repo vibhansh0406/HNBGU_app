@@ -218,7 +218,11 @@ enum class MoreSubScreen {
     SUPER_ADMIN_ACADEMIC
 }
 
-private val requestableRoles = listOf(UserRole.CR)
+private val requestableRoles = listOf(UserRole.CR, UserRole.MODERATOR)
+
+private val moderatorPanelRoutes = setOf(
+    "NOTICES", "ASSIGNMENTS", "EXAMS", "CLUBS", "EVENTS", "LOST_FOUND", "DIRECTORY"
+)
 
 /** Each sub-screen's parent for system Back navigation. Screens not listed go to HUB. */
 private val screenParent: Map<MoreSubScreen, MoreSubScreen> = mapOf(
@@ -294,7 +298,7 @@ fun MoreHubScreen(
         }
     }
 
-    // Owner/Admin uses only the Super Admin portal. Moderators use the normal Admin Portal.
+    // Owner and moderators can use the Moderator Panel; only the owner can open the Super Admin portal.
     val isAdminOrStaff = uiState.profile.role == `in`.campusone.app.domain.model.UserRole.MODERATOR
     val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
     val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
@@ -305,7 +309,8 @@ fun MoreHubScreen(
             activeScreen = MoreSubScreen.HUB
         }
         if (activeScreen.name.startsWith("ADMIN_") &&
-            (adminState.identity.isOwner || uiState.profile.role != UserRole.MODERATOR)) {
+            uiState.profile.role != UserRole.MODERATOR &&
+            uiState.profile.role != UserRole.ADMIN) {
             activeScreen = MoreSubScreen.HUB
         }
     }
@@ -603,18 +608,16 @@ fun MoreHubScreen(
                                 }
                             )
                         }
-                        if (isAdminOrStaff) {
-                            HubListRow(
-                                title = stringResource(R.string.admin_panel),
-                                subtitle = stringResource(R.string.hub_admin_sub),
-                                icon = Icons.Default.School,
-                                iconColor = MaterialTheme.colorScheme.secondary,
-                                onClick = {
-                                    adminViewModel.init(uiState.profile)
-                                    activeScreen = MoreSubScreen.ADMIN_PANEL
-                                }
-                            )
-                        }
+                        HubListRow(
+                            title = stringResource(R.string.hub_moderator_panel),
+                            subtitle = stringResource(R.string.hub_moderator_panel_sub),
+                            icon = Icons.Default.School,
+                            iconColor = MaterialTheme.colorScheme.secondary,
+                            onClick = {
+                                adminViewModel.init(uiState.profile)
+                                activeScreen = MoreSubScreen.ADMIN_PANEL
+                            }
+                        )
                     }
                 }
             }
@@ -799,11 +802,13 @@ fun MoreHubScreen(
                         onSaveProfile = coreViewModel::updateAcademicProfile
                     )
                     MoreSubScreen.PRIVACY_POLICY -> PrivacyPolicyScreen()
-MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
+                    MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
                         uiState = adminViewModel.uiState.value,
                         viewModel = adminViewModel,
                         onBack = { activeScreen = MoreSubScreen.HUB },
                         onManageModerators = { activeScreen = MoreSubScreen.ADMIN_MODERATORS },
+                        title = stringResource(R.string.hub_moderator_panel),
+                        allowedRoutes = moderatorPanelRoutes,
                         onNavigate = { route ->
                             activeScreen = when (route) {
                                 "SUBJECTS" -> MoreSubScreen.ADMIN_SUBJECTS

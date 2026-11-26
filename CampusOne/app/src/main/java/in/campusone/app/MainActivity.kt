@@ -384,6 +384,14 @@ fun CampusOneRoot(
                     pendingMoreScreen = MoreSubScreen.ADMIN_PANEL
                     currentTab = BottomNavTab.MORE
                 }
+                "ROLE_REQUEST" -> {
+                    pendingMoreScreen = MoreSubScreen.SUPER_ADMIN_ROLES
+                    currentTab = BottomNavTab.MORE
+                }
+                "PROFILE" -> {
+                    pendingMoreScreen = MoreSubScreen.PROFILE
+                    currentTab = BottomNavTab.MORE
+                }
             }
             pendingNotification.value = null
         }
@@ -634,6 +642,14 @@ fun CampusOneRoot(
                                 }
                                 "ADMIN" -> {
                                     pendingMoreScreen = MoreSubScreen.SUPER_ADMIN_MODERATION
+                                    currentTab = BottomNavTab.MORE
+                                }
+                                "ROLE_REQUEST" -> {
+                                    pendingMoreScreen = MoreSubScreen.SUPER_ADMIN_ROLES
+                                    currentTab = BottomNavTab.MORE
+                                }
+                                "PROFILE" -> {
+                                    pendingMoreScreen = MoreSubScreen.PROFILE
                                     currentTab = BottomNavTab.MORE
                                 }
                             }

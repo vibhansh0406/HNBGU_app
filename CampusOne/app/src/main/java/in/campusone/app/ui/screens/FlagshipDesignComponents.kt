@@ -752,6 +752,7 @@ fun FlagshipNotificationsScreen(
             "ACADEMIC" -> item.type.contains("class", true) || item.type.contains("academic", true) || item.type.contains("assignment", true) || item.type.contains("exam", true)
             "NOTICES" -> item.type.contains("notice", true) || item.type.contains("circular", true)
             "DEADLINES" -> item.type.contains("deadline", true) || item.type.contains("assignment", true)
+            "REQUESTS" -> item.type.contains("role_request", true)
             else -> true
         }
     }.sortedByDescending { it.createdAtMillis }
@@ -785,9 +786,9 @@ fun FlagshipNotificationsScreen(
         )
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = C1Spacing.pagePadding(ws), vertical = C1Spacing.md), verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
             androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                items(listOf("ALL", "ACADEMIC", "NOTICES", "DEADLINES").size) { idx ->
-                    val key = listOf("ALL", "ACADEMIC", "NOTICES", "DEADLINES")[idx]
-                    val label = listOf("All (" + uiState.notifications.size + ")", "Academic & Classes", "Notices & Circulars", "Deadlines")[idx]
+                items(listOf("ALL", "ACADEMIC", "NOTICES", "DEADLINES", "REQUESTS").size) { idx ->
+                    val key = listOf("ALL", "ACADEMIC", "NOTICES", "DEADLINES", "REQUESTS")[idx]
+                    val label = listOf("All (" + uiState.notifications.size + ")", "Academic & Classes", "Notices & Circulars", "Deadlines", "Role requests")[idx]
                     C1FilterChip(label = label, selected = filter == key, onClick = { filter = key })
                 }
             }

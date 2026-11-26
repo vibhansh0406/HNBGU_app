@@ -47,12 +47,15 @@ fun AdminHubScreen(
     viewModel: AdminViewModel,
     onBack: () -> Unit,
     onManageModerators: () -> Unit,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit,
+    title: String = "Admin Panel",
+    allowedRoutes: Set<String>? = null
 ) {
     val state = uiState
-    val visibleActions = remember(state.identity) {
+    val visibleActions = remember(state.identity, allowedRoutes) {
         adminActions.filter { action ->
-            (action.route != "USERS" || state.identity.isOwner) &&
+            (allowedRoutes == null || action.route in allowedRoutes) &&
+                (action.route != "USERS" || state.identity.isOwner) &&
                 (action.permission == null || state.identity.can(action.permission!!))
         }
     }
@@ -60,7 +63,7 @@ fun AdminHubScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Admin Panel") },
+                title = { Text(title) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -75,7 +78,7 @@ fun AdminHubScreen(
                 .padding(C1Spacing.md)
         ) {
             Text(
-                text = "Admin Panel",
+                text = title,
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )

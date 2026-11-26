@@ -320,6 +320,8 @@
     <string name="hub_directory_sub">HoDs, controller of exams, proctor &amp; emergency helplines</string>
     <string name="hub_superadmin_sub">Owner console • users, roles, content, moderation, audit</string>
     <string name="hub_admin_sub">Manage app data, users, notices, timetable &amp; more</string>
+    <string name="hub_moderator_panel">Moderator Panel</string>
+    <string name="hub_moderator_panel_sub">Add or remove notices, assignments, exams, clubs, events and more</string>
     <string name="hub_role_sub">CR and Moderator access — reviewed by the Admin</string>
     <string name="hub_privacy_sub">Zero ads, zero trackers, offline-first • MIT open source</string>
     <string name="hub_signout_sub">Sign out of Google &amp; Supabase on this device</string>
