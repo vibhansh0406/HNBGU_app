@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Directory
 import androidx.compose.material.icons.filled.Event
@@ -36,6 +37,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -646,7 +648,7 @@ fun ModeratorPanelScreen(
             onSave = { title, body, isPinned, category, priority, isOfficial ->
                 val now = System.currentTimeMillis()
                 val notice = NoticeEntity(
-                    id = editingNotice?.id ?: "notice_$now",
+                    id = notice?.id ?: "notice_$now",
                     sectionKey = uiState.sectionKey,
                     title = title,
                     body = body,
@@ -673,7 +675,7 @@ fun ModeratorPanelScreen(
             onSave = { subjectTag, title, description, priority, dueDate ->
                 val now = System.currentTimeMillis()
                 val assignment = AssignmentEntity(
-                    id = editingAssignment?.id ?: "assign_$now",
+                    id = assignment?.id ?: "assign_$now",
                     sectionKey = uiState.sectionKey,
                     subjectId = subjectTag.substringAfterLast("•").trim(),
                     subjectTag = subjectTag,
@@ -707,7 +709,7 @@ fun ModeratorPanelScreen(
             onSave = { clubName, category, title, description, venue, eventDate ->
                 val now = System.currentTimeMillis()
                 val event = CampusEventEntity(
-                    id = editingEvent?.id ?: "event_$now",
+                    id = event?.id ?: "event_$now",
                     collegeId = uiState.collegeId,
                     clubId = "club_gdsc_hnbgu",
                     clubName = clubName,
@@ -734,7 +736,7 @@ fun ModeratorPanelScreen(
             onSave = { name, category, description, contactEmail ->
                 val now = System.currentTimeMillis()
                 val club = ClubEntity(
-                    id = editingClub?.id ?: "club_$now",
+                    id = club?.id ?: "club_$now",
                     collegeId = uiState.collegeId,
                     name = name,
                     description = description,
@@ -763,7 +765,7 @@ fun ModeratorPanelScreen(
             onSave = { name, designation, department, phone, email, officeLocation, officeHours ->
                 val now = System.currentTimeMillis()
                 val contact = DirectoryContactEntity(
-                    id = editingDirectoryContact?.id ?: "dir_$now",
+                    id = contact?.id ?: "dir_$now",
                     collegeId = uiState.collegeId,
                     category = "FACULTY",
                     department = department,
@@ -773,8 +775,7 @@ fun ModeratorPanelScreen(
                     email = email,
                     officeLocation = officeLocation,
                     officeHours = officeHours,
-                    isEmergencyOrImportant = false,
-                    updatedAtMillis = now
+                    isEmergencyOrImportant = false
                 )
                 viewModel.saveDirectoryContact(contact)
                 openDirectoryDialog = false
