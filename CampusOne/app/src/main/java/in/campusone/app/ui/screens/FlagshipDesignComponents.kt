@@ -818,10 +818,14 @@ fun FlagshipNotificationsScreen(
                     }
                     items(entries.size, key = { entries[it].id }) { index ->
                         val notification = entries[index]
-                        FlagshipNotificationCard(notification) {
-                            viewModel.markNotificationRead(notification.id)
-                            onNavigate(notification.targetType, notification.targetId)
-                        }
+                        FlagshipNotificationCard(
+                            notification = notification,
+                            onClick = {
+                                viewModel.markNotificationRead(notification.id)
+                                onNavigate(notification.targetType, notification.targetId)
+                            },
+                            onDelete = { viewModel.deleteNotification(notification.id) }
+                        )
                     }
                 }
             }
@@ -830,7 +834,11 @@ fun FlagshipNotificationsScreen(
 }
 
 @Composable
-private fun FlagshipNotificationCard(notification: AppNotification, onClick: () -> Unit) {
+private fun FlagshipNotificationCard(
+    notification: AppNotification,
+    onClick: () -> Unit,
+    onDelete: () -> Unit
+) {
     val type = notification.type.lowercase()
     val iconBg = when {
         type.contains("assignment") || type.contains("deadline") -> FlagshipOchre
@@ -859,6 +867,9 @@ private fun FlagshipNotificationCard(notification: AppNotification, onClick: () 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(if (notification.isRead) "Read" else "New · Tap to open", style = MaterialTheme.typography.labelSmall, color = if (notification.isRead) FlagshipMuted else MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.weight(1f))
+                    IconButton(onClick = onDelete) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete notification", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
+                    }
                     Icon(Icons.Default.ArrowForward, contentDescription = "Open notification", tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(20.dp))
                 }
             }

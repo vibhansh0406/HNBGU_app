@@ -71,4 +71,7 @@ interface CommunityDao {
 
     @Query("UPDATE app_notifications SET isRead = 1 WHERE userId = :userId")
     suspend fun markAllNotificationsRead(userId: String)
+
+    @Query("DELETE FROM app_notifications WHERE id = :notificationId AND userId = :userId")
+    suspend fun deleteNotification(notificationId: String, userId: String)
 }

@@ -203,6 +203,11 @@ class CommunityRepository @Inject constructor(
         supabaseSync.markAllNotificationsRead(userId)
     }
 
+    suspend fun deleteNotification(notificationId: String, userId: String) {
+        dao.deleteNotification(notificationId, userId)
+        supabaseSync.deleteNotification(notificationId)
+    }
+
     private fun Map<String, Any>.toPostEntity(liked: Set<String>): CommunityPostEntity {
         val id = this["id"] as? String ?: ""
         return CommunityPostEntity(

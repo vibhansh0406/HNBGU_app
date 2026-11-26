@@ -833,6 +833,14 @@ class SupabaseSyncRepository @Inject constructor(
         return result.isSuccess
     }
 
+    suspend fun deleteNotification(notificationId: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("notifications")
+            .eq("id", notificationId)
+            .delete()
+        return result.isSuccess
+    }
+
     /**
      * Sends an authenticated admin broadcast through the server-side FCM gateway.
      * The Firebase service-account key never enters the Android application.

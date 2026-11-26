@@ -159,8 +159,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import `in`.campusone.app.ui.screens.admin.AdminEventsScreen
 import `in`.campusone.app.ui.screens.admin.AdminExamsScreen
-import `in`.campusone.app.ui.screens.admin.AdminHubScreen
 import `in`.campusone.app.ui.screens.admin.AdminLostFoundScreen
+import `in`.campusone.app.ui.screens.admin.ModeratorPanelScreen
 import `in`.campusone.app.ui.screens.admin.AdminNoticesScreen
 import `in`.campusone.app.ui.screens.admin.AdminSubjectsScreen
 import `in`.campusone.app.ui.screens.admin.AdminTimetableScreen
@@ -219,10 +219,6 @@ enum class MoreSubScreen {
 }
 
 private val requestableRoles = listOf(UserRole.CR, UserRole.MODERATOR)
-
-private val moderatorPanelRoutes = setOf(
-    "NOTICES", "ASSIGNMENTS", "EXAMS", "CLUBS", "EVENTS", "LOST_FOUND", "DIRECTORY"
-)
 
 /** Each sub-screen's parent for system Back navigation. Screens not listed go to HUB. */
 private val screenParent: Map<MoreSubScreen, MoreSubScreen> = mapOf(
@@ -802,29 +798,10 @@ fun MoreHubScreen(
                         onSaveProfile = coreViewModel::updateAcademicProfile
                     )
                     MoreSubScreen.PRIVACY_POLICY -> PrivacyPolicyScreen()
-                    MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
+                    MoreSubScreen.ADMIN_PANEL -> ModeratorPanelScreen(
                         uiState = adminViewModel.uiState.value,
                         viewModel = adminViewModel,
-                        onBack = { activeScreen = MoreSubScreen.HUB },
-                        onManageModerators = { activeScreen = MoreSubScreen.ADMIN_MODERATORS },
-                        title = stringResource(R.string.hub_moderator_panel),
-                        allowedRoutes = moderatorPanelRoutes,
-                        onNavigate = { route ->
-                            activeScreen = when (route) {
-                                "SUBJECTS" -> MoreSubScreen.ADMIN_SUBJECTS
-                                "TIMETABLE" -> MoreSubScreen.ADMIN_TIMETABLE
-                                "NOTICES" -> MoreSubScreen.ADMIN_NOTICES
-                                "ASSIGNMENTS" -> MoreSubScreen.ADMIN_ASSIGNMENTS
-                                "EXAMS" -> MoreSubScreen.ADMIN_EXAMS
-                                "CLUBS" -> MoreSubScreen.ADMIN_CLUBS
-                                "EVENTS" -> MoreSubScreen.ADMIN_EVENTS
-                                "LOST_FOUND" -> MoreSubScreen.ADMIN_LOST_FOUND
-                                "DIRECTORY" -> MoreSubScreen.ADMIN_DIRECTORY
-                                "USERS" -> if (adminState.identity.isOwner) MoreSubScreen.SUPER_ADMIN_USERS else MoreSubScreen.ADMIN_PANEL
-                                "REVIEW" -> MoreSubScreen.ADMIN_MODERATION
-                                else -> MoreSubScreen.ADMIN_PANEL
-                            }
-                        }
+                        onBack = { activeScreen = MoreSubScreen.HUB }
                     )
                     MoreSubScreen.ADMIN_MODERATORS -> ModeratorManagementScreen(
                         uiState = moderatorViewModel.uiState.value,

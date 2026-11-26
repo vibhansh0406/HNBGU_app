@@ -479,6 +479,13 @@ class AdminViewModel @Inject constructor(
         }
     }
 
+    fun deleteClub(clubId: String) {
+        viewModelScope.launch {
+            repository.deleteClub(clubId)
+            _messages.emit("Club deleted")
+        }
+    }
+
     // =========================================================================
     // EVENTS
     // =========================================================================
