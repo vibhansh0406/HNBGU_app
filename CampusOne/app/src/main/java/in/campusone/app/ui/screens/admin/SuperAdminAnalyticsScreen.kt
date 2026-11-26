@@ -2,7 +2,6 @@ package `in`.campusone.app.ui.screens.admin
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Assignment
@@ -45,8 +46,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -65,7 +64,7 @@ import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
  * Where a metric is not available from the backend, it is shown as "—"
  * rather than fabricating a value.
  */
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SuperAdminAnalyticsScreen(
     uiState: AdminUiState,
@@ -84,7 +83,7 @@ fun SuperAdminAnalyticsScreen(
                 ),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -92,10 +91,10 @@ fun SuperAdminAnalyticsScreen(
     ) { padding ->
         if (!state.identityLoaded || !identity.isOwner) {
             androidx.compose.foundation.layout.Box(
-                modifier = androidx.compose.foundation.layout.Modifier
+                modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
-                contentAlignment = androidx.compose.foundation.layout.Alignment.Center
+                contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "Owner access required",
@@ -118,7 +117,7 @@ fun SuperAdminAnalyticsScreen(
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
