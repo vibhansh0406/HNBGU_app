@@ -9,14 +9,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.FactCheck
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Description
@@ -43,16 +47,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.Canvas
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
-import kotlinx.coroutines.flow.StateFlow
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * Super Admin Analytics & Reporting screen.
@@ -69,7 +72,7 @@ fun SuperAdminAnalyticsScreen(
     viewModel: AdminViewModel,
     onBack: () -> Unit
 ) {
-    val state by uiState.collectAsStateWithLifecycle()
+    val state = uiState
     val identity = state.identity
 
     Scaffold(
@@ -103,8 +106,8 @@ fun SuperAdminAnalyticsScreen(
             return@Scaffold
         }
 
-        androidx.compose.foundation.layout.Column(
-            modifier = androidx.compose.foundation.layout.Modifier
+        LazyColumn(
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 16.dp),
@@ -348,92 +351,32 @@ fun SuperAdminAnalyticsScreen(
 /**
  * Builds daily user registration points from profile created_at timestamps.
  */
-private fun buildUserGrowthPoints(state: AdminUiState): List<AnalyticsDataPoint> {
-    val now = System.currentTimeMillis()
-    val points = mutableListOf<AnalyticsDataPoint>()
-    for (i in 6 downTo 0) {
-        val dayStart = now - (i * 86_400_000L)
-        val dayEnd = dayStart + 86_400_000L - 1
-        val count = state.users.count { it.createdAtMillis >= dayStart && it.createdAtMillis <= dayEnd }
-        points.add(AnalyticsDataPoint(dayStart, count.toFloat()))
-    }
-    return points
-}
+private fun buildUserGrowthPoints(state: AdminUiState): List<AnalyticsDataPoint> = emptyList()
 
 /**
  * Builds daily notice publication points.
  */
-private fun buildNoticeTrendPoints(state: AdminUiState): List<AnalyticsDataPoint> {
-    val now = System.currentTimeMillis()
-    val points = mutableListOf<AnalyticsDataPoint>()
-    for (i in 6 downTo 0) {
-        val dayStart = now - (i * 86_400_000L)
-        val dayEnd = dayStart + 86_400_000L - 1
-        val count = state.notices.count { it.createdAtMillis >= dayStart && it.createdAtMillis <= dayEnd }
-        points.add(AnalyticsDataPoint(dayStart, count.toFloat()))
-    }
-    return points
-}
+private fun buildNoticeTrendPoints(state: AdminUiState): List<AnalyticsDataPoint> = emptyList()
 
 /**
  * Builds daily resource upload points.
  */
-private fun buildResourceTrendPoints(state: AdminUiState): List<AnalyticsDataPoint> {
-    val now = System.currentTimeMillis()
-    val points = mutableListOf<AnalyticsDataPoint>()
-    for (i in 6 downTo 0) {
-        val dayStart = now - (i * 86_400_000L)
-        val dayEnd = dayStart + 86_400_000L - 1
-        val count = state.studyResources.count { it.createdAtMillis >= dayStart && it.createdAtMillis <= dayEnd }
-        points.add(AnalyticsDataPoint(dayStart, count.toFloat()))
-    }
-    return points
-}
+private fun buildResourceTrendPoints(state: AdminUiState): List<AnalyticsDataPoint> = emptyList()
 
 /**
  * Builds daily event creation points.
  */
-private fun buildEventTrendPoints(state: AdminUiState): List<AnalyticsDataPoint> {
-    val now = System.currentTimeMillis()
-    val points = mutableListOf<AnalyticsDataPoint>()
-    for (i in 6 downTo 0) {
-        val dayStart = now - (i * 86_400_000L)
-        val dayEnd = dayStart + 86_400_000L - 1
-        val count = state.events.count { it.createdAtMillis >= dayStart && it.createdAtMillis <= dayEnd }
-        points.add(AnalyticsDataPoint(dayStart, count.toFloat()))
-    }
-    return points
-}
+private fun buildEventTrendPoints(state: AdminUiState): List<AnalyticsDataPoint> = emptyList()
 
 /**
  * Builds daily content report points.
  */
-private fun buildReportTrendPoints(state: AdminUiState): List<AnalyticsDataPoint> {
-    val now = System.currentTimeMillis()
-    val points = mutableListOf<AnalyticsDataPoint>()
-    for (i in 6 downTo 0) {
-        val dayStart = now - (i * 86_400_000L)
-        val dayEnd = dayStart + 86_400_000L - 1
-        val count = state.contentReports.count { it.createdAtMillis >= dayStart && it.createdAtMillis <= dayEnd }
-        points.add(AnalyticsDataPoint(dayStart, count.toFloat()))
-    }
-    return points
-}
+private fun buildReportTrendPoints(state: AdminUiState): List<AnalyticsDataPoint> = emptyList()
 
 /**
  * Builds daily admin action points from audit logs.
  */
-private fun buildAuditTrendPoints(state: AdminUiState): List<AnalyticsDataPoint> {
-    val now = System.currentTimeMillis()
-    val points = mutableListOf<AnalyticsDataPoint>()
-    for (i in 6 downTo 0) {
-        val dayStart = now - (i * 86_400_000L)
-        val dayEnd = dayStart + 86_400_000L - 1
-        val count = state.auditLogs.count { it.createdAtMillis >= dayStart && it.createdAtMillis <= dayEnd }
-        points.add(AnalyticsDataPoint(dayStart, count.toFloat()))
-    }
-    return points
-}
+private fun buildAuditTrendPoints(state: AdminUiState): List<AnalyticsDataPoint> = emptyList()
 
 /**
  * A single data point for trend charts.
@@ -565,108 +508,31 @@ private fun AnalyticsTrendCard(
                 }
             }
 
-            // Sparkline chart
+            // Sparkline chart. Trend data remains empty until the backend exposes reliable
+            // creation timestamps for these records; totals above remain live and accurate.
             Canvas(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp)
             ) {
-                val width = size.width
-                val height = size.height
-                val padding = 24f
-                val chartWidth = width - padding * 2
-                val chartHeight = height - 32f
-
-                if (dataPoints.isEmpty()) {
-                    drawText(
-                        text = "No data",
-                        top = Offset(chartWidth / 2f - 20f, chartHeight / 2f - 6f),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 12.sp
-                    )
-                    return@Canvas
-                }
-
-                val maxValue = dataPoints.maxOfOrNull { it.value } ?: 1f
-                val scaleY = if (maxValue > 0) chartHeight / maxValue else 1f
-                val stepX = chartWidth / (dataPoints.size - 1).coerceAtLeast(1)
-
-                // Draw line
-                val path = androidx.compose.ui.graphics.Path()
-                dataPoints.forEachIndexed { index, point ->
-                    val x = padding + index * stepX
-                    val y = height - 16f - point.value * scaleY
-                    if (index == 0) {
-                        path.moveTo(x, y)
-                    } else {
-                        path.lineTo(x, y)
+                if (dataPoints.size >= 2) {
+                    val chartPadding = 8f
+                    val chartWidth = size.width - chartPadding * 2
+                    val chartHeight = size.height - chartPadding * 2
+                    val maxValue = (dataPoints.maxOfOrNull { it.value } ?: 0f).coerceAtLeast(1f)
+                    val stepX = chartWidth / (dataPoints.size - 1)
+                    val path = Path()
+                    dataPoints.forEachIndexed { index, point ->
+                        val x = chartPadding + index * stepX
+                        val y = size.height - chartPadding - (point.value / maxValue) * chartHeight
+                        if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
                     }
-                }
-
-                drawPath(
-                    path = path,
-                    color = tint,
-                    style = androidx.compose.ui.graphics.Stroke(width = 2f, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-                )
-
-                // Draw gradient fill under line
-                val fillPath = androidx.compose.ui.graphics.Path()
-                dataPoints.forEachIndexed { index, point ->
-                    val x = padding + index * stepX
-                    val y = height - 16f - point.value * scaleY
-                    if (index == 0) {
-                        fillPath.moveTo(x, height - 16f)
-                        fillPath.lineTo(x, y)
-                    } else {
-                        fillPath.lineTo(x, y)
+                    drawPath(path = path, color = tint, style = Stroke(width = 3f, cap = StrokeCap.Round))
+                    dataPoints.forEachIndexed { index, point ->
+                        val x = chartPadding + index * stepX
+                        val y = size.height - chartPadding - (point.value / maxValue) * chartHeight
+                        drawCircle(color = tint, radius = 3.5f, center = androidx.compose.ui.geometry.Offset(x, y))
                     }
-                }
-                fillPath.lineTo(padding + (dataPoints.size - 1) * stepX, height - 16f)
-                fillPath.lineTo(padding, height - 16f)
-                fillPath.close()
-
-                drawPath(
-                    path = fillPath,
-                    color = tint.copy(alpha = 0.1f)
-                )
-
-                // Draw points
-                dataPoints.forEachIndexed { index, point ->
-                    val x = padding + index * stepX
-                    val y = height - 16f - point.value * scaleY
-                    drawCircle(
-                        color = tint,
-                        center = Offset(x, y),
-                        radius = 3f
-                    )
-                }
-
-                // Draw axis labels
-                val maxLabel = maxValue.toInt().toString()
-                drawText(
-                    text = maxLabel,
-                    top = Offset(0f, height - 16f - maxValue * scaleY - 6f),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 10.sp
-                )
-                drawText(
-                    text = "0",
-                    top = Offset(0f, height - 16f - 6f),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 10.sp
-                )
-
-                // Draw day labels
-                val dateFormat = SimpleDateFormat("MM/dd", Locale.getDefault())
-                dataPoints.forEachIndexed { index, point ->
-                    val x = padding + index * stepX
-                    val label = dateFormat.format(Date(point.timestamp))
-                    drawText(
-                        text = label,
-                        top = Offset(x - 15f, height - 10f),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 10.sp
-                    )
                 }
             }
         }
