@@ -19,7 +19,7 @@ import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Directory
+import androidx.compose.material.icons.filled.AddressBook
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.FindInPage
 import androidx.compose.material.icons.filled.Group
@@ -648,7 +648,7 @@ fun ModeratorPanelScreen(
             onSave = { title, body, isPinned, category, priority, isOfficial ->
                 val now = System.currentTimeMillis()
                 val notice = NoticeEntity(
-                    id = notice?.id ?: "notice_$now",
+                    id = editingNotice?.id ?: "notice_$now",
                     sectionKey = uiState.sectionKey,
                     title = title,
                     body = body,
@@ -658,8 +658,8 @@ fun ModeratorPanelScreen(
                     isOfficial = isOfficial,
                     authorName = uiState.profile.name,
                     authorRole = uiState.profile.role,
-                    createdAtMillis = now,
-                    updatedAtMillis = now
+                    authorUid = uiState.profile.uid,
+                    createdAtMillis = now
                 )
                 viewModel.saveNoticeRemote(notice, shouldNotify = true)
                 openNoticeDialog = false
@@ -675,7 +675,7 @@ fun ModeratorPanelScreen(
             onSave = { subjectTag, title, description, priority, dueDate ->
                 val now = System.currentTimeMillis()
                 val assignment = AssignmentEntity(
-                    id = assignment?.id ?: "assign_$now",
+                    id = editingAssignment?.id ?: "assign_$now",
                     sectionKey = uiState.sectionKey,
                     subjectId = subjectTag.substringAfterLast("•").trim(),
                     subjectTag = subjectTag,
@@ -709,7 +709,7 @@ fun ModeratorPanelScreen(
             onSave = { clubName, category, title, description, venue, eventDate ->
                 val now = System.currentTimeMillis()
                 val event = CampusEventEntity(
-                    id = event?.id ?: "event_$now",
+                    id = editingEvent?.id ?: "event_$now",
                     collegeId = uiState.collegeId,
                     clubId = "club_gdsc_hnbgu",
                     clubName = clubName,
@@ -736,7 +736,7 @@ fun ModeratorPanelScreen(
             onSave = { name, category, description, contactEmail ->
                 val now = System.currentTimeMillis()
                 val club = ClubEntity(
-                    id = club?.id ?: "club_$now",
+                    id = editingClub?.id ?: "club_$now",
                     collegeId = uiState.collegeId,
                     name = name,
                     description = description,
@@ -765,7 +765,7 @@ fun ModeratorPanelScreen(
             onSave = { name, designation, department, phone, email, officeLocation, officeHours ->
                 val now = System.currentTimeMillis()
                 val contact = DirectoryContactEntity(
-                    id = contact?.id ?: "dir_$now",
+                    id = editingDirectoryContact?.id ?: "dir_$now",
                     collegeId = uiState.collegeId,
                     category = "FACULTY",
                     department = department,
