@@ -156,6 +156,8 @@ jobs:
 
       - name: Run Room migration tests on Android 35
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        env:
+          ANDROID_I_WANT_MY_TCG: "yes"
         with:
           api-level: 35
           target: google_apis
