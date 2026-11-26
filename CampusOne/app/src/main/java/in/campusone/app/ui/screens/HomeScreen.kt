@@ -177,7 +177,6 @@ fun HomeScreen(
             item {
                 QuickActionsSection(onOpenMore = onOpenMore)
             }
-            }
         }
     }
 }
