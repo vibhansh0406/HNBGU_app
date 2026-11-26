@@ -117,31 +117,87 @@ fun ModeratorPanelScreen(
 
             // Notices
             item {
-                ModeratorContentCard(
-                    title = "Notices",
-                    subtitle = "${uiState.notices.size} campus notices",
-                    icon = Icons.Default.Campaign,
-                    addEnabled = canManageNotices,
-                    onAdd = { openNoticeDialog = true; editingNotice = null },
-                    emptyText = "No notices yet",
-                    items = uiState.notices,
-                    idExtractor = { it.id },
-                    onItemClick = { editingNotice = it; openNoticeDialog = true },
-                    onDelete = { viewModel.deleteNoticeRemote(it.id) },
-                    onSync = { viewModel.saveNoticeRemote(it, shouldNotify = false) },
-                    itemContent = { notice ->
-                        Column {
+                C1ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.lg)
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Notices",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "${uiState.notices.size} campus notices",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            if (canManageNotices) {
+                                C1IconButton(
+                                    onClick = { openNoticeDialog = true; editingNotice = null },
+                                    content = { Icon(Icons.Default.Add, contentDescription = "Add Notice") }
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(C1Spacing.md))
+                        if (uiState.notices.isEmpty()) {
                             Text(
-                                text = notice.title,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = notice.body.take(80),
+                                text = "No notices yet",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 2
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                        } else {
+                            items(
+                                items = uiState.notices,
+                                key = { it.id }
+                            ) { notice ->
+                                C1SurfaceCard(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    onClick = { editingNotice = it; openNoticeDialog = true }
+                                ) {
+                                    Column(modifier = Modifier.padding(C1Spacing.md)) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column {
+                                                Text(
+                                                    text = notice.title,
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = notice.body.take(80),
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    maxLines = 2
+                                                )
+                                            }
+                                            Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                                                if (canManageNotices) {
+                                                    C1IconButton(
+                                                        onClick = { viewModel.deleteNoticeRemote(notice.id) },
+                                                        content = { Icon(Icons.Default.Delete, contentDescription = "Delete Notice") }
+                                                    )
+                                                }
+                                                C1IconButton(
+                                                    onClick = { viewModel.saveNoticeRemote(notice, shouldNotify = false) },
+                                                    content = { Icon(Icons.Default.CloudUpload, contentDescription = "Sync Notice") }
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -149,30 +205,82 @@ fun ModeratorPanelScreen(
 
             // Assignments
             item {
-                ModeratorContentCard(
-                    title = "Assignments",
-                    subtitle = "${uiState.assignments.size} active assignments",
-                    icon = Icons.Default.Assignment,
-                    addEnabled = canManageAssignments,
-                    onAdd = { openAssignmentDialog = true; editingAssignment = null },
-                    emptyText = "No assignments yet",
-                    items = uiState.assignments,
-                    idExtractor = { it.id },
-                    onItemClick = { editingAssignment = it; openAssignmentDialog = true },
-                    onDelete = { viewModel.deleteAssignment(it.id) },
-                    onSync = null,
-                    itemContent = { assignment ->
-                        Column {
+                C1ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.lg)
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Assignments",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "${uiState.assignments.size} active assignments",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            if (canManageAssignments) {
+                                C1IconButton(
+                                    onClick = { openAssignmentDialog = true; editingAssignment = null },
+                                    content = { Icon(Icons.Default.Add, contentDescription = "Add Assignment") }
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(C1Spacing.md))
+                        if (uiState.assignments.isEmpty()) {
                             Text(
-                                text = assignment.title,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "${assignment.subjectTag} • Due: ${assignment.dueDateFormatted}",
+                                text = "No assignments yet",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                        } else {
+                            items(
+                                items = uiState.assignments,
+                                key = { it.id }
+                            ) { assignment ->
+                                C1SurfaceCard(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    onClick = { editingAssignment = it; openAssignmentDialog = true }
+                                ) {
+                                    Column(modifier = Modifier.padding(C1Spacing.md)) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column {
+                                                Text(
+                                                    text = assignment.title,
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = "${assignment.subjectTag} • Due: ${assignment.dueDateFormatted}",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                            Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                                                if (canManageAssignments) {
+                                                    C1IconButton(
+                                                        onClick = { viewModel.deleteAssignment(assignment.id) },
+                                                        content = { Icon(Icons.Default.Delete, contentDescription = "Delete Assignment") }
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -180,30 +288,82 @@ fun ModeratorPanelScreen(
 
             // Events
             item {
-                ModeratorContentCard(
-                    title = "Events",
-                    subtitle = "${uiState.events.size} upcoming events",
-                    icon = Icons.Default.Event,
-                    addEnabled = canManageEvents,
-                    onAdd = { openEventDialog = true; editingEvent = null },
-                    emptyText = "No events yet",
-                    items = uiState.events,
-                    idExtractor = { it.id },
-                    onItemClick = { editingEvent = it; openEventDialog = true },
-                    onDelete = { viewModel.deleteEvent(it.id) },
-                    onSync = null,
-                    itemContent = { event ->
-                        Column {
+                C1ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.lg)
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Events",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "${uiState.events.size} upcoming events",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            if (canManageEvents) {
+                                C1IconButton(
+                                    onClick = { openEventDialog = true; editingEvent = null },
+                                    content = { Icon(Icons.Default.Add, contentDescription = "Add Event") }
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(C1Spacing.md))
+                        if (uiState.events.isEmpty()) {
                             Text(
-                                text = event.title,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "${event.clubName} • ${event.eventDateFormatted}",
+                                text = "No events yet",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                        } else {
+                            items(
+                                items = uiState.events,
+                                key = { it.id }
+                            ) { event ->
+                                C1SurfaceCard(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    onClick = { editingEvent = it; openEventDialog = true }
+                                ) {
+                                    Column(modifier = Modifier.padding(C1Spacing.md)) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column {
+                                                Text(
+                                                    text = event.title,
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = "${event.clubName} • ${event.eventDateFormatted}",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                            Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                                                if (canManageEvents) {
+                                                    C1IconButton(
+                                                        onClick = { viewModel.deleteEvent(event.id) },
+                                                        content = { Icon(Icons.Default.Delete, contentDescription = "Delete Event") }
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -211,30 +371,82 @@ fun ModeratorPanelScreen(
 
             // Clubs
             item {
-                ModeratorContentCard(
-                    title = "Clubs",
-                    subtitle = "${uiState.clubs.size} campus clubs",
-                    icon = Icons.Default.Group,
-                    addEnabled = canManageClubs,
-                    onAdd = { openClubDialog = true; editingClub = null },
-                    emptyText = "No clubs yet",
-                    items = uiState.clubs,
-                    idExtractor = { it.id },
-                    onItemClick = { editingClub = it; openClubDialog = true },
-                    onDelete = { viewModel.deleteClub(it.id) },
-                    onSync = null,
-                    itemContent = { club ->
-                        Column {
+                C1ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.lg)
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Clubs",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "${uiState.clubs.size} campus clubs",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            if (canManageClubs) {
+                                C1IconButton(
+                                    onClick = { openClubDialog = true; editingClub = null },
+                                    content = { Icon(Icons.Default.Add, contentDescription = "Add Club") }
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(C1Spacing.md))
+                        if (uiState.clubs.isEmpty()) {
                             Text(
-                                text = "${club.logoEmojiOrUrl}  ${club.name}",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = club.category,
+                                text = "No clubs yet",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                        } else {
+                            items(
+                                items = uiState.clubs,
+                                key = { it.id }
+                            ) { club ->
+                                C1SurfaceCard(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    onClick = { editingClub = it; openClubDialog = true }
+                                ) {
+                                    Column(modifier = Modifier.padding(C1Spacing.md)) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column {
+                                                Text(
+                                                    text = "${club.logoEmojiOrUrl}  ${club.name}",
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = club.category,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                            Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                                                if (canManageClubs) {
+                                                    C1IconButton(
+                                                        onClick = { viewModel.deleteClub(club.id) },
+                                                        content = { Icon(Icons.Default.Delete, contentDescription = "Delete Club") }
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -242,47 +454,83 @@ fun ModeratorPanelScreen(
 
             // Lost & Found
             item {
-                ModeratorContentCard(
-                    title = "Lost & Found",
-                    subtitle = "${uiState.lostFound.size} items reported",
-                    icon = Icons.Default.FindInPage,
-                    addEnabled = false,
-                    onAdd = { },
-                    emptyText = "No lost & found items",
-                    items = uiState.lostFound,
-                    idExtractor = { it.id },
-                    onItemClick = { },
-                    onDelete = null,
-                    onSync = null,
-                    itemContent = { item ->
-                        Column {
+                C1ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.lg)
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Lost & Found",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "${uiState.lostFound.size} items reported",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(C1Spacing.md))
+                        if (uiState.lostFound.isEmpty()) {
                             Text(
-                                text = "${if (item.type == "LOST") "🔍" else "📦"}  ${item.itemTitle}",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "${item.type} • ${item.location}",
+                                text = "No lost & found items",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                        }
-                    },
-                    extraActions = {
-                        Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                            if (!item.isResolved) {
-                                C1Button(
-                                    text = "Resolve",
-                                    onClick = { viewModel.resolveLostFound(item.id) },
-                                    intent = C1ButtonIntent.PRIMARY
-                                )
-                            } else {
-                                Icon(Icons.Default.CheckCircle, contentDescription = "Resolved", tint = MaterialTheme.colorScheme.primary)
+                        } else {
+                            items(
+                                items = uiState.lostFound,
+                                key = { it.id }
+                            ) { item ->
+                                C1SurfaceCard(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    onClick = { }
+                                ) {
+                                    Column(modifier = Modifier.padding(C1Spacing.md)) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column {
+                                                Text(
+                                                    text = "${if (item.type == "LOST") "🔍" else "📦"}  ${item.itemTitle}",
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = "${item.type} • ${item.location}",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                            Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                                                if (!item.isResolved) {
+                                                    C1Button(
+                                                        text = "Resolve",
+                                                        onClick = { viewModel.resolveLostFound(item.id) },
+                                                        intent = C1ButtonIntent.PRIMARY
+                                                    )
+                                                } else {
+                                                    Icon(Icons.Default.CheckCircle, contentDescription = "Resolved", tint = MaterialTheme.colorScheme.primary)
+                                                }
+                                                C1IconButton(
+                                                    onClick = { viewModel.hideLostFound(item.id) },
+                                                    content = { Icon(Icons.Default.FindInPage, contentDescription = "Hide") }
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                            C1IconButton(
-                                onClick = { viewModel.hideLostFound(item.id) },
-                                content = { Icon(Icons.Default.FindInPage, contentDescription = "Hide") }
-                            )
                         }
                     }
                 }
@@ -290,35 +538,77 @@ fun ModeratorPanelScreen(
 
             // Directory
             item {
-                ModeratorContentCard(
-                    title = "Directory",
-                    subtitle = "${uiState.directory.size} contacts",
-                    icon = Icons.Default.Directory,
-                    addEnabled = true,
-                    onAdd = { openDirectoryDialog = true; editingDirectoryContact = null },
-                    emptyText = "No directory contacts yet",
-                    items = uiState.directory,
-                    idExtractor = { it.id },
-                    onItemClick = { editingDirectoryContact = it; openDirectoryDialog = true },
-                    onDelete = null,
-                    onSync = null,
-                    itemContent = { contact ->
-                        Column {
-                            Text(
-                                text = contact.name,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold
+                C1ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.lg)
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Directory",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "${uiState.directory.size} contacts",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            C1IconButton(
+                                onClick = { openDirectoryDialog = true; editingDirectoryContact = null },
+                                content = { Icon(Icons.Default.Add, contentDescription = "Add Directory Contact") }
                             )
+                        }
+                        Spacer(modifier = Modifier.height(C1Spacing.md))
+                        if (uiState.directory.isEmpty()) {
                             Text(
-                                text = "${contact.designation} • ${contact.department}",
+                                text = "No directory contacts yet",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            Text(
-                                text = contact.phone,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                        } else {
+                            items(
+                                items = uiState.directory,
+                                key = { it.id }
+                            ) { contact ->
+                                C1SurfaceCard(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    onClick = { editingDirectoryContact = it; openDirectoryDialog = true }
+                                ) {
+                                    Column(modifier = Modifier.padding(C1Spacing.md)) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column {
+                                                Text(
+                                                    text = contact.name,
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Text(
+                                                    text = "${contact.designation} • ${contact.department}",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                                Text(
+                                                    text = contact.phone,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -327,19 +617,37 @@ fun ModeratorPanelScreen(
             // Reports & Moderation
             if (canModerateReports) {
                 item {
-                    ModeratorContentCard(
-                        title = "Reports & Moderation",
-                        subtitle = "${uiState.flaggedContent.size} items need review",
-                        icon = Icons.Default.Notifications,
-                        addEnabled = false,
-                        onAdd = { },
-                        emptyText = "Review flagged content in the Super Admin panel",
-                        items = emptyList(),
-                        idExtractor = { "" },
-                        onItemClick = { },
-                        onDelete = null,
-                        onSync = null,
-                        itemContent = { }
+                    C1ElevatedCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.lg)
+                    ) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "Reports & Moderation",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = "${uiState.flaggedContent.size} items need review",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(C1Spacing.md))
+                            Text(
+                                text = "Review flagged content in the Super Admin panel.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
@@ -479,97 +787,6 @@ fun ModeratorPanelScreen(
             }
         )
     }
-}
-
-@Composable
-private fun <T> ModeratorContentCard(
-    title: String,
-    subtitle: String,
-    icon: ImageVector,
-    addEnabled: Boolean,
-    onAdd: () -> Unit,
-    emptyText: String,
-    items: List<T>,
-    idExtractor: (T) -> String,
-    onItemClick: (T) -> Unit,
-    onDelete: ((String) -> Unit)?,
-    onSync: ((T) -> Unit)?,
-    itemContent: @Composable (T) -> Unit,
-    extraActions: @Composable () -> Unit = {}
-) {
-    C1ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.lg)
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                if (addEnabled) {
-                        C1IconButton(
-                            onClick = { openDirectoryDialog = true },
-                            content = { Icon(Icons.Default.Add, contentDescription = "Add Directory Contact") }
-                        )
-                }
-            }
-            Spacer(modifier = Modifier.height(C1Spacing.md))
-            if (items.isEmpty()) {
-                Text(
-                    text = emptyText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            } else {
-                items.forEach { item ->
-                    C1SurfaceCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = { onItemClick(item) }
-                    ) {
-                        Column(modifier = Modifier.padding(C1Spacing.md)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                itemContent(item)
-                                Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                                    extraActions()
-                                    if (onDelete != null) {
-                                        C1IconButton(
-                                            onClick = { onDelete(idExtractor(item)) },
-                                            content = { Icon(Icons.Default.Delete, contentDescription = "Delete $title") }
-                                        )
-                                    }
-                                    if (onSync != null) {
-                                        C1IconButton(
-                                            onClick = { onSync(item) },
-                                            content = { Icon(Icons.Default.CloudUpload, contentDescription = "Sync $title") }
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 }
 
 @Composable
