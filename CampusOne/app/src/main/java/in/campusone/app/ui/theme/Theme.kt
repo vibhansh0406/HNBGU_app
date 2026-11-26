@@ -1,15 +1,23 @@
 package `in`.campusone.app.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.os.Build
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
+import androidx.core.view.WindowCompat
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -38,10 +46,10 @@ private val LightColorScheme = ColorScheme(
     onError = Color.White,
     errorContainer = Color(0xFFFBE5E2),
     onErrorContainer = Color(0xFF4A0E08),
-    background = Color(0xFFF6F7F2),
-    onBackground = Color(0xFF17231F),
+    background = Color(0xFFF9FAF5),
+    onBackground = Color(0xFF1A1C19),
     surface = Color.White,
-    onSurface = Color(0xFF17231F),
+    onSurface = Color(0xFF1A1C19),
     surfaceVariant = Color(0xFFEAF0E9),
     onSurfaceVariant = Color(0xFF53665A),
     inverseSurface = Color(0xFF17231F),
@@ -60,44 +68,34 @@ private val LightColorScheme = ColorScheme(
     surfaceContainerLowest = Color.White
 )
 
-private val DarkColorScheme = ColorScheme(
-    primary = Color(0xFFA9D6BC),
-    onPrimary = Color(0xFF163D2E),
-    primaryContainer = Color(0xFF284F3C),
-    onPrimaryContainer = Color(0xFFE4F0E7),
-    secondary = Color(0xFFB4D3D9),
-    onSecondary = Color(0xFF163D2E),
-    secondaryContainer = Color(0xFF294A51),
-    onSecondaryContainer = Color(0xFFE3EEF0),
-    tertiary = Color(0xFFE7BD8A),
-    onTertiary = Color(0xFF402A17),
-    tertiaryContainer = Color(0xFF5B432D),
-    onTertiaryContainer = Color(0xFFF5E8D4),
-    error = Color(0xFFFF8A7A),
-    onError = Color(0xFF4A0E08),
-    errorContainer = Color(0xFF4A1510),
-    onErrorContainer = Color(0xFFFBE5E2),
-    background = Color(0xFF101B16),
-    onBackground = Color(0xFFEEF4EE),
-    surface = Color(0xFF18241E),
-    onSurface = Color(0xFFEEF4EE),
-    surfaceVariant = Color(0xFF24352C),
-    onSurfaceVariant = Color(0xFFBACABE),
-    inverseSurface = Color(0xFFEEF4EE),
-    inverseOnSurface = Color(0xFF18241E),
-    inversePrimary = Color(0xFF1E634B),
-    surfaceTint = Color(0xFFA9D6BC),
-    outline = Color(0xFF64796B),
-    outlineVariant = Color(0xFF33483C),
-    scrim = Color(0xCC000000),
-    surfaceBright = Color(0xFF24352C),
-    surfaceDim = Color(0xFF101B16),
-    surfaceContainer = Color(0xFF1C2B23),
-    surfaceContainerHigh = Color(0xFF24352C),
-    surfaceContainerHighest = Color(0xFF33483C),
-    surfaceContainerLow = Color(0xFF18241E),
-    surfaceContainerLowest = Color(0xFF101B16)
-)
+private fun Context.findActivity(): Activity? {
+    var current: Context = this
+    while (current is ContextWrapper) {
+        if (current is Activity) return current
+        current = current.baseContext
+    }
+    return current as? Activity
+}
+
+@Composable
+private fun CampusOneSystemBars() {
+    val view = LocalView.current
+    val window = LocalContext.current.findActivity()?.window
+    val barColor = MaterialTheme.colorScheme.background
+    if (window != null && !view.isInEditMode) {
+        SideEffect {
+            window.statusBarColor = barColor.toArgb()
+            window.navigationBarColor = barColor.toArgb()
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = true
+                isAppearanceLightNavigationBars = true
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                window.isNavigationBarContrastEnforced = false
+            }
+        }
+    }
+}
 
 // ============================================================================
 // SHAPES
@@ -145,24 +143,22 @@ fun campusTypography(windowSize: C1WindowSize): Typography {
 
 @Composable
 fun CampusOneTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
     windowSize: C1WindowSize = C1WindowSize.COMPACT,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-    val extended = if (darkTheme) DarkExtendedColors else LightExtendedColors
-    val componentColors = if (darkTheme) DarkComponentColors else LightComponentColors
-
     CompositionLocalProvider(
-        LocalExtendedColors provides extended,
-        LocalComponentColors provides componentColors
+        LocalExtendedColors provides LightExtendedColors,
+        LocalComponentColors provides LightComponentColors,
+        LocalWindowSize provides windowSize
     ) {
         MaterialTheme(
-            colorScheme = colorScheme,
+            colorScheme = LightColorScheme,
             typography = campusTypography(windowSize),
-            shapes = CampusOneShapes,
-            content = content
-        )
+            shapes = CampusOneShapes
+        ) {
+            CampusOneSystemBars()
+            content()
+        }
     }
 }
 

@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -46,6 +47,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.EventNote
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.FindInPage
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Forum
@@ -119,6 +122,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import `in`.campusone.app.R
 import `in`.campusone.app.data.local.entity.AssignmentEntity
 import `in`.campusone.app.data.local.entity.StudyResourceEntity
@@ -162,9 +166,11 @@ import `in`.campusone.app.ui.screens.admin.AdminNoticesScreen
 import `in`.campusone.app.ui.screens.admin.AdminSubjectsScreen
 import `in`.campusone.app.ui.screens.admin.AdminTimetableScreen
 import `in`.campusone.app.ui.screens.admin.ModeratorManagementScreen
+import `in`.campusone.app.ui.screens.admin.SuperAdminAcademicScreen
 import `in`.campusone.app.ui.screens.admin.SuperAdminAuditScreen
 import `in`.campusone.app.ui.screens.admin.SuperAdminContentScreen
 import `in`.campusone.app.ui.screens.admin.SuperAdminModerationScreen
+import `in`.campusone.app.ui.screens.admin.SuperAdminAnalyticsScreen
 import `in`.campusone.app.ui.screens.admin.SuperAdminPanelScreen
 import `in`.campusone.app.ui.screens.admin.SuperAdminRolesScreen
 import `in`.campusone.app.ui.screens.admin.SuperAdminSection
@@ -178,6 +184,7 @@ import java.util.Locale
 
 enum class MoreSubScreen {
     HUB,
+    CAMPUS_COMMUNITY,
     COMMUNITY,
     NOTIFICATIONS,
     PROFILE,
@@ -185,7 +192,6 @@ enum class MoreSubScreen {
     NOTES_PYQ,
     ASSIGNMENTS,
     EXAMS_SYLLABUS,
-    GPA_CALCULATOR,
     EVENTS_CLUBS,
     LOST_FOUND,
     DIRECTORY,
@@ -208,7 +214,9 @@ enum class MoreSubScreen {
     SUPER_ADMIN_CONTENT,
     SUPER_ADMIN_MODERATION,
     SUPER_ADMIN_SETTINGS,
-    SUPER_ADMIN_AUDIT
+    SUPER_ADMIN_AUDIT,
+    SUPER_ADMIN_ANALYTICS,
+    SUPER_ADMIN_ACADEMIC
 }
 
 private val requestableRoles = listOf(UserRole.CR)
@@ -231,7 +239,9 @@ private val screenParent: Map<MoreSubScreen, MoreSubScreen> = mapOf(
     MoreSubScreen.SUPER_ADMIN_CONTENT to MoreSubScreen.SUPER_ADMIN,
     MoreSubScreen.SUPER_ADMIN_MODERATION to MoreSubScreen.SUPER_ADMIN,
     MoreSubScreen.SUPER_ADMIN_SETTINGS to MoreSubScreen.SUPER_ADMIN,
-    MoreSubScreen.SUPER_ADMIN_AUDIT to MoreSubScreen.SUPER_ADMIN
+    MoreSubScreen.SUPER_ADMIN_AUDIT to MoreSubScreen.SUPER_ADMIN,
+    MoreSubScreen.SUPER_ADMIN_ANALYTICS to MoreSubScreen.SUPER_ADMIN,
+    MoreSubScreen.SUPER_ADMIN_ACADEMIC to MoreSubScreen.SUPER_ADMIN
 )
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -290,7 +300,6 @@ fun MoreHubScreen(
     val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
     val communityState by communityViewModel.uiState.collectAsStateWithLifecycle()
     val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
-    val unreadNotifications by communityViewModel.unreadNotificationCount.collectAsStateWithLifecycle()
     val isSuperAdmin = adminState.identity.isOwner
 
     androidx.compose.runtime.LaunchedEffect(activeScreen, adminState.identity.isOwner, uiState.profile.role) {
@@ -318,22 +327,70 @@ fun MoreHubScreen(
         return
     }
     if (activeScreen == MoreSubScreen.NOTIFICATIONS) {
-        NotificationsScreen(
+        FlagshipNotificationsScreen(
             viewModel = communityViewModel,
             onBack = { activeScreen = MoreSubScreen.HUB },
             onNavigate = { targetType, targetId ->
                 activeScreen = MoreSubScreen.HUB
                 onNotificationNavigate(targetType, targetId)
-            }
+            },
+            onOpenProfile = { activeScreen = MoreSubScreen.PROFILE }
         )
         return
     }
     if (activeScreen == MoreSubScreen.PROFILE) {
-        StudentProfileScreen(
-            uiState = coreState,
-            avatarUrl = coreViewModel.currentUserAvatarUrl,
+        Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+            Box(modifier = Modifier.weight(1f)) {
+                StudentProfileScreen(
+                    uiState = coreState,
+                    avatarUrl = coreViewModel.currentUserAvatarUrl,
+                    onBack = { activeScreen = MoreSubScreen.HUB },
+                    onSaveProfile = coreViewModel::updateAcademicProfile
+                )
+            }
+        }
+        return
+    }
+
+    if (activeScreen == MoreSubScreen.CAMPUS_COMMUNITY) {
+        FlagshipCampusCommunityOverview(
+            uiState = uiState,
             onBack = { activeScreen = MoreSubScreen.HUB },
-            onSaveProfile = coreViewModel::updateAcademicProfile
+            onOpenEvents = { activeScreen = MoreSubScreen.EVENTS_CLUBS },
+            onOpenLostFound = { activeScreen = MoreSubScreen.LOST_FOUND },
+            onOpenDirectory = { activeScreen = MoreSubScreen.DIRECTORY },
+            onOpenNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
+            onOpenProfile = { activeScreen = MoreSubScreen.PROFILE }
+        )
+        return
+    }
+    if (activeScreen == MoreSubScreen.EVENTS_CLUBS) {
+        FlagshipEventsAndClubsScreen(
+            uiState = uiState,
+            viewModel = viewModel,
+            onBack = { activeScreen = MoreSubScreen.CAMPUS_COMMUNITY },
+            onOpenNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
+            onOpenProfile = { activeScreen = MoreSubScreen.PROFILE }
+        )
+        return
+    }
+    if (activeScreen == MoreSubScreen.LOST_FOUND) {
+        FlagshipLostAndFoundScreen(
+            uiState = uiState,
+            viewModel = viewModel,
+            onBack = { activeScreen = MoreSubScreen.CAMPUS_COMMUNITY },
+            onOpenNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
+            onOpenProfile = { activeScreen = MoreSubScreen.PROFILE }
+        )
+        return
+    }
+    if (activeScreen == MoreSubScreen.DIRECTORY) {
+        FlagshipCampusDirectoryScreen(
+            uiState = uiState,
+            viewModel = viewModel,
+            onBack = { activeScreen = MoreSubScreen.CAMPUS_COMMUNITY },
+            onOpenNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
+            onOpenProfile = { activeScreen = MoreSubScreen.PROFILE }
         )
         return
     }
@@ -345,42 +402,78 @@ fun MoreHubScreen(
             profile.name.isNotBlank() -> stringResource(R.string.home_greeting, profile.name)
             else -> stringResource(R.string.hub_greeting_default)
         }
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(C1Spacing.lg)
-                .widthIn(max = C1MaxContentWidth(ws)),
-            verticalArrangement = Arrangement.spacedBy(C1Spacing.xl)
         ) {
-            // ===== Header =====
+            FlagshipAppHeader(
+                campusName = profile.collegeName,
+                userName = profile.name,
+                onNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
+                onProfile = { activeScreen = MoreSubScreen.PROFILE }
+            )
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = C1Spacing.lg)
+                    .widthIn(max = C1MaxContentWidth(ws)),
+                contentPadding = PaddingValues(top = C1Spacing.lg, bottom = C1Spacing.xl),
+                verticalArrangement = Arrangement.spacedBy(C1Spacing.xl)
+            ) {
+            // ===== Verified student profile =====
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column {
-                        Text(
-                            text = greeting,
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.semantics { heading() }
+                FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
+                    ) {
+                        C1Avatar(
+                            name = profile.name,
+                            size = 54.dp,
+                            imageUrl = coreViewModel.currentUserAvatarUrl,
+                            fontSize = 22,
+                            onClick = { activeScreen = MoreSubScreen.PROFILE }
                         )
-                        Text(
-                            text = "${profile.collegeName} • ${profile.courseName} Sem ${profile.semester} Sec ${profile.section}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            FlagshipPill("CAMPUS PROFILE")
+                            Text(
+                                text = greeting,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Text(
+                                text = "${profile.collegeName} · ${profile.courseName}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f),
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            val academicYear = when {
+                                profile.semester in 1..2 -> "1st Year"
+                                profile.semester in 3..4 -> "2nd Year"
+                                profile.semester in 5..6 -> "3rd Year"
+                                profile.semester in 7..8 -> "4th Year"
+                                else -> "${profile.semester}th Year"
+                            }
+                            Text(
+                                text = academicYear,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f)
+                            )
+                            Text(
+                                text = "Current Semester: Semester ${profile.semester} · Section ${profile.section}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f)
+                            )
+                        }
                     }
-                    C1Avatar(
-                        name = profile.name,
-                        size = 44.dp,
-                        imageUrl = coreViewModel.currentUserAvatarUrl,
-                        fontSize = 20,
-                        onClick = { activeScreen = MoreSubScreen.PROFILE }
-                    )
+                    TextButton(onClick = { activeScreen = MoreSubScreen.PROFILE }) {
+                        Text("View student profile", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    }
                 }
             }
 
@@ -409,7 +502,7 @@ fun MoreHubScreen(
                         title = stringResource(R.string.assignments_title),
                         subtitle = stringResource(R.string.hub_assignments_sub, uiState.assignments.count { !it.isCompleted && it.isAddedToPersonalList }),
                         icon = Icons.Default.Assignment,
-                        iconColor = MaterialTheme.colorScheme.primary,
+                        iconColor = MaterialTheme.colorScheme.tertiary,
                         onClick = { activeScreen = MoreSubScreen.ASSIGNMENTS }
                     )
                     HubActionCard(
@@ -451,17 +544,6 @@ fun MoreHubScreen(
                         onClick = { activeScreen = MoreSubScreen.COMMUNITY }
                     )
                     HubActionCard(
-                        title = stringResource(R.string.notifications_title),
-                        subtitle = if (unreadNotifications > 0) {
-                            "$unreadNotifications ${stringResource(R.string.notifications_unread)}"
-                        } else {
-                            stringResource(R.string.notifications_subtitle)
-                        },
-                        icon = Icons.Default.Notifications,
-                        iconColor = if (unreadNotifications > 0) extendedColors.warning else MaterialTheme.colorScheme.primary,
-                        onClick = { activeScreen = MoreSubScreen.NOTIFICATIONS }
-                    )
-                    HubActionCard(
                         title = stringResource(R.string.events_clubs),
                         subtitle = stringResource(R.string.hub_events_sub, uiState.events.size),
                         icon = Icons.Default.Event,
@@ -471,42 +553,15 @@ fun MoreHubScreen(
                 }
             }
 
-            // ===== Campus Resources =====
+            // ===== Campus & Community overview =====
             item {
-                C1SectionHeader(
-                    title = stringResource(R.string.hub_campus_resources),
-                    actionLabel = null,
-                    onAction = null
+                HubActionCard(
+                    title = "Campus & Community",
+                    subtitle = "Events, societies, Lost & Found and campus contacts",
+                    icon = Icons.Default.Event,
+                    iconColor = MaterialTheme.colorScheme.secondary,
+                    onClick = { activeScreen = MoreSubScreen.CAMPUS_COMMUNITY }
                 )
-            }
-            item {
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.md),
-                    verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
-                ) {
-                    HubActionCard(
-                        title = stringResource(R.string.lost_found),
-                        subtitle = stringResource(R.string.hub_lostfound_sub, uiState.lostFoundItems.count { !it.isResolved }),
-                        icon = Icons.Default.FindInPage,
-                        iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        onClick = { activeScreen = MoreSubScreen.LOST_FOUND }
-                    )
-                    HubActionCard(
-                        title = stringResource(R.string.campus_directory),
-                        subtitle = stringResource(R.string.hub_directory_sub),
-                        icon = Icons.Default.Call,
-                        iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        onClick = { activeScreen = MoreSubScreen.DIRECTORY }
-                    )
-                    HubActionCard(
-                        title = stringResource(R.string.gpa_calculator),
-                        subtitle = stringResource(R.string.hub_gpa_sub, uiState.gpaResult.formattedSgpa, uiState.gpaResult.formattedCgpa, uiState.gpaResult.formattedPercentage),
-                        icon = Icons.Default.Calculate,
-                        iconColor = MaterialTheme.colorScheme.primary,
-                        onClick = { activeScreen = MoreSubScreen.GPA_CALCULATOR }
-                    )
-                }
             }
 
             // ===== Account =====
@@ -575,7 +630,7 @@ fun MoreHubScreen(
                                 title = stringResource(R.string.admin_panel),
                                 subtitle = stringResource(R.string.hub_admin_sub),
                                 icon = Icons.Default.School,
-                                iconColor = MaterialTheme.colorScheme.primary,
+                                iconColor = MaterialTheme.colorScheme.secondary,
                                 onClick = {
                                     adminViewModel.init(uiState.profile)
                                     activeScreen = MoreSubScreen.ADMIN_PANEL
@@ -617,6 +672,7 @@ fun MoreHubScreen(
             }
 
             item { Spacer(modifier = Modifier.height(C1Spacing.md)) }
+        }
         }
 
         if (showRoleRequest) {
@@ -691,16 +747,49 @@ fun MoreHubScreen(
             )
         }
     } else {
+        val moduleTitle = when (activeScreen) {
+            MoreSubScreen.NOTES_PYQ -> "Notes & PYQ Vault"
+            MoreSubScreen.ASSIGNMENTS -> "Assignments"
+            MoreSubScreen.EXAMS_SYLLABUS -> "Exams & Syllabus"
+            MoreSubScreen.SETTINGS -> "Settings"
+            MoreSubScreen.PRIVACY_POLICY -> "Privacy & Security"
+            MoreSubScreen.ADMIN_PANEL -> "Administration"
+            MoreSubScreen.ADMIN_MODERATORS -> "Moderator Access"
+            MoreSubScreen.ADMIN_SUBJECTS -> "Subject Management"
+            MoreSubScreen.ADMIN_TIMETABLE -> "Timetable Operations"
+            MoreSubScreen.ADMIN_NOTICES -> "Notice Operations"
+            MoreSubScreen.ADMIN_ASSIGNMENTS -> "Assignment Operations"
+            MoreSubScreen.ADMIN_EXAMS -> "Examination Operations"
+            MoreSubScreen.ADMIN_CLUBS -> "Society Management"
+            MoreSubScreen.ADMIN_EVENTS -> "Event Operations"
+            MoreSubScreen.ADMIN_LOST_FOUND -> "Lost & Found Operations"
+            MoreSubScreen.ADMIN_DIRECTORY -> "Directory Operations"
+            MoreSubScreen.ADMIN_MODERATION -> "Content Moderation"
+            MoreSubScreen.SUPER_ADMIN -> "Super Admin"
+            MoreSubScreen.SUPER_ADMIN_USERS -> "User Management"
+            MoreSubScreen.SUPER_ADMIN_ROLES -> "Role Management"
+            MoreSubScreen.SUPER_ADMIN_CONTENT -> "Content Governance"
+            MoreSubScreen.SUPER_ADMIN_MODERATION -> "Platform Moderation"
+            MoreSubScreen.SUPER_ADMIN_SETTINGS -> "Platform Settings"
+            MoreSubScreen.SUPER_ADMIN_AUDIT -> "Audit Log"
+            MoreSubScreen.SUPER_ADMIN_ANALYTICS -> "Analytics & Reporting"
+            MoreSubScreen.SUPER_ADMIN_ACADEMIC -> "Academic Structure"
+            else -> activeScreen.name.replace("_", " ")
+        }
+        val moduleSubtitle = when (activeScreen) {
+            MoreSubScreen.NOTES_PYQ, MoreSubScreen.ASSIGNMENTS, MoreSubScreen.EXAMS_SYLLABUS -> "ACADEMIC WORKSPACE"
+            MoreSubScreen.SETTINGS, MoreSubScreen.PRIVACY_POLICY -> "ACCOUNT & PREFERENCES"
+            else -> "AUTHORIZED CAMPUS OPERATIONS"
+        }
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = { Text(if (activeScreen == MoreSubScreen.SETTINGS) "Settings" else activeScreen.name.replace("_", " ")) },
-                    navigationIcon = {
-                        IconButton(onClick = { activeScreen = MoreSubScreen.HUB }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to Study Hub")
-                        }
-                    }
-                )
+                Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+                    FlagshipSubHeader(
+                        title = moduleTitle,
+                        onBack = { activeScreen = screenParent[activeScreen] ?: MoreSubScreen.HUB },
+                        subtitle = moduleSubtitle
+                    )
+                }
             }
         ) { innerPadding ->
             Column(
@@ -710,6 +799,7 @@ fun MoreHubScreen(
                     .padding(innerPadding)
             ) {
                 when (activeScreen) {
+                    MoreSubScreen.CAMPUS_COMMUNITY,
                     MoreSubScreen.COMMUNITY,
                     MoreSubScreen.NOTIFICATIONS,
                     MoreSubScreen.PROFILE -> Unit
@@ -721,7 +811,6 @@ fun MoreHubScreen(
                         onFocusConsumed = onFocusAssignmentConsumed
                     )
                     MoreSubScreen.EXAMS_SYLLABUS -> ExamsAndSyllabusScreen(uiState, viewModel)
-                    MoreSubScreen.GPA_CALCULATOR -> GpaCalculatorScreen(uiState, viewModel)
                     MoreSubScreen.EVENTS_CLUBS -> EventsAndClubsScreen(uiState, viewModel)
                     MoreSubScreen.LOST_FOUND -> LostAndFoundScreen(uiState, viewModel)
                     MoreSubScreen.DIRECTORY -> CampusDirectoryScreen(uiState, viewModel)
@@ -801,6 +890,8 @@ MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
                                 SuperAdminSection.MODERATION -> MoreSubScreen.SUPER_ADMIN_MODERATION
                                 SuperAdminSection.SETTINGS -> MoreSubScreen.SUPER_ADMIN_SETTINGS
                                 SuperAdminSection.AUDIT -> MoreSubScreen.SUPER_ADMIN_AUDIT
+                                SuperAdminSection.ANALYTICS -> MoreSubScreen.SUPER_ADMIN_ANALYTICS
+                                SuperAdminSection.ACADEMIC -> MoreSubScreen.SUPER_ADMIN_ACADEMIC
                                 SuperAdminSection.OVERVIEW -> MoreSubScreen.SUPER_ADMIN
                             }
                         }
@@ -823,6 +914,12 @@ MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
                     MoreSubScreen.SUPER_ADMIN_AUDIT -> SuperAdminAuditScreen(
                         adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.SUPER_ADMIN }
                     )
+                    MoreSubScreen.SUPER_ADMIN_ANALYTICS -> SuperAdminAnalyticsScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.SUPER_ADMIN }
+                    )
+                    MoreSubScreen.SUPER_ADMIN_ACADEMIC -> SuperAdminAcademicScreen(
+                        adminState, adminViewModel, onBack = { activeScreen = MoreSubScreen.SUPER_ADMIN }
+                    )
                     MoreSubScreen.HUB -> Unit
                 }
             }
@@ -835,7 +932,7 @@ private fun FeatureHubCard(
     title: String,
     subtitle: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    iconColor: Color = MaterialTheme.colorScheme.primary,
+    iconColor: Color = MaterialTheme.colorScheme.secondary,
     onClick: () -> Unit
 ) {
     C1FeatureCard(
@@ -859,13 +956,14 @@ fun NotesAndPyqScreen(
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedCategory by rememberSaveable { mutableStateOf("ALL") } // ALL, NOTES, PYQ, ASSIGNMENT, OTHER
-    var selectedSemesterFilter by rememberSaveable { mutableIntStateOf(0) } // 0 = All Semesters
+    var selectedSemesterFilter by rememberSaveable { mutableIntStateOf(uiState.profile.semester.coerceIn(1, 8)) } // current semester by default
     var sortByUpvotes by rememberSaveable { mutableStateOf(true) } // true = Most Upvoted, false = Newest
     var bookmarkedOnly by rememberSaveable { mutableStateOf(false) }
     var showUploadDialog by rememberSaveable { mutableStateOf(false) }
     var viewingResource by remember { mutableStateOf<StudyResourceEntity?>(null) }
 
     val isCrOrModerator = uiState.profile.role == UserRole.CR || uiState.profile.role == UserRole.MODERATOR || uiState.profile.role == UserRole.ADMIN
+    val savedOffline = uiState.resources.filter { it.isBookmarkedOffline }
 
     val filtered = uiState.resources
         .filter { res ->
@@ -902,17 +1000,32 @@ fun NotesAndPyqScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                C1TextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    label = "Search subject, topic, or exam year (e.g., 2025)",
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Category Filter Chips
+                Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                        FlagshipPill("${uiState.resources.size} resources")
+                        FlagshipPill("${savedOffline.size} saved offline", background = MaterialTheme.colorScheme.surfaceVariant, foreground = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    C1TextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        label = "Search by subject, topic, year or unit...",
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                        FilterChip(
+                            selected = selectedSemesterFilter == uiState.profile.semester,
+                            onClick = { selectedSemesterFilter = uiState.profile.semester },
+                            label = { Text("Current · Sem ${uiState.profile.semester}") }
+                        )
+                        FilterChip(
+                            selected = selectedSemesterFilter == 0,
+                            onClick = { selectedSemesterFilter = 0 },
+                            label = { Text("All semesters") }
+                        )
+                    }
+                    // Category Filter Chips
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("ALL", "NOTES", "PYQ", "ASSIGNMENT", "OTHER").forEach { cat ->
                         FilterChip(
@@ -943,6 +1056,36 @@ fun NotesAndPyqScreen(
                         onClick = { bookmarkedOnly = !bookmarkedOnly },
                         label = { Text("Saved Offline") }
                     )
+                }
+            }
+            }
+
+            if (savedOffline.isNotEmpty()) {
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                        FlagshipSectionTitle(
+                            title = "Offline vault",
+                            subtitle = "${savedOffline.size} resources saved on this device"
+                        )
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                            items(savedOffline.take(5), key = { it.id }) { resource ->
+                                Surface(
+                                    modifier = Modifier.width(232.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    color = MaterialTheme.colorScheme.surface,
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                                ) {
+                                    Column(modifier = Modifier.padding(C1Spacing.md), verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                                        FlagshipPill(resource.category)
+                                        Text(resource.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                        Text("${resource.subjectId} · ${resource.subjectName}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        Text("Saved on this device", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.SemiBold)
+                                        TextButton(onClick = { viewingResource = resource }) { Text("Open resource") }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -1094,7 +1237,7 @@ private fun StudyResourceCard(
                         Icon(
                             imageVector = if (res.isBookmarkedOffline) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                             contentDescription = stringResource(R.string.bookmark_offline),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.secondary
                         )
                     }
                     IconButton(onClick = onDownloadOffline) {
@@ -1114,11 +1257,11 @@ private fun StudyResourceCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        text = "Upload ${res.uploadStatus} (${res.uploadProgressPct}%)",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                        Text(
+                            text = "Upload ${res.uploadStatus} (${res.uploadProgressPct}%)",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     if (res.uploadStatus == "FAILED" || res.uploadStatus == "PAUSED") {
                         TextButton(onClick = onRetryUpload) {
                             Row(
@@ -1149,11 +1292,11 @@ private fun StudyResourceCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             if (res.localFilePath != null) {
-                Text(
-                    text = "✓ Downloaded for offline viewing",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                    Text(
+                        text = "✓ Downloaded for offline viewing",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = extendedColors.success
+                    )
             }
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -1243,7 +1386,7 @@ private fun UploadStudyResourceDialog(
                 Text(
                     text = stringResource(R.string.file_limit_note),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (isOverLimit) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                    color = if (isOverLimit) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     C1TextField(
@@ -1536,6 +1679,7 @@ fun AssignmentsScreen(
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var groupBySubject by rememberSaveable { mutableStateOf(false) }
+    var assignmentQuery by rememberSaveable { mutableStateOf("") }
     var showAddDialog by rememberSaveable { mutableStateOf(false) }
 
     val now = System.currentTimeMillis()
@@ -1562,12 +1706,16 @@ fun AssignmentsScreen(
     val overdueCount = personalTasks.count { !it.isCompleted && it.dueDateEpochMillis < now }
     val completedCount = personalTasks.count { it.isCompleted }
 
-    val filteredTasks = when (selectedTab) {
+    val filteredTasks = (when (selectedTab) {
         0 -> personalTasks.filter { !it.isCompleted && it.dueDateEpochMillis in now..endOfToday }
         1 -> personalTasks.filter { !it.isCompleted && it.dueDateEpochMillis > endOfToday }
         2 -> personalTasks.filter { !it.isCompleted && it.dueDateEpochMillis < now }
         else -> personalTasks.filter { it.isCompleted }
+    }).filter { task ->
+        assignmentQuery.isBlank() || task.title.contains(assignmentQuery, ignoreCase = true) || task.subjectTag.contains(assignmentQuery, ignoreCase = true)
     }
+    val nextDeadline = personalTasks.filter { !it.isCompleted && it.dueDateEpochMillis >= now }.minByOrNull { it.dueDateEpochMillis }
+    val completionRate = if (personalTasks.isEmpty()) "—" else "${(completedCount * 100) / personalTasks.size}%"
 
     Scaffold(
         floatingActionButton = {
@@ -1595,6 +1743,16 @@ fun AssignmentsScreen(
                 verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
             ) {
                 item {
+                    C1TextField(
+                        value = assignmentQuery,
+                        onValueChange = { assignmentQuery = it },
+                        label = "Search tasks, subjects or topics...",
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                item {
                     Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                         C1StatTile(
                             label = stringResource(R.string.assignment_pending),
@@ -1608,10 +1766,26 @@ fun AssignmentsScreen(
                             valueColor = MaterialTheme.colorScheme.error
                         )
                         C1StatTile(
-                            label = stringResource(R.string.tab_completed),
-                            value = completedCount.toString(),
+                            label = "Completion",
+                            value = completionRate,
                             modifier = Modifier.weight(1f)
                         )
+                    }
+                }
+
+                if (selectedTab != 3 && nextDeadline != null) {
+                    item {
+                        FlagshipCard(containerColor = MaterialTheme.colorScheme.tertiaryContainer) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                                Icon(Icons.Default.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.onTertiaryContainer)
+                                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Text("NEXT DEADLINE", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
+                                    Text(nextDeadline.title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onTertiaryContainer, fontWeight = FontWeight.Bold)
+                                    Text(nextDeadline.subjectTag, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                                }
+                                FlagshipPill("UPCOMING", background = MaterialTheme.colorScheme.surface, foreground = MaterialTheme.colorScheme.secondary)
+                            }
+                        }
                     }
                 }
 
@@ -1790,7 +1964,7 @@ private fun AssignmentItemCard(
                 Text(
                     text = task.subjectTag,
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.secondary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -2028,191 +2202,149 @@ fun ExamsAndSyllabusScreen(
 ) {
     var showAddExamDialog by rememberSaveable { mutableStateOf(false) }
     var showAddTopicDialog by rememberSaveable { mutableStateOf(false) }
+    var selectedExamTab by rememberSaveable { mutableIntStateOf(0) }
     val now = System.currentTimeMillis()
-
     val totalTopics = uiState.syllabusTopics.size
     val completedTopics = uiState.syllabusTopics.count { it.isCompleted }
     val overallProgress = if (totalTopics > 0) completedTopics.toFloat() / totalTopics.toFloat() else 0f
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddExamDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.publish_exam))
+            FloatingActionButton(onClick = {
+                if (selectedExamTab == 0) showAddExamDialog = true else showAddTopicDialog = true
+            }) {
+                Icon(Icons.Default.Add, contentDescription = if (selectedExamTab == 0) stringResource(R.string.publish_exam) else stringResource(R.string.publish_syllabus_topic))
             }
         }
     ) { pad ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(pad)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Overall Syllabus Progress Card
-            item {
-                C1SurfaceCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    containerColor = MaterialTheme.colorScheme.surface
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = stringResource(R.string.overall_syllabus_progress),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "$completedTopics / $totalTopics (${(overallProgress * 100).toInt()}%)",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.ExtraBold
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        LinearProgressIndicator(
-                            progress = { overallProgress },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(10.dp)
-                                .clip(RoundedCornerShape(5.dp))
-                        )
-                    }
-                }
+        Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(pad)) {
+            TabRow(selectedTabIndex = selectedExamTab) {
+                Tab(selected = selectedExamTab == 0, onClick = { selectedExamTab = 0 }, text = { Text("Exams & Notices") })
+                Tab(selected = selectedExamTab == 1, onClick = { selectedExamTab = 1 }, text = { Text("Syllabus & BOS") })
             }
-
-            item {
-                Text("Exam Schedule & Countdowns", style = MaterialTheme.typography.titleLarge)
-            }
-
-            items(uiState.exams, key = { it.id }) { exam ->
-                val daysLeft = ((exam.examDateEpochMillis - now) / 86_400_000L).coerceAtLeast(0L)
-                C1SurfaceCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    containerColor = MaterialTheme.colorScheme.surface
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "${exam.subjectCode} • ${exam.examTitle}",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = exam.subjectName,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "${exam.examDateFormatted} • ${exam.roomOrCenter}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                        C1StatusChip(
-                            text = "$daysLeft days",
-                            tone = if (daysLeft <= 3) C1Tone.WARNING else C1Tone.INFO
-                        )
-                    }
-                }
-            }
-
-            // Per-Subject Syllabus Breakdown & Checklists
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Per-Subject Syllabus Checklist", style = MaterialTheme.typography.titleLarge)
-                    C1Button(
-                        text = "+ Add Topic",
-                        onClick = { showAddTopicDialog = true },
-                        intent = C1ButtonIntent.TONAL
-                    )
-                }
-            }
-
-            val bySubject = uiState.syllabusTopics.groupBy { it.subjectName }
-            bySubject.forEach { (subjectName, topics) ->
-                val doneSubj = topics.count { it.isCompleted }
-                val subjPct = if (topics.isNotEmpty()) (doneSubj * 100) / topics.size else 0
-
-                item {
-                    C1SurfaceCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = subjectName,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Text(
-                                    text = "$doneSubj/${topics.size} ($subjPct%)",
-                                    style = MaterialTheme.typography.labelLarge
-                                )
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(C1Spacing.lg),
+                verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
+            ) {
+                if (selectedExamTab == 0) {
+                    item {
+                        FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
+                                Icon(Icons.Default.EventNote, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(28.dp))
+                                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Text("Official examination schedule", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    Text("${uiState.exams.size} published exam records", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
+                                }
                             }
-                            LinearProgressIndicator(
-                                progress = { subjPct / 100f },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp)
-                            )
                         }
                     }
-                }
-
-                items(topics, key = { it.id }) { topic ->
-                    C1SurfaceCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Checkbox(
-                                checked = topic.isCompleted,
-                                onCheckedChange = { viewModel.toggleSyllabusTopic(topic.id, it) }
+                    item { FlagshipSectionTitle("Exam schedule & notices", "Dates and venues published for your programme") }
+                    if (uiState.exams.isEmpty()) {
+                        item {
+                            C1EmptyState(
+                                icon = Icons.Default.EventNote,
+                                title = "No exam schedule published",
+                                message = "Official examination dates will appear here when your department publishes them.",
+                                modifier = Modifier.fillMaxWidth()
                             )
-                            Column {
-                                Text(
-                                    text = topic.unitTitle,
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Text(topic.topicTitle, style = MaterialTheme.typography.bodyLarge)
+                        }
+                    } else {
+                        items(uiState.exams, key = { it.id }) { exam ->
+                            val daysLeft = (exam.examDateEpochMillis - now) / 86_400_000L
+                            FlagshipCard {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                                        Text(exam.subjectCode, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
+                                        Text(exam.examTitle, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                        Text(exam.subjectName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text("${exam.examDateFormatted} · ${exam.roomOrCenter}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    FlagshipPill(
+                                        text = if (daysLeft < 0) "PAST" else if (daysLeft == 0L) "TODAY" else "${daysLeft}d left",
+                                        background = if (daysLeft in 0L..3L) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                                        foreground = if (daysLeft in 0L..3L) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    item {
+                        FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                    Text("SYLLABUS COMPLETION", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
+                                    Text("${(overallProgress * 100).toInt()}% covered", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    Text("$completedTopics of $totalTopics topics completed", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f))
+                                }
+                                CircularProgressIndicator(progress = { overallProgress }, modifier = Modifier.size(48.dp), color = MaterialTheme.colorScheme.secondary, trackColor = MaterialTheme.colorScheme.surfaceVariant)
+                            }
+                        }
+                    }
+                    item {
+                        FlagshipSectionTitle(
+                            title = "Subject-wise syllabus",
+                            subtitle = "Track units and topics from your current course",
+                            action = "Add topic",
+                            onAction = { showAddTopicDialog = true }
+                        )
+                    }
+                    val bySubject = uiState.syllabusTopics.groupBy { it.subjectName }
+                    if (bySubject.isEmpty()) {
+                        item {
+                            C1EmptyState(
+                                icon = Icons.Default.MenuBook,
+                                title = "No syllabus topics yet",
+                                message = "Topics added by your department will appear here. You can also maintain your own checklist.",
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    } else {
+                        bySubject.forEach { (subjectName, topics) ->
+                            val doneSubj = topics.count { it.isCompleted }
+                            val subjPct = if (topics.isNotEmpty()) (doneSubj * 100) / topics.size else 0
+                            item {
+                                FlagshipCard {
+                                    Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                            Text(subjectName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+                                            FlagshipPill("$doneSubj/${topics.size} · $subjPct%")
+                                        }
+                                        LinearProgressIndicator(progress = { subjPct / 100f }, modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.secondary)
+                                    }
+                                }
+                            }
+                            items(topics, key = { it.id }) { topic ->
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(14.dp),
+                                    color = MaterialTheme.colorScheme.surface,
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                                ) {
+                                    Row(modifier = Modifier.fillMaxWidth().padding(C1Spacing.sm), verticalAlignment = Alignment.CenterVertically) {
+                                        Checkbox(checked = topic.isCompleted, onCheckedChange = { viewModel.toggleSyllabusTopic(topic.id, it) })
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(topic.unitTitle, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
+                                            Text(topic.topicTitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
+                item { Spacer(Modifier.height(C1Spacing.xl)) }
             }
         }
     }
 
     if (showAddExamDialog) {
-        var code by rememberSaveable { mutableStateOf("SOET-CS-304") }
-        var name by rememberSaveable { mutableStateOf("Computer Networks") }
-        var dateIso by rememberSaveable { mutableStateOf("23 Nov 2026") }
-        var time by rememberSaveable { mutableStateOf("10:00 AM – 01:00 PM") }
-        var venue by rememberSaveable { mutableStateOf("Exam Block Hall A") }
+        var code by rememberSaveable { mutableStateOf("") }
+        var name by rememberSaveable { mutableStateOf("") }
+        var dateIso by rememberSaveable { mutableStateOf("") }
+        var time by rememberSaveable { mutableStateOf("") }
+        var venue by rememberSaveable { mutableStateOf("") }
 
         AlertDialog(
             onDismissRequest = { showAddExamDialog = false },
@@ -2246,10 +2378,10 @@ fun ExamsAndSyllabusScreen(
     }
 
     if (showAddTopicDialog) {
-        var subjId by rememberSaveable { mutableStateOf("CS301") }
-        var subjName by rememberSaveable { mutableStateOf("Data Structures & Algorithms") }
-        var unitTitle by rememberSaveable { mutableStateOf("Unit 5: Sorting & Hashing") }
-        var topicTitle by rememberSaveable { mutableStateOf("QuickSort, MergeSort, RadixSort & Open Addressing") }
+        var subjId by rememberSaveable { mutableStateOf(uiState.profile.courseId) }
+        var subjName by rememberSaveable { mutableStateOf(uiState.profile.courseName) }
+        var unitTitle by rememberSaveable { mutableStateOf("") }
+        var topicTitle by rememberSaveable { mutableStateOf("") }
 
         AlertDialog(
             onDismissRequest = { showAddTopicDialog = false },
@@ -2265,7 +2397,7 @@ fun ExamsAndSyllabusScreen(
                 C1Button(
                     text = "Add Topic",
                     onClick = {
-                        viewModel.addSyllabusTopic(subjId, subjName, 5, unitTitle, topicTitle)
+                        viewModel.addSyllabusTopic(subjId, subjName, uiState.profile.semester, unitTitle, topicTitle)
                         showAddTopicDialog = false
                     }
                 )
@@ -2278,326 +2410,6 @@ fun ExamsAndSyllabusScreen(
                 )
             }
         )
-    }
-}
-
-// =========================================================================
-// PHASE 2.4 — GPA / CGPA / PERCENTAGE CALCULATOR
-// =========================================================================
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun GpaCalculatorScreen(
-    uiState: StudyAndCampusUiState,
-    viewModel: StudyAndCampusViewModel
-) {
-    val context = LocalContext.current
-    var showAddCourseDialog by rememberSaveable { mutableStateOf(false) }
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        // 1. Summary & Scale Selector Card
-        item {
-            C1SurfaceCard(
-                modifier = Modifier.fillMaxWidth(),
-                containerColor = MaterialTheme.colorScheme.surface
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text(
-                        text = stringResource(R.string.gpa_calculator),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column {
-                            Text("Sem SGPA", style = MaterialTheme.typography.bodyMedium)
-                            Text(
-                                text = uiState.gpaResult.formattedSgpa,
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        Column {
-                            Text("Cumulative CGPA", style = MaterialTheme.typography.bodyMedium)
-                            Text(
-                                text = uiState.gpaResult.formattedCgpa,
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.ExtraBold
-                            )
-                        }
-                        Column {
-                            Text("Percentage", style = MaterialTheme.typography.bodyMedium)
-                            Text(
-                                text = uiState.gpaResult.formattedPercentage,
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.ExtraBold
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text("Grading Scale:", style = MaterialTheme.typography.labelLarge)
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        GradingScaleType.entries.forEach { scale ->
-                            FilterChip(
-                                selected = uiState.gpaScaleType == scale,
-                                onClick = { viewModel.setGradingScale(scale) },
-                                label = { Text(scale.label) }
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        C1Button(
-                            text = "Save Sem History",
-                            onClick = { viewModel.saveSemesterToHistory() },
-                            modifier = Modifier.weight(1f)
-                        )
-                        C1Button(
-                            text = "Export PDF",
-                            onClick = { viewModel.exportGpaPdf(context) },
-                            intent = C1ButtonIntent.OUTLINED,
-                            modifier = Modifier.weight(1f),
-                            icon = { Icon(Icons.Default.PictureAsPdf, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                        )
-                    }
-                }
-            }
-        }
-
-        // 2. Semester Trend Chart Card
-        item {
-            C1SurfaceCard(
-                modifier = Modifier.fillMaxWidth(),
-                containerColor = MaterialTheme.colorScheme.surface
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = stringResource(R.string.semester_trend_chart),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    SemesterTrendChart(
-                        trend = uiState.gpaResult.semesterTrend,
-                        maxScale = uiState.gpaScaleType.maxScalePoint
-                    )
-                }
-            }
-        }
-
-        // 3. "What Do I Need?" Target CGPA Calculator Card
-        item {
-            val req = uiState.targetCgpaRequirement
-            C1SurfaceCard(
-                modifier = Modifier.fillMaxWidth(),
-                containerColor = MaterialTheme.colorScheme.secondaryContainer
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = stringResource(R.string.what_do_i_need),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = "Target CGPA: ${String.format(Locale.US, "%.2f", uiState.targetCgpaInput)} (over next ${uiState.upcomingCreditsInput} credits)",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                    Slider(
-                        value = uiState.targetCgpaInput.toFloat(),
-                        onValueChange = {
-                            viewModel.updateTargetCgpa(it.toDouble(), uiState.upcomingCreditsInput)
-                        },
-                        valueRange = 6.0f..uiState.gpaScaleType.maxScalePoint.toFloat()
-                    )
-                    val message = when {
-                        req.alreadyAchieved -> "You have already achieved your target CGPA of ${String.format(Locale.US, "%.2f", req.targetCgpa)}."
-                        req.isAchievable -> "You need an SGPA of ${String.format(Locale.US, "%.2f", req.requiredSgpa)} in your next ${req.upcomingCredits} credits to reach ${String.format(Locale.US, "%.2f", req.targetCgpa)} CGPA."
-                        else -> "Requires ${String.format(Locale.US, "%.2f", req.requiredSgpa)} SGPA (exceeds max ${req.maxScalePoint}). Try targeting across 2 semesters."
-                    }
-                    Text(
-                        text = message,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                }
-            }
-        }
-
-        // 4. Current Semester Subject Entry Cards
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Current Semester Subjects", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                C1Button(
-                    text = "+ Add Subject",
-                    onClick = { showAddCourseDialog = true },
-                    intent = C1ButtonIntent.TONAL
-                )
-            }
-        }
-
-        items(uiState.gpaCourses.size) { idx ->
-            val course = uiState.gpaCourses[idx]
-            C1SurfaceCard(
-                modifier = Modifier.fillMaxWidth(),
-                containerColor = MaterialTheme.colorScheme.surface
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "${course.subjectCode} • ${course.credits} Credits",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = course.subjectName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        C1TextField(
-                            value = course.gradePoint.toString(),
-                            onValueChange = { viewModel.updateCourseGradePoint(idx, it.toDoubleOrNull() ?: course.gradePoint) },
-                            label = "Grade",
-                            modifier = Modifier.weight(1f)
-                        )
-                        C1TextField(
-                            value = course.credits.toString(),
-                            onValueChange = { viewModel.updateCourseCredits(idx, it.toIntOrNull() ?: course.credits) },
-                            label = "Credits",
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "Points: ${String.format(Locale.US, "%.2f", course.gradePoint)}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        IconButton(onClick = { viewModel.removeGpaCourse(idx) }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Remove subject")
-                        }
-                    }
-                }
-            }
-        }
-
-        if (uiState.gpaCourses.isEmpty()) {
-            item {
-                C1EmptyState(
-                    icon = Icons.Default.Calculate,
-                    title = "No subjects added",
-                    message = "Add your current semester subjects to calculate SGPA/CGPA",
-                    actionLabel = "+ Add Subject",
-                    onAction = { showAddCourseDialog = true }
-                )
-            }
-        }
-    }
-
-    if (showAddCourseDialog) {
-        var subjCode by rememberSaveable { mutableStateOf("") }
-        var subjName by rememberSaveable { mutableStateOf("") }
-        var credits by rememberSaveable { mutableIntStateOf(4) }
-        var grade by rememberSaveable { mutableStateOf("A") }
-
-        AlertDialog(
-            onDismissRequest = { showAddCourseDialog = false },
-            title = { Text("Add Subject") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    C1TextField(value = subjCode, onValueChange = { subjCode = it }, label = "Subject Code")
-                    C1TextField(value = subjName, onValueChange = { subjName = it }, label = "Subject Name")
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        C1TextField(
-                            value = credits.toString(),
-                            onValueChange = { credits = it.toIntOrNull() ?: 4 },
-                            label = "Credits",
-                            modifier = Modifier.weight(1f)
-                        )
-                        C1TextField(
-                            value = grade,
-                            onValueChange = { grade = it },
-                            label = "Grade",
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                C1Button(
-                    text = "Add",
-                    onClick = {
-                        viewModel.addGpaCourse(subjCode, subjName, credits, grade.toDoubleOrNull() ?: 0.0)
-                        showAddCourseDialog = false
-                    },
-                    enabled = subjCode.isNotBlank() && subjName.isNotBlank()
-                )
-            },
-            dismissButton = {
-                C1Button(
-                    text = "Cancel",
-                    onClick = { showAddCourseDialog = false },
-                    intent = C1ButtonIntent.GHOST
-                )
-            }
-        )
-    }
-}
-
-@Composable
-private fun SemesterTrendChart(
-    trend: List<SemesterGpaRecord>,
-    maxScale: Double
-) {
-    if (trend.isEmpty()) {
-        C1EmptyState(
-            icon = Icons.Default.Calculate,
-            title = "No semester history",
-            message = "Save semester results to see your trend"
-        )
-        return
-    }
-
-    val maxSgpa = trend.maxOfOrNull { it.sgpa } ?: maxScale
-    val minSgpa = trend.minOfOrNull { it.sgpa } ?: 0.0
-    val range = (maxSgpa - minSgpa).coerceAtLeast(1.0)
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp)
-            .background(MaterialTheme.colorScheme.surfaceVariant, C1Radius.md)
-    ) {
-        // Draw chart using Canvas
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            // Chart drawing to be implemented
-        }
     }
 }
 
@@ -2614,7 +2426,7 @@ fun PrivacyPolicyScreen() {
             text = "Privacy Policy & Open Source",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.onSurface
         )
         Text(
             text = "CampusOne is built with privacy first. No ads, no trackers, no data sold. All data stays on your device unless you explicitly choose to sync. Licensed under MIT — free to use, modify, and distribute.",
@@ -2624,7 +2436,7 @@ fun PrivacyPolicyScreen() {
         Text(
             text = "Source code: github.com/campusone/app",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.secondary
         )
     }
 }

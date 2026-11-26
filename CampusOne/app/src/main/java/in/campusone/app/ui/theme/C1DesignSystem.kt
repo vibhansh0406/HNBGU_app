@@ -15,6 +15,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import `in`.campusone.app.R
 
+/** Fixed CampusOne identity green used behind the white C mark in every theme. */
+val CampusOneBrandGreen = Color(0xFF1E634B)
+
 /**
  * CampusOne Design System — "Evergreen Studio"
  *
@@ -136,6 +139,15 @@ object C1Radius {
     val xxl = RoundedCornerShape(24.dp)
     val pill = RoundedCornerShape(50)
     val circle = RoundedCornerShape(50)
+
+    /** Grouping surfaces: cards, sheets and list containers. */
+    val card = RoundedCornerShape(16.dp)
+
+    /** Interactive controls: buttons, inputs and dropdown surfaces. */
+    val control = RoundedCornerShape(12.dp)
+
+    /** Small icon/monogram tiles inside list rows. */
+    val tile = RoundedCornerShape(10.dp)
 }
 
 // ============================================================================
@@ -307,10 +319,10 @@ val LightSemanticColors = C1SemanticColors(
     onError = Color.White,
     errorContainer = Color(0xFFFBE5E2),
     onErrorContainer = Color(0xFF4A0E08),
-    background = Color(0xFFF6F7F2),
-    onBackground = Color(0xFF17231F),
+    background = Color(0xFFF9FAF5),
+    onBackground = Color(0xFF1A1C19),
     surface = Color.White,
-    onSurface = Color(0xFF17231F),
+    onSurface = Color(0xFF1A1C19),
     surfaceVariant = Color(0xFFEAF0E9),
     onSurfaceVariant = Color(0xFF53665A),
     outline = Color(0xFFCED7CE),
@@ -320,38 +332,6 @@ val LightSemanticColors = C1SemanticColors(
     inversePrimary = Color(0xFFA9D6BC),
     surfaceTint = Color(0xFF1E634B),
     scrim = Color(0x99000000)
-)
-
-val DarkSemanticColors = C1SemanticColors(
-    primary = Color(0xFFA9D6BC),
-    onPrimary = Color(0xFF163D2E),
-    primaryContainer = Color(0xFF284F3C),
-    onPrimaryContainer = Color(0xFFE4F0E7),
-    secondary = Color(0xFFB4D3D9),
-    onSecondary = Color(0xFF163D2E),
-    secondaryContainer = Color(0xFF294A51),
-    onSecondaryContainer = Color(0xFFE3EEF0),
-    tertiary = Color(0xFFE7BD8A),
-    onTertiary = Color(0xFF402A17),
-    tertiaryContainer = Color(0xFF5B432D),
-    onTertiaryContainer = Color(0xFFF5E8D4),
-    error = Color(0xFFFF8A7A),
-    onError = Color(0xFF4A0E08),
-    errorContainer = Color(0xFF4A1510),
-    onErrorContainer = Color(0xFFFBE5E2),
-    background = Color(0xFF101B16),
-    onBackground = Color(0xFFEEF4EE),
-    surface = Color(0xFF18241E),
-    onSurface = Color(0xFFEEF4EE),
-    surfaceVariant = Color(0xFF24352C),
-    onSurfaceVariant = Color(0xFFBACABE),
-    outline = Color(0xFF64796B),
-    outlineVariant = Color(0xFF33483C),
-    inverseSurface = Color(0xFFEEF4EE),
-    inverseOnSurface = Color(0xFF18241E),
-    inversePrimary = Color(0xFF1E634B),
-    surfaceTint = Color(0xFFA9D6BC),
-    scrim = Color(0xCC000000)
 )
 
 // ============================================================================
@@ -397,26 +377,6 @@ val LightExtendedColors = C1ExtendedColors(
     scrim = Color(0x99000000),
     overlay = Color(0xCC000000),
     surfaceTint = Color(0xFF1E634B)
-)
-
-val DarkExtendedColors = C1ExtendedColors(
-    success = Color(0xFFA4D7B8),
-    onSuccess = Color(0xFF173D2D),
-    successContainer = Color(0xFF1D3E2E),
-    onSuccessContainer = Color(0xFFDCECE1),
-    warning = Color(0xFFE7BD8A),
-    onWarning = Color(0xFF49371E),
-    warningContainer = Color(0xFF49371E),
-    onWarningContainer = Color(0xFFF5EAD5),
-    info = Color(0xFFA8D6DC),
-    onInfo = Color(0xFF1B4046),
-    infoContainer = Color(0xFF1E4850),
-    onInfoContainer = Color(0xFFDDEEF0),
-    hairline = Color(0xFF33483C),
-    divider = Color(0xFF405849),
-    scrim = Color(0xCC000000),
-    overlay = Color(0xDD000000),
-    surfaceTint = Color(0xFFA9D6BC)
 )
 
 // ============================================================================
@@ -466,28 +426,6 @@ val LightComponentColors = C1ComponentColors(
     skeletonHighlight = Color(0xFFF6F7F2),
     badgeBackground = Color(0xFF1E634B),
     badgeContent = Color.White
-)
-
-val DarkComponentColors = C1ComponentColors(
-    cardBackground = Color(0xFF18241E),
-    cardBorder = Color(0xFF33483C),
-    cardHover = Color(0xFF24352C),
-    cardPressed = Color(0xFF33483C),
-    surfaceElevated = Color(0xFF1C2B23),
-    surfaceElevatedBorder = Color(0xFF405849),
-    inputBackground = Color(0xFF18241E),
-    inputBorder = Color(0xFF405849),
-    inputBorderFocused = Color(0xFFA9D6BC),
-    inputBorderError = Color(0xFFFF8A7A),
-    chipBackground = Color(0xFF24352C),
-    chipBackgroundSelected = Color(0xFFA9D6BC),
-    chipBorder = Color(0xFF405849),
-    chipBorderSelected = Color(0xFFA9D6BC),
-    dividerColor = Color(0xFF33483C),
-    skeletonBase = Color(0xFF24352C),
-    skeletonHighlight = Color(0xFF405849),
-    badgeBackground = Color(0xFFA9D6BC),
-    badgeContent = Color(0xFF163D2E)
 )
 
 // ============================================================================
@@ -553,24 +491,24 @@ fun c1Typography(windowSize: C1WindowSize): C1Typography {
         C1WindowSize.EXPANDED -> 1.15f
     }
 
-    fun scaled(size: Int): Float = (size * scale).coerceAtLeast(12f)
+    fun scaled(size: Int): Int = (size * scale).toInt().coerceAtLeast(12)
 
     return C1Typography(
-        displayLarge = c1Type(CampusOneDisplayFamily, FontWeight.Bold, 57, 64, -1.5),
-        displayMedium = c1Type(CampusOneDisplayFamily, FontWeight.Bold, 45, 52, -1.0),
-        displaySmall = c1Type(CampusOneDisplayFamily, FontWeight.Bold, 36, 44, -0.8),
-        headlineLarge = c1Type(CampusOneDisplayFamily, FontWeight.Bold, 32, 40, -0.6),
-        headlineMedium = c1Type(CampusOneDisplayFamily, FontWeight.SemiBold, 28, 36, -0.4),
-        headlineSmall = c1Type(CampusOneDisplayFamily, FontWeight.SemiBold, 24, 32, -0.3),
-        titleLarge = c1Type(CampusOneDisplayFamily, FontWeight.SemiBold, 22, 28, -0.2),
-        titleMedium = c1Type(CampusOneTextFamily, FontWeight.SemiBold, 16, 24, -0.1),
-        titleSmall = c1Type(CampusOneTextFamily, FontWeight.SemiBold, 14, 20, -0.1),
-        bodyLarge = c1Type(CampusOneTextFamily, FontWeight.Normal, 16, 24, -0.1),
-        bodyMedium = c1Type(CampusOneTextFamily, FontWeight.Normal, 14, 21, 0.0),
-        bodySmall = c1Type(CampusOneTextFamily, FontWeight.Normal, 12, 18, 0.0),
-        labelLarge = c1Type(CampusOneTextFamily, FontWeight.SemiBold, 14, 20, 0.0),
-        labelMedium = c1Type(CampusOneTextFamily, FontWeight.Medium, 12, 16, 0.1),
-        labelSmall = c1Type(CampusOneTextFamily, FontWeight.Medium, 11, 14, 0.2)
+        displayLarge = c1Type(CampusOneDisplayFamily, FontWeight.Bold, scaled(57), scaled(64), -1.5),
+        displayMedium = c1Type(CampusOneDisplayFamily, FontWeight.Bold, scaled(45), scaled(52), -1.0),
+        displaySmall = c1Type(CampusOneDisplayFamily, FontWeight.Bold, scaled(36), scaled(44), -0.8),
+        headlineLarge = c1Type(CampusOneDisplayFamily, FontWeight.Bold, scaled(32), scaled(40), -0.6),
+        headlineMedium = c1Type(CampusOneDisplayFamily, FontWeight.SemiBold, scaled(28), scaled(36), -0.4),
+        headlineSmall = c1Type(CampusOneDisplayFamily, FontWeight.SemiBold, scaled(24), scaled(32), -0.3),
+        titleLarge = c1Type(CampusOneDisplayFamily, FontWeight.SemiBold, scaled(22), scaled(28), -0.2),
+        titleMedium = c1Type(CampusOneTextFamily, FontWeight.SemiBold, scaled(16), scaled(24), -0.1),
+        titleSmall = c1Type(CampusOneTextFamily, FontWeight.SemiBold, scaled(14), scaled(20), -0.1),
+        bodyLarge = c1Type(CampusOneTextFamily, FontWeight.Normal, scaled(16), scaled(24), -0.1),
+        bodyMedium = c1Type(CampusOneTextFamily, FontWeight.Normal, scaled(14), scaled(21), 0.0),
+        bodySmall = c1Type(CampusOneTextFamily, FontWeight.Normal, scaled(12), scaled(18), 0.0),
+        labelLarge = c1Type(CampusOneTextFamily, FontWeight.SemiBold, scaled(14), scaled(20), 0.0),
+        labelMedium = c1Type(CampusOneTextFamily, FontWeight.Medium, scaled(12), scaled(16), 0.1),
+        labelSmall = c1Type(CampusOneTextFamily, FontWeight.Medium, scaled(11), scaled(14), 0.2)
     )
 }
 

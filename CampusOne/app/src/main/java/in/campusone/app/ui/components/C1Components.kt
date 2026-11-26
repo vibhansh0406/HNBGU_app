@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.only
@@ -84,6 +85,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.geometry.Offset
 import `in`.campusone.app.R
+import `in`.campusone.app.ui.theme.CampusOneBrandGreen
 import `in`.campusone.app.ui.theme.C1Border
 import `in`.campusone.app.ui.theme.C1Elevation
 import `in`.campusone.app.ui.theme.C1Height
@@ -215,34 +217,40 @@ fun C1FilterChip(
     trailingIcon: (@Composable () -> Unit)? = null
 ) {
     val compColors = componentColors
-    Surface(
+    Box(
         modifier = modifier
-            .heightIn(min = C1Height.chip),
-        shape = C1Radius.pill,
-        color = if (selected) compColors.chipBackgroundSelected else compColors.chipBackground,
-        border = BorderStroke(
-            C1Border.hairline,
-            if (selected) compColors.chipBorderSelected else compColors.chipBorder
-        ),
-        onClick = onClick
+            .heightIn(min = C1Height.touch)
+            .clip(C1Radius.pill)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = C1Spacing.md, vertical = C1Spacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
-        ) {
-            leadingIcon?.invoke()
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                color = if (selected) {
-                    MaterialTheme.colorScheme.onPrimary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                }
+        Surface(
+            modifier = Modifier.heightIn(min = C1Height.chip),
+            shape = C1Radius.pill,
+            color = if (selected) compColors.chipBackgroundSelected else compColors.chipBackground,
+            border = BorderStroke(
+                C1Border.hairline,
+                if (selected) compColors.chipBorderSelected else compColors.chipBorder
             )
-            trailingIcon?.invoke()
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = C1Spacing.md, vertical = C1Spacing.xs),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
+            ) {
+                leadingIcon?.invoke()
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                    color = if (selected) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                )
+                trailingIcon?.invoke()
+            }
         }
     }
 }
@@ -331,25 +339,38 @@ fun C1SectionHeader(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.semantics { heading() }
             )
             subtitle?.let {
                 Text(
                     text = it,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
         if (actionLabel != null && onAction != null) {
-            TextButton(onClick = onAction) {
-                Text(actionLabel, style = MaterialTheme.typography.labelLarge)
+            TextButton(
+                onClick = onAction,
+                modifier = Modifier.heightIn(min = C1Height.touch)
+            ) {
+                Text(
+                    actionLabel,
+                    style = MaterialTheme.typography.labelLarge,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
@@ -370,7 +391,7 @@ fun C1StatTile(
     val compColors = componentColors
     Surface(
         modifier = modifier,
-        shape = C1Radius.md,
+        shape = C1Radius.card,
         color = compColors.cardBackground,
         border = BorderStroke(C1Border.hairline, compColors.cardBorder)
     ) {
@@ -581,7 +602,7 @@ fun C1SurfaceCard(
     content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
 ) {
     val compColors = componentColors
-    val shape = C1Radius.md
+    val shape = C1Radius.card
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -608,7 +629,7 @@ fun C1SurfaceCard(
         },
         shape = shape,
         color = containerColor,
-        border = BorderStroke(C1Border.hairline, borderColor),
+        border = BorderStroke(C1Border.thin, borderColor),
         shadowElevation = elevation
     ) {
         Column(modifier = Modifier.padding(contentPadding), content = content)
@@ -651,7 +672,7 @@ fun C1ElevatedCard(
             scaleX = scale
             scaleY = scale
         },
-        shape = C1Radius.lg,
+        shape = C1Radius.card,
         color = containerColor,
         shadowElevation = C1Elevation.level2,
         border = BorderStroke(C1Border.hairline, compColors.surfaceElevatedBorder)
@@ -1195,7 +1216,7 @@ fun C1CompactStatCard(
     val compColors = componentColors
     Surface(
         modifier = modifier,
-        shape = C1Radius.md,
+        shape = C1Radius.card,
         color = compColors.cardBackground,
         border = BorderStroke(C1Border.hairline, compColors.cardBorder)
     ) {
@@ -1321,10 +1342,9 @@ fun C1AppBar(
         if (onBack != null) {
             val onBackClick = onBack
             IconButton(onClick = onBackClick, modifier = Modifier.size(C1Height.touch)) {
-                Text(
-                    "<",
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.action_back)
                 )
             }
         }
@@ -1364,13 +1384,12 @@ fun C1Button(
     iconPosition: C1IconPosition = C1IconPosition.START,
     fullWidth: Boolean = false
 ) {
-    val ws = windowSize
     val colors = when (intent) {
         C1ButtonIntent.PRIMARY -> ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
-            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = C1State.disabledAlpha),
-            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = C1State.disabledAlpha)
+            containerColor = CampusOneBrandGreen,
+            contentColor = Color.White,
+            disabledContainerColor = CampusOneBrandGreen.copy(alpha = C1State.disabledAlpha),
+            disabledContentColor = Color.White.copy(alpha = C1State.disabledAlpha)
         )
         C1ButtonIntent.TONAL -> ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -1406,9 +1425,10 @@ fun C1Button(
     val padding = C1ButtonPadding(size)
 
     val m = modifier
-        .height(height)
+        .heightIn(min = height)
+        .widthIn(min = 88.dp)
         .graphicsLayer { scaleX = scale; scaleY = scale }
-    // Preserve natural wrap-content sizing unless a caller explicitly requests full width.
+    // Use one-line labels and a consistent touch target even in compact button groups.
     val buttonModifier = if (fullWidth) m.fillMaxWidth() else m
 
     val buttonContent = @Composable {
@@ -1434,6 +1454,10 @@ fun C1Button(
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelLarge,
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
                 modifier = Modifier.graphicsLayer { alpha = if (loading) 0f else 1f }
             )
             if (icon != null && iconPosition == C1IconPosition.END) {
@@ -1462,6 +1486,7 @@ fun C1Button(
             enabled = enabled && !loading,
             shape = C1Radius.sm,
             colors = colors,
+            contentPadding = PaddingValues(horizontal = padding, vertical = C1Spacing.md),
             interactionSource = interactionSource
         ) {
             buttonContent()
@@ -1904,7 +1929,8 @@ fun HubActionCard(
     subtitle: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     iconColor: Color = MaterialTheme.colorScheme.primary,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
@@ -1913,48 +1939,47 @@ fun HubActionCard(
         animationSpec = tween(durationMillis = C1Motion.fastMillis),
         label = "hubActionCardPress"
     )
-    val cardWidth = 168.dp
     Surface(
-        modifier = Modifier
-            .size(cardWidth)
+        modifier = modifier
+            .heightIn(min = 124.dp)
             .clickable(
                 interactionSource = interactionSource,
                 indication = ripple(),
                 onClick = onClick
             )
             .graphicsLayer { scaleX = scale; scaleY = scale },
-        shape = C1Radius.lg,
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(C1Border.hairline, MaterialTheme.colorScheme.outlineVariant)
+        shape = C1Radius.card,
+        color = componentColors.cardBackground,
+        border = BorderStroke(C1Border.hairline, componentColors.cardBorder)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(C1Spacing.md),
-            verticalArrangement = Arrangement.spacedBy(C1Spacing.md),
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.sm),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
-                    .clip(C1Radius.md)
-                    .background(iconColor.copy(alpha = 0.12f)),
+                    .size(40.dp)
+                    .clip(C1Radius.tile)
+                    .background(iconColor.copy(alpha = 0.10f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     tint = iconColor,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(21.dp)
                 )
             }
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
@@ -1998,9 +2023,9 @@ fun HubListRow(
                 onClick = onClick
             )
             .graphicsLayer { scaleX = scale; scaleY = scale },
-        shape = C1Radius.md,
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(C1Border.hairline, MaterialTheme.colorScheme.outlineVariant)
+        shape = C1Radius.card,
+        color = componentColors.cardBackground,
+        border = BorderStroke(C1Border.hairline, componentColors.cardBorder)
     ) {
         Row(
             modifier = Modifier

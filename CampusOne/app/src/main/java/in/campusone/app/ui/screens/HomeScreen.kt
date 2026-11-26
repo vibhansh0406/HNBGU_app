@@ -10,11 +10,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,19 +24,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assignment
-import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Campaign
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ContactPhone
 import androidx.compose.material.icons.filled.EventNote
 import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -60,11 +54,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.R
 import `in`.campusone.app.data.local.entity.AssignmentEntity
+import `in`.campusone.app.data.local.entity.CampusEventEntity
 import `in`.campusone.app.data.local.entity.ExamEntity
 import `in`.campusone.app.domain.model.NoticeItem
 import `in`.campusone.app.domain.model.TimetableSlot
@@ -76,10 +70,8 @@ import `in`.campusone.app.ui.components.C1Avatar
 import `in`.campusone.app.ui.components.C1Banner
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
-import `in`.campusone.app.ui.components.C1CompactStatCard
 import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1ErrorState
-import `in`.campusone.app.ui.components.C1FilterChip
 import `in`.campusone.app.ui.components.C1SkeletonRows
 import `in`.campusone.app.ui.components.C1SectionHeader
 import `in`.campusone.app.ui.components.C1StatusChip
@@ -88,7 +80,6 @@ import `in`.campusone.app.ui.components.C1Tone
 import `in`.campusone.app.ui.theme.C1Motion
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
-import `in`.campusone.app.ui.theme.C1TouchTarget
 import `in`.campusone.app.ui.theme.C1WindowSize
 import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.theme.windowSize
@@ -105,67 +96,86 @@ fun HomeScreen(
     nextThreeDeadlines: List<AssignmentEntity> = emptyList(),
     nextUpcomingExam: ExamEntity? = null,
     dataRefreshError: Boolean = false,
-    onToggleLanguage: () -> Unit,
     onOpenProfile: () -> Unit,
     onOpenAttendance: () -> Unit,
     onOpenTimetable: () -> Unit,
     onOpenNotices: () -> Unit,
     onOpenNotice: (String) -> Unit,
     onOpenMore: (MoreSubScreen) -> Unit,
-    onRetryRefresh: () -> Unit
+    onRetryRefresh: () -> Unit,
+    campusEvents: List<CampusEventEntity> = emptyList(),
+    onOpenNotifications: () -> Unit = onOpenNotices
 ) {
     val ws = windowSize
     val isCompact = ws == C1WindowSize.COMPACT
 
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentPadding = PaddingValues(
-            horizontal = C1Spacing.pagePadding(ws),
-            vertical = C1Spacing.lg
-        ),
-        verticalArrangement = Arrangement.spacedBy(C1Spacing.sectionGap(ws))
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        item {
-            HomeHeader(
-                uiState = uiState,
-                onToggleLanguage = onToggleLanguage,
-                onOpenProfile = onOpenProfile,
-                onOpenNotices = onOpenNotices
-            )
-        }
-        item {
-            NextClassCard(
-                uiState = uiState,
-                onOpenTimetable = onOpenTimetable
-            )
-        }
-        item {
-            AttendanceSummaryCard(
-                insight = uiState.overallInsight,
-                onClick = onOpenAttendance
-            )
-        }
-        item {
-            QuickActionsSection(onOpenMore = onOpenMore)
-        }
-        item {
-            AnnouncementsSection(
-                uiState = uiState,
-                dataRefreshError = dataRefreshError,
-                onOpenNotice = onOpenNotice,
-                onOpenNotices = onOpenNotices,
-                onRetryRefresh = onRetryRefresh
-            )
-        }
-        if (nextThreeDeadlines.isNotEmpty() || nextUpcomingExam != null) {
+        FlagshipAppHeader(
+            campusName = uiState.profile.collegeName,
+            userName = uiState.profile.name,
+            onNotifications = onOpenNotifications,
+            onProfile = onOpenProfile
+        )
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(
+                horizontal = C1Spacing.pagePadding(ws),
+                vertical = C1Spacing.lg
+            ),
+            verticalArrangement = Arrangement.spacedBy(C1Spacing.sectionGap(ws))
+        ) {
             item {
-                AtAGlanceSection(
-                    deadlines = nextThreeDeadlines,
-                    exam = nextUpcomingExam,
-                    onOpenMore = onOpenMore
+                HomeHeader(
+                    uiState = uiState
                 )
+            }
+            item {
+                NextClassCard(
+                    uiState = uiState,
+                    onOpenTimetable = onOpenTimetable
+                )
+            }
+            item {
+                AttendanceSummaryCard(
+                    insight = uiState.overallInsight,
+                    onClick = onOpenAttendance
+                )
+            }
+            item {
+                TodaySchedulePreview(uiState = uiState, onOpenTimetable = onOpenTimetable)
+            }
+            item {
+                AnnouncementsSection(
+                    uiState = uiState,
+                    dataRefreshError = dataRefreshError,
+                    onOpenNotice = onOpenNotice,
+                    onOpenNotices = onOpenNotices,
+                    onRetryRefresh = onRetryRefresh
+                )
+            }
+            if (campusEvents.any { it.isApproved && it.eventEpochMillis >= System.currentTimeMillis() }) {
+                item {
+                    CampusBuzzSection(
+                        events = campusEvents,
+                        onOpenEvents = { onOpenMore(MoreSubScreen.EVENTS_CLUBS) }
+                    )
+                }
+            }
+            if (nextThreeDeadlines.isNotEmpty() || nextUpcomingExam != null) {
+                item {
+                    AtAGlanceSection(
+                        deadlines = nextThreeDeadlines,
+                        exam = nextUpcomingExam,
+                        onOpenMore = onOpenMore
+                    )
+                }
+            }
+            item {
+                QuickActionsSection(onOpenMore = onOpenMore)
             }
         }
     }
@@ -173,88 +183,46 @@ fun HomeScreen(
 
 @Composable
 private fun HomeHeader(
-    uiState: CoreUiState,
-    onToggleLanguage: () -> Unit,
-    onOpenProfile: () -> Unit,
-    onOpenNotices: () -> Unit
+    uiState: CoreUiState
 ) {
-    val ws = windowSize
     val firstName = uiState.profile.name.trim().substringBefore(" ").ifBlank { "Student" }
-    val courseLine = "${uiState.profile.courseName} • Sem ${uiState.profile.semester} (${uiState.profile.section})"
-    val languageCd = stringResource(R.string.language_toggle)
-    val profileCd = stringResource(R.string.home_open_profile)
-    var headerVisible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { headerVisible = true }
+    val academicYear = when {
+        uiState.profile.semester in 1..2 -> "1st Year"
+        uiState.profile.semester in 3..4 -> "2nd Year"
+        uiState.profile.semester in 5..6 -> "3rd Year"
+        uiState.profile.semester in 7..8 -> "4th Year"
+        else -> "${uiState.profile.semester}th Year"
+    }
 
-    AnimatedVisibility(
-        visible = headerVisible,
-        enter = fadeIn(animationSpec = tween(420)) +
-            slideInVertically(animationSpec = tween(420), initialOffsetY = { it / 5 })
-    ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Profile avatar with subtle ring
-        C1Avatar(
-            name = uiState.profile.name,
-            modifier = Modifier
-                .size(C1TouchTarget)
-                .clickable(onClick = onOpenProfile)
-                .semantics { contentDescription = profileCd },
-            size = C1TouchTarget,
-        )
-        Spacer(modifier = Modifier.width(C1Spacing.md))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = "CAMPUSONE  /  HNBGU",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1
-            )
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 text = stringResource(R.string.home_greeting, firstName),
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = courseLine,
-                style = MaterialTheme.typography.bodyMedium,
+                text = academicYear,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "${uiState.profile.courseName} • Semester ${uiState.profile.semester} • Section ${uiState.profile.section}",
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
         }
-        // Language toggle
-        C1FilterChip(
-            label = if (uiState.languageTag == "hi") "EN" else "हिन्दी",
-            selected = false,
-            onClick = onToggleLanguage
-        )
-        // Notifications
-        IconButton(onClick = onOpenNotices) {
-            BadgedBox(
-                badge = {
-                    if (uiState.unreadNoticeCount > 0) {
-                        Badge {
-                            Text(
-                                if (uiState.unreadNoticeCount > 9) "9+" else uiState.unreadNoticeCount.toString()
-                            )
-                        }
-                    }
-                }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.NotificationsNone,
-                    contentDescription = stringResource(R.string.nav_notices),
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-        }
-    }
     }
 }
 
@@ -440,6 +408,114 @@ private fun NextClassCard(
 }
 
 @Composable
+private fun TodaySchedulePreview(
+    uiState: CoreUiState,
+    onOpenTimetable: () -> Unit
+) {
+    val entries = uiState.todaySchedule.take(3)
+    Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
+        FlagshipSectionTitle(
+            title = "Today's schedule",
+            subtitle = if (uiState.todaySchedule.isEmpty()) "Your day at a glance" else "${uiState.todaySchedule.size} scheduled sessions",
+            action = "Full timetable",
+            onAction = onOpenTimetable
+        )
+        C1SurfaceCard(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(C1Spacing.md),
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            if (entries.isEmpty()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = C1Spacing.sm),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
+                ) {
+                    Box(
+                        modifier = Modifier.size(38.dp).clip(C1Radius.md).background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) { Icon(Icons.Default.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.secondary) }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("No classes scheduled today", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                        Text("Your published weekly timetable is still available.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                    entries.forEachIndexed { index, evaluated ->
+                        val slot = evaluated.slot
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
+                        ) {
+                            Column(modifier = Modifier.width(76.dp)) {
+                                Text(slot.startTime, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                Text(slot.endTime, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Box(Modifier.width(3.dp).height(42.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)))
+                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(slot.subjectName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text("${slot.subjectCode} · ${slot.roomNumber}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            }
+                            when (evaluated.state) {
+                                SlotLiveState.ONGOING -> FlagshipPill("LIVE")
+                                SlotLiveState.UP_NEXT -> FlagshipPill("UP NEXT", background = MaterialTheme.colorScheme.tertiaryContainer, foreground = MaterialTheme.colorScheme.onTertiaryContainer)
+                                SlotLiveState.COMPLETED -> FlagshipPill("DONE", background = MaterialTheme.colorScheme.surfaceVariant, foreground = MaterialTheme.colorScheme.onSurfaceVariant)
+                                SlotLiveState.UPCOMING_LATER -> FlagshipPill("LATER", background = MaterialTheme.colorScheme.surfaceVariant, foreground = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                        if (index != entries.lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CampusBuzzSection(
+    events: List<CampusEventEntity>,
+    onOpenEvents: () -> Unit
+) {
+    val upcoming = remember(events) {
+        events.filter { it.isApproved && it.eventEpochMillis >= System.currentTimeMillis() }
+            .sortedBy { it.eventEpochMillis }
+            .take(2)
+    }
+    if (upcoming.isEmpty()) return
+    Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
+        FlagshipSectionTitle(
+            title = "Campus buzz",
+            subtitle = "Verified events from your campus",
+            action = "Explore all",
+            onAction = onOpenEvents
+        )
+        upcoming.forEach { event ->
+            C1SurfaceCard(
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentPadding = PaddingValues(C1Spacing.lg),
+                onClick = onOpenEvents
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
+                    Box(
+                        modifier = Modifier.size(44.dp).clip(C1Radius.md).background(MaterialTheme.colorScheme.tertiaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) { Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = MaterialTheme.colorScheme.onTertiaryContainer) }
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text(event.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text("${event.clubName} · ${event.eventDateFormatted}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(event.venue, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                    FlagshipPill(event.category)
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun AttendanceSummaryCard(
     insight: AttendanceInsight,
     onClick: () -> Unit
@@ -490,15 +566,13 @@ private fun QuickActionsSection(onOpenMore: (MoreSubScreen) -> Unit) {
     val cols = when (ws) {
         C1WindowSize.COMPACT -> 2
         C1WindowSize.MEDIUM -> 3
-        C1WindowSize.LARGE -> 3
-        C1WindowSize.EXPANDED -> 4
+        else -> 4
     }
 
     val actions = listOf(
         HomeQuickAction(Icons.Default.Assignment, R.string.qa_assignments, R.string.qa_assignments_desc, MoreSubScreen.ASSIGNMENTS),
         HomeQuickAction(Icons.Default.EventNote, R.string.qa_exams, R.string.qa_exams_desc, MoreSubScreen.EXAMS_SYLLABUS),
         HomeQuickAction(Icons.Default.MenuBook, R.string.qa_notes, R.string.qa_notes_desc, MoreSubScreen.NOTES_PYQ),
-        HomeQuickAction(Icons.Default.Calculate, R.string.qa_gpa, R.string.qa_gpa_desc, MoreSubScreen.GPA_CALCULATOR),
         HomeQuickAction(Icons.Default.Search, R.string.qa_lost_found, R.string.qa_lost_found_desc, MoreSubScreen.LOST_FOUND),
         HomeQuickAction(Icons.Default.ContactPhone, R.string.qa_directory, R.string.qa_directory_desc, MoreSubScreen.DIRECTORY)
     )
@@ -531,15 +605,7 @@ private fun QuickActionTile(
     modifier: Modifier = Modifier,
     onOpenMore: (MoreSubScreen) -> Unit
 ) {
-    val iconColor = when (action.screen) {
-        MoreSubScreen.ASSIGNMENTS -> MaterialTheme.colorScheme.tertiary
-        MoreSubScreen.EXAMS_SYLLABUS -> extendedColors.warning
-        MoreSubScreen.NOTES_PYQ -> MaterialTheme.colorScheme.secondary
-        MoreSubScreen.GPA_CALCULATOR -> MaterialTheme.colorScheme.primary
-        MoreSubScreen.LOST_FOUND -> extendedColors.info
-        MoreSubScreen.DIRECTORY -> MaterialTheme.colorScheme.onSurfaceVariant
-        else -> MaterialTheme.colorScheme.primary
-    }
+    val iconColor = MaterialTheme.colorScheme.secondary
     var entered by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { entered = true }
 
@@ -550,21 +616,21 @@ private fun QuickActionTile(
         modifier = modifier
     ) {
         C1SurfaceCard(
-            modifier = Modifier.heightIn(min = 76.dp),
+            modifier = Modifier.heightIn(min = 92.dp),
             onClick = { onOpenMore(action.screen) },
             contentPadding = PaddingValues(horizontal = C1Spacing.md, vertical = C1Spacing.md),
             containerColor = MaterialTheme.colorScheme.surface
         ) {
-            Row(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)
+                verticalArrangement = Arrangement.spacedBy(C1Spacing.sm),
+                horizontalAlignment = Alignment.Start
             ) {
                 Box(
                     modifier = Modifier
-                        .size(38.dp)
-                        .clip(C1Radius.sm)
-                        .background(iconColor.copy(alpha = 0.11f)),
+                        .size(40.dp)
+                        .clip(C1Radius.tile)
+                        .background(iconColor.copy(alpha = 0.10f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -576,18 +642,12 @@ private fun QuickActionTile(
                 }
                 Text(
                     text = stringResource(action.labelRes),
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
+                    minLines = 2,
                     overflow = TextOverflow.Ellipsis
-                )
-                Icon(
-                    imageVector = Icons.Default.ChevronRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
-                    modifier = Modifier.size(17.dp)
                 )
             }
         }
@@ -721,14 +781,14 @@ private fun NoticePreview(
                     Icon(
                         imageVector = Icons.Default.PushPin,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(14.dp)
                     )
                     Text(
                         text = stringResource(R.string.home_pinned),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -737,7 +797,7 @@ private fun NoticePreview(
                 Box(
                     modifier = Modifier
                         .size(6.dp)
-                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                        .background(MaterialTheme.colorScheme.secondary, CircleShape)
                 )
             }
             Text(
@@ -798,7 +858,7 @@ private fun AtAGlanceSection(
                         Icon(
                             imageVector = Icons.Default.Assignment,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier.size(18.dp)
                         )
                         Text(
@@ -868,7 +928,7 @@ private fun AtAGlanceSection(
                             Icon(
                                 imageVector = Icons.Default.CalendarMonth,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = MaterialTheme.colorScheme.secondary,
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(

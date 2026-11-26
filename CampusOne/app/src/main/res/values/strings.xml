@@ -169,8 +169,6 @@
     <string name="qa_exams_desc">Exam dates, syllabus and countdown</string>
     <string name="qa_notes">Notes &amp; PYQ</string>
     <string name="qa_notes_desc">Study materials and previous papers</string>
-    <string name="qa_gpa">GPA</string>
-    <string name="qa_gpa_desc">SGPA, CGPA and target calculator</string>
     <string name="qa_lost_found">Lost &amp; Found</string>
     <string name="qa_lost_found_desc">Report or claim lost items</string>
     <string name="qa_directory">Directory</string>
@@ -182,10 +180,6 @@
     <string name="overall_syllabus_progress">Overall Syllabus Completion</string>
     <string name="publish_exam">Publish Section Exam</string>
     <string name="publish_syllabus_topic">Add Syllabus Topic</string>
-    <string name="gpa_calculator">SGPA / CGPA &amp; Target Calculator</string>
-    <string name="what_do_i_need">What Do I Need? (Target CGPA)</string>
-    <string name="semester_trend_chart">Semester SGPA Trend</string>
-    <string name="export_gpa_pdf">Export Grade Sheet as PDF</string>
 
     <!-- Phase 3: Campus Life -->
     <string name="events_clubs">Events &amp; Clubs</string>
@@ -321,7 +315,6 @@
     <string name="hub_resources_sub">%1$d PDFs &amp; images • in-app viewer, offline bookmarks, CR moderation</string>
     <string name="hub_assignments_sub">%1$d pending tasks • today, upcoming, overdue, completed &amp; shared</string>
     <string name="hub_exams_sub">%1$d scheduled exams • %2$d/%3$d syllabus topics completed</string>
-    <string name="hub_gpa_sub">SGPA %1$s • CGPA %2$s (%3$s) • trend chart &amp; PDF export</string>
     <string name="hub_events_sub">%1$d upcoming campus events &amp; club meetups</string>
     <string name="hub_lostfound_sub">%1$d active lost/found reports on campus</string>
     <string name="hub_directory_sub">HoDs, controller of exams, proctor &amp; emergency helplines</string>
@@ -385,4 +378,7 @@
     <string name="notices_empty_hint">Announcements from your CR, faculty and the university will appear here.</string>
 
     <string name="home_quick_actions_subtitle">The things you use most, one tap away</string>
+
+    <!-- Splash screen attribution -->
+    <string name="splash_veda_attribution">Developed by VEDA Labs</string>
 </resources>

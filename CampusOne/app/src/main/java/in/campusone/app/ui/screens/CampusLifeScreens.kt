@@ -155,9 +155,9 @@ private fun EventsList(
             ) {
                 Column(modifier = Modifier.padding(C1Spacing.lg)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Event, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Icon(Icons.Default.Event, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
                         Spacer(modifier = Modifier.width(C1Spacing.sm))
-                        Text(event.category, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                        Text(event.category, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.secondary)
                     }
                     Spacer(modifier = Modifier.height(C1Spacing.sm))
                     Text(event.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)

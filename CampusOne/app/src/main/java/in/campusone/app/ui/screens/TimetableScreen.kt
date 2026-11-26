@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Icon
@@ -38,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.R
@@ -65,7 +67,9 @@ import java.util.Locale
 fun TimetableScreen(
     uiState: CoreUiState,
     onUpdateReminderMinutes: (Int) -> Unit,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    onOpenNotifications: () -> Unit = {},
+    onOpenProfile: () -> Unit = {}
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var selectedDayOfWeek by rememberSaveable {
@@ -101,6 +105,12 @@ fun TimetableScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
         ) {
+            FlagshipAppHeader(
+                campusName = uiState.profile.collegeName,
+                userName = uiState.profile.name,
+                onNotifications = onOpenNotifications,
+                onProfile = onOpenProfile
+            )
             // Tab row
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -133,30 +143,41 @@ fun TimetableScreen(
                 verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
             ) {
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.timetable_title),
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        if (scopeLabel.isNotBlank()) {
-                            Text(
-                                text = scopeLabel,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
+                    FlagshipPageTitle(
+                        title = "Academic timetable",
+                        subtitle = scopeLabel.ifBlank { "Your published weekly class plan" },
+                        trailing = {
+                            C1Button(
+                                text = stringResource(R.string.action_refresh),
+                                onClick = onRefresh,
+                                intent = C1ButtonIntent.OUTLINED
                             )
                         }
-                    }
-                    C1Button(
-                        text = stringResource(R.string.action_refresh),
-                        onClick = onRefresh,
-                        intent = C1ButtonIntent.OUTLINED
                     )
+                    FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                Text("TODAY AT A GLANCE", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
+                                Text(
+                                    if (uiState.todaySchedule.isEmpty()) "No classes scheduled today" else "${uiState.todaySchedule.size} classes on your plan",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Text(
+                                    if (uiState.allTimetableSlots.isEmpty()) "Your timetable will appear here after it is published." else "Class times and venues are shown from your saved timetable.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f)
+                                )
+                            }
+                            Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(30.dp))
+                        }
+                    }
                 }
             }
 
@@ -178,7 +199,7 @@ fun TimetableScreen(
                                     text = todayLabel,
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.weight(1f)
                                 )
                                 if (uiState.todaySchedule.isNotEmpty()) {
@@ -265,12 +286,12 @@ private fun ReminderLeadTimeCard(
         contentPadding = PaddingValues(C1Spacing.lg),
         containerColor = MaterialTheme.colorScheme.surface
     ) {
-        Column(modifier = Modifier.padding(C1Spacing.lg)) {
+        Column(modifier = Modifier.padding(horizontal = C1Spacing.lg)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.NotificationsActive,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(C1Spacing.sm))
@@ -325,14 +346,14 @@ private fun TimetableSlotCard(slot: TimetableSlot, evaluated: EvaluatedSlot?) {
         } else {
             MaterialTheme.colorScheme.surface
         },
-        borderColor = if (highlighted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+        borderColor = if (highlighted) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outlineVariant
     ) {
         Column(modifier = Modifier.padding(C1Spacing.lg)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.Schedule,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(C1Spacing.xs))
@@ -340,7 +361,7 @@ private fun TimetableSlotCard(slot: TimetableSlot, evaluated: EvaluatedSlot?) {
                     text = "${slot.startTime} – ${slot.endTime}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Text(

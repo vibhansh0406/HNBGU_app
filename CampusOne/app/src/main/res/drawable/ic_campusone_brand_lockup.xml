@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="1000"
+    android:viewportHeight="1000">
+    <path
+        android:fillColor="@color/campusone_launcher_background"
+        android:pathData="M190,0 L810,0 C914.9,0 1000,85.1 1000,190 L1000,810 C1000,914.9 914.9,1000 810,1000 L190,1000 C85.1,1000 0,914.9 0,810 L0,190 C0,85.1 85.1,0 190,0 Z" />
+    <group
+        android:name="campusone_brand_mark"
+        android:scaleX="0.55"
+        android:scaleY="0.55"
+        android:translateX="225"
+        android:translateY="225">
+        <path
+            android:fillColor="@color/campusone_launcher_mark"
+            android:fillType="nonZero"
+            android:pathData="M327.73,8.50 L305.32,19.83 L270.31,46.74 L33.61,281.87 L12.61,310.20 L4.20,330.03 L0.00,349.86 L0.00,658.64 L5.60,679.89 L18.21,703.97 L36.41,726.63 L263.31,953.26 L289.92,973.09 L313.73,987.25 L331.93,994.33 L362.75,1000.00 L652.66,1000.00 L689.08,991.50 L708.68,981.59 L729.69,966.01 L970.59,728.05 L995.80,705.38 L1000.00,698.30 L1000.00,689.80 L997.20,685.55 L735.29,575.07 L721.29,575.07 L708.68,583.57 L544.82,739.38 L521.01,750.71 L495.80,750.71 L471.99,739.38 L245.10,525.50 L229.69,507.08 L229.69,487.25 L236.69,475.92 L471.99,249.29 L487.39,240.79 L497.20,237.96 L521.01,237.96 L533.61,242.21 L547.62,250.71 L708.68,392.35 L718.49,398.02 L732.49,398.02 L981.79,290.37 L988.80,286.12 L991.60,280.45 L990.20,273.37 L956.58,240.79 L731.09,38.24 L704.48,18.41 L684.87,8.50 L661.06,1.42 L648.46,0.00 L365.55,0.00 L345.94,2.83 Z" />
+    </group>
+</vector>

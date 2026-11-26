@@ -4,6 +4,9 @@
     <color name="campusone_background_dark">#101B16</color>
     <color name="campusone_primary">#1E634B</color>
     <color name="campusone_primary_container">#E4F0E7</color>
-    <color name="campusone_surface">#FFFEFA</color>
+    <color name="campusone_surface">#FFFFFF</color>
     <color name="campusone_surface_dark">#18241E</color>
+    <color name="campusone_logo_mark">#1E634B</color>
+    <color name="campusone_launcher_background">#1E634B</color>
+    <color name="campusone_launcher_mark">#FFFFFF</color>
 </resources>

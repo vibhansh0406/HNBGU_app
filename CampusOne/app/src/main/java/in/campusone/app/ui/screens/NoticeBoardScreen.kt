@@ -113,7 +113,9 @@ fun NoticeBoardScreen(
     dataRefreshError: Boolean = false,
     onRetryRefresh: () -> Unit = {},
     focusNoticeId: String? = null,
-    onFocusConsumed: () -> Unit = {}
+    onFocusConsumed: () -> Unit = {},
+    onOpenNotifications: () -> Unit = {},
+    onOpenProfile: () -> Unit = {}
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var filterIndex by rememberSaveable { mutableIntStateOf(0) }
@@ -176,11 +178,20 @@ fun NoticeBoardScreen(
             }
         }
     ) { innerPadding ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(innerPadding),
+                .padding(innerPadding)
+        ) {
+            FlagshipAppHeader(
+                campusName = uiState.profile.collegeName,
+                userName = uiState.profile.name,
+                onNotifications = onOpenNotifications,
+                onProfile = onOpenProfile
+            )
+            LazyColumn(
+                modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(
                 start = C1Spacing.lg,
                 end = C1Spacing.lg,
@@ -192,32 +203,31 @@ fun NoticeBoardScreen(
             // Header item: title, search, filters
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.notices_title),
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.weight(1f).semantics { heading() }
-                        )
-                        if (uiState.unreadNoticeCount > 0) {
-                            TextButton(onClick = onMarkAllRead) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.DoneAll,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Text(stringResource(R.string.mark_all_read))
+                    FlagshipPageTitle(
+                        title = stringResource(R.string.notices_title),
+                        subtitle = "${uiState.profile.courseName} · Sem ${uiState.profile.semester} · Section ${uiState.profile.section}",
+                        trailing = if (uiState.unreadNoticeCount > 0) {
+                            {
+                                TextButton(onClick = onMarkAllRead) {
+                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                                        Icon(Icons.Default.DoneAll, contentDescription = null, modifier = Modifier.size(17.dp))
+                                        Text(stringResource(R.string.mark_all_read))
+                                    }
                                 }
                             }
-                        }
+                        } else null
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                        FlagshipPill(
+                            text = "${uiState.unreadNoticeCount} unread",
+                            background = if (uiState.unreadNoticeCount > 0) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                            foreground = if (uiState.unreadNoticeCount > 0) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        FlagshipPill(
+                            text = "${uiState.notices.size} updates",
+                            background = MaterialTheme.colorScheme.surfaceVariant,
+                            foreground = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
 
                     C1TextField(
@@ -357,6 +367,7 @@ fun NoticeBoardScreen(
                 }
             }
         }
+        }
     }
 
     if (showComposer) {
@@ -413,7 +424,7 @@ private fun NoticeListCard(notice: NoticeItem, onClick: () -> Unit) {
                         Icon(
                             imageVector = Icons.Default.PushPin,
                             contentDescription = stringResource(R.string.home_pinned),
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(C1Spacing.xs))
@@ -421,7 +432,7 @@ private fun NoticeListCard(notice: NoticeItem, onClick: () -> Unit) {
                     Text(
                         text = "${notice.authorName} · ${notice.authorRole.name}",
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -484,7 +495,7 @@ private fun NoticeListCard(notice: NoticeItem, onClick: () -> Unit) {
                     Icon(
                         imageVector = Icons.Default.Attachment,
                         contentDescription = stringResource(R.string.notice_attachment),
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -617,7 +628,7 @@ private fun NoticeDetail(
                             Icon(
                                 imageVector = Icons.Default.Attachment,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = MaterialTheme.colorScheme.secondary
                             )
                             Spacer(modifier = Modifier.width(C1Spacing.sm))
                             Column(modifier = Modifier.weight(1f)) {
@@ -635,7 +646,7 @@ private fun NoticeDetail(
                             Text(
                                 text = stringResource(R.string.open_attachment),
                                 style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.secondary
                             )
                         }
                     }
@@ -775,7 +786,7 @@ private fun PostNoticeDialog(
                     Text(
                         text = "Attachment uploaded (${uploadedAttachmentType})",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.secondary
                     )
                 }
                 if (!attachmentUploadError.isNullOrBlank()) {

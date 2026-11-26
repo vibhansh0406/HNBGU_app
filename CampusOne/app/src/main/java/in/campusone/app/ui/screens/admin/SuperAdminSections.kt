@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,12 +20,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,6 +44,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -45,13 +52,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import `in`.campusone.app.data.local.entity.AssignmentEntity
+import `in`.campusone.app.data.local.entity.ExamEntity
+import `in`.campusone.app.data.local.entity.NoticeEntity
+import `in`.campusone.app.data.local.entity.StudyResourceEntity
+import `in`.campusone.app.data.local.entity.SubjectEntity
+import `in`.campusone.app.data.local.entity.SyllabusTopicEntity
+import `in`.campusone.app.data.local.entity.TimetableSlotEntity
 import `in`.campusone.app.data.repository.AdminPermission
 import `in`.campusone.app.data.repository.AdminUserRecord
 import `in`.campusone.app.data.repository.AuditEntry
 import `in`.campusone.app.data.repository.FlaggedItem
 import `in`.campusone.app.data.repository.PlatformSettings
 import `in`.campusone.app.data.repository.RoleRequestRecord
+import `in`.campusone.app.domain.model.AttachmentType
 import `in`.campusone.app.domain.model.UserRole
+import `in`.campusone.app.ui.components.C1Button
+import `in`.campusone.app.ui.components.C1ButtonIntent
+import `in`.campusone.app.ui.components.C1SurfaceCard
+import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
 import java.text.SimpleDateFormat
@@ -722,6 +741,44 @@ fun SuperAdminContentScreen(
     onBack: () -> Unit
 ) {
     var pendingDelete by remember { mutableStateOf<FlaggedItem?>(null) }
+    var showNoticeDialog by remember { mutableStateOf(false) }
+    var editingNotice by remember { mutableStateOf<NoticeEntity?>(null) }
+    var noticeTitle by remember { mutableStateOf("") }
+    var noticeBody by remember { mutableStateOf("") }
+    var noticeCategory by remember { mutableStateOf("GENERAL") }
+    var noticePriority by remember { mutableStateOf("NORMAL") }
+    var noticePinned by remember { mutableStateOf(false) }
+    var noticeOfficial by remember { mutableStateOf(false) }
+    var showResourceDialog by remember { mutableStateOf(false) }
+    var editingResource by remember { mutableStateOf<StudyResourceEntity?>(null) }
+    var resourceTitle by remember { mutableStateOf("") }
+    var resourceSubjectId by remember { mutableStateOf("") }
+    var resourceSubjectName by remember { mutableStateOf("") }
+    var resourceCategory by remember { mutableStateOf("NOTES") }
+    var resourceFileUrl by remember { mutableStateOf("") }
+    var resourceFileType by remember { mutableStateOf("PDF") }
+    var resourceSemester by remember { mutableIntStateOf(1) }
+    var showAssignmentDialog by remember { mutableStateOf(false) }
+    var editingAssignment by remember { mutableStateOf<AssignmentEntity?>(null) }
+    var assignmentTitle by remember { mutableStateOf("") }
+    var assignmentSubjectId by remember { mutableStateOf("") }
+    var assignmentSubjectTag by remember { mutableStateOf("") }
+    var assignmentDescription by remember { mutableStateOf("") }
+    var assignmentPriority by remember { mutableStateOf("MEDIUM") }
+    var assignmentDueDate by remember { mutableStateOf("") }
+    var showExamDialog by remember { mutableStateOf(false) }
+    var editingExam by remember { mutableStateOf<ExamEntity?>(null) }
+    var examTitle by remember { mutableStateOf("") }
+    var examSubjectName by remember { mutableStateOf("") }
+    var examSubjectCode by remember { mutableStateOf("") }
+    var examDate by remember { mutableStateOf("") }
+    var examTime by remember { mutableStateOf("10:00 AM – 01:00 PM") }
+    var examRoom by remember { mutableStateOf("") }
+    var showSyllabusDialog by remember { mutableStateOf(false) }
+    var editingSyllabus by remember { mutableStateOf<SyllabusTopicEntity?>(null) }
+    var syllabusTopicTitle by remember { mutableStateOf("") }
+    var syllabusSubjectName by remember { mutableStateOf("") }
+    var syllabusUnitNumber by remember { mutableIntStateOf(1) }
 
     Scaffold(
         topBar = {
@@ -806,8 +863,241 @@ fun SuperAdminContentScreen(
                 )
             }
 
+            item {
+                SectionHeader("Notices", "Institution-wide announcements")
+            }
+            item {
+                if (uiState.notices.isEmpty()) {
+                    Text(
+                        text = "No notices yet.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    uiState.notices.forEach { notice ->
+                        NoticeRow(
+                            notice = notice,
+                            onEdit = {
+                                editingNotice = notice
+                                noticeTitle = notice.title
+                                noticeBody = notice.body
+                                noticeCategory = notice.category
+                                noticePriority = notice.priority
+                                noticePinned = notice.isPinned
+                                noticeOfficial = notice.isOfficial
+                                showNoticeDialog = true
+                            },
+                            onDelete = { viewModel.deleteNoticeRemote(notice.id) }
+                        )
+                    }
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SectionHeader("Study resources", "Notes, PYQs and study materials")
+                    TextButton(onClick = {
+                        editingResource = null
+                        resourceTitle = ""
+                        resourceSubjectId = ""
+                        resourceSubjectName = ""
+                        resourceCategory = "NOTES"
+                        resourceFileUrl = ""
+                        resourceFileType = "PDF"
+                        resourceSemester = 1
+                        showResourceDialog = true
+                    }) {
+                        Text("Add resource")
+                    }
+                }
+            }
+            item {
+                if (uiState.studyResources.isEmpty()) {
+                    Text(
+                        text = "No study resources yet.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    uiState.studyResources.forEach { resource ->
+                        ResourceRow(
+                            resource = resource,
+                            onEdit = {
+                                editingResource = resource
+                                resourceTitle = resource.title
+                                resourceSubjectId = resource.subjectId
+                                resourceSubjectName = resource.subjectName
+                                resourceCategory = resource.category
+                                resourceFileUrl = resource.fileUrl.orEmpty()
+                                resourceFileType = resource.fileType
+                                resourceSemester = resource.semester
+                                showResourceDialog = true
+                            },
+                            onDelete = { viewModel.deleteStudyResource(resource.id) }
+                        )
+                    }
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SectionHeader("Assignments", "Published course assignments")
+                    TextButton(onClick = {
+                        editingAssignment = null
+                        assignmentTitle = ""
+                        assignmentSubjectId = ""
+                        assignmentSubjectTag = ""
+                        assignmentDescription = ""
+                        assignmentPriority = "MEDIUM"
+                        assignmentDueDate = ""
+                        showAssignmentDialog = true
+                    }) {
+                        Text("Add assignment")
+                    }
+                }
+            }
+            item {
+                if (uiState.assignments.isEmpty()) {
+                    Text(
+                        text = "No assignments yet.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    uiState.assignments.forEach { assignment ->
+                        AssignmentRow(
+                            assignment = assignment,
+                            onEdit = {
+                                editingAssignment = assignment
+                                assignmentTitle = assignment.title
+                                assignmentSubjectId = assignment.subjectId
+                                assignmentSubjectTag = assignment.subjectTag
+                                assignmentDescription = assignment.description
+                                assignmentPriority = assignment.priority
+                                assignmentDueDate = assignment.dueDateFormatted
+                                showAssignmentDialog = true
+                            },
+                            onDelete = { viewModel.deleteAssignment(assignment.id) }
+                        )
+                    }
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SectionHeader("Exams", "Scheduled examinations")
+                    TextButton(onClick = {
+                        editingExam = null
+                        examTitle = ""
+                        examSubjectName = ""
+                        examSubjectCode = ""
+                        examDate = ""
+                        examTime = "10:00 AM – 01:00 PM"
+                        examRoom = ""
+                        showExamDialog = true
+                    }) {
+                        Text("Add exam")
+                    }
+                }
+            }
+            item {
+                if (uiState.exams.isEmpty()) {
+                    Text(
+                        text = "No exams yet.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    uiState.exams.forEach { exam ->
+                        ExamRow(
+                            exam = exam,
+                            onEdit = {
+                                editingExam = exam
+                                examTitle = exam.examTitle
+                                examSubjectName = exam.subjectName
+                                examSubjectCode = exam.subjectCode
+                                examDate = exam.examDateFormatted
+                                examTime = exam.examTimeFormatted
+                                examRoom = exam.roomOrCenter
+                                showExamDialog = true
+                            },
+                            onDelete = { viewModel.deleteExam(exam.id) }
+                        )
+                    }
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SectionHeader("Syllabus", "Unit-wise topic breakdown")
+                    TextButton(onClick = {
+                        editingSyllabus = null
+                        syllabusTopicTitle = ""
+                        syllabusSubjectName = ""
+                        syllabusUnitNumber = 1
+                        showSyllabusDialog = true
+                    }) {
+                        Text("Add topic")
+                    }
+                }
+            }
+            item {
+                if (uiState.syllabusTopics.isEmpty()) {
+                    Text(
+                        text = "No syllabus topics yet.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    uiState.syllabusTopics.forEach { topic ->
+                        SyllabusRow(
+                            topic = topic,
+                            onEdit = {
+                                editingSyllabus = topic
+                                syllabusTopicTitle = topic.topicTitle
+                                syllabusSubjectName = topic.subjectName
+                                syllabusUnitNumber = topic.unitNumber
+                                showSyllabusDialog = true
+                            },
+                            onDelete = { viewModel.deleteSyllabusTopic(topic.id) }
+                        )
+                    }
+                }
+            }
+
             item { Spacer(modifier = Modifier.height(24.dp)) }
         }
+    }
+
+    FloatingActionButton(
+        onClick = {
+            editingNotice = null
+            noticeTitle = ""
+            noticeBody = ""
+            noticeCategory = "GENERAL"
+            noticePriority = "NORMAL"
+            noticePinned = false
+            noticeOfficial = false
+            showNoticeDialog = true
+        }
+    ) {
+        Icon(Icons.Default.Add, contentDescription = "Add notice")
     }
 
     pendingDelete?.let { item ->
@@ -823,6 +1113,176 @@ fun SuperAdminContentScreen(
             },
             dismissButton = {
                 TextButton(onClick = { pendingDelete = null }) { Text("Cancel") }
+            }
+        )
+    }
+
+    if (showNoticeDialog) {
+        NoticeDialog(
+            title = noticeTitle,
+            body = noticeBody,
+            category = noticeCategory,
+            priority = noticePriority,
+            isPinned = noticePinned,
+            isOfficial = noticeOfficial,
+            onTitleChange = { noticeTitle = it },
+            onBodyChange = { noticeBody = it },
+            onCategoryChange = { noticeCategory = it },
+            onPriorityChange = { noticePriority = it },
+            onPinnedChange = { noticePinned = it },
+            onOfficialChange = { noticeOfficial = it },
+            onDismiss = { showNoticeDialog = false },
+            onSave = {
+                val notice = NoticeEntity(
+                    id = editingNotice?.id ?: java.util.UUID.randomUUID().toString(),
+                    sectionKey = editingNotice?.sectionKey ?: uiState.sectionKey,
+                    title = noticeTitle,
+                    body = noticeBody,
+                    isPinned = noticePinned,
+                    category = noticeCategory,
+                    priority = noticePriority,
+                    isOfficial = noticeOfficial,
+                    attachmentUrl = null,
+                    attachmentType = AttachmentType.NONE,
+                    authorUid = uiState.profile.uid,
+                    authorName = uiState.profile.name,
+                    authorRole = uiState.profile.role,
+                    createdAtMillis = editingNotice?.createdAtMillis ?: System.currentTimeMillis(),
+                    isRead = false
+                )
+                viewModel.saveNotice(notice)
+                viewModel.saveNoticeRemote(notice)
+                showNoticeDialog = false
+            }
+        )
+    }
+
+    if (showResourceDialog) {
+        ResourceDialog(
+            title = resourceTitle,
+            subjectId = resourceSubjectId,
+            subjectName = resourceSubjectName,
+            category = resourceCategory,
+            fileUrl = resourceFileUrl,
+            fileType = resourceFileType,
+            semester = resourceSemester,
+            onTitleChange = { resourceTitle = it },
+            onSubjectIdChange = { resourceSubjectId = it },
+            onSubjectNameChange = { resourceSubjectName = it },
+            onCategoryChange = { resourceCategory = it },
+            onFileUrlChange = { resourceFileUrl = it },
+            onFileTypeChange = { resourceFileType = it },
+            onSemesterChange = { resourceSemester = it },
+            onDismiss = { showResourceDialog = false },
+            onSave = {
+                val resource = StudyResourceEntity(
+                    id = editingResource?.id ?: java.util.UUID.randomUUID().toString(),
+                    sectionKey = editingResource?.sectionKey ?: uiState.sectionKey,
+                    subjectId = resourceSubjectId,
+                    subjectName = resourceSubjectName,
+                    semester = resourceSemester,
+                    title = resourceTitle,
+                    category = resourceCategory,
+                    fileUrl = resourceFileUrl,
+                    fileType = resourceFileType,
+                    uploaderUid = uiState.profile.uid,
+                    uploaderName = uiState.profile.name
+                )
+                viewModel.saveStudyResource(resource)
+                showResourceDialog = false
+            }
+        )
+    }
+
+    if (showAssignmentDialog) {
+        AssignmentDialog(
+            title = assignmentTitle,
+            subjectId = assignmentSubjectId,
+            subjectTag = assignmentSubjectTag,
+            description = assignmentDescription,
+            priority = assignmentPriority,
+            dueDate = assignmentDueDate,
+            onTitleChange = { assignmentTitle = it },
+            onSubjectIdChange = { assignmentSubjectId = it },
+            onSubjectTagChange = { assignmentSubjectTag = it },
+            onDescriptionChange = { assignmentDescription = it },
+            onPriorityChange = { assignmentPriority = it },
+            onDueDateChange = { assignmentDueDate = it },
+            onDismiss = { showAssignmentDialog = false },
+            onSave = {
+                val assignment = AssignmentEntity(
+                    id = editingAssignment?.id ?: java.util.UUID.randomUUID().toString(),
+                    sectionKey = editingAssignment?.sectionKey ?: uiState.sectionKey,
+                    subjectId = assignmentSubjectId,
+                    subjectTag = assignmentSubjectTag,
+                    title = assignmentTitle,
+                    description = assignmentDescription,
+                    priority = assignmentPriority,
+                    dueDateEpochMillis = System.currentTimeMillis(),
+                    dueDateFormatted = assignmentDueDate,
+                    authorName = uiState.profile.name
+                )
+                viewModel.saveAssignment(assignment)
+                showAssignmentDialog = false
+            }
+        )
+    }
+
+    if (showExamDialog) {
+        ExamDialog(
+            title = examTitle,
+            subjectName = examSubjectName,
+            subjectCode = examSubjectCode,
+            date = examDate,
+            time = examTime,
+            room = examRoom,
+            onTitleChange = { examTitle = it },
+            onSubjectNameChange = { examSubjectName = it },
+            onSubjectCodeChange = { examSubjectCode = it },
+            onDateChange = { examDate = it },
+            onTimeChange = { examTime = it },
+            onRoomChange = { examRoom = it },
+            onDismiss = { showExamDialog = false },
+            onSave = {
+                val exam = ExamEntity(
+                    id = editingExam?.id ?: java.util.UUID.randomUUID().toString(),
+                    sectionKey = editingExam?.sectionKey ?: uiState.sectionKey,
+                    subjectId = examSubjectCode,
+                    subjectName = examSubjectName,
+                    subjectCode = examSubjectCode,
+                    examTitle = examTitle,
+                    examDateEpochMillis = System.currentTimeMillis(),
+                    examDateIso = examDate,
+                    examTimeFormatted = examTime,
+                    examDateFormatted = examDate,
+                    roomOrCenter = examRoom
+                )
+                viewModel.saveExam(exam)
+                showExamDialog = false
+            }
+        )
+    }
+
+    if (showSyllabusDialog) {
+        SyllabusDialog(
+            topicTitle = syllabusTopicTitle,
+            subjectName = syllabusSubjectName,
+            unitNumber = syllabusUnitNumber,
+            onTopicTitleChange = { syllabusTopicTitle = it },
+            onSubjectNameChange = { syllabusSubjectName = it },
+            onUnitNumberChange = { syllabusUnitNumber = it },
+            onDismiss = { showSyllabusDialog = false },
+            onSave = {
+                val topic = SyllabusTopicEntity(
+                    id = editingSyllabus?.id ?: java.util.UUID.randomUUID().toString(),
+                    sectionKey = editingSyllabus?.sectionKey ?: uiState.sectionKey,
+                    subjectId = syllabusSubjectName,
+                    subjectName = syllabusSubjectName,
+                    unitNumber = syllabusUnitNumber,
+                    topicTitle = syllabusTopicTitle
+                )
+                viewModel.saveSyllabusTopic(topic)
+                showSyllabusDialog = false
             }
         )
     }
@@ -1342,4 +1802,997 @@ private fun AuditRow(entry: AuditEntry) {
             }
         }
     }
+}
+
+// =========================================================================
+// ACADEMIC STRUCTURE
+// =========================================================================
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SuperAdminAcademicScreen(
+    uiState: AdminUiState,
+    viewModel: AdminViewModel,
+    onBack: () -> Unit
+) {
+    var showSubjectDialog by remember { mutableStateOf(false) }
+    var editingSubject by remember { mutableStateOf<SubjectEntity?>(null) }
+    var subjectName by remember { mutableStateOf("") }
+    var subjectCode by remember { mutableStateOf("") }
+    var credits by remember { mutableIntStateOf(4) }
+    var isElective by remember { mutableStateOf(false) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Academic structure") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { viewModel.refreshRemoteData() }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(vertical = 16.dp)
+        ) {
+            item {
+                SectionHeader("Subjects", "Courses offered in this section")
+            }
+            item {
+                if (uiState.subjects.isEmpty()) {
+                    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.School,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(40.dp).align(Alignment.CenterHorizontally)
+                            )
+                            Text(
+                                text = "No subjects yet.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "Add subjects to build the academic catalogue.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                } else {
+                    uiState.subjects.forEach { subject ->
+                        SubjectRow(
+                            subject = subject,
+                            onEdit = {
+                                editingSubject = subject
+                                subjectName = subject.subjectName
+                                subjectCode = subject.subjectCode
+                                credits = subject.credits
+                                isElective = subject.isElective
+                                showSubjectDialog = true
+                            },
+                            onDelete = { viewModel.deleteSubject(subject.subjectId) }
+                        )
+                    }
+                }
+            }
+
+            item {
+                SectionHeader("Timetable", "Weekly class schedule by day and time")
+            }
+            item {
+                if (uiState.timetableSlots.isEmpty()) {
+                    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Schedule,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(40.dp).align(Alignment.CenterHorizontally)
+                            )
+                            Text(
+                                text = "No timetable slots yet.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "Add timetable slots to publish the weekly schedule.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                } else {
+                    uiState.timetableSlots.forEach { slot ->
+                        TimetableRow(
+                            slot = slot,
+                            subjects = uiState.subjects
+                        )
+                    }
+                }
+            }
+
+            item { Spacer(modifier = Modifier.height(24.dp)) }
+        }
+    }
+
+    FloatingActionButton(
+        onClick = {
+            editingSubject = null
+            subjectName = ""
+            subjectCode = ""
+            credits = 4
+            isElective = false
+            showSubjectDialog = true
+        }
+    ) {
+        Icon(Icons.Default.Add, contentDescription = "Add subject")
+    }
+
+    if (showSubjectDialog) {
+        SubjectDialog(
+            subjectName = subjectName,
+            subjectCode = subjectCode,
+            credits = credits,
+            isElective = isElective,
+            onSubjectNameChange = { subjectName = it },
+            onSubjectCodeChange = { subjectCode = it },
+            onCreditsChange = { credits = it },
+            onElectiveChange = { isElective = it },
+            onDismiss = { showSubjectDialog = false },
+            onSave = {
+                val subject = SubjectEntity(
+                    subjectId = editingSubject?.subjectId ?: subjectCode,
+                    sectionKey = uiState.sectionKey,
+                    subjectName = subjectName,
+                    subjectCode = subjectCode,
+                    teacherName = "",
+                    isElective = isElective,
+                    isEnrolled = true,
+                    credits = credits
+                )
+                viewModel.saveSubject(subject)
+                showSubjectDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+private fun SectionHeader(title: String, subtitle: String) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun SubjectRow(
+    subject: SubjectEntity,
+    onEdit: () -> Unit,
+    onDelete: (String) -> Unit
+) {
+    C1SurfaceCard(
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = subject.subjectName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = subject.subjectCode,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "${subject.credits} credits ${if (subject.isElective) "• Elective" else ""}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IconButton(onClick = onEdit) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit subject")
+                    }
+                    IconButton(onClick = { onDelete(subject.subjectId) }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete subject")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TimetableRow(
+    slot: TimetableSlotEntity,
+    subjects: List<SubjectEntity>
+) {
+    val subjectName = subjects.firstOrNull { it.subjectId == slot.subjectId }?.subjectName
+        ?: slot.subjectName
+    C1SurfaceCard(
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = subjectName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "${slot.subjectCode} • Day ${slot.dayOfWeek} • ${slot.startTime}–${slot.endTime}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    if (slot.roomNumber.isNotBlank()) {
+                        Text(
+                            text = "Room ${slot.roomNumber}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SubjectDialog(
+    subjectName: String,
+    subjectCode: String,
+    credits: Int,
+    isElective: Boolean,
+    onSubjectNameChange: (String) -> Unit,
+    onSubjectCodeChange: (String) -> Unit,
+    onCreditsChange: (Int) -> Unit,
+    onElectiveChange: (Boolean) -> Unit,
+    onDismiss: () -> Unit,
+    onSave: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Subject") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                C1TextField(
+                    value = subjectName,
+                    onValueChange = onSubjectNameChange,
+                    label = "Subject Name",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1TextField(
+                    value = subjectCode,
+                    onValueChange = onSubjectCodeChange,
+                    label = "Subject Code",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    C1TextField(
+                        value = credits.toString(),
+                        onValueChange = { onCreditsChange(it.toIntOrNull() ?: 4) },
+                        label = "Credits",
+                        singleLine = true,
+                        modifier = Modifier.weight(1f)
+                    )
+                    androidx.compose.material3.Checkbox(
+                        checked = isElective,
+                        onCheckedChange = onElectiveChange
+                    )
+                    Text("Elective", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        },
+        confirmButton = {
+            C1Button(
+                text = "Save",
+                onClick = onSave,
+                enabled = subjectName.isNotBlank() && subjectCode.isNotBlank()
+            )
+        },
+        dismissButton = {
+            C1Button(
+                text = "Cancel",
+                onClick = onDismiss,
+                intent = C1ButtonIntent.GHOST
+            )
+        }
+    )
+}
+
+@Composable
+private fun NoticeRow(
+    notice: NoticeEntity,
+    onEdit: () -> Unit,
+    onDelete: (String) -> Unit
+) {
+    C1SurfaceCard(
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = notice.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = notice.body,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 2,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "${notice.category} • ${notice.priority} ${if (notice.isPinned) "• Pinned" else ""} ${if (notice.isOfficial) "• Official" else ""}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IconButton(onClick = onEdit) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit notice")
+                    }
+                    IconButton(onClick = { onDelete(notice.id) }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete notice")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NoticeDialog(
+    title: String,
+    body: String,
+    category: String,
+    priority: String,
+    isPinned: Boolean,
+    isOfficial: Boolean,
+    onTitleChange: (String) -> Unit,
+    onBodyChange: (String) -> Unit,
+    onCategoryChange: (String) -> Unit,
+    onPriorityChange: (String) -> Unit,
+    onPinnedChange: (Boolean) -> Unit,
+    onOfficialChange: (Boolean) -> Unit,
+    onDismiss: () -> Unit,
+    onSave: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (title.isNotBlank()) "Edit Notice" else "Add Notice") },
+        text = {
+            Column(
+                modifier = Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                C1TextField(
+                    value = title,
+                    onValueChange = onTitleChange,
+                    label = "Title",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1TextField(
+                    value = body,
+                    onValueChange = onBodyChange,
+                    label = "Body / Details",
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    C1TextField(
+                        value = category,
+                        onValueChange = onCategoryChange,
+                        label = "Category",
+                        singleLine = true,
+                        modifier = Modifier.weight(1f)
+                    )
+                    C1TextField(
+                        value = priority,
+                        onValueChange = onPriorityChange,
+                        label = "Priority",
+                        singleLine = true,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.Checkbox(
+                        checked = isPinned,
+                        onCheckedChange = onPinnedChange
+                    )
+                    Text("Pin to top", style = MaterialTheme.typography.bodyMedium)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.Checkbox(
+                        checked = isOfficial,
+                        onCheckedChange = onOfficialChange
+                    )
+                    Text("Official announcement", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        },
+        confirmButton = {
+            C1Button(
+                text = "Publish notice",
+                onClick = onSave,
+                enabled = title.isNotBlank() && body.isNotBlank()
+            )
+        },
+        dismissButton = {
+            C1Button(
+                text = "Cancel",
+                onClick = onDismiss,
+                intent = C1ButtonIntent.GHOST
+            )
+        }
+    )
+}
+
+@Composable
+private fun ResourceRow(
+    resource: StudyResourceEntity,
+    onEdit: () -> Unit,
+    onDelete: (String) -> Unit
+) {
+    C1SurfaceCard(
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = resource.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "${resource.subjectName} • ${resource.category} • Sem ${resource.semester}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "${resource.fileType} • ${resource.fileSizeBytes / 1024} KB",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IconButton(onClick = onEdit) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit resource")
+                    }
+                    IconButton(onClick = { onDelete(resource.id) }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete resource")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ResourceDialog(
+    title: String,
+    subjectId: String,
+    subjectName: String,
+    category: String,
+    fileUrl: String,
+    fileType: String,
+    semester: Int,
+    onTitleChange: (String) -> Unit,
+    onSubjectIdChange: (String) -> Unit,
+    onSubjectNameChange: (String) -> Unit,
+    onCategoryChange: (String) -> Unit,
+    onFileUrlChange: (String) -> Unit,
+    onFileTypeChange: (String) -> Unit,
+    onSemesterChange: (Int) -> Unit,
+    onDismiss: () -> Unit,
+    onSave: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (title.isNotBlank()) "Edit Resource" else "Add Resource") },
+        text = {
+            Column(
+                modifier = Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                C1TextField(
+                    value = title,
+                    onValueChange = onTitleChange,
+                    label = "Title",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1TextField(
+                    value = subjectName,
+                    onValueChange = onSubjectNameChange,
+                    label = "Subject Name",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1TextField(
+                    value = subjectId,
+                    onValueChange = onSubjectIdChange,
+                    label = "Subject ID",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    C1TextField(
+                        value = category,
+                        onValueChange = onCategoryChange,
+                        label = "Category (NOTES/PYQ/ASSIGNMENT/OTHER)",
+                        singleLine = true,
+                        modifier = Modifier.weight(1f)
+                    )
+                    C1TextField(
+                        value = semester.toString(),
+                        onValueChange = { onSemesterChange(it.toIntOrNull() ?: 1) },
+                        label = "Semester",
+                        singleLine = true,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                C1TextField(
+                    value = fileUrl,
+                    onValueChange = onFileUrlChange,
+                    label = "File URL",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    C1TextField(
+                        value = fileType,
+                        onValueChange = onFileTypeChange,
+                        label = "File Type (PDF/IMAGE)",
+                        singleLine = true,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            C1Button(
+                text = "Save resource",
+                onClick = onSave,
+                enabled = title.isNotBlank() && subjectId.isNotBlank() && fileUrl.isNotBlank()
+            )
+        },
+        dismissButton = {
+            C1Button(
+                text = "Cancel",
+                onClick = onDismiss,
+                intent = C1ButtonIntent.GHOST
+            )
+        }
+    )
+}
+
+@Composable
+private fun AssignmentRow(
+    assignment: AssignmentEntity,
+    onEdit: () -> Unit,
+    onDelete: (String) -> Unit
+) {
+    C1SurfaceCard(
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = assignment.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "${assignment.subjectTag} • ${assignment.priority} • Due ${assignment.dueDateFormatted}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    if (assignment.description.isNotBlank()) {
+                        Text(
+                            text = assignment.description,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
+                        )
+                    }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IconButton(onClick = onEdit) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit assignment")
+                    }
+                    IconButton(onClick = { onDelete(assignment.id) }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete assignment")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExamRow(
+    exam: ExamEntity,
+    onEdit: () -> Unit,
+    onDelete: (String) -> Unit
+) {
+    C1SurfaceCard(
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = exam.examTitle,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "${exam.subjectName} (${exam.subjectCode}) • ${exam.examDateFormatted}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "${exam.examTimeFormatted} • ${exam.roomOrCenter}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IconButton(onClick = onEdit) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit exam")
+                    }
+                    IconButton(onClick = { onDelete(exam.id) }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete exam")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SyllabusRow(
+    topic: SyllabusTopicEntity,
+    onEdit: () -> Unit,
+    onDelete: (String) -> Unit
+) {
+    C1SurfaceCard(
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = topic.topicTitle,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "${topic.subjectName} • Unit ${topic.unitNumber}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IconButton(onClick = onEdit) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit syllabus topic")
+                    }
+                    IconButton(onClick = { onDelete(topic.id) }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete syllabus topic")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AssignmentDialog(
+    title: String,
+    subjectId: String,
+    subjectTag: String,
+    description: String,
+    priority: String,
+    dueDate: String,
+    onTitleChange: (String) -> Unit,
+    onSubjectIdChange: (String) -> Unit,
+    onSubjectTagChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onPriorityChange: (String) -> Unit,
+    onDueDateChange: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onSave: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (title.isNotBlank()) "Edit Assignment" else "Add Assignment") },
+        text = {
+            Column(
+                modifier = Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                C1TextField(
+                    value = title,
+                    onValueChange = onTitleChange,
+                    label = "Title",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1TextField(
+                    value = subjectTag,
+                    onValueChange = onSubjectTagChange,
+                    label = "Subject Tag",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1TextField(
+                    value = subjectId,
+                    onValueChange = onSubjectIdChange,
+                    label = "Subject ID",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1TextField(
+                    value = description,
+                    onValueChange = onDescriptionChange,
+                    label = "Description",
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    C1TextField(
+                        value = priority,
+                        onValueChange = onPriorityChange,
+                        label = "Priority (HIGH/MEDIUM/LOW)",
+                        singleLine = true,
+                        modifier = Modifier.weight(1f)
+                    )
+                    C1TextField(
+                        value = dueDate,
+                        onValueChange = onDueDateChange,
+                        label = "Due Date",
+                        singleLine = true,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            C1Button(
+                text = "Save assignment",
+                onClick = onSave,
+                enabled = title.isNotBlank() && subjectId.isNotBlank()
+            )
+        },
+        dismissButton = {
+            C1Button(
+                text = "Cancel",
+                onClick = onDismiss,
+                intent = C1ButtonIntent.GHOST
+            )
+        }
+    )
+}
+
+@Composable
+private fun ExamDialog(
+    title: String,
+    subjectName: String,
+    subjectCode: String,
+    date: String,
+    time: String,
+    room: String,
+    onTitleChange: (String) -> Unit,
+    onSubjectNameChange: (String) -> Unit,
+    onSubjectCodeChange: (String) -> Unit,
+    onDateChange: (String) -> Unit,
+    onTimeChange: (String) -> Unit,
+    onRoomChange: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onSave: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (title.isNotBlank()) "Edit Exam" else "Add Exam") },
+        text = {
+            Column(
+                modifier = Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                C1TextField(
+                    value = title,
+                    onValueChange = onTitleChange,
+                    label = "Exam Title",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1TextField(
+                    value = subjectName,
+                    onValueChange = onSubjectNameChange,
+                    label = "Subject Name",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1TextField(
+                    value = subjectCode,
+                    onValueChange = onSubjectCodeChange,
+                    label = "Subject Code",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    C1TextField(
+                        value = date,
+                        onValueChange = onDateChange,
+                        label = "Date",
+                        singleLine = true,
+                        modifier = Modifier.weight(1f)
+                    )
+                    C1TextField(
+                        value = time,
+                        onValueChange = onTimeChange,
+                        label = "Time",
+                        singleLine = true,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                C1TextField(
+                    value = room,
+                    onValueChange = onRoomChange,
+                    label = "Room / Center",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            C1Button(
+                text = "Save exam",
+                onClick = onSave,
+                enabled = title.isNotBlank() && subjectName.isNotBlank()
+            )
+        },
+        dismissButton = {
+            C1Button(
+                text = "Cancel",
+                onClick = onDismiss,
+                intent = C1ButtonIntent.GHOST
+            )
+        }
+    )
+}
+
+@Composable
+private fun SyllabusDialog(
+    topicTitle: String,
+    subjectName: String,
+    unitNumber: Int,
+    onTopicTitleChange: (String) -> Unit,
+    onSubjectNameChange: (String) -> Unit,
+    onUnitNumberChange: (Int) -> Unit,
+    onDismiss: () -> Unit,
+    onSave: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (topicTitle.isNotBlank()) "Edit Syllabus Topic" else "Add Syllabus Topic") },
+        text = {
+            Column(
+                modifier = Modifier.heightIn(max = 300.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                C1TextField(
+                    value = topicTitle,
+                    onValueChange = onTopicTitleChange,
+                    label = "Topic Title",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1TextField(
+                    value = subjectName,
+                    onValueChange = onSubjectNameChange,
+                    label = "Subject Name",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                C1TextField(
+                    value = unitNumber.toString(),
+                    onValueChange = { onUnitNumberChange(it.toIntOrNull() ?: 1) },
+                    label = "Unit Number",
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            C1Button(
+                text = "Save topic",
+                onClick = onSave,
+                enabled = topicTitle.isNotBlank() && subjectName.isNotBlank()
+            )
+        },
+        dismissButton = {
+            C1Button(
+                text = "Cancel",
+                onClick = onDismiss,
+                intent = C1ButtonIntent.GHOST
+            )
+        }
+    )
 }

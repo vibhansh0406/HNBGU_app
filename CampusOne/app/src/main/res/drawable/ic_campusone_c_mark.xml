@@ -2,7 +2,7 @@
 <!--
   CampusOne C mark — adaptive icon foreground.
   Source: design/brand/campusone-c-mark.svg (traced from original-uploaded-C-logo-reference.png).
-  Geometry preserved exactly as supplied; fill is the Campus Spectrum royal blue #1E634B.
+  Geometry preserved exactly as supplied; fill is the Evergreen Studio green #1E634B.
   Do not alter proportions, reshape corners, or add effects.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
@@ -12,7 +12,7 @@
     android:viewportHeight="1000">
     <path
         android:name="c_mark"
-        android:fillColor="#3156D9"
+        android:fillColor="@color/campusone_logo_mark"
         android:fillType="nonZero"
         android:pathData="M327.73,8.50 L305.32,19.83 L270.31,46.74 L33.61,281.87 L12.61,310.20 L4.20,330.03 L0.00,349.86 L0.00,658.64 L5.60,679.89 L18.21,703.97 L36.41,726.63 L263.31,953.26 L289.92,973.09 L313.73,987.25 L331.93,994.33 L362.75,1000.00 L652.66,1000.00 L689.08,991.50 L708.68,981.59 L729.69,966.01 L970.59,728.05 L995.80,705.38 L1000.00,698.30 L1000.00,689.80 L997.20,685.55 L735.29,575.07 L721.29,575.07 L708.68,583.57 L544.82,739.38 L521.01,750.71 L495.80,750.71 L471.99,739.38 L245.10,525.50 L229.69,507.08 L229.69,487.25 L236.69,475.92 L471.99,249.29 L487.39,240.79 L497.20,237.96 L521.01,237.96 L533.61,242.21 L547.62,250.71 L708.68,392.35 L718.49,398.02 L732.49,398.02 L981.79,290.37 L988.80,286.12 L991.60,280.45 L990.20,273.37 L956.58,240.79 L731.09,38.24 L704.48,18.41 L684.87,8.50 L661.06,1.42 L648.46,0.00 L365.55,0.00 L345.94,2.83 Z" />
 </vector>

@@ -33,7 +33,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Campaign
@@ -46,11 +45,8 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.outlined.AccountCircle
-import androidx.compose.material.icons.outlined.School
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -76,17 +72,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.scale
@@ -98,6 +89,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.delay
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.messaging.FirebaseMessaging
@@ -107,10 +99,10 @@ import `in`.campusone.app.data.remote.AuthManager
 import `in`.campusone.app.data.remote.SupabaseSession
 import `in`.campusone.app.data.repository.CoreCampusRepository
 import `in`.campusone.app.data.remote.SupabaseSyncRepository
-import `in`.campusone.app.data.preferences.UserPreferencesRepository
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1NavItem
 import `in`.campusone.app.ui.screens.AttendanceScreen
+import `in`.campusone.app.ui.screens.FlagshipAttendanceScreen
 import `in`.campusone.app.ui.screens.HomeScreen
 import `in`.campusone.app.ui.screens.MoreHubScreen
 import `in`.campusone.app.ui.screens.MoreSubScreen
@@ -119,7 +111,6 @@ import `in`.campusone.app.ui.screens.OnboardingScreen
 import `in`.campusone.app.ui.screens.TimetableScreen
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Motion
-import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.theme.CampusOneDisplayFamily
 import `in`.campusone.app.ui.theme.CampusOneTheme
 import `in`.campusone.app.ui.viewmodel.CommunityViewModel
@@ -143,9 +134,6 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var supabaseSync: SupabaseSyncRepository
-
-    @Inject
-    lateinit var userPreferencesRepository: UserPreferencesRepository
 
     /** Notification target delivered while the app is running (warm start via onNewIntent). */
     private var pendingNotificationTarget by mutableStateOf<Pair<String, String>?>(null)
@@ -253,12 +241,6 @@ class MainActivity : AppCompatActivity() {
         pendingNotificationTarget = handleNotificationIntent(intent)
         setContent {
             NotificationPermissionRequest()
-            val themeMode by userPreferencesRepository.darkModeOverride.collectAsStateWithLifecycle(initialValue = "LIGHT")
-            val useDarkTheme = when (themeMode) {
-                "DARK" -> true
-                "LIGHT" -> false
-                else -> androidx.compose.foundation.isSystemInDarkTheme()
-            }
             val config = androidx.compose.ui.platform.LocalConfiguration.current
             val ws = when {
                 config.screenWidthDp < 600 -> `in`.campusone.app.ui.theme.C1WindowSize.COMPACT
@@ -266,7 +248,15 @@ class MainActivity : AppCompatActivity() {
                 config.screenWidthDp < 1200 -> `in`.campusone.app.ui.theme.C1WindowSize.LARGE
                 else -> `in`.campusone.app.ui.theme.C1WindowSize.EXPANDED
             }
-                CampusOneTheme(darkTheme = useDarkTheme, windowSize = ws) {
+            CampusOneTheme(windowSize = ws) {
+                var showSplash by rememberSaveable { mutableStateOf(true) }
+                LaunchedEffect(Unit) {
+                    delay(1200)
+                    showSplash = false
+                }
+                if (showSplash) {
+                    SplashScreen()
+                } else {
                     CampusOneRoot(
                         onGoogleSignIn = onGoogleSignIn,
                         authSession = authManager.session,
@@ -284,6 +274,7 @@ class MainActivity : AppCompatActivity() {
                         pendingNotificationTarget = pendingNotificationTarget
                     )
                 }
+            }
         }
     }
 
@@ -339,7 +330,6 @@ fun CampusOneRoot(
 ) {
     val authSessionState by authSession.collectAsStateWithLifecycle()
     val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
-    val introSeen by coreViewModel.introSeen.collectAsStateWithLifecycle()
     val studyCampusState by studyCampusViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val stateHolder = rememberSaveableStateHolder()
@@ -414,19 +404,6 @@ fun CampusOneRoot(
         }
     }
 
-    // First launch: silent cinematic intro before sign-in
-    if (introSeen != true) {
-        Box(
-            modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing),
-            contentAlignment = Alignment.TopCenter
-        ) {
-            Box(modifier = Modifier.widthIn(max = 720.dp).fillMaxSize()) {
-                SilentIntroScreen(onFinish = coreViewModel::markIntroSeen)
-            }
-        }
-        return
-    }
-
     // If not signed in to Supabase/Google, show sign-in screen
     if (authSessionState == null) {
         val onGoogleSignInWithGuard = {
@@ -458,7 +435,6 @@ fun CampusOneRoot(
         ) {
             Box(modifier = Modifier.widthIn(max = 760.dp).fillMaxSize()) {
                 OnboardingScreen(
-                    onToggleLanguage = coreViewModel::toggleLanguage,
                     initialEmail = signedInEmail,
                     isOwner = signedInEmail.equals(CoreCampusRepository.OWNER_EMAIL, ignoreCase = true),
                     onCompleteSetup = { name, email, collegeName, courseId, courseName, semester, section, role ->
@@ -555,12 +531,16 @@ fun CampusOneRoot(
                     when (tab) {
                         BottomNavTab.HOME -> HomeScreen(
                         uiState = coreState,
+                        campusEvents = studyCampusState.events,
                         nextThreeDeadlines = studyCampusState.nextThreeDeadlines,
                         nextUpcomingExam = studyCampusState.nextUpcomingExam,
                         dataRefreshError = noticesSyncError,
-                        onToggleLanguage = coreViewModel::toggleLanguage,
                         onOpenProfile = {
                             pendingMoreScreen = MoreSubScreen.PROFILE
+                            currentTab = BottomNavTab.MORE
+                        },
+                        onOpenNotifications = {
+                            pendingMoreScreen = MoreSubScreen.NOTIFICATIONS
                             currentTab = BottomNavTab.MORE
                         },
                         onOpenAttendance = { currentTab = BottomNavTab.ATTENDANCE },
@@ -576,15 +556,31 @@ fun CampusOneRoot(
                         },
                         onRetryRefresh = coreViewModel::refreshNotices
                     )
-                        BottomNavTab.ATTENDANCE -> AttendanceScreen(
+                        BottomNavTab.ATTENDANCE -> FlagshipAttendanceScreen(
                         uiState = coreState,
                         onMarkAttendance = coreViewModel::markAttendance,
-                        onTargetPctChange = coreViewModel::updateTargetPercentage
+                        onTargetPctChange = coreViewModel::updateTargetPercentage,
+                        onOpenNotifications = {
+                            pendingMoreScreen = MoreSubScreen.NOTIFICATIONS
+                            currentTab = BottomNavTab.MORE
+                        },
+                        onOpenProfile = {
+                            pendingMoreScreen = MoreSubScreen.PROFILE
+                            currentTab = BottomNavTab.MORE
+                        }
                         )
                         BottomNavTab.TIMETABLE -> TimetableScreen(
                         uiState = coreState,
                         onUpdateReminderMinutes = coreViewModel::updateReminderLeadMinutes,
-                        onRefresh = coreViewModel::refreshTimetable
+                        onRefresh = coreViewModel::refreshTimetable,
+                        onOpenNotifications = {
+                            pendingMoreScreen = MoreSubScreen.NOTIFICATIONS
+                            currentTab = BottomNavTab.MORE
+                        },
+                        onOpenProfile = {
+                            pendingMoreScreen = MoreSubScreen.PROFILE
+                            currentTab = BottomNavTab.MORE
+                        }
                         )
                         BottomNavTab.NOTICES -> NoticeBoardScreen(
                         uiState = coreState,
@@ -595,7 +591,15 @@ fun CampusOneRoot(
                         dataRefreshError = noticesSyncError,
                         onRetryRefresh = coreViewModel::refreshNotices,
                         focusNoticeId = pendingNoticeId,
-                        onFocusConsumed = { pendingNoticeId = null }
+                        onFocusConsumed = { pendingNoticeId = null },
+                        onOpenNotifications = {
+                            pendingMoreScreen = MoreSubScreen.NOTIFICATIONS
+                            currentTab = BottomNavTab.MORE
+                        },
+                        onOpenProfile = {
+                            pendingMoreScreen = MoreSubScreen.PROFILE
+                            currentTab = BottomNavTab.MORE
+                        }
                         )
                         BottomNavTab.MORE -> MoreHubScreen(
                         uiState = studyCampusState,
@@ -668,12 +672,12 @@ fun SignInScreen(onGoogleSignIn: () -> Unit, isSigningIn: Boolean) {
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.School,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(46.dp)
-                )
+            Image(
+                painter = painterResource(R.drawable.ic_campusone_c_mark),
+                contentDescription = "CampusOne",
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
+                modifier = Modifier.size(46.dp)
+            )
             }
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(36.dp))
             Text(
@@ -685,11 +689,11 @@ fun SignInScreen(onGoogleSignIn: () -> Unit, isSigningIn: Boolean) {
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = stringResource(`in`.campusone.app.R.string.welcome_subtitle),
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(44.dp))
+            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(32.dp))
             C1Button(
                 text = if (isSigningIn) "Signing in..." else stringResource(`in`.campusone.app.R.string.sign_in_google),
                 onClick = onGoogleSignIn,
@@ -698,7 +702,7 @@ fun SignInScreen(onGoogleSignIn: () -> Unit, isSigningIn: Boolean) {
                     .height(54.dp),
                 enabled = !isSigningIn
             )
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(28.dp))
+            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(20.dp))
             Text(
                 text = stringResource(`in`.campusone.app.R.string.sign_in_subtitle),
                 style = MaterialTheme.typography.labelMedium,
@@ -709,144 +713,32 @@ fun SignInScreen(onGoogleSignIn: () -> Unit, isSigningIn: Boolean) {
     }
 }
 
+/**
+ * Initial launch screen. Shows the CampusOne mark with a subtle VEDA Labs
+ * developer attribution. Shown only once before the main interface appears.
+ */
 @Composable
-fun SilentIntroScreen(onFinish: () -> Unit) {
-    var phase by remember { mutableIntStateOf(0) }
-
-    val revealProgress by animateFloatAsState(
-        targetValue = if (phase >= 1) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = C1Motion.springDampingRatio,
-            stiffness = C1Motion.springStiffness
-        ),
-        label = "introReveal"
-    )
-    val lightSweep by animateFloatAsState(
-        targetValue = if (phase >= 2) 1f else -1f,
-        animationSpec = tween(durationMillis = 700, easing = C1Motion.standardEasing),
-        label = "introLightSweep"
-    )
-    val wordmarkAlpha by animateFloatAsState(
-        targetValue = if (phase >= 3) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = C1Motion.springDampingRatio,
-            stiffness = C1Motion.springSlowStiffness
-        ),
-        label = "introWordmarkAlpha"
-    )
-    val wordmarkScale by animateFloatAsState(
-        targetValue = if (phase >= 3) 1f else 0.92f,
-        animationSpec = spring(
-            dampingRatio = C1Motion.springDampingRatio,
-            stiffness = C1Motion.springSlowStiffness
-        ),
-        label = "introWordmarkScale"
-    )
-    val taglineAlpha by animateFloatAsState(
-        targetValue = if (phase >= 4) 1f else 0f,
-        animationSpec = tween(durationMillis = 700, easing = C1Motion.standardEasing),
-        label = "introTaglineAlpha"
-    )
-    val taglineSlide by animateFloatAsState(
-        targetValue = if (phase >= 4) 0f else 10f,
-        animationSpec = tween(durationMillis = 700, easing = C1Motion.standardEasing),
-        label = "introTaglineSlide"
-    )
-
-    LaunchedEffect(Unit) {
-        phase = 1
-        delay(600)
-        phase = 2
-        delay(600)
-        phase = 3
-        delay(600)
-        phase = 4
-        delay(700)
-        onFinish()
-    }
-
-    val cMark = painterResource(id = R.drawable.ic_campusone_c_mark)
-
+fun SplashScreen() {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            // C mark glow halo
-            Box(
-                modifier = Modifier
-                    .size(110.dp * (0.4f + revealProgress * 0.6f))
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.12f * revealProgress),
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0f)
-                            ),
-                            center = Offset(0.5f, 0.5f)
-                        )
-                    )
-            )
-
-            // C mark — geometric reveal: scales up from 30% to 100%
-            Image(
-                painter = cMark,
-                contentDescription = "CampusOne",
-                modifier = Modifier
-                    .size(64.dp * (0.3f + revealProgress * 0.7f)),
-                colorFilter = ColorFilter.tint(
-                    MaterialTheme.colorScheme.primary.copy(alpha = revealProgress)
-                )
-            )
-
-            // Silent light sweep across the C mark
-            Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0f),
-                                MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0f)
-                            ),
-                            start = Offset(0f, 0.5f),
-                            end = Offset(1f, 0.5f)
-                        )
-                    )
-                    .offset(x = (lightSweep * 300f).dp)
-            )
-        }
-
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = C1Spacing.xxl),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Wordmark: "CampusOne" — fade + scale up
-            Text(
-                text = "CampusOne",
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = wordmarkAlpha),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.graphicsLayer { scaleX = wordmarkScale; scaleY = wordmarkScale }
+            Image(
+                painter = painterResource(R.drawable.ic_campusone_c_mark),
+                contentDescription = "CampusOne",
+                modifier = Modifier.size(64.dp)
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Tagline: "Your campus. One place." — fade + slide up
+            Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = stringResource(R.string.tagline),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = taglineAlpha),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.offset(y = taglineSlide.dp)
+                text = stringResource(R.string.splash_veda_attribution),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                textAlign = TextAlign.Center
             )
         }
     }

@@ -10,6 +10,11 @@ on:
 permissions:
   contents: read
 
+# PR updates replace older build attempts; verify only the latest revision.
+concurrency:
+  group: campusone-verify-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 defaults:
   run:
     working-directory: CampusOne
@@ -151,3 +156,11 @@ jobs:
 
       - name: Run unit tests
         run: gradle testDebugUnitTest
+
+      - name: Upload signed release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: campusone-pr11-release-apk-${{ github.sha }}
+          path: CampusOne/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 7

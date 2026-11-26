@@ -13,9 +13,6 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val preferences: UserPreferencesRepository
 ) : ViewModel() {
-    val themeMode = preferences.darkModeOverride.stateIn(
-        viewModelScope, SharingStarted.WhileSubscribed(5_000), "LIGHT"
-    )
     val languageTag = preferences.languageTag.stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(5_000), "en"
     )
@@ -50,7 +47,6 @@ class SettingsViewModel @Inject constructor(
         viewModelScope, SharingStarted.WhileSubscribed(5_000), true
     )
 
-    fun setThemeMode(mode: String) = viewModelScope.launch { preferences.setDarkModeOverride(mode) }
     fun setLanguage(language: String) = viewModelScope.launch { preferences.switchLanguage(language) }
     fun setNotificationsEnabled(enabled: Boolean) = viewModelScope.launch {
         preferences.setNotificationsEnabled(enabled)

@@ -1,5 +1,6 @@
 package `in`.campusone.app.ui.screens.admin
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -70,7 +71,9 @@ enum class SuperAdminSection(val route: String) {
     CONTENT("CONTENT"),
     MODERATION("MODERATION"),
     SETTINGS("SETTINGS"),
-    AUDIT("AUDIT")
+    AUDIT("AUDIT"),
+    ANALYTICS("ANALYTICS"),
+    ACADEMIC("ACADEMIC")
 }
 
 /**
@@ -148,8 +151,11 @@ fun SuperAdminPanelScreen(
                 )
             }
 
-            items(overviewStats(state, primary, secondary, tertiary), key = { it.title }) { stat ->
-                StatRow(stat.title, stat.value, stat.icon, stat.tint)
+            items(
+                overviewStats(state, primary, secondary, tertiary, onOpenSection),
+                key = { it.title }
+            ) { stat ->
+                StatRow(stat.title, stat.value, stat.icon, stat.tint, stat.onClick)
             }
 
             item {
@@ -270,70 +276,82 @@ private data class StatItem(
     val title: String,
     val value: String,
     val icon: ImageVector,
-    val tint: Color
+    val tint: Color,
+    val onClick: () -> Unit
 )
 
 private fun overviewStats(
     state: AdminUiState,
     primary: Color,
     secondary: Color,
-    tertiary: Color
+    tertiary: Color,
+    onOpenSection: (SuperAdminSection) -> Unit
 ): List<StatItem> {
     val users = state.users
     return listOf(
-        StatItem("Total users", users.size.toString(), Icons.Default.People, primary),
+        StatItem("Total users", users.size.toString(), Icons.Default.People, primary) {
+            onOpenSection(SuperAdminSection.USERS)
+        },
         StatItem(
             "Active",
             users.count { !it.isSuspended }.toString(),
             Icons.Default.CheckCircle,
             secondary
-        ),
+        ) { onOpenSection(SuperAdminSection.USERS) },
         StatItem(
             "Suspended",
             users.count { it.isSuspended }.toString(),
             Icons.Default.Block,
             tertiary
-        ),
+        ) { onOpenSection(SuperAdminSection.USERS) },
         StatItem(
             "Students",
             users.count { it.role == UserRole.STUDENT }.toString(),
             Icons.Default.Person,
             primary
-        ),
+        ) { onOpenSection(SuperAdminSection.USERS) },
         StatItem(
             "CRs",
             users.count { it.role == UserRole.CR }.toString(),
             Icons.Default.School,
             secondary
-        ),
+        ) { onOpenSection(SuperAdminSection.USERS) },
         StatItem(
             "Moderators",
             users.count { it.role == UserRole.MODERATOR }.toString(),
             Icons.Default.Shield,
             tertiary
-        ),
+        ) { onOpenSection(SuperAdminSection.USERS) },
         StatItem(
             "Pending approvals",
             state.roleRequests.count { it.status == "PENDING" }.toString(),
             Icons.Default.FactCheck,
             secondary
-        ),
-        StatItem("Notices", state.noticeCount.toString(), Icons.Default.Campaign, tertiary),
+        ) { onOpenSection(SuperAdminSection.ROLES) },
+        StatItem("Notices", state.noticeCount.toString(), Icons.Default.Campaign, tertiary) {
+            onOpenSection(SuperAdminSection.CONTENT)
+        },
         StatItem(
             "Resources",
             state.studyResources.size.toString(),
             Icons.Default.Description,
             primary
-        ),
-        StatItem("Assignments", state.assignmentCount.toString(), Icons.Default.Assignment, secondary),
-        StatItem("Events", state.eventCount.toString(), Icons.Default.Event, tertiary),
-        StatItem("Clubs", state.clubCount.toString(), Icons.Default.Group, primary),
+        ) { onOpenSection(SuperAdminSection.CONTENT) },
+        StatItem("Assignments", state.assignmentCount.toString(), Icons.Default.Assignment, secondary) {
+            onOpenSection(SuperAdminSection.CONTENT)
+        },
+        StatItem("Events", state.eventCount.toString(), Icons.Default.Event, tertiary) {
+            onOpenSection(SuperAdminSection.CONTENT)
+        },
+        StatItem("Clubs", state.clubCount.toString(), Icons.Default.Group, primary) {
+            onOpenSection(SuperAdminSection.CONTENT)
+        },
         StatItem(
             "Open reports",
             state.flaggedContent.size.toString(),
             Icons.Default.History,
             secondary
-        )
+        ) { onOpenSection(SuperAdminSection.MODERATION) }
     )
 }
 
@@ -383,19 +401,34 @@ private fun adminSections(state: AdminUiState): List<SectionItem> {
             "Append-only record of admin actions",
             Icons.Default.History,
             SuperAdminSection.AUDIT
+        ),
+        SectionItem(
+            "Analytics & reporting",
+            "Usage trends and activity charts",
+            Icons.Default.History,
+            SuperAdminSection.ANALYTICS,
+        ),
+        SectionItem(
+            "Academic structure",
+            "Subjects, timetable and academic settings",
+            Icons.Default.School,
+            SuperAdminSection.ACADEMIC,
         )
     )
-}
+    }
 
 @Composable
 private fun StatRow(
     title: String,
     value: String,
     icon: ImageVector,
-    tint: Color
+    tint: Color,
+    onClick: () -> Unit
 ) {
     C1CompactStatCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         label = title,
         value = value,
         icon = icon,
