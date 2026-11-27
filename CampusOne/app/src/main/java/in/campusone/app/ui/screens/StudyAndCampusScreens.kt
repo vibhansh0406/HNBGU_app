@@ -35,8 +35,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Bookmark
@@ -50,8 +50,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.EventNote
-import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.EventNote
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.FindInPage
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Notifications
@@ -68,7 +68,7 @@ import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.ZoomIn
-import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
@@ -638,7 +638,7 @@ fun MoreHubScreen(
                                     )
                                 }
                                 Icon(
-                                    imageVector = Icons.Default.ArrowForward,
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(20.dp)
@@ -673,7 +673,7 @@ fun MoreHubScreen(
                     HubActionCard(
                         title = stringResource(R.string.assignments_title),
                         subtitle = stringResource(R.string.hub_assignments_sub, uiState.assignments.count { !it.isCompleted && it.isAddedToPersonalList }),
-                        icon = Icons.Default.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                         iconColor = MaterialTheme.colorScheme.error,
                         onClick = { activeScreen = MoreSubScreen.ASSIGNMENTS }
                     )
@@ -729,7 +729,7 @@ fun MoreHubScreen(
                                     )
                                 }
                                 Icon(
-                                    imageVector = Icons.Default.ArrowForward,
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                                     contentDescription = "View status",
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(20.dp)
@@ -764,7 +764,7 @@ fun MoreHubScreen(
                     HubActionCard(
                         title = stringResource(R.string.assignments_title),
                         subtitle = stringResource(R.string.hub_assignments_sub, uiState.assignments.count { !it.isCompleted && it.isAddedToPersonalList }),
-                        icon = Icons.Default.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                         iconColor = MaterialTheme.colorScheme.tertiary,
                         onClick = { activeScreen = MoreSubScreen.ASSIGNMENTS }
                     )
@@ -835,7 +835,7 @@ fun MoreHubScreen(
                     HubListRow(
                         title = stringResource(R.string.hub_sign_out_title),
                         subtitle = stringResource(R.string.hub_signout_sub),
-                        icon = Icons.Default.Logout,
+                        icon = Icons.AutoMirrored.Filled.Logout,
                         iconColor = MaterialTheme.colorScheme.error,
                         onClick = { showLogoutConfirm = true }
                     )
@@ -2103,7 +2103,7 @@ private fun AssignmentsEmptyState() {
         containerColor = MaterialTheme.colorScheme.surface
     ) {
         C1EmptyState(
-            icon = Icons.Default.Assignment,
+            icon = Icons.AutoMirrored.Filled.Assignment,
             title = stringResource(R.string.assignments_empty_title),
             message = stringResource(R.string.assignments_empty_hint)
         )
@@ -2455,7 +2455,7 @@ fun ExamsAndSyllabusScreen(
                     item {
                         FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
-                                Icon(Icons.Default.EventNote, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(28.dp))
+                                Icon(Icons.AutoMirrored.Filled.EventNote, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(28.dp))
                                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                     Text("Official examination schedule", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
                                     Text("${uiState.exams.size} published exam records", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
@@ -2467,7 +2467,7 @@ fun ExamsAndSyllabusScreen(
                     if (uiState.exams.isEmpty()) {
                         item {
                             C1EmptyState(
-                                icon = Icons.Default.EventNote,
+                                icon = Icons.AutoMirrored.Filled.EventNote,
                                 title = "No exam schedule published",
                                 message = "Official examination dates will appear here when your department publishes them.",
                                 modifier = Modifier.fillMaxWidth()
@@ -2518,7 +2518,7 @@ fun ExamsAndSyllabusScreen(
                     if (bySubject.isEmpty()) {
                         item {
                             C1EmptyState(
-                                icon = Icons.Default.MenuBook,
+                                icon = Icons.AutoMirrored.Filled.MenuBook,
                                 title = "No syllabus topics yet",
                                 message = "Topics added by your department will appear here. You can also maintain your own checklist.",
                                 modifier = Modifier.fillMaxWidth()

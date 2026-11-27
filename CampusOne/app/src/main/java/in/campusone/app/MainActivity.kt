@@ -38,11 +38,11 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.outlined.Campaign
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.MenuBook
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.outlined.AccountCircle
@@ -497,8 +497,8 @@ fun CampusOneRoot(
                     C1NavItem(
                         selected = currentTab == BottomNavTab.MORE,
                         onClick = { currentTab = BottomNavTab.MORE },
-                        selectedIcon = Icons.Default.MenuBook,
-                        unselectedIcon = Icons.Outlined.MenuBook,
+                        selectedIcon = Icons.AutoMirrored.Filled.MenuBook,
+                        unselectedIcon = Icons.AutoMirrored.Outlined.MenuBook,
                         label = stringResource(R.string.nav_more),
                         badgeCount = unreadNotifications
                     )

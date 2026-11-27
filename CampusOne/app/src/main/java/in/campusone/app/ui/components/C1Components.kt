@@ -39,7 +39,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.Badge
@@ -1014,7 +1014,7 @@ fun C1CircularProgress(
     size: Dp = 24.dp
 ) {
     androidx.compose.material3.CircularProgressIndicator(
-        progress = progress,
+        progress = { progress },
         modifier = modifier.size(size),
         strokeWidth = strokeWidth,
         color = color
@@ -1612,7 +1612,7 @@ fun C1ProgressRing(
 ) {
     CircularProgressIndicator(
         modifier = modifier.size(size),
-        progress = progress,
+        progress = { progress },
         strokeWidth = strokeWidth,
         color = color,
         trackColor = trackColor
@@ -2064,7 +2064,7 @@ fun HubListRow(
                 }
             }
             Icon(
-                imageVector = Icons.Default.ArrowForward,
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp)

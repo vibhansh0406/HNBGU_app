@@ -27,14 +27,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.Attachment
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.FactCheck
+import androidx.compose.material.icons.automirrored.filled.FactCheck
 import androidx.compose.material.icons.filled.FindInPage
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.LocationOn
@@ -223,7 +223,7 @@ fun ModeratorPanelScreen(
                 ModeratorContentCard(
                     title = "Assignments",
                     subtitle = "${uiState.assignments.size} active assignments",
-                    icon = Icons.Default.Assignment,
+                    icon = Icons.AutoMirrored.Filled.Assignment,
                     addEnabled = canManageAssignments,
                     onAdd = { openAssignmentDialog = true; editingAssignment = null },
                     emptyText = "No assignments yet",
@@ -673,7 +673,7 @@ private fun ModeratorQuickStats(
             QuickStatCard(
                 title = "Assignments",
                 value = assignments.toString(),
-                icon = Icons.Default.Assignment,
+                icon = Icons.AutoMirrored.Filled.Assignment,
                 tint = MaterialTheme.colorScheme.secondary
             )
             QuickStatCard(
@@ -685,7 +685,7 @@ private fun ModeratorQuickStats(
             QuickStatCard(
                 title = "Reports",
                 value = reports.toString(),
-                icon = Icons.Default.FactCheck,
+                icon = Icons.AutoMirrored.Filled.FactCheck,
                 tint = MaterialTheme.colorScheme.error,
                 badge = if (reports > 0) reports.toString() else null,
                 onClick = onViewReports

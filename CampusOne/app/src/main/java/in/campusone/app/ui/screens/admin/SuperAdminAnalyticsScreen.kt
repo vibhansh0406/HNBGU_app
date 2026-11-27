@@ -17,9 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.FactCheck
+import androidx.compose.material.icons.automirrored.filled.FactCheck
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Campaign
@@ -194,7 +194,7 @@ fun SuperAdminAnalyticsScreen(
                         title = "Assignments",
                         value = state.assignmentCount.toString(),
                         subtitle = "Published tasks",
-                        icon = Icons.Default.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                         tint = MaterialTheme.colorScheme.tertiary
                     )
                 }
@@ -223,7 +223,7 @@ fun SuperAdminAnalyticsScreen(
                         title = "Open reports",
                         value = state.flaggedContent.size.toString(),
                         subtitle = "Needs moderation",
-                        icon = Icons.Default.FactCheck,
+                        icon = Icons.AutoMirrored.Filled.FactCheck,
                         tint = MaterialTheme.colorScheme.tertiary
                     )
                 }
@@ -286,7 +286,7 @@ fun SuperAdminAnalyticsScreen(
                     title = "Content reports",
                     subtitle = "Moderation reports per day",
                     dataPoints = buildReportTrendPoints(state),
-                    icon = Icons.Default.FactCheck,
+                    icon = Icons.AutoMirrored.Filled.FactCheck,
                     tint = MaterialTheme.colorScheme.error
                 )
             }

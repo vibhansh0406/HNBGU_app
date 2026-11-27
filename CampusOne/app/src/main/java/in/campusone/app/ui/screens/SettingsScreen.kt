@@ -20,7 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Event
@@ -33,7 +33,7 @@ import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -215,7 +215,7 @@ fun SettingsScreen(
                     SettingsSwitchRow("Examination updates", "Exam schedules and changes", Icons.Default.Shield, examUpdates, notifications) {
                         viewModel.setNotificationCategory("exam", it)
                     }
-                    SettingsSwitchRow("Assignment updates", "New assignments and deadlines", Icons.Default.Assignment, assignmentUpdates, notifications) {
+                    SettingsSwitchRow("Assignment updates", "New assignments and deadlines", Icons.AutoMirrored.Filled.Assignment, assignmentUpdates, notifications) {
                         viewModel.setNotificationCategory("assignment", it)
                     }
                     SettingsSwitchRow("Study material", "New notes and resource uploads", Icons.Default.Info, studyUpdates, notifications) {
@@ -250,7 +250,7 @@ fun SettingsScreen(
                     SettingsSwitchRow("Upcoming classes", "Remind me before a scheduled class", Icons.Default.Schedule, classReminders, notifications) {
                         viewModel.setLocalReminder("class", it)
                     }
-                    SettingsSwitchRow("Assignment deadlines", "Reminders for pending work", Icons.Default.Assignment, assignmentReminders, notifications) {
+                    SettingsSwitchRow("Assignment deadlines", "Reminders for pending work", Icons.AutoMirrored.Filled.Assignment, assignmentReminders, notifications) {
                         viewModel.setLocalReminder("assignment", it)
                     }
                     SettingsSwitchRow("Exams", "Reminders before examinations", Icons.Default.School, examReminders, notifications) {
@@ -300,7 +300,7 @@ fun SettingsScreen(
             item { C1SectionHeader(title = "Account", subtitle = "Manage access to this device") }
             item {
                 C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.md)) {
-                    SettingsActionRow("Sign out", "Sign out of this device", Icons.Default.Logout, { showSignOut = true }, danger = true)
+                    SettingsActionRow("Sign out", "Sign out of this device", Icons.AutoMirrored.Filled.Logout, { showSignOut = true }, danger = true)
                 }
             }
             item {

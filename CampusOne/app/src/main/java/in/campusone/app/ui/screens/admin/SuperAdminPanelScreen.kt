@@ -20,13 +20,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.FactCheck
+import androidx.compose.material.icons.automirrored.filled.FactCheck
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.InsertChart
@@ -238,7 +238,7 @@ fun SuperAdminPanelScreen(
                             } else {
                                 "Queue is clear"
                             },
-                            icon = Icons.Default.FactCheck,
+                            icon = Icons.AutoMirrored.Filled.FactCheck,
                             tint = error,
                             onClick = { onOpenSection(SuperAdminSection.MODERATION) }
                         )
@@ -423,7 +423,7 @@ private fun QuickActionsRow(
             QuickActionChip(
                 label = "View Reports",
                 subtitle = if (openReports > 0) "$openReports open" else "Queue clear",
-                icon = Icons.Default.FactCheck,
+                icon = Icons.AutoMirrored.Filled.FactCheck,
                 tint = MaterialTheme.colorScheme.error,
                 badge = if (openReports > 0) openReports.toString() else null,
                 onClick = onViewReports
@@ -540,7 +540,7 @@ private fun PlatformOverviewGrid(
             OverviewStatCard(
                 title = "Pending Approvals",
                 value = pendingApprovals.toString(),
-                icon = Icons.Default.FactCheck,
+                icon = Icons.AutoMirrored.Filled.FactCheck,
                 tint = MaterialTheme.colorScheme.secondary,
                 badge = if (pendingApprovals > 0) pendingApprovals.toString() else null,
                 onClick = onPendingApprovals

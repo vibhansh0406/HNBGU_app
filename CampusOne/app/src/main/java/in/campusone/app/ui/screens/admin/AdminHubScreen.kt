@@ -13,10 +13,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.HelpCenter
+import androidx.compose.material.icons.automirrored.filled.HelpCenter
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.People
@@ -66,7 +66,7 @@ fun AdminHubScreen(
                 title = { Text(title) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -144,7 +144,7 @@ private fun actionIcon(route: String) = when (route) {
     "SUBJECTS" -> Icons.Default.School
     "TIMETABLE" -> Icons.Default.Schedule
     "NOTICES" -> Icons.Default.Notifications
-    "ASSIGNMENTS" -> Icons.Default.Assignment
+    "ASSIGNMENTS" -> Icons.AutoMirrored.Filled.Assignment
     "EXAMS" -> Icons.Default.School
     "CLUBS" -> Icons.Default.Group
     "EVENTS" -> Icons.Default.Group
@@ -152,6 +152,6 @@ private fun actionIcon(route: String) = when (route) {
     "DIRECTORY" -> Icons.Default.People
     "USERS" -> Icons.Default.People
     "REVIEW" -> Icons.Default.Policy
-    "HELP" -> Icons.Default.HelpCenter
-    else -> Icons.Default.HelpCenter
+    "HELP" -> Icons.AutoMirrored.Filled.HelpCenter
+    else -> Icons.AutoMirrored.Filled.HelpCenter
 }
