@@ -992,7 +992,7 @@ fun C1LinearProgress(
     trackColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
 ) {
     androidx.compose.material3.LinearProgressIndicator(
-        progress = progress,
+        progress = { progress },
         modifier = modifier
             .fillMaxWidth()
             .height(4.dp)
