@@ -363,8 +363,8 @@
     <string name="hub_tap_view_timetable">Tap to view timetable</string>
     <string name="hub_attendance_title">Attendance</string>
     <string name="hub_overall_attendance">Overall Attendance</string>
-    <string name="hub_todays_schedule">Today&#39;s Schedule</string>
-    <string name="hub_todays_classes">Today&#39;s Classes</string>
+    <string name="hub_todays_schedule">Today's Schedule</string>
+    <string name="hub_todays_classes">Today's Classes</string>
     <string name="hub_announcements">Announcements</string>
     <string name="hub_no_announcements">No announcements yet</string>
     <!-- Timetable Admin -->
