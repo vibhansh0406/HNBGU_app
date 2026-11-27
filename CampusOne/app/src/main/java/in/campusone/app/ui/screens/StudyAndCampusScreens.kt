@@ -582,8 +582,8 @@ fun MoreHubScreen(
                     onAction = { activeScreen = MoreSubScreen.NOTIFICATIONS }
                 )
             }
-            item {
-                if (uiState.notices.isEmpty()) {
+            if (uiState.notices.isEmpty()) {
+                item {
                     C1SurfaceCard(
                         modifier = Modifier.fillMaxWidth()
                     ) {

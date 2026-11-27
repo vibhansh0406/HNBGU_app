@@ -202,7 +202,7 @@ fun ModeratorPanelScreen(
                             }
                         }
                     }
-                }
+                )
             }
 
             // Assignments
@@ -233,7 +233,7 @@ fun ModeratorPanelScreen(
                             )
                         }
                     }
-                }
+                )
             }
 
             // Events
@@ -264,7 +264,7 @@ fun ModeratorPanelScreen(
                             )
                         }
                     }
-                }
+                )
             }
 
             // Clubs
@@ -295,7 +295,7 @@ fun ModeratorPanelScreen(
                             )
                         }
                     }
-                }
+                )
             }
 
             // Lost & Found
@@ -343,7 +343,7 @@ fun ModeratorPanelScreen(
                             )
                         }
                     }
-                }
+                )
             }
 
             // Directory
@@ -379,7 +379,7 @@ fun ModeratorPanelScreen(
                             )
                         }
                     }
-                }
+                )
             }
 
             // 4. Needs Attention — reports & moderation (only if permission)
@@ -398,7 +398,7 @@ fun ModeratorPanelScreen(
                         onDelete = null,
                         onSync = null,
                         itemContent = { }
-                    }
+                    )
                 }
             }
         }
