@@ -1,11 +1,13 @@
 package `in`.campusone.app.ui.screens.admin
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +29,7 @@ import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.FactCheck
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.InsertChart
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Shield
@@ -48,6 +51,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -170,7 +174,7 @@ fun SuperAdminPanelScreen(
             item {
                 PlatformOverviewGrid(
                     totalUsers = state.users.size.toString(),
-                    activeUsers = users.count { !it.isSuspended }.toString(),
+                    activeUsers = state.users.count { !it.isSuspended }.toString(),
                     pendingApprovals = state.roleRequests.count { it.status == "PENDING" },
                     openReports = state.flaggedContent.size,
                     onPendingApprovals = { onOpenSection(SuperAdminSection.ROLES) },
@@ -436,7 +440,7 @@ private fun QuickActionsRow(
 }
 
 @Composable
-private fun QuickActionChip(
+private fun RowScope.QuickActionChip(
     label: String,
     subtitle: String,
     icon: ImageVector,
@@ -554,7 +558,7 @@ private fun PlatformOverviewGrid(
 }
 
 @Composable
-private fun OverviewStatCard(
+private fun RowScope.OverviewStatCard(
     title: String,
     value: String,
     icon: ImageVector,
@@ -651,7 +655,7 @@ private fun SectionGroup(
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        items(items, key = { it.title }) { item ->
+        items.forEach { item ->
             SectionCard(
                 title = item.title,
                 subtitle = item.subtitle,

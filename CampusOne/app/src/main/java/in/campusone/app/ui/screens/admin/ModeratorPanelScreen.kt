@@ -5,16 +5,23 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -26,30 +33,36 @@ import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Directory
 import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.FactCheck
 import androidx.compose.material.icons.filled.FindInPage
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberScrollState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -165,7 +178,7 @@ fun ModeratorPanelScreen(
                     items = uiState.notices,
                     idExtractor = { it.id },
                     onItemClick = { editingNotice = it; openNoticeDialog = true },
-                    onDelete = { viewModel.deleteNoticeRemote(it.id) },
+                    onDelete = { viewModel.deleteNoticeRemote(it) },
                     onSync = { viewModel.saveNoticeRemote(it, shouldNotify = false) },
                     itemContent = { notice ->
                         Column {
@@ -180,7 +193,7 @@ fun ModeratorPanelScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 2
                             )
-                            if (notice.attachmentUrl.isNotBlank()) {
+                            if (!notice.attachmentUrl.isNullOrBlank()) {
                                 Spacer(modifier = Modifier.height(C1Spacing.xs))
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
@@ -217,7 +230,7 @@ fun ModeratorPanelScreen(
                     items = uiState.assignments,
                     idExtractor = { it.id },
                     onItemClick = { editingAssignment = it; openAssignmentDialog = true },
-                    onDelete = { viewModel.deleteAssignment(it.id) },
+                    onDelete = { viewModel.deleteAssignment(it) },
                     onSync = null,
                     itemContent = { assignment ->
                         Column {
@@ -248,7 +261,7 @@ fun ModeratorPanelScreen(
                     items = uiState.events,
                     idExtractor = { it.id },
                     onItemClick = { editingEvent = it; openEventDialog = true },
-                    onDelete = { viewModel.deleteEvent(it.id) },
+                    onDelete = { viewModel.deleteEvent(it) },
                     onSync = null,
                     itemContent = { event ->
                         Column {
@@ -279,7 +292,7 @@ fun ModeratorPanelScreen(
                     items = uiState.clubs,
                     idExtractor = { it.id },
                     onItemClick = { editingClub = it; openClubDialog = true },
-                    onDelete = { viewModel.deleteClub(it.id) },
+                    onDelete = { viewModel.deleteClub(it) },
                     onSync = null,
                     itemContent = { club ->
                         Column {
@@ -326,7 +339,7 @@ fun ModeratorPanelScreen(
                             )
                         }
                     },
-                    extraActions = {
+                    extraActions = { item ->
                         Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
                             if (!item.isResolved) {
                                 C1Button(
@@ -351,7 +364,7 @@ fun ModeratorPanelScreen(
                 ModeratorContentCard(
                     title = "Directory",
                     subtitle = "${uiState.directory.size} contacts",
-                    icon = Icons.Default.Directory,
+                    icon = Icons.Default.Person,
                     addEnabled = true,
                     onAdd = { openDirectoryDialog = true; editingDirectoryContact = null },
                     emptyText = "No directory contacts yet",
@@ -392,7 +405,7 @@ fun ModeratorPanelScreen(
                         addEnabled = false,
                         onAdd = { },
                         emptyText = "Review flagged content in the Super Admin panel",
-                        items = emptyList(),
+                        items = emptyList<Any>(),
                         idExtractor = { "" },
                         onItemClick = { },
                         onDelete = null,
@@ -428,8 +441,7 @@ fun ModeratorPanelScreen(
                     authorName = uiState.profile.name,
                     authorRole = uiState.profile.role,
                     authorUid = uiState.profile.uid,
-                    createdAtMillis = now,
-                    updatedAtMillis = now
+                    createdAtMillis = now
                 )
                 viewModel.saveNoticeRemote(notice, shouldNotify = true)
                 openNoticeDialog = false
@@ -545,8 +557,7 @@ fun ModeratorPanelScreen(
                     email = email,
                     officeLocation = officeLocation,
                     officeHours = officeHours,
-                    isEmergencyOrImportant = false,
-                    updatedAtMillis = now
+                    isEmergencyOrImportant = false
                 )
                 viewModel.saveDirectoryContact(contact)
                 openDirectoryDialog = false
@@ -684,7 +695,7 @@ private fun ModeratorQuickStats(
 }
 
 @Composable
-private fun QuickStatCard(
+private fun RowScope.QuickStatCard(
     title: String,
     value: String,
     icon: ImageVector,
@@ -762,7 +773,7 @@ private fun <T> ModeratorContentCard(
     onDelete: ((String) -> Unit)?,
     onSync: ((T) -> Unit)?,
     itemContent: @Composable (T) -> Unit,
-    extraActions: @Composable () -> Unit = {}
+    extraActions: @Composable (T) -> Unit = {}
 ) {
     C1ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
@@ -815,7 +826,7 @@ private fun <T> ModeratorContentCard(
                             ) {
                                 itemContent(item)
                                 Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                                    extraActions()
+                                    extraActions(item)
                                     if (onDelete != null) {
                                         C1IconButton(
                                             onClick = { onDelete(idExtractor(item)) },

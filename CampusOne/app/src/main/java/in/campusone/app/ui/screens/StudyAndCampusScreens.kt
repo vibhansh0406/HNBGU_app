@@ -35,7 +35,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.AccountCircle
@@ -117,6 +120,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.Color
@@ -515,7 +519,7 @@ fun MoreHubScreen(
                                     color = MaterialTheme.colorScheme.primary
                                 )
                                 Text(
-                                    text = "${coreState.overallInsight.classesAttended} of ${coreState.overallInsight.totalClasses} classes attended",
+                                    text = "${coreState.overallInsight.attended} of ${coreState.overallInsight.totalConducted} classes attended",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -582,7 +586,7 @@ fun MoreHubScreen(
                     onAction = { activeScreen = MoreSubScreen.NOTIFICATIONS }
                 )
             }
-            if (uiState.notices.isEmpty()) {
+            if (coreState.notices.isEmpty()) {
                 item {
                     C1SurfaceCard(
                         modifier = Modifier.fillMaxWidth()
@@ -606,7 +610,7 @@ fun MoreHubScreen(
                 }
             } else {
                 items(
-                    items = uiState.notices.take(3),
+                    items = coreState.notices.take(3),
                     key = { it.id }
                 ) { notice ->
                     C1SurfaceCard(

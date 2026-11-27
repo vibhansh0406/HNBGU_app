@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Attachment
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.CheckCircle
@@ -888,7 +889,7 @@ private fun FlagshipNotificationCard(
                 }
                 Text(notification.title, style = MaterialTheme.typography.titleSmall, color = FlagshipInk, fontWeight = FontWeight.SemiBold)
                 if (notification.body.isNotBlank()) Text(notification.body, style = MaterialTheme.typography.bodySmall, color = FlagshipMuted, lineHeight = 18.sp)
-                if (notification.attachmentUrl.isNotBlank()) {
+                if (!notification.attachmentUrl.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(C1Spacing.xs))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
