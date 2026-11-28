@@ -1059,7 +1059,8 @@ fun MoreHubScreen(
                         profile = coreState.profile,
                         onSignOut = onSignOut,
                         onOpenPrivacy = { activeScreen = MoreSubScreen.PRIVACY_POLICY },
-                        onSaveProfile = coreViewModel::updateAcademicProfile
+                        onSaveProfile = coreViewModel::updateAcademicProfile,
+                        onBack = { activeScreen = MoreSubScreen.HUB }
                     )
                     MoreSubScreen.PRIVACY_POLICY -> PrivacyPolicyScreen()
                     MoreSubScreen.ADMIN_PANEL -> ModeratorPanelScreen(
