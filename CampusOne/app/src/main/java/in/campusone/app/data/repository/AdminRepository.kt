@@ -724,6 +724,12 @@ class AdminRepository @Inject constructor(
     suspend fun upsertDirectory(items: List<DirectoryContactEntity>) =
         campusLifeDao.upsertDirectory(items)
 
+    suspend fun deleteDirectoryContacts(ids: List<String>) =
+        campusLifeDao.deleteDirectoryContacts(ids)
+
+    suspend fun deleteDirectoryContact(id: String) =
+        campusLifeDao.deleteDirectoryContacts(listOf(id))
+
     // =========================================================================
     // DASHBOARD STATS
     // =========================================================================

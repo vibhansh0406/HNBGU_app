@@ -565,7 +565,7 @@ class AdminViewModel @Inject constructor(
 
     fun deleteDirectoryContact(id: String) {
         viewModelScope.launch {
-            repository.deleteDirectoryContacts(listOf(id))
+            repository.deleteDirectoryContact(id)
             val ok = repository.deleteDirectoryContactRemote(id)
             _messages.emit(if (ok) "Directory contact deleted" else "Contact removed on this device, but cloud deletion failed. Check connection and retry.")
         }
