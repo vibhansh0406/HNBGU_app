@@ -377,7 +377,7 @@ fun ModeratorPanelScreen(
                     items = uiState.directory,
                     idExtractor = { it.id },
                     onItemClick = { editingDirectoryContact = it; openDirectoryDialog = true },
-                    onDelete = null,
+                    onDelete = { viewModel.deleteDirectoryContact(it) },
                     onSync = null,
                     itemContent = { contact ->
                         Column {

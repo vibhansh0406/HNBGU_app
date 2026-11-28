@@ -293,7 +293,8 @@ class AdminViewModel @Inject constructor(
     fun deleteSubject(subjectId: String) {
         viewModelScope.launch {
             repository.deleteSubject(subjectId)
-            _messages.emit("Subject removed")
+            val ok = repository.deleteSubjectRemote(subjectId)
+            _messages.emit(if (ok) "Subject removed" else "Subject removed on this device, but cloud deletion failed. Check connection and retry.")
         }
     }
 
@@ -336,7 +337,8 @@ class AdminViewModel @Inject constructor(
     fun deleteTimetableImport(importId: String) {
         viewModelScope.launch {
             val outcome = repository.deleteTimetableImport(importId)
-            _messages.emit(outcome.message)
+            val ok = repository.deleteTimetableImportRemote(importId)
+            _messages.emit(if (ok) outcome.message else "Import removed on this device, but cloud deletion failed. Check connection and retry.")
         }
     }
 
@@ -400,7 +402,8 @@ class AdminViewModel @Inject constructor(
     fun deleteAssignment(id: String) {
         viewModelScope.launch {
             repository.deleteAssignment(id)
-            _messages.emit("Assignment deleted")
+            val ok = repository.deleteAssignmentRemote(id)
+            _messages.emit(if (ok) "Assignment deleted" else "Assignment removed on this device, but cloud deletion failed. Check connection and retry.")
         }
     }
 
@@ -424,7 +427,8 @@ class AdminViewModel @Inject constructor(
     fun deleteExam(id: String) {
         viewModelScope.launch {
             repository.deleteExam(id)
-            _messages.emit("Exam deleted")
+            val ok = repository.deleteExamRemote(id)
+            _messages.emit(if (ok) "Exam deleted" else "Exam removed on this device, but cloud deletion failed. Check connection and retry.")
         }
     }
 
@@ -441,7 +445,8 @@ class AdminViewModel @Inject constructor(
     fun deleteSyllabusTopic(id: String) {
         viewModelScope.launch {
             repository.deleteSyllabusTopic(id)
-            _messages.emit("Syllabus topic removed")
+            val ok = repository.deleteSyllabusTopicRemote(id)
+            _messages.emit(if (ok) "Syllabus topic removed" else "Topic removed on this device, but cloud deletion failed. Check connection and retry.")
         }
     }
 
@@ -458,7 +463,8 @@ class AdminViewModel @Inject constructor(
     fun deleteStudyResource(id: String) {
         viewModelScope.launch {
             repository.deleteStudyResource(id)
-            _messages.emit("Resource removed")
+            val ok = repository.deleteStudyResourceRemote(id)
+            _messages.emit(if (ok) "Resource removed" else "Resource removed on this device, but cloud deletion failed. Check connection and retry.")
         }
     }
 
@@ -482,7 +488,8 @@ class AdminViewModel @Inject constructor(
     fun deleteClub(clubId: String) {
         viewModelScope.launch {
             repository.deleteClub(clubId)
-            _messages.emit("Club deleted")
+            val ok = repository.deleteClubRemote(clubId)
+            _messages.emit(if (ok) "Club deleted" else "Club removed on this device, but cloud deletion failed. Check connection and retry.")
         }
     }
 
@@ -506,7 +513,8 @@ class AdminViewModel @Inject constructor(
     fun deleteEvent(eventId: String) {
         viewModelScope.launch {
             repository.deleteEvent(eventId)
-            _messages.emit("Event deleted")
+            val ok = repository.deleteEventRemote(eventId)
+            _messages.emit(if (ok) "Event deleted" else "Event removed on this device, but cloud deletion failed. Check connection and retry.")
         }
     }
 
@@ -552,6 +560,14 @@ class AdminViewModel @Inject constructor(
         viewModelScope.launch {
             repository.upsertDirectory(listOf(contact))
             _messages.emit("Directory contact saved: ${contact.name}")
+        }
+    }
+
+    fun deleteDirectoryContact(id: String) {
+        viewModelScope.launch {
+            repository.deleteDirectoryContacts(listOf(id))
+            val ok = repository.deleteDirectoryContactRemote(id)
+            _messages.emit(if (ok) "Directory contact deleted" else "Contact removed on this device, but cloud deletion failed. Check connection and retry.")
         }
     }
 

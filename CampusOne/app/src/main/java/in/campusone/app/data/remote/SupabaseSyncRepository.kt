@@ -649,6 +649,69 @@ class SupabaseSyncRepository @Inject constructor(
         return result.isSuccess
     }
 
+    suspend fun deleteAssignmentRemote(id: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("assignments").eq("id", id).delete()
+        if (!result.isSuccess) logFailure("assignment delete", result.error)
+        return result.isSuccess
+    }
+
+    suspend fun deleteExamRemote(id: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("exams").eq("id", id).delete()
+        if (!result.isSuccess) logFailure("exam delete", result.error)
+        return result.isSuccess
+    }
+
+    suspend fun deleteSyllabusTopicRemote(id: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("syllabus_topics").eq("id", id).delete()
+        if (!result.isSuccess) logFailure("syllabus topic delete", result.error)
+        return result.isSuccess
+    }
+
+    suspend fun deleteStudyResourceRemote(id: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("study_resources").eq("id", id).delete()
+        if (!result.isSuccess) logFailure("study resource delete", result.error)
+        return result.isSuccess
+    }
+
+    suspend fun deleteClubRemote(id: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("clubs").eq("id", id).delete()
+        if (!result.isSuccess) logFailure("club delete", result.error)
+        return result.isSuccess
+    }
+
+    suspend fun deleteEventRemote(id: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("campus_events").eq("id", id).delete()
+        if (!result.isSuccess) logFailure("event delete", result.error)
+        return result.isSuccess
+    }
+
+    suspend fun deleteDirectoryContactRemote(id: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("directory_contacts").eq("id", id).delete()
+        if (!result.isSuccess) logFailure("directory contact delete", result.error)
+        return result.isSuccess
+    }
+
+    suspend fun deleteSubjectRemote(id: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("subjects").eq("id", id).delete()
+        if (!result.isSuccess) logFailure("subject delete", result.error)
+        return result.isSuccess
+    }
+
+    suspend fun deleteTimetableImportRemote(id: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("timetable_imports").eq("id", id).delete()
+        if (!result.isSuccess) logFailure("timetable import delete", result.error)
+        return result.isSuccess
+    }
+
     // =========================================================================
     // DIRECTORY SYNC
     // =========================================================================
