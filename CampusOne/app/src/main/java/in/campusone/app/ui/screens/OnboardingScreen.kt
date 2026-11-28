@@ -79,6 +79,7 @@ import `in`.campusone.app.ui.theme.C1Motion
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.theme.CampusOneBrandGreen
+import `in`.campusone.app.ui.theme.extendedColors
 
 /**
  * Three deliberate onboarding moments:
@@ -171,7 +172,7 @@ fun OnboardingScreen(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     repeat(2) { index ->
-                        val segmentColor = if (index <= step) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+                        val segmentColor = if (index <= step) extendedColors.brandForeground else MaterialTheme.colorScheme.surfaceVariant
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -550,7 +551,7 @@ private fun SelectableOptionCard(
         ),
         border = BorderStroke(
             if (selected) 1.5.dp else 1.dp,
-            if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+            if (selected) extendedColors.brandForeground else MaterialTheme.colorScheme.outlineVariant
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
