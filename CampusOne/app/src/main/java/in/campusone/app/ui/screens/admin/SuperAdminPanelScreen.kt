@@ -143,7 +143,7 @@ fun SuperAdminPanelScreen(
             return@Scaffold
         }
 
-        val primary = MaterialTheme.colorScheme.primary
+        val primary = extendedColors.brandForeground
         val secondary = MaterialTheme.colorScheme.secondary
         val tertiary = MaterialTheme.colorScheme.tertiary
         val error = MaterialTheme.colorScheme.error
