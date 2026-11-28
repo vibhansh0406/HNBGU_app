@@ -22,9 +22,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Feedback
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PrivacyTip
@@ -229,7 +231,7 @@ fun SettingsScreen(
                     SettingsSwitchRow("Assignment updates", "New assignments and deadlines", Icons.AutoMirrored.Filled.Assignment, assignmentUpdates, notifications) {
                         viewModel.setNotificationCategory("assignment", it)
                     }
-                    SettingsSwitchRow("Study material", "New notes and resource uploads", Icons.Default.Info, studyUpdates, notifications) {
+                    SettingsSwitchRow("Study material", "New notes and resource uploads", Icons.AutoMirrored.Filled.MenuBook, studyUpdates, notifications) {
                         viewModel.setNotificationCategory("study_material", it)
                     }
                     SettingsActionRow(
@@ -275,7 +277,7 @@ fun SettingsScreen(
                     SettingsActionRow(
                         title = "Download latest CampusOne version",
                         subtitle = "Open the official GitHub Releases page. Install only the signed APK asset.",
-                        icon = Icons.Default.Info,
+                        icon = Icons.Default.Download,
                         onClick = {
                             val intent = Intent(
                                 Intent.ACTION_VIEW,
@@ -292,7 +294,7 @@ fun SettingsScreen(
                     SettingsActionRow(
                         title = "Send feedback",
                         subtitle = "Share feedback using an app on your device",
-                        icon = Icons.Default.Info,
+                        icon = Icons.Default.Feedback,
                         onClick = {
                             val intent = Intent(Intent.ACTION_SEND).apply {
                                 type = "text/plain"

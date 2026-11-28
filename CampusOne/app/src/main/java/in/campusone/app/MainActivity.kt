@@ -262,7 +262,7 @@ class MainActivity : AppCompatActivity() {
             CampusOneTheme(windowSize = ws, darkTheme = darkTheme) {
                 var showSplash by rememberSaveable { mutableStateOf(true) }
                 LaunchedEffect(Unit) {
-                    delay(1200)
+                    delay(800)
                     showSplash = false
                 }
                 if (showSplash) {
@@ -756,15 +756,15 @@ fun SplashScreen() {
             verticalArrangement = Arrangement.Center
         ) {
             Image(
-                painter = painterResource(R.drawable.ic_campusone_c_mark),
+                painter = painterResource(R.drawable.ic_campusone_brand_lockup),
                 contentDescription = "CampusOne",
-                modifier = Modifier.size(64.dp)
+                modifier = Modifier.size(72.dp)
             )
             Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = stringResource(R.string.splash_veda_attribution),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center
             )
         }
