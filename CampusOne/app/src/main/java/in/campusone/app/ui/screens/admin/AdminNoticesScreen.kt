@@ -55,6 +55,7 @@ import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.theme.C1Spacing
+import `in`.campusone.app.ui.theme.extendedColors
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -132,7 +133,7 @@ fun AdminNoticesScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             if (notice.isPinned) {
-                                Icon(Icons.Default.PushPin, contentDescription = "Pinned", tint = MaterialTheme.colorScheme.primary)
+                                Icon(Icons.Default.PushPin, contentDescription = "Pinned", tint = extendedColors.brandForeground)
                             }
                         }
                         Spacer(modifier = Modifier.height(C1Spacing.xs))
@@ -339,7 +340,7 @@ private fun NoticeDialog(
                     Text(
                         text = "Attachment added ($attachmentType)",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = extendedColors.brandForeground
                     )
                 }
                 if (!attachmentUploadError.isNullOrBlank()) {

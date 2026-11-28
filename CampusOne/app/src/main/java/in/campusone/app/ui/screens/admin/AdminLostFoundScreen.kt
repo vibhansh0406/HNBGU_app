@@ -34,6 +34,7 @@ import `in`.campusone.app.ui.components.C1IconButton
 import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1Tone
 import `in`.campusone.app.ui.theme.C1Spacing
+import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
 
@@ -70,7 +71,7 @@ fun AdminLostFoundScreen(
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column {
                                 Text(text = "${if (item.type == "LOST") "🔍" else "📦"}  ${item.itemTitle}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                                Text(text = "${item.type} • ${item.category}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                                Text(text = "${item.type} • ${item.category}", style = MaterialTheme.typography.bodyMedium, color = extendedColors.brandForeground)
                                 Text(text = item.location, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Text(text = item.dateFormatted, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
@@ -82,7 +83,7 @@ fun AdminLostFoundScreen(
                                         intent = C1ButtonIntent.PRIMARY
                                     )
                                 } else {
-                                    Icon(Icons.Default.CheckCircle, contentDescription = "Resolved", tint = MaterialTheme.colorScheme.primary)
+                                    Icon(Icons.Default.CheckCircle, contentDescription = "Resolved", tint = extendedColors.brandForeground)
                                 }
                                 C1IconButton(
                                     onClick = { viewModel.hideLostFound(item.id) },

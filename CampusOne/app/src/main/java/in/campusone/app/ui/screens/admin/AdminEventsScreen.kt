@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import `in`.campusone.app.data.local.entity.CampusEventEntity
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
+import `in`.campusone.app.ui.theme.extendedColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,7 +70,7 @@ fun AdminEventsScreen(
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column {
                                 Text(text = event.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                                Text(text = "${event.clubName} • ${event.category}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                                Text(text = "${event.clubName} • ${event.category}", style = MaterialTheme.typography.bodyMedium, color = extendedColors.brandForeground)
                                 Text(text = "${event.eventDateFormatted} • ${event.venue}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 if (event.description.isNotBlank()) {
                                     Spacer(modifier = Modifier.height(6.dp))

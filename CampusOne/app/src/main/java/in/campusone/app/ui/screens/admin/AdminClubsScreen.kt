@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import `in`.campusone.app.data.local.entity.ClubEntity
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
+import `in`.campusone.app.ui.theme.extendedColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,7 +68,7 @@ fun AdminClubsScreen(
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column {
                                 Text(text = "${club.logoEmojiOrUrl}  ${club.name}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                                Text(text = club.category, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                                Text(text = club.category, style = MaterialTheme.typography.bodyMedium, color = extendedColors.brandForeground)
                                 Text(text = "${club.memberCount} members • ${club.adminName}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 if (club.description.isNotBlank()) {
                                     Spacer(modifier = Modifier.height(6.dp))

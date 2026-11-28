@@ -520,7 +520,7 @@ fun C1LoadingState(
         CircularProgressIndicator(
             modifier = Modifier.size(size),
             strokeWidth = 2.5.dp,
-            color = MaterialTheme.colorScheme.primary
+            color = extendedColors.brandForeground
         )
         if (label != null) {
             Text(
@@ -1398,8 +1398,8 @@ fun C1Button(
             disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = C1State.disabledAlpha)
         )
         C1ButtonIntent.OUTLINED -> ButtonDefaults.outlinedButtonColors(
-            contentColor = MaterialTheme.colorScheme.primary,
-            disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = C1State.disabledAlpha)
+            contentColor = extendedColors.brandForeground,
+            disabledContentColor = extendedColors.brandForeground.copy(alpha = C1State.disabledAlpha)
         )
         C1ButtonIntent.DANGER -> ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.errorContainer,
@@ -1408,8 +1408,8 @@ fun C1Button(
             disabledContentColor = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = C1State.disabledAlpha)
         )
         C1ButtonIntent.GHOST -> ButtonDefaults.textButtonColors(
-            contentColor = MaterialTheme.colorScheme.primary,
-            disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = C1State.disabledAlpha)
+            contentColor = extendedColors.brandForeground,
+            disabledContentColor = extendedColors.brandForeground.copy(alpha = C1State.disabledAlpha)
         )
     }
 

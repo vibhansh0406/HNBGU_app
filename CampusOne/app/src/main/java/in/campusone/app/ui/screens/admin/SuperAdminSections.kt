@@ -73,6 +73,7 @@ import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
+import `in`.campusone.app.ui.theme.extendedColors
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -323,7 +324,7 @@ private fun MiniStat(label: String, value: String, modifier: Modifier = Modifier
                 text = value,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = extendedColors.brandForeground
             )
             Text(
                 text = label,
@@ -370,7 +371,7 @@ private fun UserRow(user: AdminUserRecord, onClick: () -> Unit) {
                     text = user.role.name,
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = extendedColors.brandForeground
                 )
                 if (user.isSuspended) {
                     Text(
@@ -570,7 +571,7 @@ fun SuperAdminRolesScreen(
                     text = "Capability matrix",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = extendedColors.brandForeground
                 )
             }
             item {
@@ -582,7 +583,7 @@ fun SuperAdminRolesScreen(
                     text = "Pending requests (${pending.size})",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = extendedColors.brandForeground
                 )
             }
 
@@ -610,7 +611,7 @@ fun SuperAdminRolesScreen(
                         text = "Recently reviewed",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = extendedColors.brandForeground
                     )
                 }
                 items(reviewed, key = { it.id }) { request ->
@@ -687,7 +688,7 @@ private fun PermissionMatrixCard(uiState: AdminUiState) {
                     },
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = extendedColors.brandForeground
             )
         }
     }
@@ -810,7 +811,7 @@ fun SuperAdminContentScreen(
                     text = "Live content counts",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = extendedColors.brandForeground
                 )
             }
             item {
@@ -840,7 +841,7 @@ fun SuperAdminContentScreen(
                     text = "Flagged for review",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = extendedColors.brandForeground
                 )
             }
 
@@ -1299,7 +1300,7 @@ private fun ContentCountRow(label: String, value: String) {
             text = value,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = extendedColors.brandForeground
         )
     }
 }
@@ -1322,7 +1323,7 @@ private fun FlaggedRow(
             Text(
                 text = item.kind.name.lowercase().replaceFirstChar { it.uppercase() },
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
+                color = extendedColors.brandForeground,
                 fontWeight = FontWeight.Bold
             )
             Text(
@@ -1384,7 +1385,7 @@ fun SuperAdminModerationScreen(
                     text = "Reported content (${uiState.flaggedContent.size})",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = extendedColors.brandForeground
                 )
             }
 
@@ -1414,7 +1415,7 @@ fun SuperAdminModerationScreen(
                         text = "Submitted reports (${uiState.contentReports.size})",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = extendedColors.brandForeground
                     )
                 }
                 items(uiState.contentReports, key = { it.id }) { report ->
@@ -1428,7 +1429,7 @@ fun SuperAdminModerationScreen(
                             Text(
                                 text = "${report.targetType} • ${report.status}",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
+                                color = extendedColors.brandForeground,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
@@ -1657,7 +1658,7 @@ private fun SettingsGroupTitle(text: String) {
         text = text,
         style = MaterialTheme.typography.titleSmall,
         fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.primary
+        color = extendedColors.brandForeground
     )
 }
 
@@ -1986,7 +1987,7 @@ private fun SectionHeader(title: String, subtitle: String) {
             text = title,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = extendedColors.brandForeground
         )
         Text(
             text = subtitle,

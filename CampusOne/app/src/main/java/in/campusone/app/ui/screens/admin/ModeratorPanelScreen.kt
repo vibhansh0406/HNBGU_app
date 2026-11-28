@@ -84,6 +84,7 @@ import `in`.campusone.app.ui.components.C1IconButton
 import `in`.campusone.app.ui.components.C1SectionHeader
 import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.theme.C1Spacing
+import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
 import kotlinx.coroutines.launch
@@ -304,7 +305,7 @@ fun ModeratorPanelScreen(
                             Text(
                                 text = club.category,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.primary
+                                color = extendedColors.brandForeground
                             )
                         }
                     }
@@ -348,7 +349,7 @@ fun ModeratorPanelScreen(
                                     intent = C1ButtonIntent.PRIMARY
                                 )
                             } else {
-                                Icon(Icons.Default.CheckCircle, contentDescription = "Resolved", tint = MaterialTheme.colorScheme.primary)
+                                Icon(Icons.Default.CheckCircle, contentDescription = "Resolved", tint = extendedColors.brandForeground)
                             }
                             C1IconButton(
                                 onClick = { viewModel.hideLostFound(item.id) },
@@ -668,7 +669,7 @@ private fun ModeratorQuickStats(
                 title = "Notices",
                 value = notices.toString(),
                 icon = Icons.Default.Campaign,
-                tint = MaterialTheme.colorScheme.primary
+                tint = extendedColors.brandForeground
             )
             QuickStatCard(
                 title = "Assignments",

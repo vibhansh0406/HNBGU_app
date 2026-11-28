@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.theme.C1Height
+import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.data.repository.AdminPermission
 
@@ -101,7 +102,7 @@ fun AdminHubScreen(
                         Icon(
                             imageVector = actionIcon(action.route),
                             contentDescription = action.label,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = extendedColors.brandForeground,
                             modifier = Modifier.size(24.dp)
                         )
                         androidx.compose.foundation.layout.Spacer(

@@ -65,6 +65,7 @@ import `in`.campusone.app.ui.components.C1SectionHeader
 import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
+import `in`.campusone.app.ui.theme.extendedColors
 import kotlinx.coroutines.flow.StateFlow
 
 /** Sections of the Super Admin panel. */
@@ -368,7 +369,7 @@ private fun OwnerBanner(state: AdminUiState) {
                     if (identity.isSuspended) " • account suspended" else "",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = extendedColors.brandForeground
             )
             if (state.sessionExpired) {
                 Text(
@@ -417,7 +418,7 @@ private fun QuickActionsRow(
                 label = "Send Notice",
                 subtitle = "Broadcast to campus",
                 icon = Icons.Default.Campaign,
-                tint = MaterialTheme.colorScheme.primary,
+                tint = extendedColors.brandForeground,
                 onClick = onSendNotice
             )
             QuickActionChip(
@@ -529,7 +530,7 @@ private fun PlatformOverviewGrid(
                 title = "Total Users",
                 value = totalUsers,
                 icon = Icons.Default.People,
-                tint = MaterialTheme.colorScheme.primary
+                tint = extendedColors.brandForeground
             )
             OverviewStatCard(
                 title = "Active Users",

@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import `in`.campusone.app.data.local.entity.DirectoryContactEntity
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
+import `in`.campusone.app.ui.theme.extendedColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,8 +70,8 @@ fun AdminDirectoryScreen(
                                 Text(text = contact.officeLocation, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Column(horizontalAlignment = Alignment.End) {
-                                Text(text = contact.phone, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                                Icon(Icons.Default.Call, contentDescription = "Call", tint = MaterialTheme.colorScheme.primary)
+                                Text(text = contact.phone, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = extendedColors.brandForeground)
+                                Icon(Icons.Default.Call, contentDescription = "Call", tint = extendedColors.brandForeground)
                             }
                         }
                     }

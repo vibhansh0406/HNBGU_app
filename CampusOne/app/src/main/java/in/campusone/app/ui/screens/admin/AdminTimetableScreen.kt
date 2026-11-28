@@ -48,6 +48,7 @@ import `in`.campusone.app.ui.components.C1EmptyState
 import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.theme.C1Spacing
+import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
 import `in`.campusone.app.util.TimetableCsvParser
@@ -132,7 +133,7 @@ fun AdminTimetableScreen(
             ) {
                 Column(modifier = Modifier.padding(C1Spacing.lg)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+                        Icon(Icons.Default.Schedule, contentDescription = null, tint = extendedColors.brandForeground, modifier = Modifier.size(24.dp))
                         Spacer(modifier = Modifier.width(C1Spacing.sm))
                         Column {
                             Text("Course Scope", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -157,7 +158,7 @@ fun AdminTimetableScreen(
                 ) {
                     Column(modifier = Modifier.padding(C1Spacing.lg)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.CloudUpload, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+                            Icon(Icons.Default.CloudUpload, contentDescription = null, tint = extendedColors.brandForeground, modifier = Modifier.size(24.dp))
                             Spacer(modifier = Modifier.width(C1Spacing.sm))
                             Text("Upload CSV", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                         }
@@ -184,7 +185,7 @@ fun AdminTimetableScreen(
                 ) {
                     Column(modifier = Modifier.padding(C1Spacing.lg)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.History, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+                            Icon(Icons.Default.History, contentDescription = null, tint = extendedColors.brandForeground, modifier = Modifier.size(24.dp))
                             Spacer(modifier = Modifier.width(C1Spacing.sm))
                             Text("Import History", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                         }

@@ -42,6 +42,7 @@ import `in`.campusone.app.ui.components.C1ElevatedCard
 import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.components.C1Tone
 import `in`.campusone.app.ui.theme.C1Spacing
+import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
 import java.text.SimpleDateFormat
@@ -111,7 +112,7 @@ fun AdminExamsScreen(
                                 Text(text = exam.examTitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Text(text = "${exam.examDateFormatted} • ${exam.roomOrCenter}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
-                            Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = extendedColors.brandForeground)
                         }
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
                             IconButton(onClick = {
