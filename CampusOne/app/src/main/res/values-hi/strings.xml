@@ -290,6 +290,8 @@
     <string name="hub_directory_sub">HoD, परीक्षा नियंत्रक, प्रोक्टर और आपातकालीन नंबर</string>
     <string name="hub_superadmin_sub">मालिक कंसोल • उपयोगकर्ता, भूमिकाएँ, सामग्री, मॉडरेशन, ऑडिट</string>
     <string name="hub_admin_sub">ऐप डेटा, उपयोगकर्ता, सूचनाएँ, टाइमटेबल और अधिक प्रबंधित करें</string>
+    <string name="hub_moderator_panel">मॉडरेटर पैनल</string>
+    <string name="hub_moderator_panel_sub">सूचनाएँ, असाइनमेंट, परीक्षा, क्लब, इवेंट्स और अधिक जोड़ें या हटाएँ</string>
     <string name="hub_role_sub">CR, शिक्षक, मॉडरेशनर या क्लब एडमिन पहुँच — एडमिन द्वारा समीक्षित</string>
     <string name="hub_privacy_sub">कोई विज्ञापन नहीं, कोई ट्रैकर नहीं, ऑफ़लाइन-फर्स्ट • MIT ओपन सोर्स</string>
     <string name="hub_signout_sub">इस डिवाइस से Google और Supabase से साइन आउट करें</string>
@@ -328,4 +330,11 @@
     <string name="hub_campus_life">कैंपस लाइफ और उपयोगिताएं</string>
     <string name="hub_request_sent">आपका अनुरोध एडमिन को भेज दिया गया है। एक्सेस केवल मंजूरी के बाद दिया जाता है।</string>
     <string name="home_quick_actions_subtitle">आपके सबसे ज़रूरी काम, एक टैप में</string>
+    <string name="hub_my_stuff">मेरी चीज़ें</string>
+    <string name="hub_my_assignments">मेरे असाइनमेंट</string>
+    <string name="hub_assignments_due">%1$d लंबित कार्य • जल्द देय</string>
+    <string name="hub_my_notices">मेरी सूचनाएं</string>
+    <string name="hub_notices_count">%1$d कैंपस सूचनाएं</string>
+    <string name="hub_my_timetable">मेरा टाइमटेबल</string>
+    <string name="hub_role_request_pending">भूमिका अनुरोध लंबित</string>
 </resources>

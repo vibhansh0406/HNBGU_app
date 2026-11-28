@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.os.Build
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
@@ -13,7 +14,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
@@ -68,6 +68,45 @@ private val LightColorScheme = ColorScheme(
     surfaceContainerLowest = Color.White
 )
 
+private val DarkColorScheme = ColorScheme(
+    primary = Color(0xFF6FCF97),
+    onPrimary = Color(0xFF0B2E1C),
+    primaryContainer = Color(0xFF163D2E),
+    onPrimaryContainer = Color(0xFFBFE8D0),
+    secondary = Color(0xFF8FB8A8),
+    onSecondary = Color(0xFF163D2E),
+    secondaryContainer = Color(0xFF1E3A2F),
+    onSecondaryContainer = Color(0xFFD4E8DE),
+    tertiary = Color(0xFFD4A574),
+    onTertiary = Color(0xFF3B2615),
+    tertiaryContainer = Color(0xFF4E341B),
+    onTertiaryContainer = Color(0xFFF0DCC4),
+    error = Color(0xFFFF8A7A),
+    onError = Color(0xFF4A0E08),
+    errorContainer = Color(0xFF5C1A13),
+    onErrorContainer = Color(0xFFFFDAD5),
+    background = Color(0xFF0D1A14),
+    onBackground = Color(0xFFE8F0EA),
+    surface = Color(0xFF14231B),
+    onSurface = Color(0xFFE8F0EA),
+    surfaceVariant = Color(0xFF1E3024),
+    onSurfaceVariant = Color(0xFFB8C9BF),
+    inverseSurface = Color(0xFFE8F0EA),
+    inverseOnSurface = Color(0xFF0D1A14),
+    inversePrimary = Color(0xFF1E634B),
+    surfaceTint = Color(0xFF6FCF97),
+    outline = Color(0xFF3A4D40),
+    outlineVariant = Color(0xFF2C3D31),
+    scrim = Color(0x99000000),
+    surfaceBright = Color(0xFF1E3024),
+    surfaceDim = Color(0xFF08120D),
+    surfaceContainer = Color(0xFF14231B),
+    surfaceContainerHigh = Color(0xFF1E3024),
+    surfaceContainerHighest = Color(0xFF253A2C),
+    surfaceContainerLow = Color(0xFF0F1A14),
+    surfaceContainerLowest = Color(0xFF08120D)
+)
+
 private fun Context.findActivity(): Activity? {
     var current: Context = this
     while (current is ContextWrapper) {
@@ -78,17 +117,14 @@ private fun Context.findActivity(): Activity? {
 }
 
 @Composable
-private fun CampusOneSystemBars() {
+private fun CampusOneSystemBars(darkTheme: Boolean) {
     val view = LocalView.current
     val window = LocalContext.current.findActivity()?.window
-    val barColor = MaterialTheme.colorScheme.background
     if (window != null && !view.isInEditMode) {
         SideEffect {
-            window.statusBarColor = barColor.toArgb()
-            window.navigationBarColor = barColor.toArgb()
             WindowCompat.getInsetsController(window, view).apply {
-                isAppearanceLightStatusBars = true
-                isAppearanceLightNavigationBars = true
+                isAppearanceLightStatusBars = !darkTheme
+                isAppearanceLightNavigationBars = !darkTheme
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 window.isNavigationBarContrastEnforced = false
@@ -144,19 +180,20 @@ fun campusTypography(windowSize: C1WindowSize): Typography {
 @Composable
 fun CampusOneTheme(
     windowSize: C1WindowSize = C1WindowSize.COMPACT,
+    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
     CompositionLocalProvider(
-        LocalExtendedColors provides LightExtendedColors,
-        LocalComponentColors provides LightComponentColors,
+        LocalExtendedColors provides if (darkTheme) DarkExtendedColors else LightExtendedColors,
+        LocalComponentColors provides if (darkTheme) DarkComponentColors else LightComponentColors,
         LocalWindowSize provides windowSize
     ) {
         MaterialTheme(
-            colorScheme = LightColorScheme,
+            colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
             typography = campusTypography(windowSize),
             shapes = CampusOneShapes
         ) {
-            CampusOneSystemBars()
+            CampusOneSystemBars(darkTheme)
             content()
         }
     }

@@ -1180,7 +1180,7 @@ create policy "own_role_requests_insert" on public.role_requests
   for insert to authenticated
   with check (
     auth.uid()::text = user_id::text
-    and requested_role in ('CR')
+    and requested_role in ('CR', 'MODERATOR')
     and status = 'PENDING'
   );
 
@@ -1662,7 +1662,7 @@ begin
          false,
          (extract(epoch from now()) * 1000)::bigint
     from public.profiles p
-   where p.role = 'STUDENT' and (new.section_key = 'global'
+   where (new.section_key = 'global'
           or new.section_key = p.college_id || '_' || p.course_id || '_sem' || p.semester || '_sec' || p.section)
      and p.id <> coalesce(auth.uid(), '00000000-0000-0000-0000-000000000000'::uuid)
   on conflict (id) do nothing;
@@ -1705,6 +1705,112 @@ drop trigger if exists assignments_notify on public.assignments;
 create trigger assignments_notify
   after insert on public.assignments
   for each row execute function public.campusone_assignment_notify();
+
+create or replace function public.campusone_role_request_notify()
+returns trigger
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $$
+begin
+  insert into public.notifications (id, user_id, type, title, body, target_type, target_id, is_read, created_at)
+  select 'role_request_' || new.id::text || '_' || p.id::text,
+         p.id,
+         'ROLE_REQUEST',
+         case when new.requested_role = 'MODERATOR' then 'New moderator request' else 'New CR request' end,
+         coalesce(nullif(new.email, ''), 'A student')
+           || ' requested ' || new.requested_role
+           || case when coalesce(new.note, '') = '' then '' else ' • ' || left(new.note, 160) end,
+         'ROLE_REQUEST',
+         new.id::text,
+         false,
+         (extract(epoch from now()) * 1000)::bigint
+    from public.profiles p
+   where p.role in ('ADMIN', 'SUPER_ADMIN')
+  on conflict (id) do nothing;
+  return null;
+end;
+$$;
+
+revoke all on function public.campusone_role_request_notify() from public, anon, authenticated;
+
+drop trigger if exists role_requests_notify on public.role_requests;
+create trigger role_requests_notify
+  after insert on public.role_requests
+  for each row execute function public.campusone_role_request_notify();
+
+create or replace function public.campusone_role_request_status_notify()
+returns trigger
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $$
+begin
+  if new.status is distinct from old.status and new.status in ('APPROVED', 'REJECTED') then
+    insert into public.notifications (id, user_id, type, title, body, target_type, target_id, is_read, created_at)
+    values (
+      'role_request_status_' || new.id::text || '_' || new.status,
+      new.user_id,
+      'ROLE_REQUEST',
+      case when new.status = 'APPROVED' then 'Role request approved' else 'Role request declined' end,
+      case when new.status = 'APPROVED'
+           then 'You are now ' || new.requested_role || '. Open the app to see your new tools.'
+           else 'Your ' || new.requested_role || ' request was reviewed by the admin.' end,
+      'PROFILE',
+      '',
+      false,
+      (extract(epoch from now()) * 1000)::bigint
+    )
+    on conflict (id) do nothing;
+  end if;
+  return null;
+end;
+$$;
+
+revoke all on function public.campusone_role_request_status_notify() from public, anon, authenticated;
+
+drop trigger if exists role_requests_status_notify on public.role_requests;
+create trigger role_requests_status_notify
+  after update on public.role_requests
+  for each row execute function public.campusone_role_request_status_notify();
+
+create or replace function public.campusone_content_report_notify()
+returns trigger
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $$
+begin
+  insert into public.notifications (id, user_id, type, title, body, target_type, target_id, is_read, created_at)
+  select 'content_report_' || new.id::text || '_' || p.id::text,
+         p.id,
+         'CONTENT_REPORT',
+         'New content report',
+         coalesce(nullif(new.reporter_email, ''), 'A user')
+           || ' reported ' || new.target_type || ' #' || left(new.target_id, 16)
+           || case when coalesce(new.reason, '') = '' then '' else ' • ' || left(new.reason, 160) end,
+         'CONTENT_REPORT',
+         new.id::text,
+         false,
+         (extract(epoch from now()) * 1000)::bigint
+    from public.profiles p
+   where exists (
+         select 1
+           from public.role_permissions rp
+          where rp.role = p.role
+            and rp.permission = 'MODERATE_REPORTS'
+       )
+  on conflict (id) do nothing;
+  return null;
+end;
+$$;
+
+revoke all on function public.campusone_content_report_notify() from public, anon, authenticated;
+
+drop trigger if exists content_reports_notify on public.content_reports;
+create trigger content_reports_notify
+  after insert on public.content_reports
+  for each row execute function public.campusone_content_report_notify();
 
 -- ---- RLS for community + notifications -----------------------------------
 alter table public.community_posts enable row level security;

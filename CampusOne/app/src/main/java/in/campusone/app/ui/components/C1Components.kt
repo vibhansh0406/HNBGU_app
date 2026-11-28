@@ -39,7 +39,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.Badge
@@ -148,10 +148,10 @@ fun C1TextField(
             { IconButton(onClick = onTrailingIconClick ?: {}) { it() } }
         },
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            focusedBorderColor = extColors.brandForeground,
             unfocusedBorderColor = compColors.inputBorder,
             errorBorderColor = MaterialTheme.colorScheme.error,
-            cursorColor = MaterialTheme.colorScheme.primary,
+            cursorColor = extColors.brandForeground,
             focusedContainerColor = compColors.inputBackground,
             unfocusedContainerColor = compColors.inputBackground,
             disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -385,7 +385,7 @@ fun C1StatTile(
     value: String,
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
-    valueColor: Color = MaterialTheme.colorScheme.primary,
+    valueColor: Color = extendedColors.brandForeground,
     trend: C1Trend? = null
 ) {
     val compColors = componentColors
@@ -520,7 +520,7 @@ fun C1LoadingState(
         CircularProgressIndicator(
             modifier = Modifier.size(size),
             strokeWidth = 2.5.dp,
-            color = MaterialTheme.colorScheme.primary
+            color = extendedColors.brandForeground
         )
         if (label != null) {
             Text(
@@ -988,11 +988,11 @@ fun C1IconButton(
 fun C1LinearProgress(
     progress: Float,
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.primary,
+    color: Color = extendedColors.brandForeground,
     trackColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
 ) {
     androidx.compose.material3.LinearProgressIndicator(
-        progress = progress,
+        progress = { progress },
         modifier = modifier
             .fillMaxWidth()
             .height(4.dp)
@@ -1009,12 +1009,12 @@ fun C1LinearProgress(
 fun C1CircularProgress(
     progress: Float,
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.primary,
+    color: Color = extendedColors.brandForeground,
     strokeWidth: Dp = 3.dp,
     size: Dp = 24.dp
 ) {
     androidx.compose.material3.CircularProgressIndicator(
-        progress = progress,
+        progress = { progress },
         modifier = modifier.size(size),
         strokeWidth = strokeWidth,
         color = color
@@ -1135,7 +1135,7 @@ fun C1FeatureCard(
     icon: ImageVector,
     title: String,
     description: String,
-    iconColor: Color = MaterialTheme.colorScheme.primary,
+    iconColor: Color = extendedColors.brandForeground,
     onClick: (() -> Unit)? = null
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -1210,7 +1210,7 @@ fun C1CompactStatCard(
     label: String,
     value: String,
     icon: ImageVector? = null,
-    valueColor: Color = MaterialTheme.colorScheme.primary,
+    valueColor: Color = extendedColors.brandForeground,
     trend: C1Trend? = null
 ) {
     val compColors = componentColors
@@ -1398,8 +1398,8 @@ fun C1Button(
             disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = C1State.disabledAlpha)
         )
         C1ButtonIntent.OUTLINED -> ButtonDefaults.outlinedButtonColors(
-            contentColor = MaterialTheme.colorScheme.primary,
-            disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = C1State.disabledAlpha)
+            contentColor = extendedColors.brandForeground,
+            disabledContentColor = extendedColors.brandForeground.copy(alpha = C1State.disabledAlpha)
         )
         C1ButtonIntent.DANGER -> ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.errorContainer,
@@ -1408,8 +1408,8 @@ fun C1Button(
             disabledContentColor = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = C1State.disabledAlpha)
         )
         C1ButtonIntent.GHOST -> ButtonDefaults.textButtonColors(
-            contentColor = MaterialTheme.colorScheme.primary,
-            disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = C1State.disabledAlpha)
+            contentColor = extendedColors.brandForeground,
+            disabledContentColor = extendedColors.brandForeground.copy(alpha = C1State.disabledAlpha)
         )
     }
 
@@ -1607,12 +1607,12 @@ fun C1ProgressRing(
     modifier: Modifier = Modifier,
     size: Dp = 40.dp,
     strokeWidth: Dp = 4.dp,
-    color: Color = MaterialTheme.colorScheme.primary,
+    color: Color = extendedColors.brandForeground,
     trackColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh
 ) {
     CircularProgressIndicator(
         modifier = modifier.size(size),
-        progress = progress,
+        progress = { progress },
         strokeWidth = strokeWidth,
         color = color,
         trackColor = trackColor
@@ -1897,10 +1897,10 @@ fun C1SearchBar(
                 }
             },
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f + focusEffect * 0.5f),
+                focusedBorderColor = extendedColors.brandForeground.copy(alpha = 0.5f + focusEffect * 0.5f),
                 unfocusedBorderColor = compColors.inputBorder,
                 errorBorderColor = MaterialTheme.colorScheme.error,
-                cursorColor = MaterialTheme.colorScheme.primary,
+                cursorColor = extendedColors.brandForeground,
                 focusedContainerColor = compColors.inputBackground,
                 unfocusedContainerColor = compColors.inputBackground,
                 disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -1928,7 +1928,7 @@ fun HubActionCard(
     title: String,
     subtitle: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    iconColor: Color = MaterialTheme.colorScheme.primary,
+    iconColor: Color = extendedColors.brandForeground,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -2003,7 +2003,7 @@ fun HubListRow(
     title: String,
     subtitle: String?,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    iconColor: Color = MaterialTheme.colorScheme.primary,
+    iconColor: Color = extendedColors.brandForeground,
     onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -2064,7 +2064,7 @@ fun HubListRow(
                 }
             }
             Icon(
-                imageVector = Icons.Default.ArrowForward,
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp)

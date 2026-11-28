@@ -18,7 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -55,6 +55,7 @@ import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
 import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.theme.C1Spacing
+import `in`.campusone.app.ui.theme.extendedColors
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -112,7 +113,7 @@ fun AdminNoticesScreen(
                 title = { Text("Manage Notices") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -132,7 +133,7 @@ fun AdminNoticesScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             if (notice.isPinned) {
-                                Icon(Icons.Default.PushPin, contentDescription = "Pinned", tint = MaterialTheme.colorScheme.primary)
+                                Icon(Icons.Default.PushPin, contentDescription = "Pinned", tint = extendedColors.brandForeground)
                             }
                         }
                         Spacer(modifier = Modifier.height(C1Spacing.xs))
@@ -339,7 +340,7 @@ private fun NoticeDialog(
                     Text(
                         text = "Attachment added ($attachmentType)",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = extendedColors.brandForeground
                     )
                 }
                 if (!attachmentUploadError.isNullOrBlank()) {

@@ -284,6 +284,15 @@ class CommunityViewModel @Inject constructor(
         }
     }
 
+    fun deleteNotification(notificationId: String) {
+        val uid = _uiState.value.profile.uid
+        if (uid.isBlank()) return
+        viewModelScope.launch {
+            repository.deleteNotification(notificationId, uid)
+            _messages.emit("Notification deleted")
+        }
+    }
+
     private fun CommunityUiState.withVisiblePosts(): CommunityUiState {
         val sorted = CommunityFilter.apply(
             posts = posts,

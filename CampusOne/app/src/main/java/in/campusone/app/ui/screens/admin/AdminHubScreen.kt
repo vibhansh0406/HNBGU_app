@@ -13,10 +13,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.HelpCenter
+import androidx.compose.material.icons.automirrored.filled.HelpCenter
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.People
@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.theme.C1Height
+import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.data.repository.AdminPermission
 
@@ -47,12 +48,15 @@ fun AdminHubScreen(
     viewModel: AdminViewModel,
     onBack: () -> Unit,
     onManageModerators: () -> Unit,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit,
+    title: String = "Admin Panel",
+    allowedRoutes: Set<String>? = null
 ) {
     val state = uiState
-    val visibleActions = remember(state.identity) {
+    val visibleActions = remember(state.identity, allowedRoutes) {
         adminActions.filter { action ->
-            (action.route != "USERS" || state.identity.isOwner) &&
+            (allowedRoutes == null || action.route in allowedRoutes) &&
+                (action.route != "USERS" || state.identity.isOwner) &&
                 (action.permission == null || state.identity.can(action.permission!!))
         }
     }
@@ -60,10 +64,10 @@ fun AdminHubScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Admin Panel") },
+                title = { Text(title) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -75,7 +79,7 @@ fun AdminHubScreen(
                 .padding(C1Spacing.md)
         ) {
             Text(
-                text = "Admin Panel",
+                text = title,
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -98,7 +102,7 @@ fun AdminHubScreen(
                         Icon(
                             imageVector = actionIcon(action.route),
                             contentDescription = action.label,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = extendedColors.brandForeground,
                             modifier = Modifier.size(24.dp)
                         )
                         androidx.compose.foundation.layout.Spacer(
@@ -141,7 +145,7 @@ private fun actionIcon(route: String) = when (route) {
     "SUBJECTS" -> Icons.Default.School
     "TIMETABLE" -> Icons.Default.Schedule
     "NOTICES" -> Icons.Default.Notifications
-    "ASSIGNMENTS" -> Icons.Default.Assignment
+    "ASSIGNMENTS" -> Icons.AutoMirrored.Filled.Assignment
     "EXAMS" -> Icons.Default.School
     "CLUBS" -> Icons.Default.Group
     "EVENTS" -> Icons.Default.Group
@@ -149,6 +153,6 @@ private fun actionIcon(route: String) = when (route) {
     "DIRECTORY" -> Icons.Default.People
     "USERS" -> Icons.Default.People
     "REVIEW" -> Icons.Default.Policy
-    "HELP" -> Icons.Default.HelpCenter
-    else -> Icons.Default.HelpCenter
+    "HELP" -> Icons.AutoMirrored.Filled.HelpCenter
+    else -> Icons.AutoMirrored.Filled.HelpCenter
 }

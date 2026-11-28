@@ -35,7 +35,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.AccountCircle
@@ -47,11 +50,10 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.EventNote
-import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.EventNote
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.FindInPage
 import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PictureAsPdf
@@ -66,7 +68,7 @@ import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.ZoomIn
-import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
@@ -118,6 +120,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.Color
@@ -160,8 +163,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import `in`.campusone.app.ui.screens.admin.AdminEventsScreen
 import `in`.campusone.app.ui.screens.admin.AdminExamsScreen
-import `in`.campusone.app.ui.screens.admin.AdminHubScreen
 import `in`.campusone.app.ui.screens.admin.AdminLostFoundScreen
+import `in`.campusone.app.ui.screens.admin.ModeratorPanelScreen
 import `in`.campusone.app.ui.screens.admin.AdminNoticesScreen
 import `in`.campusone.app.ui.screens.admin.AdminSubjectsScreen
 import `in`.campusone.app.ui.screens.admin.AdminTimetableScreen
@@ -219,7 +222,7 @@ enum class MoreSubScreen {
     SUPER_ADMIN_ACADEMIC
 }
 
-private val requestableRoles = listOf(UserRole.CR)
+private val requestableRoles = listOf(UserRole.CR, UserRole.MODERATOR)
 
 /** Each sub-screen's parent for system Back navigation. Screens not listed go to HUB. */
 private val screenParent: Map<MoreSubScreen, MoreSubScreen> = mapOf(
@@ -295,19 +298,20 @@ fun MoreHubScreen(
         }
     }
 
-    // Owner/Admin uses only the Super Admin portal. Moderators use the normal Admin Portal.
+    // Owner and moderators can use the Moderator Panel; only the owner can open the Super Admin portal.
     val isAdminOrStaff = uiState.profile.role == `in`.campusone.app.domain.model.UserRole.MODERATOR
     val adminState by adminViewModel.uiState.collectAsStateWithLifecycle()
-    val communityState by communityViewModel.uiState.collectAsStateWithLifecycle()
     val coreState by coreViewModel.uiState.collectAsStateWithLifecycle()
     val isSuperAdmin = adminState.identity.isOwner
+    val unreadNotificationCount by communityViewModel.unreadNotificationCount.collectAsStateWithLifecycle()
 
     androidx.compose.runtime.LaunchedEffect(activeScreen, adminState.identity.isOwner, uiState.profile.role) {
         if (!adminState.identity.isOwner && activeScreen.name.startsWith("SUPER_ADMIN")) {
             activeScreen = MoreSubScreen.HUB
         }
         if (activeScreen.name.startsWith("ADMIN_") &&
-            (adminState.identity.isOwner || uiState.profile.role != UserRole.MODERATOR)) {
+            uiState.profile.role != UserRole.MODERATOR &&
+            uiState.profile.role != UserRole.ADMIN) {
             activeScreen = MoreSubScreen.HUB
         }
     }
@@ -399,7 +403,7 @@ fun MoreHubScreen(
         val ws = windowSize
         val profile = coreState.profile
         val greeting = when {
-            profile.name.isNotBlank() -> stringResource(R.string.home_greeting, profile.name)
+            profile.name.isNotBlank() -> "Namaste, ${profile.name}"
             else -> stringResource(R.string.hub_greeting_default)
         }
         Column(
@@ -411,7 +415,8 @@ fun MoreHubScreen(
                 campusName = profile.collegeName,
                 userName = profile.name,
                 onNotifications = { activeScreen = MoreSubScreen.NOTIFICATIONS },
-                onProfile = { activeScreen = MoreSubScreen.PROFILE }
+                onProfile = { activeScreen = MoreSubScreen.PROFILE },
+                unreadCount = unreadNotificationCount
             )
             LazyColumn(
                 modifier = Modifier
@@ -421,58 +426,316 @@ fun MoreHubScreen(
                 contentPadding = PaddingValues(top = C1Spacing.lg, bottom = C1Spacing.xl),
                 verticalArrangement = Arrangement.spacedBy(C1Spacing.xl)
             ) {
-            // ===== Verified student profile =====
+            // ===== Greeting =====
             item {
-                FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
-                    ) {
-                        C1Avatar(
-                            name = profile.name,
-                            size = 54.dp,
-                            imageUrl = coreViewModel.currentUserAvatarUrl,
-                            fontSize = 22,
-                            onClick = { activeScreen = MoreSubScreen.PROFILE }
-                        )
-                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                            FlagshipPill("CAMPUS PROFILE")
-                            Text(
-                                text = greeting,
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                            Text(
-                                text = "${profile.collegeName} · ${profile.courseName}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f),
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            val academicYear = when {
-                                profile.semester in 1..2 -> "1st Year"
-                                profile.semester in 3..4 -> "2nd Year"
-                                profile.semester in 5..6 -> "3rd Year"
-                                profile.semester in 7..8 -> "4th Year"
-                                else -> "${profile.semester}th Year"
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = greeting,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "${profile.collegeName} · ${profile.courseName} · Semester ${profile.semester} · Section ${profile.section}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            // ===== UP NEXT =====
+            item {
+                C1SectionHeader(
+                    title = stringResource(R.string.hub_up_next),
+                    actionLabel = null,
+                    onAction = null
+                )
+            }
+            item {
+                C1SurfaceCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { onOpenTimetable() }
+                ) {
+                    Column(modifier = Modifier.padding(C1Spacing.lg)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.hub_next_class),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = stringResource(R.string.hub_tap_view_timetable),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
-                            Text(
-                                text = academicYear,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f)
-                            )
-                            Text(
-                                text = "Current Semester: Semester ${profile.semester} · Section ${profile.section}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f)
+                            Icon(
+                                imageVector = Icons.Default.Schedule,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(24.dp)
                             )
                         }
                     }
-                    TextButton(onClick = { activeScreen = MoreSubScreen.PROFILE }) {
-                        Text("View student profile", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                }
+            }
+
+            // ===== Overall Attendance =====
+            item {
+                C1SectionHeader(
+                    title = stringResource(R.string.hub_attendance_title),
+                    actionLabel = null,
+                    onAction = null
+                )
+            }
+            item {
+                C1SurfaceCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { onOpenAttendance() }
+                ) {
+                    Column(modifier = Modifier.padding(C1Spacing.lg)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.hub_overall_attendance),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "${Math.round(coreState.overallInsight.currentPercentage)}%",
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = extendedColors.brandForeground
+                                )
+                                Text(
+                                    text = "${coreState.overallInsight.attended} of ${coreState.overallInsight.totalConducted} classes attended",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // ===== Today's Schedule =====
+            item {
+                C1SectionHeader(
+                    title = stringResource(R.string.hub_todays_schedule),
+                    actionLabel = null,
+                    onAction = null
+                )
+            }
+            item {
+                C1SurfaceCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { onOpenTimetable() }
+                ) {
+                    Column(modifier = Modifier.padding(C1Spacing.lg)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.hub_todays_classes),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = coreState.allTimetableSlots.size.toString() + " classes today",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.Default.Event,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // ===== Announcements =====
+            item {
+                C1SectionHeader(
+                    title = stringResource(R.string.hub_announcements),
+                    actionLabel = stringResource(R.string.home_view_all),
+                    onAction = { activeScreen = MoreSubScreen.NOTIFICATIONS }
+                )
+            }
+            if (coreState.notices.isEmpty()) {
+                item {
+                    C1SurfaceCard(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(C1Spacing.lg)) {
+                            Icon(
+                                imageVector = Icons.Default.Campaign,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(C1Spacing.md))
+                            Text(
+                                text = stringResource(R.string.hub_no_announcements),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+            } else {
+                items(
+                    items = coreState.notices.take(3),
+                    key = { it.id }
+                ) { notice ->
+                    C1SurfaceCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = { activeScreen = MoreSubScreen.NOTIFICATIONS }
+                    ) {
+                        Column(modifier = Modifier.padding(C1Spacing.md)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = notice.title,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = notice.body.take(60),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 2
+                                    )
+                                }
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ===== Quick Actions =====
+            item {
+                C1SectionHeader(
+                    title = stringResource(R.string.hub_quick_actions),
+                    actionLabel = null,
+                    onAction = null
+                )
+            }
+            item {
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.md),
+                    verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
+                ) {
+                    HubActionCard(
+                        title = stringResource(R.string.notes_pyq),
+                        subtitle = stringResource(R.string.hub_resources_sub, uiState.resources.size),
+                        icon = Icons.Default.Description,
+                        iconColor = MaterialTheme.colorScheme.tertiary,
+                        onClick = { activeScreen = MoreSubScreen.NOTES_PYQ }
+                    )
+                    HubActionCard(
+                        title = stringResource(R.string.assignments_title),
+                        subtitle = stringResource(R.string.hub_assignments_sub, uiState.assignments.count { !it.isCompleted && it.isAddedToPersonalList }),
+                        icon = Icons.AutoMirrored.Filled.Assignment,
+                        iconColor = MaterialTheme.colorScheme.error,
+                        onClick = { activeScreen = MoreSubScreen.ASSIGNMENTS }
+                    )
+                    HubActionCard(
+                        title = stringResource(R.string.timetable_title),
+                        subtitle = stringResource(R.string.hub_timetable_sub, coreState.allTimetableSlots.size),
+                        icon = Icons.Default.Schedule,
+                        iconColor = MaterialTheme.colorScheme.tertiary,
+                        onClick = { onOpenTimetable() }
+                    )
+                    HubActionCard(
+                        title = stringResource(R.string.nav_attendance),
+                        subtitle = stringResource(R.string.hub_attendance_sub, Math.round(coreState.overallInsight.currentPercentage)),
+                        icon = Icons.Default.CheckCircle,
+                        iconColor = extendedColors.success,
+                        onClick = { onOpenAttendance() }
+                    )
+                }
+            }
+
+            // ===== Role Request Status (students only) =====
+            item {
+                if (uiState.profile.role == UserRole.STUDENT && adminState.roleRequests.any { it.status == "PENDING" }) {
+                    val pendingRequest = adminState.roleRequests.first { it.status == "PENDING" }
+                    C1SurfaceCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = { activeScreen = MoreSubScreen.PROFILE }
+                    ) {
+                        Column(modifier = Modifier.padding(C1Spacing.lg)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.HourglassEmpty,
+                                    contentDescription = "Role request pending",
+                                    tint = MaterialTheme.colorScheme.secondary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(C1Spacing.md))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = stringResource(R.string.hub_role_request_pending),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = "${pendingRequest.requestedRole.name} request is under review by the admin.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 2
+                                    )
+                                }
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                    contentDescription = "View status",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -501,7 +764,7 @@ fun MoreHubScreen(
                     HubActionCard(
                         title = stringResource(R.string.assignments_title),
                         subtitle = stringResource(R.string.hub_assignments_sub, uiState.assignments.count { !it.isCompleted && it.isAddedToPersonalList }),
-                        icon = Icons.Default.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                         iconColor = MaterialTheme.colorScheme.tertiary,
                         onClick = { activeScreen = MoreSubScreen.ASSIGNMENTS }
                     )
@@ -522,35 +785,15 @@ fun MoreHubScreen(
                 }
             }
 
-            // ===== Community & Events =====
+            // ===== Events =====
             item {
-                C1SectionHeader(
-                    title = stringResource(R.string.hub_community_events),
-                    actionLabel = null,
-                    onAction = null
+                HubActionCard(
+                    title = stringResource(R.string.events_clubs),
+                    subtitle = stringResource(R.string.hub_events_sub, uiState.events.size),
+                    icon = Icons.Default.Event,
+                    iconColor = MaterialTheme.colorScheme.tertiary,
+                    onClick = { activeScreen = MoreSubScreen.EVENTS_CLUBS }
                 )
-            }
-            item {
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(C1Spacing.md),
-                    verticalArrangement = Arrangement.spacedBy(C1Spacing.md)
-                ) {
-                    HubActionCard(
-                        title = stringResource(R.string.community_title),
-                        subtitle = stringResource(R.string.hub_community_sub, communityState.posts.size),
-                        icon = Icons.Default.Forum,
-                        iconColor = MaterialTheme.colorScheme.secondary,
-                        onClick = { activeScreen = MoreSubScreen.COMMUNITY }
-                    )
-                    HubActionCard(
-                        title = stringResource(R.string.events_clubs),
-                        subtitle = stringResource(R.string.hub_events_sub, uiState.events.size),
-                        icon = Icons.Default.Event,
-                        iconColor = MaterialTheme.colorScheme.tertiary,
-                        onClick = { activeScreen = MoreSubScreen.EVENTS_CLUBS }
-                    )
-                }
             }
 
             // ===== Campus & Community overview =====
@@ -592,7 +835,7 @@ fun MoreHubScreen(
                     HubListRow(
                         title = stringResource(R.string.hub_sign_out_title),
                         subtitle = stringResource(R.string.hub_signout_sub),
-                        icon = Icons.Default.Logout,
+                        icon = Icons.AutoMirrored.Filled.Logout,
                         iconColor = MaterialTheme.colorScheme.error,
                         onClick = { showLogoutConfirm = true }
                     )
@@ -625,18 +868,16 @@ fun MoreHubScreen(
                                 }
                             )
                         }
-                        if (isAdminOrStaff) {
-                            HubListRow(
-                                title = stringResource(R.string.admin_panel),
-                                subtitle = stringResource(R.string.hub_admin_sub),
-                                icon = Icons.Default.School,
-                                iconColor = MaterialTheme.colorScheme.secondary,
-                                onClick = {
-                                    adminViewModel.init(uiState.profile)
-                                    activeScreen = MoreSubScreen.ADMIN_PANEL
-                                }
-                            )
-                        }
+                        HubListRow(
+                            title = stringResource(R.string.hub_moderator_panel),
+                            subtitle = stringResource(R.string.hub_moderator_panel_sub),
+                            icon = Icons.Default.School,
+                            iconColor = MaterialTheme.colorScheme.secondary,
+                            onClick = {
+                                adminViewModel.init(uiState.profile)
+                                activeScreen = MoreSubScreen.ADMIN_PANEL
+                            }
+                        )
                     }
                 }
             }
@@ -821,27 +1062,10 @@ fun MoreHubScreen(
                         onSaveProfile = coreViewModel::updateAcademicProfile
                     )
                     MoreSubScreen.PRIVACY_POLICY -> PrivacyPolicyScreen()
-MoreSubScreen.ADMIN_PANEL -> AdminHubScreen(
+                    MoreSubScreen.ADMIN_PANEL -> ModeratorPanelScreen(
                         uiState = adminViewModel.uiState.value,
                         viewModel = adminViewModel,
-                        onBack = { activeScreen = MoreSubScreen.HUB },
-                        onManageModerators = { activeScreen = MoreSubScreen.ADMIN_MODERATORS },
-                        onNavigate = { route ->
-                            activeScreen = when (route) {
-                                "SUBJECTS" -> MoreSubScreen.ADMIN_SUBJECTS
-                                "TIMETABLE" -> MoreSubScreen.ADMIN_TIMETABLE
-                                "NOTICES" -> MoreSubScreen.ADMIN_NOTICES
-                                "ASSIGNMENTS" -> MoreSubScreen.ADMIN_ASSIGNMENTS
-                                "EXAMS" -> MoreSubScreen.ADMIN_EXAMS
-                                "CLUBS" -> MoreSubScreen.ADMIN_CLUBS
-                                "EVENTS" -> MoreSubScreen.ADMIN_EVENTS
-                                "LOST_FOUND" -> MoreSubScreen.ADMIN_LOST_FOUND
-                                "DIRECTORY" -> MoreSubScreen.ADMIN_DIRECTORY
-                                "USERS" -> if (adminState.identity.isOwner) MoreSubScreen.SUPER_ADMIN_USERS else MoreSubScreen.ADMIN_PANEL
-                                "REVIEW" -> MoreSubScreen.ADMIN_MODERATION
-                                else -> MoreSubScreen.ADMIN_PANEL
-                            }
-                        }
+                        onBack = { activeScreen = MoreSubScreen.HUB }
                     )
                     MoreSubScreen.ADMIN_MODERATORS -> ModeratorManagementScreen(
                         uiState = moderatorViewModel.uiState.value,
@@ -1879,7 +2103,7 @@ private fun AssignmentsEmptyState() {
         containerColor = MaterialTheme.colorScheme.surface
     ) {
         C1EmptyState(
-            icon = Icons.Default.Assignment,
+            icon = Icons.AutoMirrored.Filled.Assignment,
             title = stringResource(R.string.assignments_empty_title),
             message = stringResource(R.string.assignments_empty_hint)
         )
@@ -2231,7 +2455,7 @@ fun ExamsAndSyllabusScreen(
                     item {
                         FlagshipCard(containerColor = MaterialTheme.colorScheme.primaryContainer) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
-                                Icon(Icons.Default.EventNote, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(28.dp))
+                                Icon(Icons.AutoMirrored.Filled.EventNote, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(28.dp))
                                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                     Text("Official examination schedule", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
                                     Text("${uiState.exams.size} published exam records", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
@@ -2243,7 +2467,7 @@ fun ExamsAndSyllabusScreen(
                     if (uiState.exams.isEmpty()) {
                         item {
                             C1EmptyState(
-                                icon = Icons.Default.EventNote,
+                                icon = Icons.AutoMirrored.Filled.EventNote,
                                 title = "No exam schedule published",
                                 message = "Official examination dates will appear here when your department publishes them.",
                                 modifier = Modifier.fillMaxWidth()
@@ -2294,7 +2518,7 @@ fun ExamsAndSyllabusScreen(
                     if (bySubject.isEmpty()) {
                         item {
                             C1EmptyState(
-                                icon = Icons.Default.MenuBook,
+                                icon = Icons.AutoMirrored.Filled.MenuBook,
                                 title = "No syllabus topics yet",
                                 message = "Topics added by your department will appear here. You can also maintain your own checklist.",
                                 modifier = Modifier.fillMaxWidth()

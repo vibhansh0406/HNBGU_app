@@ -23,8 +23,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -79,6 +79,7 @@ import `in`.campusone.app.ui.theme.C1Motion
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
 import `in`.campusone.app.ui.theme.CampusOneBrandGreen
+import `in`.campusone.app.ui.theme.extendedColors
 
 /**
  * Three deliberate onboarding moments:
@@ -171,7 +172,7 @@ fun OnboardingScreen(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     repeat(2) { index ->
-                        val segmentColor = if (index <= step) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+                        val segmentColor = if (index <= step) extendedColors.brandForeground else MaterialTheme.colorScheme.surfaceVariant
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -407,7 +408,7 @@ fun OnboardingScreen(
                                 shape = C1Radius.md,
                                 contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)
                             ) {
-                                Icon(Icons.Default.ArrowBack, contentDescription = "Previous step")
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Previous step")
                             }
                         }
                         Button(
@@ -444,7 +445,7 @@ fun OnboardingScreen(
                             )
                             Spacer(Modifier.width(C1Spacing.sm))
                             Icon(
-                                if (step == 1) Icons.Default.Check else Icons.Default.ArrowForward,
+                                if (step == 1) Icons.Default.Check else Icons.AutoMirrored.Filled.ArrowForward,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -550,7 +551,7 @@ private fun SelectableOptionCard(
         ),
         border = BorderStroke(
             if (selected) 1.5.dp else 1.dp,
-            if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+            if (selected) extendedColors.brandForeground else MaterialTheme.colorScheme.outlineVariant
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {

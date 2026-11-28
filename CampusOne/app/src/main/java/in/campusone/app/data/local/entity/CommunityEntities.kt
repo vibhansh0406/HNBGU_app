@@ -55,5 +55,7 @@ data class AppNotificationEntity(
     val targetType: String,
     val targetId: String,
     val isRead: Boolean = false,
-    val createdAtMillis: Long
+    val createdAtMillis: Long,
+    val attachmentUrl: String? = null,
+    val attachmentType: String? = null
 )

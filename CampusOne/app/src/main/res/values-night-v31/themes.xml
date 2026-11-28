@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+ native launch screen in dark mode. -->
+    <style name="Theme.CampusOne" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">#1E634B</item>
+        <item name="colorPrimaryContainer">#294633</item>
+        <item name="colorOnPrimaryContainer">#E4F0E7</item>
+        <item name="android:windowBackground">@color/campusone_background_dark</item>
+        <item name="android:windowSplashScreenBackground">@color/campusone_background_dark</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_campusone_brand_lockup</item>
+        <item name="android:windowSplashScreenAnimationDuration">420</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:forceDarkAllowed">false</item>
+    </style>
+</resources>

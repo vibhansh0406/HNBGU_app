@@ -2,6 +2,8 @@ package `in`.campusone.app.ui.screens.admin
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -179,6 +181,7 @@ fun AdminAssignmentsScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AssignmentDialog(
     subjectTag: String,
@@ -220,12 +223,9 @@ private fun AssignmentDialog(
                     singleLine = false,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column {
-                        Text("Priority: $priority", style = MaterialTheme.typography.bodyMedium)
-                    }
-                    Spacer(modifier = Modifier.weight(1f))
-                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                    Text("Priority", style = MaterialTheme.typography.bodyMedium)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
                         listOf("HIGH", "MEDIUM", "LOW").forEach { p ->
                             `in`.campusone.app.ui.components.C1FilterChip(
                                 selected = priority == p,

@@ -17,9 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.FactCheck
+import androidx.compose.material.icons.automirrored.filled.FactCheck
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Campaign
@@ -55,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
+import `in`.campusone.app.ui.theme.extendedColors
 
 /**
  * Super Admin Analytics & Reporting screen.
@@ -152,7 +153,7 @@ fun SuperAdminAnalyticsScreen(
                         value = state.users.size.toString(),
                         subtitle = "Registered accounts",
                         icon = Icons.Default.People,
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = extendedColors.brandForeground
                     )
                     AnalyticsStatCard(
                         title = "Active users",
@@ -181,7 +182,7 @@ fun SuperAdminAnalyticsScreen(
                         value = state.noticeCount.toString(),
                         subtitle = "Campus announcements",
                         icon = Icons.Default.Campaign,
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = extendedColors.brandForeground
                     )
                     AnalyticsStatCard(
                         title = "Study resources",
@@ -194,7 +195,7 @@ fun SuperAdminAnalyticsScreen(
                         title = "Assignments",
                         value = state.assignmentCount.toString(),
                         subtitle = "Published tasks",
-                        icon = Icons.Default.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                         tint = MaterialTheme.colorScheme.tertiary
                     )
                 }
@@ -210,7 +211,7 @@ fun SuperAdminAnalyticsScreen(
                         value = state.eventCount.toString(),
                         subtitle = "Campus events",
                         icon = Icons.Default.Event,
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = extendedColors.brandForeground
                     )
                     AnalyticsStatCard(
                         title = "Clubs",
@@ -223,7 +224,7 @@ fun SuperAdminAnalyticsScreen(
                         title = "Open reports",
                         value = state.flaggedContent.size.toString(),
                         subtitle = "Needs moderation",
-                        icon = Icons.Default.FactCheck,
+                        icon = Icons.AutoMirrored.Filled.FactCheck,
                         tint = MaterialTheme.colorScheme.tertiary
                     )
                 }
@@ -237,7 +238,7 @@ fun SuperAdminAnalyticsScreen(
                     text = "Activity trends",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = extendedColors.brandForeground
                 )
             }
 
@@ -247,7 +248,7 @@ fun SuperAdminAnalyticsScreen(
                     subtitle = "New accounts created per day",
                     dataPoints = buildUserGrowthPoints(state),
                     icon = Icons.Default.Person,
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = extendedColors.brandForeground
                 )
             }
 
@@ -277,7 +278,7 @@ fun SuperAdminAnalyticsScreen(
                     subtitle = "Campus events per day",
                     dataPoints = buildEventTrendPoints(state),
                     icon = Icons.Default.Event,
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = extendedColors.brandForeground
                 )
             }
 
@@ -286,7 +287,7 @@ fun SuperAdminAnalyticsScreen(
                     title = "Content reports",
                     subtitle = "Moderation reports per day",
                     dataPoints = buildReportTrendPoints(state),
-                    icon = Icons.Default.FactCheck,
+                    icon = Icons.AutoMirrored.Filled.FactCheck,
                     tint = MaterialTheme.colorScheme.error
                 )
             }

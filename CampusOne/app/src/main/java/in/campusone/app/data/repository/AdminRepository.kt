@@ -699,6 +699,22 @@ class AdminRepository @Inject constructor(
     suspend fun hideLostFound(id: String) =
         campusLifeDao.hideLostFoundByCr(id)
 
+    suspend fun deleteLostFound(id: String) =
+        campusLifeDao.deleteLostFoundById(id)
+
+    suspend fun deleteLostFoundRemote(id: String): Boolean =
+        supabaseSync.deleteLostFound(id)
+
+    suspend fun deleteAssignmentRemote(id: String): Boolean = supabaseSync.deleteAssignmentRemote(id)
+    suspend fun deleteExamRemote(id: String): Boolean = supabaseSync.deleteExamRemote(id)
+    suspend fun deleteSyllabusTopicRemote(id: String): Boolean = supabaseSync.deleteSyllabusTopicRemote(id)
+    suspend fun deleteStudyResourceRemote(id: String): Boolean = supabaseSync.deleteStudyResourceRemote(id)
+    suspend fun deleteClubRemote(id: String): Boolean = supabaseSync.deleteClubRemote(id)
+    suspend fun deleteEventRemote(id: String): Boolean = supabaseSync.deleteEventRemote(id)
+    suspend fun deleteDirectoryContactRemote(id: String): Boolean = supabaseSync.deleteDirectoryContactRemote(id)
+    suspend fun deleteSubjectRemote(id: String): Boolean = supabaseSync.deleteSubjectRemote(id)
+    suspend fun deleteTimetableImportRemote(id: String): Boolean = supabaseSync.deleteTimetableImportRemote(id)
+
     // =========================================================================
     // DIRECTORY
     // =========================================================================
@@ -707,6 +723,12 @@ class AdminRepository @Inject constructor(
 
     suspend fun upsertDirectory(items: List<DirectoryContactEntity>) =
         campusLifeDao.upsertDirectory(items)
+
+    suspend fun deleteDirectoryContacts(ids: List<String>) =
+        campusLifeDao.deleteDirectoryContacts(ids)
+
+    suspend fun deleteDirectoryContact(id: String) =
+        campusLifeDao.deleteDirectoryContacts(listOf(id))
 
     // =========================================================================
     // DASHBOARD STATS

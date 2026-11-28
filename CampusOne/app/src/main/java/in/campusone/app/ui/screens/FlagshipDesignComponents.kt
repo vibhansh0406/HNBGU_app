@@ -24,9 +24,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Attachment
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -92,7 +94,7 @@ import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 private val FlagshipBrand: Color
-    @Composable get() = MaterialTheme.colorScheme.primary
+    @Composable get() = extendedColors.brandForeground
 private val FlagshipGreen: Color
     @Composable get() = extendedColors.success
 private val FlagshipGreenSoft: Color
@@ -121,7 +123,8 @@ fun FlagshipAppHeader(
     onNotifications: () -> Unit = {},
     onProfile: () -> Unit = {},
     showActions: Boolean = true,
-    showNotifications: Boolean = true
+    showNotifications: Boolean = true,
+    unreadCount: Int = 0
 ) {
     val ws = windowSize
     Row(
@@ -176,13 +179,35 @@ fun FlagshipAppHeader(
         }
         if (showActions) {
             if (showNotifications) {
-                IconButton(onClick = onNotifications, modifier = Modifier.size(C1Height.touch)) {
-                    Icon(
-                        Icons.Default.Notifications,
-                        contentDescription = "Notifications",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(23.dp)
-                    )
+                Box(
+                    modifier = Modifier.size(C1Height.touch),
+                    contentAlignment = Alignment.Center
+                ) {
+                    IconButton(onClick = onNotifications, modifier = Modifier.size(40.dp)) {
+                        Icon(
+                            Icons.Default.Notifications,
+                            contentDescription = "Notifications",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(23.dp)
+                        )
+                    }
+                    if (unreadCount > 0) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(4.dp)
+                                .background(MaterialTheme.colorScheme.error)
+                                .clip(androidx.compose.foundation.shape.CircleShape)
+                        ) {
+                            Text(
+                                text = if (unreadCount > 99) "99+" else unreadCount.toString(),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onError,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                            )
+                        }
+                    }
                 }
             }
             IconButton(onClick = onProfile, modifier = Modifier.size(C1Height.touch)) {
@@ -227,7 +252,7 @@ fun FlagshipSubHeader(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack, modifier = Modifier.size(C1Height.touch)) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
             }
             Column(modifier = Modifier.weight(1f).padding(start = 4.dp, end = 8.dp), verticalArrangement = Arrangement.spacedBy(1.dp)) {
                 Text(
@@ -752,6 +777,7 @@ fun FlagshipNotificationsScreen(
             "ACADEMIC" -> item.type.contains("class", true) || item.type.contains("academic", true) || item.type.contains("assignment", true) || item.type.contains("exam", true)
             "NOTICES" -> item.type.contains("notice", true) || item.type.contains("circular", true)
             "DEADLINES" -> item.type.contains("deadline", true) || item.type.contains("assignment", true)
+            "REQUESTS" -> item.type.contains("role_request", true)
             else -> true
         }
     }.sortedByDescending { it.createdAtMillis }
@@ -785,9 +811,9 @@ fun FlagshipNotificationsScreen(
         )
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = C1Spacing.pagePadding(ws), vertical = C1Spacing.md), verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
             androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                items(listOf("ALL", "ACADEMIC", "NOTICES", "DEADLINES").size) { idx ->
-                    val key = listOf("ALL", "ACADEMIC", "NOTICES", "DEADLINES")[idx]
-                    val label = listOf("All (" + uiState.notifications.size + ")", "Academic & Classes", "Notices & Circulars", "Deadlines")[idx]
+                items(listOf("ALL", "ACADEMIC", "NOTICES", "DEADLINES", "REQUESTS").size) { idx ->
+                    val key = listOf("ALL", "ACADEMIC", "NOTICES", "DEADLINES", "REQUESTS")[idx]
+                    val label = listOf("All (" + uiState.notifications.size + ")", "Academic & Classes", "Notices & Circulars", "Deadlines", "Role requests")[idx]
                     C1FilterChip(label = label, selected = filter == key, onClick = { filter = key })
                 }
             }
@@ -817,10 +843,14 @@ fun FlagshipNotificationsScreen(
                     }
                     items(entries.size, key = { entries[it].id }) { index ->
                         val notification = entries[index]
-                        FlagshipNotificationCard(notification) {
-                            viewModel.markNotificationRead(notification.id)
-                            onNavigate(notification.targetType, notification.targetId)
-                        }
+                        FlagshipNotificationCard(
+                            notification = notification,
+                            onClick = {
+                                viewModel.markNotificationRead(notification.id)
+                                onNavigate(notification.targetType, notification.targetId)
+                            },
+                            onDelete = { viewModel.deleteNotification(notification.id) }
+                        )
                     }
                 }
             }
@@ -829,7 +859,11 @@ fun FlagshipNotificationsScreen(
 }
 
 @Composable
-private fun FlagshipNotificationCard(notification: AppNotification, onClick: () -> Unit) {
+private fun FlagshipNotificationCard(
+    notification: AppNotification,
+    onClick: () -> Unit,
+    onDelete: () -> Unit
+) {
     val type = notification.type.lowercase()
     val iconBg = when {
         type.contains("assignment") || type.contains("deadline") -> FlagshipOchre
@@ -855,10 +889,33 @@ private fun FlagshipNotificationCard(notification: AppNotification, onClick: () 
                 }
                 Text(notification.title, style = MaterialTheme.typography.titleSmall, color = FlagshipInk, fontWeight = FontWeight.SemiBold)
                 if (notification.body.isNotBlank()) Text(notification.body, style = MaterialTheme.typography.bodySmall, color = FlagshipMuted, lineHeight = 18.sp)
+                if (!notification.attachmentUrl.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(C1Spacing.xs))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Attachment,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = notification.attachmentType ?: "Attachment",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(if (notification.isRead) "Read" else "New · Tap to open", style = MaterialTheme.typography.labelSmall, color = if (notification.isRead) FlagshipMuted else MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.weight(1f))
-                    Icon(Icons.Default.ArrowForward, contentDescription = "Open notification", tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(20.dp))
+                    IconButton(onClick = onDelete) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete notification", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
+                    }
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Open notification", tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(20.dp))
                 }
             }
         }

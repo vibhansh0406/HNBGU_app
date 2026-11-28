@@ -14,6 +14,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,11 +39,11 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.outlined.Campaign
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.MenuBook
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.outlined.AccountCircle
@@ -95,6 +96,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import `in`.campusone.app.data.preferences.UserPreferencesRepository
 import `in`.campusone.app.data.remote.AuthManager
 import `in`.campusone.app.data.remote.SupabaseSession
 import `in`.campusone.app.data.repository.CoreCampusRepository
@@ -134,6 +136,9 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var supabaseSync: SupabaseSyncRepository
+
+    @Inject
+    lateinit var userPreferences: UserPreferencesRepository
 
     /** Notification target delivered while the app is running (warm start via onNewIntent). */
     private var pendingNotificationTarget by mutableStateOf<Pair<String, String>?>(null)
@@ -241,6 +246,7 @@ class MainActivity : AppCompatActivity() {
         pendingNotificationTarget = handleNotificationIntent(intent)
         setContent {
             NotificationPermissionRequest()
+            val themeMode by userPreferences.themeMode.collectAsStateWithLifecycle(initialValue = "system")
             val config = androidx.compose.ui.platform.LocalConfiguration.current
             val ws = when {
                 config.screenWidthDp < 600 -> `in`.campusone.app.ui.theme.C1WindowSize.COMPACT
@@ -248,10 +254,15 @@ class MainActivity : AppCompatActivity() {
                 config.screenWidthDp < 1200 -> `in`.campusone.app.ui.theme.C1WindowSize.LARGE
                 else -> `in`.campusone.app.ui.theme.C1WindowSize.EXPANDED
             }
-            CampusOneTheme(windowSize = ws) {
+            val darkTheme = when (themeMode) {
+                "light" -> false
+                "dark" -> true
+                else -> isSystemInDarkTheme()
+            }
+            CampusOneTheme(windowSize = ws, darkTheme = darkTheme) {
                 var showSplash by rememberSaveable { mutableStateOf(true) }
                 LaunchedEffect(Unit) {
-                    delay(1200)
+                    delay(800)
                     showSplash = false
                 }
                 if (showSplash) {
@@ -384,6 +395,14 @@ fun CampusOneRoot(
                     pendingMoreScreen = MoreSubScreen.ADMIN_PANEL
                     currentTab = BottomNavTab.MORE
                 }
+                "ROLE_REQUEST" -> {
+                    pendingMoreScreen = MoreSubScreen.SUPER_ADMIN_ROLES
+                    currentTab = BottomNavTab.MORE
+                }
+                "PROFILE" -> {
+                    pendingMoreScreen = MoreSubScreen.PROFILE
+                    currentTab = BottomNavTab.MORE
+                }
             }
             pendingNotification.value = null
         }
@@ -489,8 +508,8 @@ fun CampusOneRoot(
                     C1NavItem(
                         selected = currentTab == BottomNavTab.MORE,
                         onClick = { currentTab = BottomNavTab.MORE },
-                        selectedIcon = Icons.Default.MenuBook,
-                        unselectedIcon = Icons.Outlined.MenuBook,
+                        selectedIcon = Icons.AutoMirrored.Filled.MenuBook,
+                        unselectedIcon = Icons.AutoMirrored.Outlined.MenuBook,
                         label = stringResource(R.string.nav_more),
                         badgeCount = unreadNotifications
                     )
@@ -636,6 +655,14 @@ fun CampusOneRoot(
                                     pendingMoreScreen = MoreSubScreen.SUPER_ADMIN_MODERATION
                                     currentTab = BottomNavTab.MORE
                                 }
+                                "ROLE_REQUEST" -> {
+                                    pendingMoreScreen = MoreSubScreen.SUPER_ADMIN_ROLES
+                                    currentTab = BottomNavTab.MORE
+                                }
+                                "PROFILE" -> {
+                                    pendingMoreScreen = MoreSubScreen.PROFILE
+                                    currentTab = BottomNavTab.MORE
+                                }
                             }
                         },
                         focusPostId = pendingCommunityPostId,
@@ -686,13 +713,6 @@ fun SignInScreen(onGoogleSignIn: () -> Unit, isSigningIn: Boolean) {
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = stringResource(`in`.campusone.app.R.string.welcome_subtitle),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(32.dp))
             C1Button(
                 text = if (isSigningIn) "Signing in..." else stringResource(`in`.campusone.app.R.string.sign_in_google),
@@ -702,13 +722,7 @@ fun SignInScreen(onGoogleSignIn: () -> Unit, isSigningIn: Boolean) {
                     .height(54.dp),
                 enabled = !isSigningIn
             )
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(20.dp))
-            Text(
-                text = stringResource(`in`.campusone.app.R.string.sign_in_subtitle),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
+
         }
     }
 }
@@ -729,15 +743,15 @@ fun SplashScreen() {
             verticalArrangement = Arrangement.Center
         ) {
             Image(
-                painter = painterResource(R.drawable.ic_campusone_c_mark),
+                painter = painterResource(R.drawable.ic_campusone_brand_lockup),
                 contentDescription = "CampusOne",
-                modifier = Modifier.size(64.dp)
+                modifier = Modifier.size(72.dp)
             )
             Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = stringResource(R.string.splash_veda_attribution),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center
             )
         }

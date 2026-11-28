@@ -48,6 +48,7 @@ import `in`.campusone.app.domain.model.UserProfile
 import `in`.campusone.app.domain.model.UserRole
 import `in`.campusone.app.ui.viewmodel.ModeratorViewModel
 import `in`.campusone.app.ui.viewmodel.ModeratorViewModel.ModeratorUiState
+import `in`.campusone.app.ui.theme.extendedColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,7 +97,7 @@ fun ModeratorManagementScreen(
                     text = stringResource(R.string.moderator_title),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = extendedColors.brandForeground
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
@@ -137,7 +138,7 @@ fun ModeratorManagementScreen(
                         text = stringResource(R.string.moderator_approved),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = extendedColors.brandForeground
                     )
                 }
                 LazyColumn(
@@ -269,7 +270,7 @@ private fun ModeratorRow(
                     Text(
                         text = "${stringResource(R.string.moderator_scope)}: ${mod.moderatorScope.ifEmpty { "—" }}",
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = extendedColors.brandForeground,
                         fontWeight = FontWeight.Medium
                     )
                 }

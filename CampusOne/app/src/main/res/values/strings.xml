@@ -320,6 +320,8 @@
     <string name="hub_directory_sub">HoDs, controller of exams, proctor &amp; emergency helplines</string>
     <string name="hub_superadmin_sub">Owner console • users, roles, content, moderation, audit</string>
     <string name="hub_admin_sub">Manage app data, users, notices, timetable &amp; more</string>
+    <string name="hub_moderator_panel">Moderator Panel</string>
+    <string name="hub_moderator_panel_sub">Add or remove notices, assignments, exams, clubs, events and more</string>
     <string name="hub_role_sub">CR and Moderator access — reviewed by the Admin</string>
     <string name="hub_privacy_sub">Zero ads, zero trackers, offline-first • MIT open source</string>
     <string name="hub_signout_sub">Sign out of Google &amp; Supabase on this device</string>
@@ -349,6 +351,22 @@
     <string name="onboarding_cr_teacher_access">CR and Moderator access is granted only after Admin approval.</string>
     <string name="hub_campus_life">Campus Life &amp; Utilities</string>
     <string name="hub_request_sent">Your request is sent to the admin. Access is granted only after approval.</string>
+    <string name="hub_my_stuff">My Stuff</string>
+    <string name="hub_my_assignments">My Assignments</string>
+    <string name="hub_assignments_due">%1$d pending tasks • due soon</string>
+    <string name="hub_my_notices">My Notices</string>
+    <string name="hub_notices_count">%1$d campus notices</string>
+    <string name="hub_my_timetable">My Timetable</string>
+    <string name="hub_role_request_pending">Role Request Pending</string>
+    <string name="hub_up_next">Up Next</string>
+    <string name="hub_next_class">Next Class</string>
+    <string name="hub_tap_view_timetable">Tap to view timetable</string>
+    <string name="hub_attendance_title">Attendance</string>
+    <string name="hub_overall_attendance">Overall Attendance</string>
+    <string name="hub_todays_schedule">Today\'s Schedule</string>
+    <string name="hub_todays_classes">Today\'s Classes</string>
+    <string name="hub_announcements">Announcements</string>
+    <string name="hub_no_announcements">No announcements yet</string>
     <!-- Timetable Admin -->
     <string name="timetable_title">Timetable</string>
     <string name="action_refresh">Refresh</string>

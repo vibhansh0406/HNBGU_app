@@ -3,8 +3,10 @@ package `in`.campusone.app.ui.screens
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings as AndroidSettings
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,20 +22,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Campaign
-import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Feedback
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -52,6 +52,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -80,6 +82,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val language by viewModel.languageTag.collectAsStateWithLifecycle()
+    val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val notifications by viewModel.notificationsEnabled.collectAsStateWithLifecycle()
     val announcements by viewModel.announcementsEnabled.collectAsStateWithLifecycle()
     val notices by viewModel.noticesEnabled.collectAsStateWithLifecycle()
@@ -122,19 +125,6 @@ fun SettingsScreen(
         ) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.md)) {
-                    Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                        Text(
-                            "Settings",
-                            style = MaterialTheme.typography.headlineLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        Text(
-                            "Make CampusOne work the way you do.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
                     C1SurfaceCard(
                         modifier = Modifier.fillMaxWidth(),
                         contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.lg),
@@ -185,6 +175,9 @@ fun SettingsScreen(
                 }
             }
             item {
+                C1SectionHeader(title = "Preferences", subtitle = "Language and appearance")
+            }
+            item {
                 C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.lg)) {
                     SettingsChoiceRow(
                         title = "Language",
@@ -196,10 +189,18 @@ fun SettingsScreen(
                 }
             }
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                    C1SectionHeader(title = "Notifications", subtitle = "Choose which updates reach this device")
-                    Text("Control the updates CampusOne sends to this device", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.lg)) {
+                    SettingsChoiceRow(
+                        title = "Appearance",
+                        subtitle = "Light, dark or follow your device",
+                        options = listOf("system" to "System", "light" to "Light", "dark" to "Dark"),
+                        selected = themeMode,
+                        onSelect = { viewModel.setThemeMode(it) }
+                    )
                 }
+            }
+            item {
+                C1SectionHeader(title = "Notifications", subtitle = "Choose which updates reach this device")
             }
             item {
                 C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.md)) {
@@ -215,10 +216,10 @@ fun SettingsScreen(
                     SettingsSwitchRow("Examination updates", "Exam schedules and changes", Icons.Default.Shield, examUpdates, notifications) {
                         viewModel.setNotificationCategory("exam", it)
                     }
-                    SettingsSwitchRow("Assignment updates", "New assignments and deadlines", Icons.Default.Assignment, assignmentUpdates, notifications) {
+                    SettingsSwitchRow("Assignment updates", "New assignments and deadlines", Icons.AutoMirrored.Filled.Assignment, assignmentUpdates, notifications) {
                         viewModel.setNotificationCategory("assignment", it)
                     }
-                    SettingsSwitchRow("Study material", "New notes and resource uploads", Icons.Default.Info, studyUpdates, notifications) {
+                    SettingsSwitchRow("Study material", "New notes and resource uploads", Icons.AutoMirrored.Filled.MenuBook, studyUpdates, notifications) {
                         viewModel.setNotificationCategory("study_material", it)
                     }
                     SettingsActionRow(
@@ -240,17 +241,14 @@ fun SettingsScreen(
                 }
             }
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                    C1SectionHeader(title = "Academic reminders", subtitle = "Helpful reminders generated on your device")
-                    Text("Local reminders generated on this device", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                C1SectionHeader(title = "Academic reminders", subtitle = "Helpful reminders generated on your device")
             }
             item {
                 C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.md)) {
                     SettingsSwitchRow("Upcoming classes", "Remind me before a scheduled class", Icons.Default.Schedule, classReminders, notifications) {
                         viewModel.setLocalReminder("class", it)
                     }
-                    SettingsSwitchRow("Assignment deadlines", "Reminders for pending work", Icons.Default.Assignment, assignmentReminders, notifications) {
+                    SettingsSwitchRow("Assignment deadlines", "Reminders for pending work", Icons.AutoMirrored.Filled.Assignment, assignmentReminders, notifications) {
                         viewModel.setLocalReminder("assignment", it)
                     }
                     SettingsSwitchRow("Exams", "Reminders before examinations", Icons.Default.School, examReminders, notifications) {
@@ -267,7 +265,7 @@ fun SettingsScreen(
                     SettingsActionRow(
                         title = "Download latest CampusOne version",
                         subtitle = "Open the official GitHub Releases page. Install only the signed APK asset.",
-                        icon = Icons.Default.Info,
+                        icon = Icons.Default.Download,
                         onClick = {
                             val intent = Intent(
                                 Intent.ACTION_VIEW,
@@ -284,7 +282,7 @@ fun SettingsScreen(
                     SettingsActionRow(
                         title = "Send feedback",
                         subtitle = "Share feedback using an app on your device",
-                        icon = Icons.Default.Info,
+                        icon = Icons.Default.Feedback,
                         onClick = {
                             val intent = Intent(Intent.ACTION_SEND).apply {
                                 type = "text/plain"
@@ -300,12 +298,16 @@ fun SettingsScreen(
             item { C1SectionHeader(title = "Account", subtitle = "Manage access to this device") }
             item {
                 C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.md)) {
-                    SettingsActionRow("Sign out", "Sign out of this device", Icons.Default.Logout, { showSignOut = true }, danger = true)
+                    SettingsActionRow("Sign out", "Sign out of this device", Icons.AutoMirrored.Filled.Logout, { showSignOut = true }, danger = true)
                 }
             }
             item {
                 Column(modifier = Modifier.fillMaxWidth().padding(vertical = C1Spacing.md), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.Palette, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(24.dp))
+                    Image(
+                        painter = painterResource(`in`.campusone.app.R.drawable.ic_campusone_brand_lockup),
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp)
+                    )
                     Spacer(Modifier.height(C1Spacing.xs))
                     Text("CampusOne", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     Text("Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -476,7 +478,15 @@ private fun SettingsSwitchRow(
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = C1Spacing.xs),
+        modifier = Modifier
+            .fillMaxWidth()
+            .toggleable(
+                value = checked,
+                enabled = enabled,
+                role = Role.Switch,
+                onValueChange = onCheckedChange
+            )
+            .padding(vertical = C1Spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
     ) {
@@ -485,7 +495,7 @@ private fun SettingsSwitchRow(
             Text(title, style = MaterialTheme.typography.bodyLarge)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
+        Switch(checked = checked, onCheckedChange = null, enabled = enabled)
     }
 }
 

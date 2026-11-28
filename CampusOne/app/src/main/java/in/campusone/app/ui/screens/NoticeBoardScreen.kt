@@ -9,6 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -29,7 +30,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Attachment
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.DoneAll
@@ -38,6 +39,8 @@ import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -79,10 +82,13 @@ import `in`.campusone.app.ui.components.C1SectionHeader
 import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1LoadingState
 import `in`.campusone.app.ui.components.C1StatusChip
+import `in`.campusone.app.ui.components.C1SegmentedButton
+import `in`.campusone.app.ui.components.C1SegmentedButtonColors
 import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.components.C1Tone
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
+import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.viewmodel.CoreUiState
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -237,64 +243,43 @@ fun NoticeBoardScreen(
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) }
                     )
 
-                    // Filter chips
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
-                        item {
-                            FilterChip(
-                                selected = filter == NoticeFilter.ALL,
-                                onClick = { filterIndex = 0 },
-                                label = { Text(stringResource(R.string.notices_filter_all)) }
+                    // Compact dropdown filter (saves vertical space)
+                    var filterExpanded by remember { mutableStateOf(false) }
+                    var categoryExpanded by remember { mutableStateOf(false) }
+                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                        Box {
+                            C1Button(
+                                text = stringResource(R.string.notices_filter_all) + " ▾",
+                                onClick = { filterExpanded = true },
+                                intent = C1ButtonIntent.TONAL
                             )
-                        }
-                        item {
-                            FilterChip(
-                                selected = filter == NoticeFilter.PINNED,
-                                onClick = { filterIndex = 1 },
-                                label = { Text(stringResource(R.string.home_pinned)) }
-                            )
-                        }
-                        item {
-                            FilterChip(
-                                selected = filter == NoticeFilter.UNREAD,
-                                onClick = { filterIndex = 2 },
-                                label = {
-                                    val label = stringResource(R.string.notices_filter_unread)
-                                    Text(
-                                        if (uiState.unreadNoticeCount > 0) {
-                                            "$label (${uiState.unreadNoticeCount})"
-                                        } else {
-                                            label
-                                        }
-                                    )
+                            DropdownMenu(expanded = filterExpanded, onDismissRequest = { filterExpanded = false }) {
+                                listOf(
+                                    stringResource(R.string.notices_filter_all),
+                                    stringResource(R.string.home_pinned),
+                                    if (uiState.unreadNoticeCount > 0) "${stringResource(R.string.notices_filter_unread)} (${uiState.unreadNoticeCount})" else stringResource(R.string.notices_filter_unread),
+                                    stringResource(R.string.notice_official)
+                                ).forEachIndexed { i, label ->
+                                    DropdownMenuItem(text = { Text(label) }, onClick = { filterIndex = i; filterExpanded = false })
                                 }
-                            )
+                            }
                         }
-                        item {
-                            FilterChip(
-                                selected = filter == NoticeFilter.OFFICIAL,
-                                onClick = { filterIndex = 3 },
-                                label = { Text(stringResource(R.string.notice_official)) }
+                        Box {
+                            C1Button(
+                                text = (selectedCategory ?: stringResource(R.string.notices_filter_all)) + " ▾",
+                                onClick = { categoryExpanded = true },
+                                intent = C1ButtonIntent.TONAL
                             )
+                            DropdownMenu(expanded = categoryExpanded, onDismissRequest = { categoryExpanded = false }) {
+                                DropdownMenuItem(text = { Text(stringResource(R.string.notices_filter_all)) }, onClick = { selectedCategory = null; categoryExpanded = false })
+                                noticeCategories.forEach { category ->
+                                    DropdownMenuItem(text = { Text(noticeCategoryLabel(category)) }, onClick = { selectedCategory = category; categoryExpanded = false })
+                                }
+                            }
                         }
                     }
 
-                    // Category chips
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
-                        item {
-                            FilterChip(
-                                selected = selectedCategory == null,
-                                onClick = { selectedCategory = null },
-                                label = { Text(stringResource(R.string.notices_filter_all)) }
-                            )
-                        }
-                        items(noticeCategories) { category ->
-                            FilterChip(
-                                selected = selectedCategory == category,
-                                onClick = { selectedCategory = category },
-                                label = { Text(noticeCategoryLabel(category)) }
-                            )
-                        }
-                    }
+
                 }
             }
 
@@ -545,7 +530,7 @@ private fun NoticeDetail(
                         horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         )
@@ -594,7 +579,7 @@ private fun NoticeDetail(
                     Text(
                         text = "${notice.authorName} · ${notice.authorRole.name}",
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
+                        color = extendedColors.brandForeground
                     )
                     Text(
                         text = formatNoticeDate(notice.createdAtMillis),

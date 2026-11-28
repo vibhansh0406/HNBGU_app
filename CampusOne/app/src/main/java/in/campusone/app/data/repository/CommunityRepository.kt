@@ -203,6 +203,11 @@ class CommunityRepository @Inject constructor(
         supabaseSync.markAllNotificationsRead(userId)
     }
 
+    suspend fun deleteNotification(notificationId: String, userId: String) {
+        dao.deleteNotification(notificationId, userId)
+        supabaseSync.deleteNotification(notificationId)
+    }
+
     private fun Map<String, Any>.toPostEntity(liked: Set<String>): CommunityPostEntity {
         val id = this["id"] as? String ?: ""
         return CommunityPostEntity(
@@ -242,7 +247,9 @@ class CommunityRepository @Inject constructor(
             targetType = this["target_type"] as? String ?: "",
             targetId = this["target_id"] as? String ?: "",
             isRead = this["is_read"] == true,
-            createdAtMillis = long(this["created_at"])
+            createdAtMillis = long(this["created_at"]),
+            attachmentUrl = this["attachment_url"] as? String,
+            attachmentType = this["attachment_type"] as? String
         )
 
     private fun CommunityPostEntity.toModel() = CommunityPost(
@@ -280,7 +287,9 @@ class CommunityRepository @Inject constructor(
         targetType = targetType,
         targetId = targetId,
         isRead = isRead,
-        createdAtMillis = createdAtMillis
+        createdAtMillis = createdAtMillis,
+        attachmentUrl = attachmentUrl,
+        attachmentType = attachmentType
     )
 
     private fun role(value: String?): UserRole = when (value?.uppercase()) {

@@ -42,7 +42,7 @@ object TimetableCsvParser {
         val lines = csvText.trim().split("\n").filter { it.isNotBlank() }
         if (lines.isEmpty()) return ParseResult(emptyList(), listOf("Empty file"))
 
-        val headers = lines[0].toLowerCase(Locale.ROOT).split(",").map { it.trim() }
+        val headers = lines[0].lowercase(Locale.ROOT).split(",").map { it.trim() }
         val headerIndex = headers.mapIndexed { i, h -> h to i }.toMap()
         val missing = REQUIRED_HEADERS - headerIndex.keys
         if (missing.isNotEmpty()) {

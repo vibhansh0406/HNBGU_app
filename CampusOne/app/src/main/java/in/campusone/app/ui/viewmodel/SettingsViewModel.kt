@@ -16,6 +16,9 @@ class SettingsViewModel @Inject constructor(
     val languageTag = preferences.languageTag.stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(5_000), "en"
     )
+    val themeMode = preferences.themeMode.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5_000), "system"
+    )
     val notificationsEnabled = preferences.notificationsEnabled.stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(5_000), true
     )
@@ -48,6 +51,7 @@ class SettingsViewModel @Inject constructor(
     )
 
     fun setLanguage(language: String) = viewModelScope.launch { preferences.switchLanguage(language) }
+    fun setThemeMode(mode: String) = viewModelScope.launch { preferences.setThemeMode(mode) }
     fun setNotificationsEnabled(enabled: Boolean) = viewModelScope.launch {
         preferences.setNotificationsEnabled(enabled)
     }

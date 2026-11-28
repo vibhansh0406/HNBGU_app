@@ -51,6 +51,7 @@ import `in`.campusone.app.data.repository.UserAttendanceRow
 import `in`.campusone.app.domain.model.UserRole
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
+import `in`.campusone.app.ui.theme.extendedColors
 
 private val assignableRoles = listOf(
     UserRole.MODERATOR,
@@ -208,7 +209,7 @@ private fun StatTile(label: String, value: String, modifier: Modifier = Modifier
                 text = value,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = extendedColors.brandForeground
             )
             Text(
                 text = label,
@@ -225,7 +226,7 @@ private fun SectionTitle(text: String) {
         text = text,
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.primary
+        color = extendedColors.brandForeground
     )
 }
 
@@ -297,7 +298,7 @@ private fun UserCard(user: AdminUserRecord, onClick: () -> Unit) {
                 text = if (isOwner) "OWNER" else user.role.name,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = extendedColors.brandForeground
             )
         }
     }

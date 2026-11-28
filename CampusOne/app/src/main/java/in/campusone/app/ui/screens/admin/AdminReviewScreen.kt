@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import `in`.campusone.app.data.repository.FlaggedItem
 import `in`.campusone.app.ui.viewmodel.AdminViewModel
 import `in`.campusone.app.ui.viewmodel.AdminViewModel.AdminUiState
+import `in`.campusone.app.ui.theme.extendedColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,7 +64,7 @@ fun AdminReviewScreen(
                         text = "Reported content",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = extendedColors.brandForeground
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -113,7 +114,7 @@ private fun ReviewCard(
             Text(
                 text = item.kind.name.lowercase().replaceFirstChar { it.uppercase() },
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
+                color = extendedColors.brandForeground,
                 fontWeight = FontWeight.Bold
             )
             Text(

@@ -42,6 +42,7 @@ class UserPreferencesRepository @Inject constructor(
         val INTRO_SEEN = booleanPreferencesKey("intro_seen")
         val USER_PROFILE_JSON = stringPreferencesKey("user_profile_json")
         val LANGUAGE_TAG = stringPreferencesKey("language_tag") // "en" or "hi"
+        val THEME_MODE = stringPreferencesKey("theme_mode") // "system", "light" or "dark"
         val LAST_TIMETABLE_SYNC = longPreferencesKey("last_timetable_sync")
         val LAST_NOTICE_SYNC = longPreferencesKey("last_notice_sync")
         val TARGET_ATTENDANCE_PCT = intPreferencesKey("target_attendance_pct")
@@ -76,6 +77,7 @@ class UserPreferencesRepository @Inject constructor(
     }
 
     val languageTag: Flow<String> = context.dataStore.data.map { it[Keys.LANGUAGE_TAG] ?: "en" }
+    val themeMode: Flow<String> = context.dataStore.data.map { it[Keys.THEME_MODE] ?: "system" }
     val notificationsEnabled: Flow<Boolean> = context.dataStore.data.map {
         it[Keys.NOTIFICATIONS_ENABLED] ?: true
     }
@@ -169,6 +171,10 @@ class UserPreferencesRepository @Inject constructor(
         }
         val appLocale = LocaleListCompat.forLanguageTags(langTag)
         AppCompatDelegate.setApplicationLocales(appLocale)
+    }
+
+    suspend fun setThemeMode(mode: String) {
+        context.dataStore.edit { prefs -> prefs[Keys.THEME_MODE] = mode }
     }
 
     suspend fun getLastSyncTimestamps(): Pair<Long, Long> {
