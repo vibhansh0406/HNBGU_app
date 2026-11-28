@@ -5,6 +5,7 @@ import android.net.Uri
 import android.provider.Settings as AndroidSettings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -183,6 +185,9 @@ fun SettingsScreen(
                 }
             }
             item {
+                C1SectionHeader(title = "Preferences", subtitle = "Language and appearance")
+            }
+            item {
                 C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.lg)) {
                     SettingsChoiceRow(
                         title = "Language",
@@ -205,10 +210,7 @@ fun SettingsScreen(
                 }
             }
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                    C1SectionHeader(title = "Notifications", subtitle = "Choose which updates reach this device")
-                    Text("Control the updates CampusOne sends to this device", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                C1SectionHeader(title = "Notifications", subtitle = "Choose which updates reach this device")
             }
             item {
                 C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.md)) {
@@ -249,10 +251,7 @@ fun SettingsScreen(
                 }
             }
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
-                    C1SectionHeader(title = "Academic reminders", subtitle = "Helpful reminders generated on your device")
-                    Text("Local reminders generated on this device", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                C1SectionHeader(title = "Academic reminders", subtitle = "Helpful reminders generated on your device")
             }
             item {
                 C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.md)) {
@@ -485,7 +484,15 @@ private fun SettingsSwitchRow(
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = C1Spacing.xs),
+        modifier = Modifier
+            .fillMaxWidth()
+            .toggleable(
+                value = checked,
+                enabled = enabled,
+                role = Role.Switch,
+                onValueChange = onCheckedChange
+            )
+            .padding(vertical = C1Spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(C1Spacing.md)
     ) {
@@ -494,7 +501,7 @@ private fun SettingsSwitchRow(
             Text(title, style = MaterialTheme.typography.bodyLarge)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
+        Switch(checked = checked, onCheckedChange = null, enabled = enabled)
     }
 }
 
