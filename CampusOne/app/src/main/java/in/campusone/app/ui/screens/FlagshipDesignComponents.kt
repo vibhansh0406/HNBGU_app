@@ -94,7 +94,7 @@ import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 private val FlagshipBrand: Color
-    @Composable get() = MaterialTheme.colorScheme.primary
+    @Composable get() = extendedColors.brandForeground
 private val FlagshipGreen: Color
     @Composable get() = extendedColors.success
 private val FlagshipGreenSoft: Color

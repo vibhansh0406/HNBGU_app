@@ -83,6 +83,7 @@ import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.components.C1Tone
 import `in`.campusone.app.ui.theme.C1Radius
 import `in`.campusone.app.ui.theme.C1Spacing
+import `in`.campusone.app.ui.theme.extendedColors
 import `in`.campusone.app.ui.viewmodel.CoreUiState
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -594,7 +595,7 @@ private fun NoticeDetail(
                     Text(
                         text = "${notice.authorName} · ${notice.authorRole.name}",
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
+                        color = extendedColors.brandForeground
                     )
                     Text(
                         text = formatNoticeDate(notice.createdAtMillis),

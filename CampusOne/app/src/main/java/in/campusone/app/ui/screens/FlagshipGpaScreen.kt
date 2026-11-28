@@ -63,7 +63,7 @@ import `in`.campusone.app.ui.viewmodel.StudyAndCampusViewModel
 import java.util.Locale
 
 private val GpaGreen: Color
-    @Composable get() = MaterialTheme.colorScheme.primary
+    @Composable get() = extendedColors.brandForeground
 private val GpaMint: Color
     @Composable get() = MaterialTheme.colorScheme.primaryContainer
 private val GpaCanvas: Color
@@ -189,7 +189,7 @@ fun FlagshipGpaCalculatorScreen(
                         Text("Semester " + uiState.profile.semester + " course matrix", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = GpaInk)
                         Text(uiState.gpaCourses.size.toString() + " subjects · " + uiState.gpaCourses.sumOf { it.credits } + " credits entered", fontSize = 11.sp, color = GpaMuted)
                     }
-                    Button(onClick = { showAdd = true }, shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = GpaGreen)) {
+                    Button(onClick = { showAdd = true }, shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(4.dp))
                         Text("Add subject", fontSize = 11.sp)

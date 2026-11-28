@@ -74,7 +74,7 @@ import `in`.campusone.app.ui.viewmodel.StudyAndCampusViewModel
 import java.util.Locale
 
 private val CampusPageGreen: Color
-    @Composable get() = MaterialTheme.colorScheme.primary
+    @Composable get() = extendedColors.brandForeground
 private val CampusPageGreenSoft: Color
     @Composable get() = MaterialTheme.colorScheme.primaryContainer
 private val CampusPageCanvas: Color

@@ -356,7 +356,8 @@ data class C1ExtendedColors(
     val divider: Color,
     val scrim: Color,
     val overlay: Color,
-    val surfaceTint: Color
+    val surfaceTint: Color,
+    val brandForeground: Color
 )
 
 val LightExtendedColors = C1ExtendedColors(
@@ -376,7 +377,8 @@ val LightExtendedColors = C1ExtendedColors(
     divider = Color(0xFFCED7CE),
     scrim = Color(0x99000000),
     overlay = Color(0xCC000000),
-    surfaceTint = Color(0xFF1E634B)
+    surfaceTint = Color(0xFF1E634B),
+    brandForeground = Color(0xFF1E634B)
 )
 
 // ============================================================================
@@ -426,6 +428,49 @@ val LightComponentColors = C1ComponentColors(
     skeletonHighlight = Color(0xFFF6F7F2),
     badgeBackground = Color(0xFF1E634B),
     badgeContent = Color.White
+)
+
+val DarkExtendedColors = C1ExtendedColors(
+    success = Color(0xFF9FC8AA),
+    onSuccess = Color(0xFF0E2A1D),
+    successContainer = Color(0xFF1E3D2B),
+    onSuccessContainer = Color(0xFFDCECE1),
+    warning = Color(0xFFD49A57),
+    onWarning = Color(0xFF3B2615),
+    warningContainer = Color(0xFF4A3218),
+    onWarningContainer = Color(0xFFF5EAD5),
+    info = Color(0xFF91B2BA),
+    onInfo = Color(0xFF0E2F35),
+    infoContainer = Color(0xFF1E3F45),
+    onInfoContainer = Color(0xFFDDEEF0),
+    hairline = Color(0xFF2C3D31),
+    divider = Color(0xFF3A4D40),
+    scrim = Color(0x99000000),
+    overlay = Color(0xCC000000),
+    surfaceTint = Color(0xFF1E634B),
+    brandForeground = Color(0xFFA9D6BC)
+)
+
+val DarkComponentColors = C1ComponentColors(
+    cardBackground = Color(0xFF1E3024),
+    cardBorder = Color(0xFF2C3D31),
+    cardHover = Color(0xFF253A2C),
+    cardPressed = Color(0xFF2B4333),
+    surfaceElevated = Color(0xFF1E3024),
+    surfaceElevatedBorder = Color(0xFF3A4D40),
+    inputBackground = Color(0xFF1E3024),
+    inputBorder = Color(0xFF3A4D40),
+    inputBorderFocused = Color(0xFFA9D6BC),
+    inputBorderError = Color(0xFFFF8A7A),
+    chipBackground = Color(0xFF1E3024),
+    chipBackgroundSelected = Color(0xFF294633),
+    chipBorder = Color(0xFF3A4D40),
+    chipBorderSelected = Color(0xFFA9D6BC),
+    dividerColor = Color(0xFF2C3D31),
+    skeletonBase = Color(0xFF1E3024),
+    skeletonHighlight = Color(0xFF253A2C),
+    badgeBackground = Color(0xFFA9D6BC),
+    badgeContent = Color(0xFF163D2E)
 )
 
 // ============================================================================

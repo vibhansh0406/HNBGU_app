@@ -516,7 +516,7 @@ fun MoreHubScreen(
                                     text = "${Math.round(coreState.overallInsight.currentPercentage)}%",
                                     style = MaterialTheme.typography.headlineMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
+                                    color = extendedColors.brandForeground
                                 )
                                 Text(
                                     text = "${coreState.overallInsight.attended} of ${coreState.overallInsight.totalConducted} classes attended",

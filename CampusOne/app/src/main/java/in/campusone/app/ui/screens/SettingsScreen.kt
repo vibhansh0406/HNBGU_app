@@ -22,11 +22,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.Campaign
-import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PrivacyTip
@@ -80,6 +77,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val language by viewModel.languageTag.collectAsStateWithLifecycle()
+    val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val notifications by viewModel.notificationsEnabled.collectAsStateWithLifecycle()
     val announcements by viewModel.announcementsEnabled.collectAsStateWithLifecycle()
     val notices by viewModel.noticesEnabled.collectAsStateWithLifecycle()
@@ -192,6 +190,17 @@ fun SettingsScreen(
                         options = listOf("en" to "English", "hi" to "हिन्दी"),
                         selected = language,
                         onSelect = { viewModel.setLanguage(it) }
+                    )
+                }
+            }
+            item {
+                C1SurfaceCard(modifier = Modifier.fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(C1Spacing.lg)) {
+                    SettingsChoiceRow(
+                        title = "Appearance",
+                        subtitle = "Light, dark or follow your device",
+                        options = listOf("system" to "System", "light" to "Light", "dark" to "Dark"),
+                        selected = themeMode,
+                        onSelect = { viewModel.setThemeMode(it) }
                     )
                 }
             }

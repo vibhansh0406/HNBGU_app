@@ -14,6 +14,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -95,6 +96,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import `in`.campusone.app.data.preferences.UserPreferencesRepository
 import `in`.campusone.app.data.remote.AuthManager
 import `in`.campusone.app.data.remote.SupabaseSession
 import `in`.campusone.app.data.repository.CoreCampusRepository
@@ -134,6 +136,9 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var supabaseSync: SupabaseSyncRepository
+
+    @Inject
+    lateinit var userPreferences: UserPreferencesRepository
 
     /** Notification target delivered while the app is running (warm start via onNewIntent). */
     private var pendingNotificationTarget by mutableStateOf<Pair<String, String>?>(null)
@@ -241,6 +246,7 @@ class MainActivity : AppCompatActivity() {
         pendingNotificationTarget = handleNotificationIntent(intent)
         setContent {
             NotificationPermissionRequest()
+            val themeMode by userPreferences.themeMode.collectAsStateWithLifecycle(initialValue = "system")
             val config = androidx.compose.ui.platform.LocalConfiguration.current
             val ws = when {
                 config.screenWidthDp < 600 -> `in`.campusone.app.ui.theme.C1WindowSize.COMPACT
@@ -248,7 +254,12 @@ class MainActivity : AppCompatActivity() {
                 config.screenWidthDp < 1200 -> `in`.campusone.app.ui.theme.C1WindowSize.LARGE
                 else -> `in`.campusone.app.ui.theme.C1WindowSize.EXPANDED
             }
-            CampusOneTheme(windowSize = ws) {
+            val darkTheme = when (themeMode) {
+                "light" -> false
+                "dark" -> true
+                else -> isSystemInDarkTheme()
+            }
+            CampusOneTheme(windowSize = ws, darkTheme = darkTheme) {
                 var showSplash by rememberSaveable { mutableStateOf(true) }
                 LaunchedEffect(Unit) {
                     delay(1200)

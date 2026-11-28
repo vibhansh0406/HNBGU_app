@@ -211,7 +211,7 @@ private fun HomeHeader(
                 text = academicYear,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary,
+                color = extendedColors.brandForeground,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
