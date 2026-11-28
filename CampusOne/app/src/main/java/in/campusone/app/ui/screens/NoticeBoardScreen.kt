@@ -38,6 +38,8 @@ import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -240,40 +242,43 @@ fun NoticeBoardScreen(
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) }
                     )
 
-                    // Compact segmented filter (saves vertical space)
-                    C1SegmentedButton(
-                        selected = filterIndex,
-                        onSelectionChange = { filterIndex = it },
-                        labels = listOf(
-                            stringResource(R.string.notices_filter_all),
-                            stringResource(R.string.home_pinned),
-                            if (uiState.unreadNoticeCount > 0) "${stringResource(R.string.notices_filter_unread)} (${uiState.unreadNoticeCount})" else stringResource(R.string.notices_filter_unread),
-                            stringResource(R.string.notice_official)
-                        ),
-                        colors = C1SegmentedButtonColors(
-                            selectedBackground = MaterialTheme.colorScheme.primaryContainer,
-                            selectedContent = MaterialTheme.colorScheme.onPrimaryContainer,
-                            unselectedContent = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
-
-                    // Category chips
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
-                        item {
-                            FilterChip(
-                                selected = selectedCategory == null,
-                                onClick = { selectedCategory = null },
-                                label = { Text(stringResource(R.string.notices_filter_all)) }
+                    // Compact dropdown filter (saves vertical space)
+                    var filterExpanded by remember { mutableStateOf(false) }
+                    var categoryExpanded by remember { mutableStateOf(false) }
+                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
+                        Box {
+                            C1Button(
+                                text = stringResource(R.string.notices_filter_all) + " ▾",
+                                onClick = { filterExpanded = true },
+                                intent = C1ButtonIntent.TONAL
                             )
+                            DropdownMenu(expanded = filterExpanded, onDismissRequest = { filterExpanded = false }) {
+                                listOf(
+                                    stringResource(R.string.notices_filter_all),
+                                    stringResource(R.string.home_pinned),
+                                    if (uiState.unreadNoticeCount > 0) "${stringResource(R.string.notices_filter_unread)} (${uiState.unreadNoticeCount})" else stringResource(R.string.notices_filter_unread),
+                                    stringResource(R.string.notice_official)
+                                ).forEachIndexed { i, label ->
+                                    DropdownMenuItem(text = { Text(label) }, onClick = { filterIndex = i; filterExpanded = false })
+                                }
+                            }
                         }
-                        items(noticeCategories) { category ->
-                            FilterChip(
-                                selected = selectedCategory == category,
-                                onClick = { selectedCategory = category },
-                                label = { Text(noticeCategoryLabel(category)) }
+                        Box {
+                            C1Button(
+                                text = (selectedCategory ?: stringResource(R.string.notices_filter_all)) + " ▾",
+                                onClick = { categoryExpanded = true },
+                                intent = C1ButtonIntent.TONAL
                             )
+                            DropdownMenu(expanded = categoryExpanded, onDismissRequest = { categoryExpanded = false }) {
+                                DropdownMenuItem(text = { Text(stringResource(R.string.notices_filter_all)) }, onClick = { selectedCategory = null; categoryExpanded = false })
+                                noticeCategories.forEach { category ->
+                                    DropdownMenuItem(text = { Text(noticeCategoryLabel(category)) }, onClick = { selectedCategory = category; categoryExpanded = false })
+                                }
+                            }
                         }
                     }
+
+
                 }
             }
 
