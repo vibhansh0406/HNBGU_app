@@ -79,6 +79,8 @@ import `in`.campusone.app.ui.components.C1SectionHeader
 import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1LoadingState
 import `in`.campusone.app.ui.components.C1StatusChip
+import `in`.campusone.app.ui.components.C1SegmentedButton
+import `in`.campusone.app.ui.components.C1SegmentedButtonColors
 import `in`.campusone.app.ui.components.C1TextField
 import `in`.campusone.app.ui.components.C1Tone
 import `in`.campusone.app.ui.theme.C1Radius
@@ -238,46 +240,22 @@ fun NoticeBoardScreen(
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp)) }
                     )
 
-                    // Filter chips
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
-                        item {
-                            FilterChip(
-                                selected = filter == NoticeFilter.ALL,
-                                onClick = { filterIndex = 0 },
-                                label = { Text(stringResource(R.string.notices_filter_all)) }
-                            )
-                        }
-                        item {
-                            FilterChip(
-                                selected = filter == NoticeFilter.PINNED,
-                                onClick = { filterIndex = 1 },
-                                label = { Text(stringResource(R.string.home_pinned)) }
-                            )
-                        }
-                        item {
-                            FilterChip(
-                                selected = filter == NoticeFilter.UNREAD,
-                                onClick = { filterIndex = 2 },
-                                label = {
-                                    val label = stringResource(R.string.notices_filter_unread)
-                                    Text(
-                                        if (uiState.unreadNoticeCount > 0) {
-                                            "$label (${uiState.unreadNoticeCount})"
-                                        } else {
-                                            label
-                                        }
-                                    )
-                                }
-                            )
-                        }
-                        item {
-                            FilterChip(
-                                selected = filter == NoticeFilter.OFFICIAL,
-                                onClick = { filterIndex = 3 },
-                                label = { Text(stringResource(R.string.notice_official)) }
-                            )
-                        }
-                    }
+                    // Compact segmented filter (saves vertical space)
+                    C1SegmentedButton(
+                        selected = filterIndex,
+                        onSelectionChange = { filterIndex = it },
+                        labels = listOf(
+                            stringResource(R.string.notices_filter_all),
+                            stringResource(R.string.home_pinned),
+                            if (uiState.unreadNoticeCount > 0) "${stringResource(R.string.notices_filter_unread)} (${uiState.unreadNoticeCount})" else stringResource(R.string.notices_filter_unread),
+                            stringResource(R.string.notice_official)
+                        ),
+                        colors = C1SegmentedButtonColors(
+                            selectedBackground = MaterialTheme.colorScheme.primaryContainer,
+                            selectedContent = MaterialTheme.colorScheme.onPrimaryContainer,
+                            unselectedContent = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
 
                     // Category chips
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.sm)) {
