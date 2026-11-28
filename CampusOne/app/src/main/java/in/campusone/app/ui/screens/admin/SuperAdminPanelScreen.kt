@@ -55,6 +55,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import `in`.campusone.app.data.repository.AdminPermission
@@ -421,6 +422,12 @@ private fun QuickActionsRow(
                 tint = extendedColors.brandForeground,
                 onClick = onSendNotice
             )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             QuickActionChip(
                 label = "View Reports",
                 subtitle = if (openReports > 0) "$openReports open" else "Queue clear",
@@ -490,13 +497,16 @@ private fun RowScope.QuickActionChip(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -538,6 +548,12 @@ private fun PlatformOverviewGrid(
                 icon = Icons.Default.CheckCircle,
                 tint = MaterialTheme.colorScheme.secondary
             )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             OverviewStatCard(
                 title = "Pending Approvals",
                 value = pendingApprovals.toString(),
@@ -606,15 +622,17 @@ private fun RowScope.OverviewStatCard(
             }
             Text(
                 text = value,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1
             )
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }

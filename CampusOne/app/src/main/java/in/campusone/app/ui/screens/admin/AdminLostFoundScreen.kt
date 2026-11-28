@@ -12,7 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.FindInPage
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,7 +21,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -30,6 +33,7 @@ import `in`.campusone.app.data.local.entity.LostFoundEntity
 import `in`.campusone.app.ui.components.C1AppBar
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
+import `in`.campusone.app.ui.components.C1Dialog
 import `in`.campusone.app.ui.components.C1IconButton
 import `in`.campusone.app.ui.components.C1SurfaceCard
 import `in`.campusone.app.ui.components.C1Tone
@@ -45,6 +49,8 @@ fun AdminLostFoundScreen(
     viewModel: AdminViewModel,
     onBack: () -> Unit
 ) {
+    var pendingDelete by remember { mutableStateOf<LostFoundEntity?>(null) }
+
     Scaffold(
         topBar = {
             C1AppBar(
@@ -86,9 +92,9 @@ fun AdminLostFoundScreen(
                                     Icon(Icons.Default.CheckCircle, contentDescription = "Resolved", tint = extendedColors.brandForeground)
                                 }
                                 C1IconButton(
-                                    onClick = { viewModel.hideLostFound(item.id) },
+                                    onClick = { pendingDelete = item },
                                     content = {
-                                        Icon(Icons.Default.FindInPage, contentDescription = "Hide")
+                                        Icon(Icons.Default.Delete, contentDescription = "Delete")
                                     }
                                 )
                             }
@@ -97,5 +103,25 @@ fun AdminLostFoundScreen(
                 }
             }
         }
+    }
+
+    if (pendingDelete != null) {
+        C1Dialog(
+            title = "Delete Lost & Found item?",
+            onDismiss = { pendingDelete = null },
+            confirmLabel = "Delete",
+            onConfirm = {
+                pendingDelete?.let { viewModel.deleteLostFound(it.id) }
+                pendingDelete = null
+            },
+            confirmIntent = C1ButtonIntent.DANGER,
+            content = {
+                Text(
+                    "\"${pendingDelete?.itemTitle.orEmpty()}\" will be removed permanently.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        )
     }
 }

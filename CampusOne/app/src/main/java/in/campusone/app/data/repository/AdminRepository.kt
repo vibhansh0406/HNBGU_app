@@ -699,6 +699,12 @@ class AdminRepository @Inject constructor(
     suspend fun hideLostFound(id: String) =
         campusLifeDao.hideLostFoundByCr(id)
 
+    suspend fun deleteLostFound(id: String) =
+        campusLifeDao.deleteLostFoundById(id)
+
+    suspend fun deleteLostFoundRemote(id: String): Boolean =
+        supabaseSync.deleteLostFound(id)
+
     // =========================================================================
     // DIRECTORY
     // =========================================================================

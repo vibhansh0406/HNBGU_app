@@ -203,6 +203,9 @@ interface CampusLifeDao {
     @Query("UPDATE lost_found_items SET isHidden = 1 WHERE id = :id")
     suspend fun hideLostFoundByCr(id: String)
 
+    @Query("DELETE FROM lost_found_items WHERE id = :id")
+    suspend fun deleteLostFoundById(id: String)
+
     @Query("SELECT * FROM lost_found_contact_requests ORDER BY createdAtMillis DESC")
     fun observeContactRequests(): Flow<List<LostFoundContactRequestEntity>>
 

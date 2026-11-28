@@ -12,6 +12,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -67,6 +69,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import `in`.campusone.app.R
 import `in`.campusone.app.data.local.entity.AssignmentEntity
@@ -78,6 +81,7 @@ import `in`.campusone.app.data.local.entity.NoticeEntity
 import `in`.campusone.app.data.repository.AdminPermission
 import `in`.campusone.app.ui.components.C1Button
 import `in`.campusone.app.ui.components.C1ButtonIntent
+import `in`.campusone.app.ui.components.C1Dialog
 import `in`.campusone.app.ui.components.C1ElevatedCard
 import `in`.campusone.app.ui.components.C1FilterChip
 import `in`.campusone.app.ui.components.C1IconButton
@@ -112,6 +116,7 @@ fun ModeratorPanelScreen(
     var editingClub by remember { mutableStateOf<ClubEntity?>(null) }
     var openDirectoryDialog by remember { mutableStateOf(false) }
     var editingDirectoryContact by remember { mutableStateOf<DirectoryContactEntity?>(null) }
+    var deletingLostFound by remember { mutableStateOf<LostFoundEntity?>(null) }
 
     Scaffold(
         topBar = {
@@ -352,8 +357,8 @@ fun ModeratorPanelScreen(
                                 Icon(Icons.Default.CheckCircle, contentDescription = "Resolved", tint = extendedColors.brandForeground)
                             }
                             C1IconButton(
-                                onClick = { viewModel.hideLostFound(item.id) },
-                                content = { Icon(Icons.Default.FindInPage, contentDescription = "Hide") }
+                                onClick = { deletingLostFound = item },
+                                content = { Icon(Icons.Default.Delete, contentDescription = "Delete") }
                             )
                         }
                     }
@@ -416,6 +421,26 @@ fun ModeratorPanelScreen(
                 }
             }
         }
+    }
+
+    if (deletingLostFound != null) {
+        C1Dialog(
+            title = "Delete Lost & Found item?",
+            onDismiss = { deletingLostFound = null },
+            confirmLabel = "Delete",
+            onConfirm = {
+                deletingLostFound?.let { viewModel.deleteLostFound(it.id) }
+                deletingLostFound = null
+            },
+            confirmIntent = C1ButtonIntent.DANGER,
+            content = {
+                Text(
+                    "\"${deletingLostFound?.itemTitle.orEmpty()}\" will be removed permanently.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        )
     }
 
     // Notice Dialog
@@ -677,6 +702,12 @@ private fun ModeratorQuickStats(
                 icon = Icons.AutoMirrored.Filled.Assignment,
                 tint = MaterialTheme.colorScheme.secondary
             )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             QuickStatCard(
                 title = "Events",
                 value = events.toString(),
@@ -743,15 +774,17 @@ private fun RowScope.QuickStatCard(
             }
             Text(
                 text = value,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1
             )
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -853,6 +886,7 @@ private fun <T> ModeratorContentCard(
 // =========================================================================
 // DIALOGS
 // =========================================================================
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun NoticeEditorDialog(
     notice: NoticeEntity?,
@@ -934,12 +968,9 @@ private fun NoticeEditorDialog(
                         onCheckedChange = { isOfficial = it }
                     )
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column {
-                        Text("Category: $category", style = MaterialTheme.typography.bodyMedium)
-                    }
-                    Spacer(modifier = Modifier.weight(1f))
-                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                    Text("Category", style = MaterialTheme.typography.bodyMedium)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
                         listOf("GENERAL", "ACADEMIC", "EVENT", "URGENT").forEach { c ->
                             C1FilterChip(
                                 selected = category == c,
@@ -949,12 +980,9 @@ private fun NoticeEditorDialog(
                         }
                     }
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column {
-                        Text("Priority: $priority", style = MaterialTheme.typography.bodyMedium)
-                    }
-                    Spacer(modifier = Modifier.weight(1f))
-                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                    Text("Priority", style = MaterialTheme.typography.bodyMedium)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
                         listOf("HIGH", "NORMAL", "LOW").forEach { p ->
                             C1FilterChip(
                                 selected = priority == p,
@@ -1032,6 +1060,7 @@ private fun NoticeEditorDialog(
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AssignmentEditorDialog(
     assignment: AssignmentEntity?,
@@ -1070,12 +1099,9 @@ private fun AssignmentEditorDialog(
                     singleLine = false,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp)
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column {
-                        Text("Priority: $priority", style = MaterialTheme.typography.bodyMedium)
-                    }
-                    Spacer(modifier = Modifier.weight(1f))
-                    Row(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                Column(verticalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
+                    Text("Priority", style = MaterialTheme.typography.bodyMedium)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(C1Spacing.xs)) {
                         listOf("HIGH", "MEDIUM", "LOW").forEach { p ->
                             C1FilterChip(
                                 selected = priority == p,

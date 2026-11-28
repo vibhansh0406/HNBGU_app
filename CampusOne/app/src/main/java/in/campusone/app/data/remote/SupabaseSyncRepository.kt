@@ -642,6 +642,13 @@ class SupabaseSyncRepository @Inject constructor(
         return result.data as? List<Map<String, Any>> ?: emptyList()
     }
 
+    suspend fun deleteLostFound(itemId: String): Boolean {
+        if (!isSyncedEnabled()) return false
+        val result = supabaseClient.from("lost_found_items").eq("id", itemId).delete()
+        if (!result.isSuccess) logFailure("lost & found delete", result.error)
+        return result.isSuccess
+    }
+
     // =========================================================================
     // DIRECTORY SYNC
     // =========================================================================

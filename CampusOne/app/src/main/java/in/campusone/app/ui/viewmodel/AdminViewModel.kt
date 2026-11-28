@@ -534,6 +534,17 @@ class AdminViewModel @Inject constructor(
         }
     }
 
+    fun deleteLostFound(id: String) {
+        viewModelScope.launch {
+            repository.deleteLostFound(id)
+            val ok = repository.deleteLostFoundRemote(id)
+            _messages.emit(
+                if (ok) "Lost & Found item deleted"
+                else "Item removed on this device, but cloud deletion failed. Check connection and retry."
+            )
+        }
+    }
+
     // =========================================================================
     // DIRECTORY
     // =========================================================================
